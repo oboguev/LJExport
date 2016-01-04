@@ -1,0 +1,14 @@
+Currently comment subtrees of the form "...and 29 more comments..." are not expanded,
+because LiveJounal's "Expand all" action does not expand them.
+
+Should repetitively locate all <span class="b-leaf-seemore-expand"> and trigger an <a> element
+under them until all such span elements are gone.
+
+**********
+
+Perhaps a better solution would be to rework PageReaderBasic to parse the comment tree
+and then execute RPC JSON read operations programmatically, rebuilding the tree until
+all comments are expanded.
+
+This would however have to pull in even more specifics of LJ page structure
+and RPC JSON response structure. 

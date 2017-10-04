@@ -46,8 +46,8 @@ public class Main
         }
     }
 
-    static private boolean aborting;
-    static private boolean logoutFailed = false;
+    private static boolean aborting;
+    private static boolean logoutFailed = false;
     public static Object Lock = new String();
     private static String pagesDir;
     private static String repostsDir;
@@ -59,28 +59,29 @@ public class Main
     private static int nTotal;
     private static AtomicInteger nCurrent;
     public static AtomicInteger unloadablePages;
+    private static Set<String> deadLinks;
 
-    static public void setAborting()
+    public static void setAborting()
     {
         aborting = true;
     }
 
-    static public boolean isAborting()
+    public static boolean isAborting()
     {
         return aborting;
     }
 
-    static public void setLogoutFailed()
+    public static void setLogoutFailed()
     {
         logoutFailed = true;
     }
 
-    static public boolean isLogoutFailed()
+    public static boolean isLogoutFailed()
     {
         return logoutFailed;
     }
 
-    static public void checkAborting() throws Exception
+    public static void checkAborting() throws Exception
     {
         if (isAborting())
             throw new InterruptedException("Aborting");
@@ -113,6 +114,7 @@ public class Main
     {
         try
         {
+            deadLinks = Util.read_list(this, "deadlinks.txt");
             // TODO: parse args or display user interface
             StringTokenizer st = new StringTokenizer(Config.Users, ", \t\r\n");
             int nuser = 0;
@@ -143,7 +145,7 @@ public class Main
         if (isAborting() || isLogoutFailed())
         {
             out("");
-            out("*** Warning: LJExport may not have closed all the created login sessions.");
+            out("*** Warning: LJExport may not have closed all login sessions it created.");
             out("");
             out("             Please check http://www." + Config.Site + "/manage/logins.bml");
             out("             for any leftover sessions and close them manually.");
@@ -211,7 +213,7 @@ public class Main
                 PageReaderSelenium.reinit();
                 if (proxyServer == null)
                     proxyServer = ProxyServer.create();
-                out(">>> Launching browsers");
+                out(">>> Launching slave browsers");
                 break;
             }
 
@@ -260,23 +262,24 @@ public class Main
         }
     }
 
-    static public void out(String s)
+    public static void out(String s)
     {
         System.out.println(s);
     }
 
-    static public void err(String s)
+    public static void err(String s)
     {
+        System.out.flush();
         System.err.println(s);
     }
 
-    static public void err(Exception ex)
+    public static void err(Exception ex)
     {
         err("*** Exception: " + ex.getMessage());
         ex.printStackTrace();
     }
 
-    static public void err(String s, Exception ex)
+    public static void err(String s, Exception ex)
     {
         err(s + ex.getMessage());
         ex.printStackTrace();
@@ -304,7 +307,7 @@ public class Main
                 continue;
 
             if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
-                    || cookie.getName().equals("ljsession"))
+                || cookie.getName().equals("ljsession"))
             {
                 logged_in = true;
             }
@@ -326,7 +329,7 @@ public class Main
                 continue;
 
             if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
-                    || cookie.getName().equals("ljsession"))
+                || cookie.getName().equals("ljsession"))
             {
                 StringTokenizer st = new StringTokenizer(cookie.getValue(), ":");
 
@@ -375,7 +378,7 @@ public class Main
         }
     }
 
-    static public void do_work() throws Exception
+    public static void do_work() throws Exception
     {
         PageReaderHtmlUnit.Context htmlUnitContext = null;
         PageReaderSelenium.Context seleniumContext = null;
@@ -474,7 +477,7 @@ public class Main
         }
     }
 
-    static private String makePageDir(String yyyy_mm) throws Exception
+    private static String makePageDir(String yyyy_mm) throws Exception
     {
         String pageDir = pagesDir + File.separator + yyyy_mm.replace("/", File.separator);
 
@@ -494,7 +497,7 @@ public class Main
         return pageDir;
     }
 
-    static public void saveDebugPage(String name, String content) throws Exception
+    public static void saveDebugPage(String name, String content) throws Exception
     {
         synchronized (Main.class)
         {
@@ -525,7 +528,7 @@ public class Main
         return res;
     }
 
-    static private void enumManualPages() throws Exception
+    private static void enumManualPages() throws Exception
     {
         manualPages = new HashSet<String>();
 
@@ -543,7 +546,7 @@ public class Main
         }
     }
 
-    static public String manualPageLoad(String rurl, int npage) throws Exception
+    public static String manualPageLoad(String rurl, int npage) throws Exception
     {
         String postfix = ".html";
 
@@ -568,9 +571,9 @@ public class Main
 
     /*
      * This routine is intended to skip pages that are not downloadable due to
-     * what appears to be an LJ bug.
+     * an LJ bug (such as Expand link does not expand and does not go away).
      * 
-     * Alternatively, they still can be loaded manually into directory
+     * Alternatively, these pages still can be loaded manually into directory
      * Config.DownloadRoot/Config.User/manual-load
      * as XXXXX.html (for the first page)
      * and XXXXX-page-N.html (for subsequent pages)
@@ -578,50 +581,22 @@ public class Main
      */
     private static boolean skipPage(String rurl) throws Exception
     {
-        if (Config.User.equals("colonelcassad"))
+        if (Config.False && Config.User.equals("colonelcassad"))
         {
             if (rurl.equals("1109403.html") ||
-                    rurl.equals("767534.html") ||
-                    rurl.equals("1801636.html") ||
-                    rurl.equals("1376472.html") ||
-                    rurl.equals("1621888.html") ||
-                    rurl.equals("1519545.html") ||
-                    rurl.equals("2169285.html") ||
-                    rurl.equals("776611.html") ||
-                    rurl.equals("1749117.html") ||
-                    rurl.equals("2307881.html") ||
-                    rurl.equals("2003951.html") ||
-                    rurl.equals("2254859.html") ||
-                    rurl.equals("1687162.html") ||
-                    rurl.equals("1424522.html") ||
-                    rurl.equals("1685641.html") ||
-                    rurl.equals("1762051.html") ||
-                    rurl.equals("865056.html") ||
-                    rurl.equals("1733639.html") ||
-                    rurl.equals("1570374.html") ||
-                    rurl.equals("829258.html") ||
-                    rurl.equals("1753474.html") ||
-                    rurl.equals("670182.html") ||
-                    rurl.equals("1921560.html") ||
-                    rurl.equals("807691.html") ||
-                    rurl.equals("2017670.html") ||
-                    rurl.equals("2341094.html") ||
-                    rurl.equals("1044892.html") ||
-                    rurl.equals("976413.html") ||
-                    rurl.equals("1036375.html") ||
-                    rurl.equals("2412676.html"))
+                rurl.equals("2412676.html"))
             {
                 return true;
             }
         }
-        else if (Config.User.equals("miguel_kud"))
+        else if (Config.False && Config.User.equals("miguel_kud"))
         {
             if (rurl.equals("32069.html"))
             {
                 return true;
             }
         }
-        else if (Config.User.equals("dmitrij_sergeev"))
+        else if (Config.False && Config.User.equals("dmitrij_sergeev"))
         {
             // import just this one record
             if (!rurl.equals("407503.html"))
@@ -629,5 +604,14 @@ public class Main
         }
 
         return false;
+    }
+
+    /*
+     * Check if specified URL is on the list of "dead" Expand links
+     * that do not expand.
+     */
+    public static boolean isDeadLink(String url) throws Exception
+    {
+        return deadLinks.contains(url);
     }
 }

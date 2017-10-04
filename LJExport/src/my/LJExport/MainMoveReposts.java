@@ -17,7 +17,7 @@ import org.jsoup.nodes.*;
  *     - title is blank or the same as the source record
  */
 
-public class MainMoveReposts extends PageParser
+public class MainMoveReposts extends PageParserPassive
 {
     private String pagesDir;
     private String repostsDir;
@@ -103,7 +103,7 @@ public class MainMoveReposts extends PageParser
                 {
                     double fpct = 100.0 * ((double) nCurrent / nTotal);
                     out(">>> Processed [" + Config.User + "] " + nCurrent + "/" + nTotal + " (" + String.format("%.2f", fpct)
-                            + "%)");
+                        + "%)");
                 }
             }
             catch (Exception ex)

@@ -22,9 +22,12 @@ import org.jsoup.nodes.*;
 
 public class PageReaderSelenium extends PageParser implements PageReader
 {
-    static private Object Lock = new String("PageReaderSelenium.Lock");
-    static private int next_session_number = 1;
+    private static Object Lock = new String("PageReaderSelenium.Lock");
+    private static int next_session_number = 1;
     static final int UndelayedLoginSessions = 4;
+    private static final String PROCEED = "<PROCEED>";
+    private WebElement massaction_checkbox;
+    private WebElement massaction_expand;
 
     public static void reinit() throws Exception
     {
@@ -36,7 +39,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
 
     final private boolean saveAsSinglePage = true;
 
-    static public boolean manualOverride = false;
+    public static boolean manualOverride = false;
 
     static class Context
     {
@@ -97,49 +100,16 @@ public class PageReaderSelenium extends PageParser implements PageReader
                 driver.manage().window().setPosition(new org.openqa.selenium.Point(30, 30));
             }
 
+            PageReaderSelenium reader = new PageReaderSelenium("http://" + Config.Site + "/login.bml", null,
+                                                               new Context(driver, false));
+            reader.driver = driver;
+
             // perform login
             delayLogin();
-            long initialLoginTime = System.currentTimeMillis();
-
-            for (;;)
+            if (!reader.login())
             {
-                driver.get("http://" + Config.Site + "/login.bml");
-
-                // Check that login form is present:
-                // .div class=s-body
-                // ...(intermediate nested levels)
-                // ...input id=user name=user class=b-input type=text
-                // ...input id=lj_loginwidget_password name=password class=b-input
-                // ...type=password button name="action:login" type=submit
-                // These elements may be multiple on the page (multiple copies of login form)
-                // with only one of them visible, so find which one it is
-                By by_user = By.xpath(xpathTagClassName("input", "b-input", "user"));
-                By by_password = By.xpath(xpathTagClassName("input", "b-input", "password"));
-                By by_login = By.xpath(xpathTagName("button", "action:login"));
-
-                WebElement el_user = getDisplayed(driver.findElements(by_user));
-                WebElement el_password = getDisplayed(driver.findElements(by_password));
-                WebElement el_login = getDisplayed(driver.findElements(by_login));
-
-                el_user.sendKeys(Config.LoginUser);
-                el_password.sendKeys(Config.LoginPassword);
-                long currentLoginTime = System.currentTimeMillis();
-                el_login.click();
-
-                switch (waitLoginCompletion(driver, initialLoginTime, currentLoginTime))
-                {
-                case LOGGED_IN:
-                    break;
-
-                case RETRY_LOGIN:
-                    continue;
-
-                case FAILED_LOGIN:
-                    driver.quit();
-                    return null;
-                }
-
-                break;
+                driver.quit();
+                return null;
             }
 
             return new Context(driver, true);
@@ -152,14 +122,59 @@ public class PageReaderSelenium extends PageParser implements PageReader
         }
     }
 
-    enum LoginStatus
+    private boolean login() throws Exception
     {
-        LOGGED_IN,
-        RETRY_LOGIN,
-        FAILED_LOGIN
+        long initialLoginTime = System.currentTimeMillis();
+
+        for (;;)
+        {
+            driver.get(this.rurl);
+
+            // Check that login form is present:
+            // .div class=s-body
+            // ...(intermediate nested levels)
+            // ...input id=user name=user class=b-input type=text
+            // ...input id=lj_loginwidget_password name=password class=b-input
+            // ...type=password button name="action:login" type=submit
+            // These elements may be multiple on the page (multiple copies of login form)
+            // with only one of them visible, so find which one it is
+            // By by_user = By.xpath(xpathTagClassContainsName("input", "b-input", "user"));
+            // By by_password = By.xpath(xpathTagClassContainsName("input", "b-input", "password"));
+            // By by_login = By.xpath(xpathTagName("button", "action:login"));
+
+            By by_user = By.xpath(xpathTagId("input", "user"));
+            By by_password = By.xpath(xpathTagId("input", "lj_loginwidget_password"));
+            By by_login = By.xpath(xpathTagName("button", "action:login"));
+
+            WebElement el_user = getDisplayedOne(by_user);
+            WebElement el_password = getDisplayedOne(by_password);
+            WebElement el_login = getDisplayed(driver.findElements(by_login));
+
+            el_user.sendKeys(Config.LoginUser);
+            el_password.sendKeys(Config.LoginPassword);
+            long currentLoginTime = System.currentTimeMillis();
+            el_login.click();
+
+            switch (waitLoginCompletion(driver, initialLoginTime, currentLoginTime))
+            {
+            case LOGGED_IN:
+                return true;
+
+            case RETRY_LOGIN:
+                continue;
+
+            case FAILED_LOGIN:
+                return false;
+            }
+        }
     }
 
-    static private LoginStatus waitLoginCompletion(RemoteWebDriver driver, long initialLoginTime, long currentLoginTime)
+    enum LoginStatus
+    {
+        LOGGED_IN, RETRY_LOGIN, FAILED_LOGIN
+    }
+
+    private static LoginStatus waitLoginCompletion(RemoteWebDriver driver, long initialLoginTime, long currentLoginTime)
             throws Exception
     {
         long dt;
@@ -169,6 +184,10 @@ public class PageReaderSelenium extends PageParser implements PageReader
             String url = driver.getCurrentUrl();
 
             if (Util.isValidPostLoginUrl(url))
+                return LoginStatus.LOGGED_IN;
+
+            String pageHtml = driver.getPageSource();
+            if (pageHtml.contains("You're logged in as"))
                 return LoginStatus.LOGGED_IN;
 
             if (!Util.isLoginPageURL(url))
@@ -201,6 +220,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
         // rurl = "175603.html";  // test: a_bugaev (comments disabled)
         // rurl = "2532366.html"; // test: colonelcassad
         // rurl = "5182367.html"; // test: oboguev (private, no comments)
+        // rurl = "2504913.html"; // test: krylov (unexpandable link)
         this.rurl = rurl;
         this.rid = rurl.substring(0, rurl.indexOf('.'));
         this.fileDir = fileDir + File.separator;
@@ -292,16 +312,18 @@ public class PageReaderSelenium extends PageParser implements PageReader
 
     private String loadPage(int npage, int attempt) throws Exception
     {
-        long t0;
+        long t0 = System.currentTimeMillis();
 
         pageSource = null;
         pageRoot = null;
+        massaction_checkbox = null;
+        massaction_expand = null;
 
         /*
          * Try to load from manual-save override location.
-         * Some pages cannot have their comments expanded, even manually (probably LJ bug),
+         * Some pages cannot have their comments expanded, even manually, due to LJ bug,
          * see e.g. http://oboguev.livejournal.com/701758.html
-         * and need to be loaded from the manual-save area.
+         * and need to be loaded from the manual-override area.
          */
         pageSource = Main.manualPageLoad(rurl, npage);
         if (pageSource != null)
@@ -310,6 +332,38 @@ public class PageReaderSelenium extends PageParser implements PageReader
         /*
          * Perform initial page load
          */
+        String res = loadPage_initial(npage, attempt, t0);
+        if (res != PROCEED)
+            return res;
+
+        /*
+         * See if we need to expand comments 
+         */
+        res = loadPage_checkNeedExpandAllComments(npage, attempt, t0);
+        if (res != PROCEED)
+            return res;
+
+        /*
+         * Expand comments 
+         */
+        pageSource = loadPage_doExpandAllComments(npage, attempt);
+        if (pageSource == null)
+            return null;
+
+        /*
+         * Second round of comment expansion.
+         * 
+         * On some pages, "Expand All" expands some (most) of the comments,
+         * but not all of the comments, leaving elements <span class="b-leaf-seemore-expand">
+         * with text like "...and 27 more comments..." next to them.
+         * We should locate and trigger an <a> element under these span elements
+         * until these span elements are gone.
+         */
+        return loadPage_doExpandMoreComments(npage, attempt);
+    }
+
+    private String loadPage_initial(int npage, int attempt, long t0) throws Exception
+    {
         StringBuilder sb = new StringBuilder();
         sb.append("http://" + Config.MangledUser + "." + Config.Site + "/" + rurl + "?format=light");
         if (npage != 1)
@@ -317,7 +371,6 @@ public class PageReaderSelenium extends PageParser implements PageReader
 
         boolean retry = true;
         int retries = 0;
-        t0 = System.currentTimeMillis();
 
         for (int pass = 0;; pass++)
         {
@@ -368,9 +421,11 @@ public class PageReaderSelenium extends PageParser implements PageReader
             }
         }
 
-        /*
-         * See if we need to expand comments 
-         */
+        return PROCEED;
+    }
+
+    private String loadPage_checkNeedExpandAllComments(int npage, int attempt, long t0) throws Exception
+    {
         try
         {
             if (pageHasNoComments(pageSource))
@@ -401,28 +456,30 @@ public class PageReaderSelenium extends PageParser implements PageReader
             }
         }
 
-        WebElement massaction_checkbox = getOne(b_massaction.findElements(By
+        massaction_checkbox = getOne(b_massaction.findElements(By
                 .xpath(".//input[@id='checkall'][@type='checkbox']")));
-        WebElement massaction_expand = getOne(b_massaction.findElements(By.xpath(".//button[@value='expand'][@type='submit']")));
+        massaction_expand = getOne(b_massaction.findElements(By.xpath(".//button[@value='expand'][@type='submit']")));
 
         if (!b_massaction.isDisplayed() ||
-                !massaction_checkbox.isDisplayed() ||
-                !massaction_expand.isDisplayed())
+            !massaction_checkbox.isDisplayed() ||
+            !massaction_expand.isDisplayed())
         {
             pageRoot = null;
             return driver.getPageSource();
         }
 
-        /*
-         * Expand comments 
-         */
-        sb = new StringBuilder();
+        return PROCEED;
+    }
+
+    private String loadPage_doExpandAllComments(int npage, int attempt) throws Exception
+    {
+        StringBuilder sb = new StringBuilder();
         try (Formatter formatter = new Formatter(sb))
         {
             formatter.format("//li[%1$s and (%2$s or %3$s)]",
-                    elementClassContains("b-leaf-actions-item"),
-                    elementClassContains("b-leaf-actions-expand"),
-                    elementClassContains("b-leaf-actions-expandchilds"));
+                             elementClassContains("b-leaf-actions-item"),
+                             elementClassContains("b-leaf-actions-expand"),
+                             elementClassContains("b-leaf-actions-expandchilds"));
         }
 
         massaction_checkbox.click();
@@ -431,13 +488,14 @@ public class PageReaderSelenium extends PageParser implements PageReader
         /*
          * Wait for comment expansion to complete 
          */
-        t0 = System.currentTimeMillis();
+        long t0 = System.currentTimeMillis();
         long tBlockedCheckInterval = 20 * 1000;
         long tBlockedCheck = t0 - tBlockedCheckInterval / 2;
 
         for (int pass = 0;; pass++)
         {
             Main.checkAborting();
+            boolean page_idle = false;
 
             pageSource = null;
             pageRoot = null;
@@ -460,19 +518,53 @@ public class PageReaderSelenium extends PageParser implements PageReader
                         return null;
                     tBlockedCheck = System.currentTimeMillis();
                 }
+
+                List<WebElement> els = findElementsNow(By.xpath(sb.toString() + "/a"));
+                int clicked = 0;
+
+                driver.manage().timeouts().implicitlyWait(1, TimeUnit.MILLISECONDS);
+                for (WebElement el : els)
+                {
+                    try
+                    {
+                        if (el.isDisplayed() && !isDeadLink(el))
+                        {
+                            el.click();
+                            clicked++;
+                        }
+                    }
+                    catch (org.openqa.selenium.StaleElementReferenceException ex)
+                    {
+                        clicked++;
+                    }
+                    catch (Throwable tex)
+                    {
+                        driver.manage().timeouts().implicitlyWait(Config.Timeout, TimeUnit.SECONDS);
+                        throw tex;
+                    }
+                }
+                driver.manage().timeouts().implicitlyWait(Config.Timeout, TimeUnit.SECONDS);
+
+                if (clicked == 0)
+                    page_idle = true;
             }
             else
+            {
+                page_idle = true;
+            }
+
+            if (page_idle)
             {
                 pageSource = driver.getPageSource();
                 if (isBlockedPage(pageSource))
                     return null;
-                if (!isLoadingPage(pageSource))
+                if (!isLoadingPage(pageSource) && isStable(pageSource))
                     return pageSource;
             }
 
             if (System.currentTimeMillis() - t0 > Config.Timeout * 1000)
             {
-                // if page is stuck, retry 2 times from the very start before giving up
+                // if the page is stuck, retry 2 times from the very start before giving up
                 if (attempt < 3)
                 {
                     return loadPage(npage, attempt + 1);
@@ -490,6 +582,85 @@ public class PageReaderSelenium extends PageParser implements PageReader
         }
     }
 
+    private String loadPage_doExpandMoreComments(int npage, int attempt) throws Exception
+    {
+        // Repeatedly locate all <span class="b-leaf-seemore-expand"> and trigger an <a> element
+        // under them until all such span elements are gone.
+
+        // span class="b-leaf-seemore-expand"
+        //         a=class="b-pseudo" target="_self" href="..." rel="nofollow"
+        //             text=Expand
+
+        StringBuilder sb = new StringBuilder();
+        try (Formatter formatter = new Formatter(sb))
+        {
+            formatter.format("//span[%1$s]/a", elementClassContains("b-leaf-seemore-expand"));
+        }
+
+        long t0 = System.currentTimeMillis();
+
+        for (int pass = 0;; pass++)
+        {
+            if (!pageSource.contains("b-leaf-seemore-expand") && isStable(pageSource))
+                return pageSource;
+
+            Main.checkAborting();
+
+            List<WebElement> els = findElementsNow(By.xpath(sb.toString()));
+            if (els.size() == 0)
+            {
+                pageSource = driver.getPageSource();
+
+                if (isBlockedPage(pageSource))
+                    return null;
+                else if (isStable(pageSource))
+                    return pageSource;
+            }
+
+            if (System.currentTimeMillis() - t0 > Config.Timeout * 1000)
+            {
+                // if page is stuck, retry 2 times from the very start before giving up
+                if (attempt < 3)
+                {
+                    return loadPage(npage, attempt + 1);
+                }
+                else
+                {
+                    Main.saveDebugPage("badpage-unable-expand-remaining-comments.html", driver.getPageSource());
+                    if (Main.unloadablePages.incrementAndGet() < Config.UnloadablePagesAllowed)
+                        return null;
+                    throw new Exception("Unable to expand remaining comments");
+                }
+            }
+
+            driver.manage().timeouts().implicitlyWait(1, TimeUnit.MILLISECONDS);
+            for (WebElement el : els)
+            {
+                try
+                {
+                    el.click();
+                }
+                catch (org.openqa.selenium.StaleElementReferenceException ex)
+                {
+                }
+                catch (Throwable tex)
+                {
+                    driver.manage().timeouts().implicitlyWait(Config.Timeout, TimeUnit.SECONDS);
+                    throw tex;
+                }
+            }
+            driver.manage().timeouts().implicitlyWait(Config.Timeout, TimeUnit.SECONDS);
+
+            Thread.sleep(sleepTime(500, 3000, pass));
+
+            Main.checkAborting();
+
+            pageSource = driver.getPageSource();
+            if (isBlockedPage(pageSource))
+                return null;
+        }
+    }
+
     private int sleepTime(int t1, int t2, int pass)
     {
         int t = t1;
@@ -504,7 +675,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
         return t;
     }
 
-    static private WebElement getOneOptional(List<WebElement> els) throws Exception
+    private static WebElement getOneOptional(List<WebElement> els) throws Exception
     {
         if (els.size() == 0)
             return null;
@@ -513,7 +684,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
         return els.get(0);
     }
 
-    static private WebElement getOne(List<WebElement> els) throws Exception
+    private static WebElement getOne(List<WebElement> els) throws Exception
     {
         if (els.size() == 0)
             throw new Exception("Unable to find required element in the page");
@@ -528,11 +699,11 @@ public class PageReaderSelenium extends PageParser implements PageReader
 
         for (;;)
         {
-            List<WebElement> els = driver.findElements(by);
-            driver.manage().timeouts().implicitlyWait(500, TimeUnit.MILLISECONDS);
+            List<WebElement> els = findElementsNow(by);
 
             try
             {
+                driver.manage().timeouts().implicitlyWait(1, TimeUnit.MILLISECONDS);
                 return anyDisplayed(els);
             }
             catch (org.openqa.selenium.StaleElementReferenceException ex)
@@ -544,13 +715,14 @@ public class PageReaderSelenium extends PageParser implements PageReader
             }
 
             Main.checkAborting();
+
             if (System.currentTimeMillis() - t0 > Config.Timeout * 1000)
                 throw new Exception("Unable to check whether comments have been expanded");
         }
 
     }
 
-    static private boolean anyDisplayed(List<WebElement> els) throws Exception
+    private static boolean anyDisplayed(List<WebElement> els) throws Exception
     {
         for (WebElement el : els)
         {
@@ -560,7 +732,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
         return false;
     }
 
-    static private WebElement getDisplayed(List<WebElement> els) throws Exception
+    private static WebElement getDisplayed(List<WebElement> els) throws Exception
     {
         for (WebElement el : els)
         {
@@ -570,7 +742,37 @@ public class PageReaderSelenium extends PageParser implements PageReader
         throw new Exception("Unable to find required visible element in the page");
     }
 
-    static private List<WebElement> selectDisplayed(List<WebElement> els) throws Exception
+    private WebElement getDisplayedOne(By by) throws Exception
+    {
+        long t0 = System.currentTimeMillis();
+
+        try
+        {
+            driver.manage().timeouts().implicitlyWait(1, TimeUnit.MILLISECONDS);
+
+            for (;;)
+            {
+                List<WebElement> els = driver.findElements(by);
+                els = selectDisplayed(els);
+
+                if (els.size() == 1)
+                    return els.get(0);
+                else if (els.size() != 0)
+                    throw new Exception("Multiple elements are visible");
+
+                if (System.currentTimeMillis() - t0 > Config.Timeout)
+                    throw new Exception("Unable to find required visible element");
+
+                Thread.sleep(100);
+            }
+        }
+        finally
+        {
+            driver.manage().timeouts().implicitlyWait(Config.Timeout, TimeUnit.SECONDS);
+        }
+    }
+
+    private static List<WebElement> selectDisplayed(List<WebElement> els) throws Exception
     {
         List<WebElement> vels = new ArrayList<WebElement>();
         for (WebElement el : els)
@@ -581,7 +783,20 @@ public class PageReaderSelenium extends PageParser implements PageReader
         return vels;
     }
 
-    static private void delayLogin() throws Exception
+    private List<WebElement> findElementsNow(By by) throws Exception
+    {
+        try
+        {
+            driver.manage().timeouts().implicitlyWait(1, TimeUnit.MILLISECONDS);
+            return driver.findElements(by);
+        }
+        finally
+        {
+            driver.manage().timeouts().implicitlyWait(Config.Timeout, TimeUnit.SECONDS);
+        }
+    }
+
+    private static void delayLogin() throws Exception
     {
         int sn;
 
@@ -633,6 +848,33 @@ public class PageReaderSelenium extends PageParser implements PageReader
             throw new Exception("Unable to find logout URL");
 
         driver.get(sb.toString());
+    }
+
+    private boolean isStable(String src) throws Exception
+    {
+        Thread.sleep(Config.StableIntevral);
+        return getPageSource().equals(src);
+    }
+
+    private boolean isDeadLink(WebElement el) throws Exception
+    {
+        try
+        {
+            String tag = el.getTagName();
+            if (tag == null || !tag.equalsIgnoreCase("a"))
+                return false;
+
+            String href = el.getAttribute("href");
+            if (href == null || href.length() == 0)
+                return false;
+
+            return Main.isDeadLink(href);
+        }
+        catch (org.openqa.selenium.StaleElementReferenceException ex)
+        {
+        }
+
+        return false;
     }
 
     @Override

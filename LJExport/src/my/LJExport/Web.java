@@ -20,18 +20,18 @@ import java.nio.charset.StandardCharsets;
 
 public class Web
 {
-    static public CloseableHttpClient httpClient;
-    static public CookieStore cookieStore;
-    static private ThreadLocal<String> lastURL;
+    public static CloseableHttpClient httpClient;
+    public static CookieStore cookieStore;
+    private static ThreadLocal<String> lastURL;
 
-    static public class Response
+    public static class Response
     {
         public int code;
         public String reason;
         public String body = new String("");
     }
 
-    static public void init() throws Exception
+    public static void init() throws Exception
     {
         DefaultProxyRoutePlanner routePlanner = null;
 
@@ -78,7 +78,7 @@ public class Web
         httpClient = hcb.build();
     }
 
-    static public void shutdown() throws Exception
+    public static void shutdown() throws Exception
     {
         cookieStore = null;
         lastURL = null;
@@ -92,12 +92,12 @@ public class Web
         }
     }
 
-    static public CookieStore getCookieStore() throws Exception
+    public static CookieStore getCookieStore() throws Exception
     {
         return cookieStore;
     }
 
-    static public Response get(String url) throws Exception
+    public static Response get(String url) throws Exception
     {
         lastURL.set(url);
         Response r = new Response();
@@ -144,7 +144,7 @@ public class Web
         return r;
     }
 
-    static public Response post(String url, String body) throws Exception
+    public static Response post(String url, String body) throws Exception
     {
         lastURL.set(url);
         Response r = new Response();
@@ -193,7 +193,7 @@ public class Web
         return r;
     }
 
-    static private void setCommon(HttpRequestBase request) throws Exception
+    private static void setCommon(HttpRequestBase request) throws Exception
     {
         request.setHeader("User-Agent", Config.UserAgent);
         request.setHeader("Accept", Config.UserAgentAccept);
@@ -202,22 +202,22 @@ public class Web
         request.setHeader("Pragma", "no-cache");
     }
 
-    static public String describe(int sc) throws Exception
+    public static String describe(int sc) throws Exception
     {
         return "HTTP status code " + sc;
     }
 
-    static public String escape(String s) throws Exception
+    public static String escape(String s) throws Exception
     {
         return StringEscapeUtils.escapeHtml4(s);
     }
 
-    static public String unescape(String s) throws Exception
+    public static String unescape(String s) throws Exception
     {
         return StringEscapeUtils.unescapeHtml4(s);
     }
 
-    static public String getLastURL() throws Exception
+    public static String getLastURL() throws Exception
     {
         return lastURL.get();
     }

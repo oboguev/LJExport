@@ -269,7 +269,7 @@ public class PageReaderBasic implements PageReader
         return npages;
     }
 
-    static public void out(String s) throws Exception
+    public static void out(String s) throws Exception
     {
         Main.out(s);
     }

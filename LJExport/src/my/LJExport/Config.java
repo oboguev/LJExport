@@ -1,6 +1,16 @@
 package my.LJExport;
 
 import java.io.Console;
+import java.io.File;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 
@@ -13,35 +23,36 @@ public class Config
     /******************************/
 
     /* Login username */
-    static public String LoginUser = "oboguev";
+    public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    static public String Users = "krylov";
-    // static public String Users = "a_bugaev,tor85,oboguev,morky,krylov,rms1,holmogor,miguel_kud,colonelcassad";
+    public static String Users = "oboguev";
+    // public static String Users = "a_bugaev,tor85,oboguev,morky,krylov,rms1,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
 
     /* Directory path to store downloaded files */
-    static public String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
-    // static public String DownloadRoot = "/home/sergey/LJExport/journals";
+    public static String DownloadRoot = "R:";
+    // public static String DownloadRoot = "C:\\WINAPPS\\LJExport\\journals";
+    // public static String DownloadRoot = "/home/sergey/LJExport/journals";
 
     /* Proxy server */
-    static public String Proxy = null;
-    // static public String Proxy = "http://proxy.xxx.com:8080";
+    public static String Proxy = null;
+    // public static String Proxy = "http://proxy.xxx.com:8080";
 
     /* Range of dates to download (inclusive) */
-    static public YYYY_MM LoadSince = null;
-    static public YYYY_MM LoadTo = null;
-    // static public YYYY_MM LoadSince = new YYYY_MM(2004, 10);
-    // static public YYYY_MM LoadTo = new YYYY_MM(2006, 3);
+    // public static YYYY_MM LoadSince = null;
+    public static YYYY_MM LoadSince = new YYYY_MM(2017, 4); // ###
+    public static YYYY_MM LoadTo = null;
+    // public static YYYY_MM LoadTo = new YYYY_MM(2004, 12);
 
     /* Whether to reload files already existing at DownloadRoot */
-    static public boolean ReloadExistingFiles = false;
+    public static boolean ReloadExistingFiles = false;
 
     /* Minimum and maximum number of unloadable pages allowed before the download aborts */
-    static public int MinUnloadablePagesAllowed = 20;
-    static public int MaxUnloadablePagesAllowed = 50;
+    public static int MinUnloadablePagesAllowed = 20;
+    public static int MaxUnloadablePagesAllowed = 50;
 
-    // static public int MinUnloadablePagesAllowed = 100;
-    // static public int MaxUnloadablePagesAllowed = 100;
+    // public static int MinUnloadablePagesAllowed = 100;
+    // public static int MaxUnloadablePagesAllowed = 100;
 
     /**************************/
     /** TECHNICAL PARAMETERS **/
@@ -49,52 +60,73 @@ public class Config
 
     public enum WebMethod
     {
-        BASIC,
-        SELENIUM,
-        HTML_UNIT
+        BASIC, SELENIUM, HTML_UNIT
     };
 
-    static public WebMethod Method = Config.WebMethod.SELENIUM;
-    static public String Site = "livejournal.com";
-    static public String AllowedUrlSites[] = { "livejournal.com", "livejournal.net" };
-    static public String LoginPassword = null;
-    static public String User = null;
-    static public String MangledUser = null;
-    static public String UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
-    static public String UserAgentAccept = "text/html, application/xhtml+xml, */*";
-    static public String UserAgentAcceptEncoding = "gzip, deflate";
-    static public int Timeout = 150;
-    static public int NWorkThreads = 0;
-    static public int ThreadsPerCPU = 2;
-    static public int MaxThreads = 6;
-    static public String TrustStore = null;
-    static public String TrustStorePassword = null;
-    static public int ProxyThreadsPerThread = 10;
-    static public int MaxProxyThreads = 200;
-    static public String ProxyBlockingMessage = "The requested website is blocked";
-    static public int UnloadablePagesAllowed;
-    static public boolean RandomizeLoadOrder = true;
+    public static WebMethod Method = Config.WebMethod.SELENIUM;
+    public static String Site = "livejournal.com";
+    public static String AllowedUrlSites[] = { "livejournal.com", "livejournal.net" };
+    public static String LoginPassword = null;
+    public static String User = null;
+    public static String MangledUser = null;
+    public static String UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
+    public static String UserAgentAccept = "text/html, application/xhtml+xml, */*";
+    public static String UserAgentAcceptEncoding = "gzip, deflate";
+    public static BrowserVersion HtmlUnitBrowserVersion = BrowserVersion.FIREFOX_38;
+    public static int Timeout = 150;
+    public static int NWorkThreads = 0;
+    public static int ThreadsPerCPU = 2;
+    public static int MaxThreads = 8;
+    public static String TrustStore = null;
+    public static String TrustStorePassword = null;
+    public static int ProxyThreadsPerThread = 10;
+    public static int MaxProxyThreads = 200;
+    public static String ProxyBlockingMessage = "The requested website is blocked";
+    public static int UnloadablePagesAllowed;
+    public static boolean RandomizeLoadOrder = true;
+    public static int StableIntevral = 3000;
 
-    static public boolean UseFiddler = false;
-    static public String FiddlerTrustStore = "F:\\WINAPPS\\LJExport\\fiddler\\FiddlerKeystore";
-    static public String FidlerTrustStorePassword = null;
+    public static boolean UseFiddler = false;
+    public static String FiddlerTrustStore = null;
+    public static String FidlerTrustStorePassword = null;
 
-    static public BrowserVersion HtmlUnitBrowserVersion = BrowserVersion.FIREFOX_38;
+    public static boolean TrustAnySSL = true;
+
+    public static String NullFile = null;
 
     public static void init(String user) throws Exception
     {
         User = user;
         mangleUser();
 
+        // http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/ReadDebug.html
+        // System.setProperty("javax.net.debug", "all");
+
+        if (new File("/dev/null").exists())
+            NullFile = "/dev/null";
+        else
+            NullFile = "NUL";
+
         if (UseFiddler)
         {
-            Proxy = "localhost:8888";
+            Proxy = "http://localhost:8888";
 
             if (TrustStore == null && FiddlerTrustStore != null)
             {
                 TrustStore = FiddlerTrustStore;
                 TrustStorePassword = FidlerTrustStorePassword;
             }
+        }
+
+        if (TrustAnySSL)
+        {
+            SSLContext sslContext = SSLContext.getInstance("SSL");
+
+            // set up a TrustManager that trusts everything
+            TrustManager[] trustManagers = new TrustManager[1];
+            trustManagers[0] = new LooseTrustManager();
+            sslContext.init(null, trustManagers, new SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
         }
 
         if (Method == Config.WebMethod.HTML_UNIT)
@@ -142,5 +174,28 @@ public class Config
         }
 
         MangledUser = sb.toString();
+    }
+
+    /* development aids */
+    public static boolean True = true;
+    public static boolean False = false;
+
+    public static class LooseTrustManager implements X509TrustManager
+    {
+        public X509Certificate[] getAcceptedIssuers()
+        {
+            // System.err.println("getAcceptedIssuers =============");
+            return new X509Certificate[0];
+        }
+
+        public void checkClientTrusted(X509Certificate[] certs, String authType)
+        {
+            // System.err.println("checkClientTrusted =============");
+        }
+
+        public void checkServerTrusted(X509Certificate[] certs, String authType)
+        {
+            // System.err.println("checkServerTrusted =============");
+        }
     }
 }

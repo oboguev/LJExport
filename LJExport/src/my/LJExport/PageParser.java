@@ -11,9 +11,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 
-public class PageParser
+abstract public class PageParser
 {
-    static public class MissingCommentsTreeRootException extends Exception
+    public static class MissingCommentsTreeRootException extends Exception
     {
         MissingCommentsTreeRootException(String s)
         {
@@ -36,12 +36,12 @@ public class PageParser
     protected String rurl;
     protected String rid;
 
-    static public void out(String s)
+    public static void out(String s)
     {
         Main.out(s);
     }
 
-    static public void err(String s)
+    public static void err(String s)
     {
         Main.err(s);
     }
@@ -611,7 +611,7 @@ public class PageParser
     protected boolean matchTagClass(Node n, String name, String cls) throws Exception
     {
         return (name == null || JSOUP.nodeName(n).equalsIgnoreCase(name)) &&
-                (cls == null || JSOUP.classContains(JSOUP.getAttribute(n, "class"), cls));
+               (cls == null || JSOUP.classContains(JSOUP.getAttribute(n, "class"), cls));
     }
 
     protected boolean isEmpty(String s) throws Exception
@@ -662,6 +662,16 @@ public class PageParser
         }
     }
 
+    static protected String xpathTagClassContainsName(String tag, String cl, String name) throws Exception
+    {
+        StringBuilder sb = new StringBuilder();
+        try (Formatter formatter = new Formatter(sb))
+        {
+            formatter.format("//%1$s[contains(@class, '%2$s')][@name='%3$s']", tag, cl, name);
+            return sb.toString();
+        }
+    }
+
     static protected String xpathTagName(String tag, String name) throws Exception
     {
         StringBuilder sb = new StringBuilder();
@@ -672,8 +682,15 @@ public class PageParser
         }
     }
 
-    protected String getPageSource() throws Exception
+    static protected String xpathTagId(String tag, String id) throws Exception
     {
-        throw new Exception("Subclass must implement getPageSource");
+        StringBuilder sb = new StringBuilder();
+        try (Formatter formatter = new Formatter(sb))
+        {
+            formatter.format("//%1$s[@id='%2$s']", tag, id);
+            return sb.toString();
+        }
     }
+
+    abstract protected String getPageSource() throws Exception;
 }

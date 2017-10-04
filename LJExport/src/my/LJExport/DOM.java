@@ -3,6 +3,7 @@ package my.LJExport;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.xml.sax.EntityResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -20,7 +21,7 @@ import org.htmlcleaner.*;
 
 public class DOM
 {
-    static public void out(String s) throws Exception
+    public static void out(String s) throws Exception
     {
         Main.out(s);
     }
@@ -41,7 +42,7 @@ public class DOM
         flatten(vec, el.getNextSibling());
     }
 
-    static public Node parseHtmlAsXml(String html) throws Exception
+    public static Node parseHtmlAsXml(String html) throws Exception
     {
         CleanerProperties props = new CleanerProperties();
         props.setAdvancedXmlEscape(true);
@@ -57,6 +58,23 @@ public class DOM
         dbf.setCoalescing(true);
         dbf.setIgnoringComments(true);
         DocumentBuilder db = dbf.newDocumentBuilder();
+        db.setEntityResolver(new EntityResolver()
+        {
+            @Override
+            public InputSource resolveEntity(String publicId, String systemId)
+                    throws SAXException, IOException
+            {
+                if (systemId.contains("foo.dtd"))
+                {
+                    return new InputSource(new StringReader(""));
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        });
+
         Document doc = null;
 
         xml = removeDoctype(xml);
@@ -78,20 +96,26 @@ public class DOM
         return doc.getDocumentElement();
     }
 
-    static private String removeDoctype(String xml) throws Exception
+    private static String removeDoctype(String xml) throws Exception
     {
-        final String doctype = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">";
+        final String pre = "<!doctype ";
+        final int prelen = pre.length();
         final String newdoctype = "<!DOCTYPE html>";
-        int k = xml.indexOf(doctype);
-        if (k != -1)
-        {
-            int len = doctype.length();
-            xml = xml.substring(0, k) + newdoctype + xml.substring(k + len);
-        }
+
+        int k1 = xml.toLowerCase().indexOf(pre);
+        if (k1 == -1)
+            return xml;
+
+        int k2 = xml.indexOf('>', k1);
+        if (k2 == -1)
+            throw new Exception("Unterminated DOCTYPE");
+
+        xml = xml.substring(0, k1) + newdoctype + xml.substring(k2 + 1);
+
         return xml;
     }
 
-    static public Vector<String> extractHrefs(String html) throws Exception
+    public static Vector<String> extractHrefs(String html) throws Exception
     {
         Vector<String> vs = new Vector<String>();
         Vector<Node> vnodes = flatten(parseHtmlAsXml(html));
@@ -111,7 +135,7 @@ public class DOM
         return vs;
     }
 
-    static public void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1)
+    public static void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1)
             throws Exception
     {
         if (pageFlat == null)
@@ -120,7 +144,7 @@ public class DOM
         removeElements(pageRoot, vel);
     }
 
-    static public void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1, String an2,
+    public static void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1, String an2,
             String av2) throws Exception
     {
         if (pageFlat == null)
@@ -129,7 +153,7 @@ public class DOM
         removeElements(pageRoot, vel);
     }
 
-    static public Vector<Node> findElements(Vector<Node> pageFlat, String tagname) throws Exception
+    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname) throws Exception
     {
         Vector<Node> vel = new Vector<Node>();
 
@@ -146,7 +170,7 @@ public class DOM
         return vel;
     }
 
-    static public Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1) throws Exception
+    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1) throws Exception
     {
         Vector<Node> vel = new Vector<Node>();
         Element el;
@@ -171,7 +195,7 @@ public class DOM
         return vel;
     }
 
-    static public Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1, String an2, String av2)
+    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1, String an2, String av2)
             throws Exception
     {
         Vector<Node> vel = new Vector<Node>();
@@ -201,7 +225,7 @@ public class DOM
         return vel;
     }
 
-    static public void removeElements(Node pageRoot, Vector<Node> vnodes) throws Exception
+    public static void removeElements(Node pageRoot, Vector<Node> vnodes) throws Exception
     {
         for (Node n : vnodes)
         {
@@ -211,7 +235,7 @@ public class DOM
         }
     }
 
-    static public void enumParents(Set<Node> parents, Node n) throws Exception
+    public static void enumParents(Set<Node> parents, Node n) throws Exception
     {
         for (;;)
         {
@@ -223,12 +247,12 @@ public class DOM
         }
     }
 
-    static public void dumpNode(Node n) throws Exception
+    public static void dumpNode(Node n) throws Exception
     {
         dumpNode(n, "*** ");
     }
 
-    static public void dumpNode(Node n, String prefix) throws Exception
+    public static void dumpNode(Node n, String prefix) throws Exception
     {
         StringBuilder sb = new StringBuilder(n.getNodeName());
         String av;
@@ -245,12 +269,12 @@ public class DOM
         out(prefix + sb.toString());
     }
 
-    static public void dumpNodeOffset(Node n) throws Exception
+    public static void dumpNodeOffset(Node n) throws Exception
     {
         dumpNodeOffset(n, null);
     }
 
-    static public void dumpNodeOffset(Node n, String comment) throws Exception
+    public static void dumpNodeOffset(Node n, String comment) throws Exception
     {
         int level = 0;
         Node p;
@@ -271,7 +295,7 @@ public class DOM
         dumpNode(n, sb.toString());
     }
 
-    static public String getAttribute(Node n, String name) throws Exception
+    public static String getAttribute(Node n, String name) throws Exception
     {
         if (!(n instanceof Element))
             return null;
@@ -289,7 +313,7 @@ public class DOM
             return null;
     }
 
-    static public String emitHtml(Node pageRoot) throws Exception
+    public static String emitHtml(Node pageRoot) throws Exception
     {
         TransformerFactory tf = TransformerFactory.newInstance();
         Transformer transformer = tf.newTransformer();

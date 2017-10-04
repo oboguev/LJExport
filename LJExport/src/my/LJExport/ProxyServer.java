@@ -38,7 +38,7 @@ public class ProxyServer
     private int clientToProxyWorkerThreads = 0;
     private int proxyToServerWorkerThreads = 0;
 
-    static public ProxyServer create() throws Exception
+    public static ProxyServer create() throws Exception
     {
         int nt = Config.NWorkThreads * Config.ProxyThreadsPerThread;
         nt = Math.min(nt, Config.MaxProxyThreads / 2);
@@ -48,7 +48,7 @@ public class ProxyServer
         return proxy_server;
     }
 
-    static public class FilterAdapter extends HttpFiltersAdapter
+    public static class FilterAdapter extends HttpFiltersAdapter
     {
         private ProxyServer proxy;
 
@@ -71,7 +71,7 @@ public class ProxyServer
         }
     }
 
-    static public class Filter extends HttpFiltersSourceAdapter
+    public static class Filter extends HttpFiltersSourceAdapter
     {
         ProxyServer proxy;
 

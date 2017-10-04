@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre1.8.0_121"/>
 	<classpathentry kind="lib" path="libs/Apache-HttpComponents/fluent-hc-4.5.1.jar"/>
 	<classpathentry kind="lib" path="libs/Apache-HttpComponents/httpclient-4.5.1.jar"/>
 	<classpathentry kind="lib" path="libs/Apache-HttpComponents/httpclient-cache-4.5.1.jar"/>

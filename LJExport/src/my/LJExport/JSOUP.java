@@ -14,22 +14,22 @@ public class JSOUP
         Main.out(s);
     }
 
-    static public Element makeElement(String tagname, Node nref) throws Exception
+    public static Element makeElement(String tagname, Node nref) throws Exception
     {
         return new Element(Tag.valueOf(tagname), nref.baseUri(), new Attributes());
     }
 
-    static public Element makeElement(String tagname, String baseUri) throws Exception
+    public static Element makeElement(String tagname, String baseUri) throws Exception
     {
         return new Element(Tag.valueOf(tagname), baseUri, new Attributes());
     }
 
-    static public Vector<Node> getChildren(Node n) throws Exception
+    public static Vector<Node> getChildren(Node n) throws Exception
     {
         return new Vector(n.childNodes());
     }
 
-    static public Node getParent(Node n) throws Exception
+    public static Node getParent(Node n) throws Exception
     {
         Node p = n.parent();
         if (p == n)
@@ -37,7 +37,7 @@ public class JSOUP
         return p;
     }
 
-    static public void addChild(Node parent, Node child) throws Exception
+    public static void addChild(Node parent, Node child) throws Exception
     {
         int nc = parent.childNodeSize();
         if (nc == 0)
@@ -45,7 +45,7 @@ public class JSOUP
         parent.childNode(nc - 1).after(child);
     }
 
-    static public String getAttribute(Node n, String name) throws Exception
+    public static String getAttribute(Node n, String name) throws Exception
     {
         if (!(n instanceof Element))
             return null;
@@ -105,12 +105,12 @@ public class JSOUP
         return n.nextSibling();
     }
 
-    static public Vector<Node> findElements(Node root, String tagname) throws Exception
+    public static Vector<Node> findElements(Node root, String tagname) throws Exception
     {
         return findElements(flatten(root), tagname);
     }
 
-    static public Vector<Node> findElements(Vector<Node> pageFlat, String tagname) throws Exception
+    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname) throws Exception
     {
         Vector<Node> vel = new Vector<Node>();
 
@@ -127,7 +127,7 @@ public class JSOUP
         return vel;
     }
 
-    static public Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1) throws Exception
+    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1) throws Exception
     {
         Vector<Node> vel = new Vector<Node>();
         Element el;
@@ -152,7 +152,7 @@ public class JSOUP
         return vel;
     }
 
-    static public Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1, String an2, String av2)
+    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1, String an2, String av2)
             throws Exception
     {
         Vector<Node> vel = new Vector<Node>();
@@ -182,12 +182,12 @@ public class JSOUP
         return vel;
     }
 
-    static public Vector<Node> findElementsWithClass(Node root, String tagname, String cls) throws Exception
+    public static Vector<Node> findElementsWithClass(Node root, String tagname, String cls) throws Exception
     {
         return findElementsWithClass(flatten(root), tagname, cls);
     }
 
-    static public Vector<Node> findElementsWithClass(Vector<Node> pageFlat, String tagname, String cls) throws Exception
+    public static Vector<Node> findElementsWithClass(Vector<Node> pageFlat, String tagname, String cls) throws Exception
     {
         Vector<Node> vel = new Vector<Node>();
         Element el;
@@ -211,7 +211,7 @@ public class JSOUP
         return vel;
     }
 
-    static public boolean classContains(String clist, String cls) throws Exception
+    public static boolean classContains(String clist, String cls) throws Exception
     {
         if (clist == null)
             return false;
@@ -232,12 +232,12 @@ public class JSOUP
         return false;
     }
 
-    static public void removeElementsWithClass(Node pageRoot, String tagname, String cls) throws Exception
+    public static void removeElementsWithClass(Node pageRoot, String tagname, String cls) throws Exception
     {
         removeElementsWithClass(pageRoot, null, tagname, cls);
     }
 
-    static public void removeElementsWithClass(Node pageRoot, Vector<Node> pageFlat, String tagname, String cls) throws Exception
+    public static void removeElementsWithClass(Node pageRoot, Vector<Node> pageFlat, String tagname, String cls) throws Exception
     {
         if (pageFlat == null)
             pageFlat = flatten(pageRoot);
@@ -245,12 +245,12 @@ public class JSOUP
         removeElements(pageRoot, vel);
     }
 
-    static public void removeElements(Node pageRoot, String tagname, String an1, String av1) throws Exception
+    public static void removeElements(Node pageRoot, String tagname, String an1, String av1) throws Exception
     {
         removeElements(pageRoot, null, tagname, an1, av1);
     }
 
-    static public void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1)
+    public static void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1)
             throws Exception
     {
         if (pageFlat == null)
@@ -259,13 +259,13 @@ public class JSOUP
         removeElements(pageRoot, vel);
     }
 
-    static public void removeElements(Node pageRoot, String tagname, String an1, String av1, String an2, String av2)
+    public static void removeElements(Node pageRoot, String tagname, String an1, String av1, String an2, String av2)
             throws Exception
     {
         removeElements(pageRoot, null, tagname, an1, av1, an2, av2);
     }
 
-    static public void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1, String an2,
+    public static void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1, String an2,
             String av2) throws Exception
     {
         if (pageFlat == null)
@@ -274,7 +274,7 @@ public class JSOUP
         removeElements(pageRoot, vel);
     }
 
-    static public void removeElements(Node pageRoot, Vector<Node> vnodes) throws Exception
+    public static void removeElements(Node pageRoot, Vector<Node> vnodes) throws Exception
     {
         for (Node n : vnodes)
         {
@@ -282,17 +282,17 @@ public class JSOUP
         }
     }
 
-    static public void removeNode(Node n) throws Exception
+    public static void removeNode(Node n) throws Exception
     {
         n.remove();
     }
 
-    static public void insertAfter(Node nold, Node nnew) throws Exception
+    public static void insertAfter(Node nold, Node nnew) throws Exception
     {
         nold.after(nnew);
     }
 
-    static public void enumParents(Set<Node> parents, Node n) throws Exception
+    public static void enumParents(Set<Node> parents, Node n) throws Exception
     {
         for (;;)
         {
@@ -304,29 +304,29 @@ public class JSOUP
         }
     }
 
-    static public void dumpNodes(Vector<Node> vnodes, String prefix) throws Exception
+    public static void dumpNodes(Vector<Node> vnodes, String prefix) throws Exception
     {
         for (Node n : vnodes)
             dumpNode(n, prefix);
     }
 
-    static public void dumpNodesOffset(Vector<Node> vnodes) throws Exception
+    public static void dumpNodesOffset(Vector<Node> vnodes) throws Exception
     {
         dumpNodesOffset(vnodes, null);
     }
 
-    static public void dumpNodesOffset(Vector<Node> vnodes, String comment) throws Exception
+    public static void dumpNodesOffset(Vector<Node> vnodes, String comment) throws Exception
     {
         for (Node n : vnodes)
             dumpNodeOffset(n, comment);
     }
 
-    static public void dumpNode(Node n) throws Exception
+    public static void dumpNode(Node n) throws Exception
     {
         dumpNode(n, "*** ");
     }
 
-    static public void dumpNode(Node n, String prefix) throws Exception
+    public static void dumpNode(Node n, String prefix) throws Exception
     {
         StringBuilder sb = new StringBuilder(n.nodeName());
         String av;
@@ -343,12 +343,12 @@ public class JSOUP
         out(prefix + sb.toString());
     }
 
-    static public void dumpNodeOffset(Node n) throws Exception
+    public static void dumpNodeOffset(Node n) throws Exception
     {
         dumpNodeOffset(n, null);
     }
 
-    static public void dumpNodeOffset(Node n, String comment) throws Exception
+    public static void dumpNodeOffset(Node n, String comment) throws Exception
     {
         int level = 0;
         Node p;
@@ -369,13 +369,13 @@ public class JSOUP
         dumpNode(n, sb.toString());
     }
 
-    static public Vector<String> extractHrefs(String html) throws Exception
+    public static Vector<String> extractHrefs(String html) throws Exception
     {
         Node rootNode = parseHtml(html);
         return extractHrefs(rootNode);
     }
 
-    static public Vector<String> extractHrefs(Node root) throws Exception
+    public static Vector<String> extractHrefs(Node root) throws Exception
     {
         Vector<String> vs = new Vector<String>();
         Vector<Node> vnodes = flatten(root);

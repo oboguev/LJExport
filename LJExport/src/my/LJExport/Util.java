@@ -1,8 +1,11 @@
 package my.LJExport;
 
 import java.util.*;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
@@ -42,7 +45,7 @@ public class Util
         return vs;
     }
 
-    static public boolean is_in_domain(String site, String domain) throws Exception
+    public static boolean is_in_domain(String site, String domain) throws Exception
     {
         site = site.toLowerCase();
         domain = domain.toLowerCase();
@@ -118,8 +121,8 @@ public class Util
         else
         {
             return url.substring(lu - ls).equalsIgnoreCase(site) &&
-                    url.charAt(lu - ls - 1) == '.' &&
-                    url.charAt(0) != '.';
+                   url.charAt(lu - ls - 1) == '.' &&
+                   url.charAt(0) != '.';
         }
     }
 
@@ -242,7 +245,7 @@ public class Util
         return beginsWith(url, path + "/", sb);
     }
 
-    static public void mkdir(String path) throws Exception
+    public static void mkdir(String path) throws Exception
     {
         File file = new File(path);
         if (file.exists() && file.isDirectory())
@@ -255,7 +258,7 @@ public class Util
         throw new Exception("Unable to create directory " + path);
     }
 
-    static public void writeToFile(String path, String content) throws Exception
+    public static void writeToFile(String path, String content) throws Exception
     {
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
         FileOutputStream fos = new FileOutputStream(path);
@@ -264,7 +267,7 @@ public class Util
         fos.close();
     }
 
-    static public void writeToFileSafe(String path, String content) throws Exception
+    public static void writeToFileSafe(String path, String content) throws Exception
     {
         File f = new File(path);
         File ft = new File(path + ".tmp");
@@ -274,13 +277,13 @@ public class Util
         ft.renameTo(f);
     }
 
-    static public String readFileAsString(String path) throws Exception
+    public static String readFileAsString(String path) throws Exception
     {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
-    static public String stripProtocol(String url) throws Exception
+    public static String stripProtocol(String url) throws Exception
     {
         StringBuilder sb = new StringBuilder();
 
@@ -298,7 +301,7 @@ public class Util
         return url;
     }
 
-    static public String stripAnchor(String href) throws Exception
+    public static String stripAnchor(String href) throws Exception
     {
         if (href != null)
         {
@@ -310,7 +313,7 @@ public class Util
         return href;
     }
 
-    static public String stripParameters(String href) throws Exception
+    public static String stripParameters(String href) throws Exception
     {
         if (href != null)
         {
@@ -322,14 +325,14 @@ public class Util
         return href;
     }
 
-    static public String stripParametersAndAnchor(String href) throws Exception
+    public static String stripParametersAndAnchor(String href) throws Exception
     {
         href = stripParameters(href);
         href = stripAnchor(href);
         return href;
     }
 
-    static public Map<String, String> parseUrlParams(String params) throws Exception
+    public static Map<String, String> parseUrlParams(String params) throws Exception
     {
         Map<String, String> res = new HashMap<String, String>();
 
@@ -352,12 +355,12 @@ public class Util
         return res;
     }
 
-    static public boolean isLoginPageURL(String url) throws Exception
+    public static boolean isLoginPageURL(String url) throws Exception
     {
         url = stripProtocol(url);
         StringBuilder sb = new StringBuilder();
         if (beginsWith(url, Config.Site, sb) ||
-                beginsWith(url, "www." + Config.Site, sb))
+            beginsWith(url, "www." + Config.Site, sb))
         {
             url = sb.toString();
             return url.equals("/login.bml");
@@ -368,7 +371,7 @@ public class Util
         }
     }
 
-    static public boolean isLogoutURL(String url, StringBuilder sb) throws Exception
+    public static boolean isLogoutURL(String url, StringBuilder sb) throws Exception
     {
         url = stripProtocol(url);
         if (url.startsWith("/logout.bml?"))
@@ -376,7 +379,7 @@ public class Util
             // got it
         }
         else if (beginsWith(url, Config.Site, sb) ||
-                beginsWith(url, "www." + Config.Site, sb))
+                 beginsWith(url, "www." + Config.Site, sb))
         {
             url = sb.toString();
             if (!url.startsWith("/logout.bml?"))
@@ -394,7 +397,7 @@ public class Util
 
     final private static Random random_gen = new Random();
 
-    static public int random(int min, int max) throws Exception
+    public static int random(int min, int max) throws Exception
     {
         return min + random_gen.nextInt(max - min + 1);
     }
@@ -412,5 +415,68 @@ public class Util
 
         res.addAll(vec);
         return res;
+    }
+
+    public static String despace(String text) throws Exception
+    {
+        text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ');
+        return text.replaceAll("\\s+", " ").trim();
+    }
+
+    /*
+     * Read list of strings from file.  
+     */
+    public static Set<String> read_list(Object obj, String path) throws Exception
+    {
+        Set<String> ws = new HashSet<String>();
+        String line;
+
+        path = relative_path(obj, path);
+
+        Class cls = null;
+        if (obj instanceof Class)
+            cls = (Class) obj;
+        else
+            cls = obj.getClass();
+
+        try (InputStream ris = cls.getClassLoader().getResourceAsStream(path);
+             InputStreamReader isr = new InputStreamReader(ris, "UTF-8");
+             BufferedReader bufferedReader = new BufferedReader(isr))
+        {
+            while (null != (line = bufferedReader.readLine()))
+            {
+                line = stripComment(line);
+                line = despace(line);
+                if (line.equals(" ") || line.length() == 0)
+                    continue;
+                ws.add(line);
+            }
+        }
+
+        return ws;
+    }
+
+    public static String relative_path(Object obj, String path) throws Exception
+    {
+        Class cls = null;
+        if (obj instanceof Class)
+            cls = (Class) obj;
+        else
+            cls = obj.getClass();
+
+        String root = cls.getName().replace('.', '/');
+        int k = root.lastIndexOf('/');
+        if (k == -1)
+            throw new Exception("Unexpected class name: " + cls.getName());
+        root = root.substring(0, k);
+        return root + "/" + path;
+    }
+
+    public static String stripComment(String s) throws Exception
+    {
+        int k = s.indexOf('#');
+        if (k != -1)
+            s = s.substring(0, k);
+        return s;
     }
 }

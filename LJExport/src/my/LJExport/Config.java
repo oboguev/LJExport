@@ -26,7 +26,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static String Users = "oboguev";
+    public static String Users = "pioneer_lj";
     // public static String Users = "a_bugaev,tor85,oboguev,morky,krylov,rms1,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
 
     /* Directory path to store downloaded files */
@@ -39,9 +39,9 @@ public class Config
     // public static String Proxy = "http://proxy.xxx.com:8080";
 
     /* Range of dates to download (inclusive) */
-    // public static YYYY_MM LoadSince = null;
-    public static YYYY_MM LoadSince = new YYYY_MM(2017, 4); // ###
+    public static YYYY_MM LoadSince = null;
     public static YYYY_MM LoadTo = null;
+    // public static YYYY_MM LoadSince = new YYYY_MM(2017, 1);
     // public static YYYY_MM LoadTo = new YYYY_MM(2004, 12);
 
     /* Whether to reload files already existing at DownloadRoot */
@@ -76,7 +76,7 @@ public class Config
     public static int Timeout = 150;
     public static int NWorkThreads = 0;
     public static int ThreadsPerCPU = 2;
-    public static int MaxThreads = 8;
+    public static int MaxThreads = 6;
     public static String TrustStore = null;
     public static String TrustStorePassword = null;
     public static int ProxyThreadsPerThread = 10;
@@ -93,6 +93,14 @@ public class Config
     public static boolean TrustAnySSL = true;
 
     public static String NullFile = null;
+
+    /*
+     * Adding Fiddler certificate:
+     * 
+     * set JAVA_HOME=C:\jre1.8.0_121
+     * set PATH=%PATH%;C:\jre1.8.0_121\bin
+     * keytool -import -alias fidder -file C:\Users\sergey\Desktop\FiddlerRoot.cer -keystore C:\jre1.8.0_121\lib\security\cacerts -storepass changeit
+     */
 
     public static void init(String user) throws Exception
     {

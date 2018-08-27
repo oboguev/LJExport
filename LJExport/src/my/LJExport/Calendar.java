@@ -28,7 +28,20 @@ public class Calendar
 
         out(">>> Indexing top-level calendar ...");
 
-        Web.Response r = Web.get("http://" + Config.MangledUser + "." + Config.Site + "/calendar");
+        /*
+         * LJ performs circular redirect to set a cookie.
+         * Apache HTTP client is not smart enough to understand it and throws an exception.
+         */
+        Web.Response r;
+        try
+        {
+            r = Web.get("http://" + Config.MangledUser + "." + Config.Site + "/calendar");
+        }
+        catch (Exception ex)
+        {
+            r = Web.get("http://" + Config.MangledUser + "." + Config.Site + "/calendar");
+        }
+
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to read user records calendar: " + Web.describe(r.code));
 

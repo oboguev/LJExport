@@ -2,6 +2,7 @@ package my.LJExport;
 
 import java.io.*;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.*;
 import org.apache.http.client.*;
@@ -29,6 +30,7 @@ public class Web
         public int code;
         public String reason;
         public String body = new String("");
+        public byte[] binaryBody;
     }
 
     public static void init() throws Exception
@@ -99,6 +101,11 @@ public class Web
 
     public static Response get(String url) throws Exception
     {
+        return get(url, false);
+    }
+
+    public static Response get(String url, boolean binary) throws Exception
+    {
         lastURL.set(url);
         Response r = new Response();
 
@@ -122,10 +129,18 @@ public class Web
                 try
                 {
                     entityStream = entity.getContent();
-                    brd = new BufferedReader(new InputStreamReader(entityStream, StandardCharsets.UTF_8));
-                    while ((line = brd.readLine()) != null)
-                        sb.append(line + "\r\n");
-                    r.body = sb.toString();
+
+                    if (binary)
+                    {
+                        r.binaryBody = IOUtils.toByteArray(entityStream);
+                    }
+                    else
+                    {
+                        brd = new BufferedReader(new InputStreamReader(entityStream, StandardCharsets.UTF_8));
+                        while ((line = brd.readLine()) != null)
+                            sb.append(line + "\r\n");
+                        r.body = sb.toString();
+                    }
                 }
                 finally
                 {

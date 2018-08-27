@@ -693,4 +693,27 @@ abstract public class PageParser
     }
 
     abstract protected String getPageSource() throws Exception;
+
+    static public void downloadExternalLinks(Node root, String linksDir) throws Exception
+    {
+        if (linksDir == null || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
+            return;
+        downloadExternalLinks(root, linksDir, "a", "href");
+        downloadExternalLinks(root, linksDir, "img", "src");
+    }
+
+    static private void downloadExternalLinks(Node root, String linksDir, String tag, String attr) throws Exception
+    {
+        for (Node n : JSOUP.findElements(root, tag))
+        {
+            String href = JSOUP.getAttribute(n, attr);
+
+            if (LinkDownloader.shouldDownload(href))
+            {
+                String newref = LinkDownloader.download(linksDir, href);
+                if (newref != null)
+                    JSOUP.updateAttribute(n, attr, newref);
+            }
+        }
+    }
 }

@@ -61,6 +61,15 @@ public class JSOUP
         return null;
     }
 
+    public static void updateAttribute(Node n, String attrname, String value) throws Exception
+    {
+        for (Attribute at : n.attributes().asList())
+        {
+            if (at.getKey().equalsIgnoreCase(attrname))
+                at.setValue(value);
+        }
+    }
+
     public static Vector<Node> flattenChildren(Node el) throws Exception
     {
         Vector<Node> vec = flatten(el);

@@ -11,6 +11,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 
@@ -26,11 +27,12 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static String Users = "pioneer_lj";
-    // public static String Users = "a_bugaev,tor85,oboguev,morky,krylov,rms1,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
+    public static String Users = "zhenziyou";
+    // public static String Users = "a_bugaev,tor85,oboguev,morky,krylov,rms1,pioneer_lj,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
 
     /* Directory path to store downloaded files */
     public static String DownloadRoot = "R:";
+    // public static String DownloadRoot = "F:\\@";
     // public static String DownloadRoot = "C:\\WINAPPS\\LJExport\\journals";
     // public static String DownloadRoot = "/home/sergey/LJExport/journals";
 
@@ -41,8 +43,12 @@ public class Config
     /* Range of dates to download (inclusive) */
     public static YYYY_MM LoadSince = null;
     public static YYYY_MM LoadTo = null;
-    // public static YYYY_MM LoadSince = new YYYY_MM(2017, 1);
-    // public static YYYY_MM LoadTo = new YYYY_MM(2004, 12);
+    // public static YYYY_MM LoadSince = new YYYY_MM(2017, 5);
+    // public static YYYY_MM LoadTo = new YYYY_MM(2017, 5);
+
+    /* Download linked files of the listed locally, so they can be accessed offline */
+    // public static List<String> DownloadFileTypes = null;
+    public static List<String> DownloadFileTypes = Util.asList("jpg,jpeg,gif,png,pdf,djvu,tif,tiff,doc,docx,rtf,zip,rar");
 
     /* Whether to reload files already existing at DownloadRoot */
     public static boolean ReloadExistingFiles = false;

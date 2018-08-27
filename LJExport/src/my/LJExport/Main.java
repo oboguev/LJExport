@@ -51,6 +51,7 @@ public class Main
     public static Object Lock = new String();
     private static String pagesDir;
     private static String repostsDir;
+    private static String linksDir;
     private static String manualDir;
     private static Set<String> manualPages;
     private static Set<String> madeDirs;
@@ -172,6 +173,7 @@ public class Main
             Util.mkdir(Config.DownloadRoot + File.separator + Config.User);
             pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "pages";
             repostsDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "reposts";
+            linksDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "links";
             Util.mkdir(pagesDir);
 
             manualDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "manual-load";
@@ -202,8 +204,9 @@ public class Main
             {
             case HTML_UNIT:
             case SELENIUM:
-                do_logout();
-                Web.shutdown();
+                // Not yet. We'll need the connection for links downloading
+                // do_logout();
+                // Web.shutdown();
                 break;
             }
 
@@ -248,6 +251,12 @@ public class Main
 
             switch (Config.Method)
             {
+            case HTML_UNIT:
+            case SELENIUM:
+                do_logout();
+                Web.shutdown();
+                break;
+
             case BASIC:
                 do_logout();
                 Web.shutdown();
@@ -438,7 +447,7 @@ public class Main
                 switch (Config.Method)
                 {
                 case SELENIUM:
-                    reader = new PageReaderSelenium(rurl, pageDir, seleniumContext);
+                    reader = new PageReaderSelenium(rurl, pageDir, linksDir, seleniumContext);
                     break;
 
                 case HTML_UNIT:

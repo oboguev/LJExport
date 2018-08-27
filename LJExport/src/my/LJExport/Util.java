@@ -260,7 +260,11 @@ public class Util
 
     public static void writeToFile(String path, String content) throws Exception
     {
-        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+        writeToFile(path, content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void writeToFile(String path, byte[] bytes) throws Exception
+    {
         FileOutputStream fos = new FileOutputStream(path);
         fos.write(bytes);
         fos.flush();
@@ -268,6 +272,16 @@ public class Util
     }
 
     public static void writeToFileSafe(String path, String content) throws Exception
+    {
+        File f = new File(path);
+        File ft = new File(path + ".tmp");
+        if (f.exists())
+            f.delete();
+        writeToFile(path + ".tmp", content);
+        ft.renameTo(f);
+    }
+
+    public static void writeToFileSafe(String path, byte[] content) throws Exception
     {
         File f = new File(path);
         File ft = new File(path + ".tmp");
@@ -478,5 +492,17 @@ public class Util
         if (k != -1)
             s = s.substring(0, k);
         return s;
+    }
+
+    public static List<String> asList(String s)
+    {
+        return asList(s, ",");
+    }
+
+    public static List<String> asList(String s, String sep)
+    {
+        if (s == null || s.length() == 0)
+            return new ArrayList<String>();
+        return Arrays.asList(s.split(sep));
     }
 }

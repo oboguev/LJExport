@@ -1,0 +1,15 @@
+#
+# This file lists known dead "Expand" links in the pages.
+#
+# LJExport operates through Selenium interface and therefore cannot distinguish
+# a link that is permanently dead from a link that is not responsive due to 
+# non-responsive LJ server or firewall/gateway/network problems.
+#
+
+http://krylov.livejournal.com/2504913.html?thread=118369233#t118369233
+http://krylov.livejournal.com/1171078.html?thread=25087110#t25087110
+http://krylov.livejournal.com/2592515.html?thread=125207811#t125207811
+http://krylov.livejournal.com/1366638.html?thread=33658478#t33658478
+http://krylov.livejournal.com/2661957.html?thread=129375045#t129375045
+http://krylov.livejournal.com/1433772.html?thread=37958572#t37958572
+

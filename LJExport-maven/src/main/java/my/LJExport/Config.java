@@ -71,10 +71,10 @@ public class Config
 
     public enum WebMethod
     {
-        BASIC, SELENIUM, HTML_UNIT
+        BASIC, SELENIUM, HTML_UNIT, DIRECT
     };
 
-    public static WebMethod Method = Config.WebMethod.SELENIUM;
+    public static WebMethod Method = Config.WebMethod.DIRECT;
     public static String Site = "livejournal.com";
     public static String AllowedUrlSites[] = { "livejournal.com", "livejournal.net" };
     public static String LoginPassword = null;

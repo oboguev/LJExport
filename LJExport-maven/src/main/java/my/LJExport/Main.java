@@ -221,6 +221,7 @@ public class Main
                 break;
             
             case BASIC:
+            case DIRECT:
                 break;
             }
 
@@ -234,6 +235,7 @@ public class Main
                 break;
 
             case BASIC:
+            case DIRECT:
             case HTML_UNIT:
                 break;
             }
@@ -278,6 +280,10 @@ public class Main
             case BASIC:
                 do_logout();
                 Web.shutdown();
+                break;
+
+            case DIRECT:
+                // ###
                 break;
             }
         }
@@ -431,6 +437,10 @@ public class Main
 
             case BASIC:
                 break;
+                
+            case DIRECT:
+                // ###
+                break;
             }
 
             for (;;)
@@ -477,6 +487,10 @@ public class Main
 
                 case BASIC:
                     reader = new PageReaderBasic(rurl, pageDir);
+                    break;
+                    
+                case DIRECT:
+                    // ###
                     break;
                 }
 

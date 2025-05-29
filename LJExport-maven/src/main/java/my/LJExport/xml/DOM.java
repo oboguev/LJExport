@@ -11,17 +11,27 @@ import org.xml.sax.SAXException;
 import my.LJExport.Main;
 import my.LJExport.runtime.Web;
 
+import org.htmlcleaner.CleanerProperties;
+import org.htmlcleaner.HtmlCleaner;
+import org.htmlcleaner.PrettyXmlSerializer;
+import org.htmlcleaner.TagNode;
+import org.w3c.dom.Document;
 // import org.xml.sax.SAXParseException;
 // import org.xml.sax.helpers.*;
-import org.w3c.dom.*;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.*;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import java.io.*;
-import java.util.*;
-
-import org.htmlcleaner.*;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Set;
+import java.util.Vector;
+import java.io.StringReader;
 
 public class DOM
 {

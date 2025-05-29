@@ -4,16 +4,17 @@ package my.LJExport.runtime;
 // http://help.eclipse.org/kepler/index.jsp?topic=%2Forg.eclipse.wb.doc.user%2Fhtml%2Findex.html
 // https://web.archive.org/web/20130820022641/http://www.codemaps.org/s/WindowBuilder
 
-import javax.swing.*;
-// import javax.swing.event.*;
-
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
+import javax.swing.SwingUtilities;
+
 public class ConfigUI
 {
-    public String xxx;
-
     public static String promptPassword(String prompt) throws Exception
     {
         final JPasswordField jpf = new JPasswordField();

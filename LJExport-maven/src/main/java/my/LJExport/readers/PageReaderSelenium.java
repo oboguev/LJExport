@@ -1,10 +1,13 @@
 package my.LJExport.readers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Formatter;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 // import java.util.concurrent.atomic.AtomicInteger;
 import java.io.File;
 
+import org.jsoup.nodes.Node;
 // import org.apache.http.HttpStatus;
 import org.openqa.selenium.By;
 // import org.openqa.selenium.Cookie;
@@ -24,7 +27,6 @@ import my.LJExport.xml.JSOUP;
 
 // import org.openqa.selenium.support.ui.ExpectedCondition;
 // import org.openqa.selenium.support.ui.WebDriverWait;
-import org.jsoup.nodes.*;
 
 public class PageReaderSelenium extends PageParser implements PageReader
 {

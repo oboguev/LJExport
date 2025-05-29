@@ -1,5 +1,7 @@
 package my.LJExport.readers;
 
+import java.io.File;
+
 // import org.apache.http.HttpStatus;
 // import org.w3c.dom.Node;
 
@@ -10,9 +12,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
-
-import java.io.*;
-// import java.util.*;
 
 public class PageReaderHtmlUnit implements PageReader
 {

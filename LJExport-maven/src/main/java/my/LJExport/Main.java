@@ -1,15 +1,19 @@
 package my.LJExport;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
 /*
  * This program downloads user journal records into Config.DownloadRoot/pages.
  */
 
 // import java.net.HttpCookie;
-import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.HttpStatus;
-import org.apache.http.cookie.*;
+import org.apache.http.cookie.Cookie;
 
 import my.LJExport.calendar.Calendar;
 import my.LJExport.readers.PageReader;
@@ -278,12 +282,9 @@ public class Main
                 break;
 
             case BASIC:
+            case DIRECT:
                 do_logout();
                 Web.shutdown();
-                break;
-
-            case DIRECT:
-                // ###
                 break;
             }
         }

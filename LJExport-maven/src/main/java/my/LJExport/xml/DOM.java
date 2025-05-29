@@ -1,14 +1,18 @@
-package my.LJExport;
+package my.LJExport.xml;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.xml.sax.EntityResolver;
-import org.xml.sax.ErrorHandler;
+// import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.helpers.*;
+
+import my.LJExport.Main;
+import my.LJExport.runtime.Web;
+
+// import org.xml.sax.SAXParseException;
+// import org.xml.sax.helpers.*;
 import org.w3c.dom.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.*;
@@ -26,14 +30,14 @@ public class DOM
         Main.out(s);
     }
 
-    static Vector<Node> flatten(Node el) throws Exception
+    public static Vector<Node> flatten(Node el) throws Exception
     {
         Vector<Node> vec = new Vector<Node>();
         flatten(vec, el);
         return vec;
     }
 
-    static void flatten(Vector<Node> vec, Node el) throws Exception
+    public static void flatten(Vector<Node> vec, Node el) throws Exception
     {
         if (el == null)
             return;
@@ -99,7 +103,10 @@ public class DOM
     private static String removeDoctype(String xml) throws Exception
     {
         final String pre = "<!doctype ";
+
+        @SuppressWarnings("unused")
         final int prelen = pre.length();
+        
         final String newdoctype = "<!DOCTYPE html>";
 
         int k1 = xml.toLowerCase().indexOf(pre);

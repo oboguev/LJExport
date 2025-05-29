@@ -1,4 +1,4 @@
-package my.LJExport;
+package my.LJExport.readers;
 
 import java.util.Formatter;
 import java.util.HashSet;
@@ -11,10 +11,18 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 
+import my.LJExport.Config;
+import my.LJExport.Main;
+import my.LJExport.runtime.LinkDownloader;
+import my.LJExport.runtime.Util;
+import my.LJExport.xml.JSOUP;
+
 abstract public class PageParser
 {
     public static class MissingCommentsTreeRootException extends Exception
     {
+        private static final long serialVersionUID = 1L;
+
         MissingCommentsTreeRootException(String s)
         {
             super(s);
@@ -463,6 +471,8 @@ abstract public class PageParser
         for (Node n : children)
         {
             TextNode tn;
+
+            @SuppressWarnings("unused")
             Element el;
 
             if (n instanceof TextNode)

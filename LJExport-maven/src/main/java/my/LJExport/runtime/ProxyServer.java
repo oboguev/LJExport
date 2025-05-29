@@ -1,4 +1,4 @@
-package my.LJExport;
+package my.LJExport.runtime;
 
 // https://github.com/adamfisk/LittleProxy
 
@@ -6,7 +6,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.URL;
-import java.net.UnknownHostException;
+// import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Queue;
 
@@ -15,6 +15,9 @@ import org.littleshoot.proxy.*;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.littleshoot.proxy.impl.ThreadPoolConfiguration;
 
+import my.LJExport.Config;
+import my.LJExport.Main;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,7 +25,7 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
+// import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
@@ -48,11 +51,12 @@ public class ProxyServer
         return proxy_server;
     }
 
-    public static class FilterAdapter extends HttpFiltersAdapter
+    public static class AbortingFilterAdapter extends HttpFiltersAdapter
     {
-        private ProxyServer proxy;
+        @SuppressWarnings("unused")
+        private final ProxyServer proxy;
 
-        public FilterAdapter(HttpRequest originalRequest, ChannelHandlerContext ctx, ProxyServer proxy)
+        public AbortingFilterAdapter(HttpRequest originalRequest, ChannelHandlerContext ctx, ProxyServer proxy)
         {
             super(originalRequest, ctx);
             this.proxy = proxy;
@@ -71,6 +75,36 @@ public class ProxyServer
         }
     }
 
+    public static class TimingFilterAdapter extends HttpFiltersAdapter
+    {
+        @SuppressWarnings("unused")
+        private final ProxyServer proxy;
+        private final String url;
+        private long startTime;
+
+        public TimingFilterAdapter(HttpRequest originalRequest, ChannelHandlerContext ctx, ProxyServer proxy, String url)
+        {
+            super(originalRequest, ctx);
+            this.proxy = proxy;
+            this.url = url;
+            this.startTime = System.currentTimeMillis();
+        }
+
+        @Override
+        public HttpResponse clientToProxyRequest(HttpObject httpObject)
+        {
+            return null; // continue processing
+        }
+
+        @Override
+        public HttpObject serverToProxyResponse(HttpObject httpObject)
+        {
+            long durationMs = System.currentTimeMillis() - startTime;
+            UrlDurationHistory.onComplete(url, durationMs);
+            return httpObject;
+        }
+    }
+
     public static class Filter extends HttpFiltersSourceAdapter
     {
         ProxyServer proxy;
@@ -84,16 +118,19 @@ public class ProxyServer
         public HttpFilters filterRequest(HttpRequest originalRequest,
                 ChannelHandlerContext ctx)
         {
+            // see https://chatgpt.com/c/68366e00-e880-8007-bf9f-c97bdd396c55
+
             String url = originalRequest.getUri();
             if (proxy.isAccepted(url))
             {
                 // System.out.println("PROXY: ACCEPT: " + url);
-                return super.filterRequest(originalRequest, ctx);
+                // return super.filterRequest(originalRequest, ctx);
+                return new TimingFilterAdapter(originalRequest, ctx, proxy, url);
             }
             else
             {
                 // System.out.println("PROXY: REJECT: " + url);
-                return new FilterAdapter(originalRequest, ctx, proxy);
+                return new AbortingFilterAdapter(originalRequest, ctx, proxy);
             }
         }
     }
@@ -206,7 +243,7 @@ public class ProxyServer
         org.apache.log4j.Logger root = org.apache.log4j.Logger.getRootLogger();
         root.setLevel(Level.WARN);
 
-        Enumeration allLoggers = root.getLoggerRepository().getCurrentCategories();
+        Enumeration<?> allLoggers = root.getLoggerRepository().getCurrentCategories();
         while (allLoggers.hasMoreElements())
         {
             org.apache.log4j.Category category = (org.apache.log4j.Category) allLoggers.nextElement();

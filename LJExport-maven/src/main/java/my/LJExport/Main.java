@@ -4,12 +4,22 @@ package my.LJExport;
  * This program downloads user journal records into Config.DownloadRoot/pages.
  */
 
-import java.net.HttpCookie;
+// import java.net.HttpCookie;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.cookie.*;
+
+import my.LJExport.calendar.Calendar;
+import my.LJExport.readers.PageReader;
+import my.LJExport.readers.PageReaderBasic;
+import my.LJExport.readers.PageReaderHtmlUnit;
+import my.LJExport.readers.PageReaderSelenium;
+import my.LJExport.runtime.ProxyServer;
+import my.LJExport.runtime.UrlDurationHistory;
+import my.LJExport.runtime.Util;
+import my.LJExport.runtime.Web;
 
 import java.io.File;
 
@@ -153,8 +163,9 @@ public class Main
             out("");
             out("             Alternatively use http://www." + Config.Site + "/logout.bml.");
             out("");
-
         }
+        
+        UrlDurationHistory.display();
     }
 
     private void do_user(String user)
@@ -208,6 +219,9 @@ public class Main
                 // do_logout();
                 // Web.shutdown();
                 break;
+            
+            case BASIC:
+                break;
             }
 
             switch (Config.Method)
@@ -217,6 +231,10 @@ public class Main
                 if (proxyServer == null)
                     proxyServer = ProxyServer.create();
                 out(">>> Launching slave browsers");
+                break;
+
+            case BASIC:
+            case HTML_UNIT:
                 break;
             }
 
@@ -409,6 +427,9 @@ public class Main
                 seleniumContext = PageReaderSelenium.makeContext();
                 if (seleniumContext == null)
                     return;
+                break;
+
+            case BASIC:
                 break;
             }
 

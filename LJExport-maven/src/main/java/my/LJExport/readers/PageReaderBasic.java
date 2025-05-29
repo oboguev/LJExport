@@ -1,4 +1,4 @@
-package my.LJExport;
+package my.LJExport.readers;
 
 import org.apache.http.HttpStatus;
 
@@ -6,6 +6,12 @@ import java.io.*;
 import java.util.*;
 
 import org.w3c.dom.*;
+
+import my.LJExport.Config;
+import my.LJExport.Main;
+import my.LJExport.runtime.Util;
+import my.LJExport.runtime.Web;
+import my.LJExport.xml.DOM;
 
 public class PageReaderBasic implements PageReader
 {

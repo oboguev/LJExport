@@ -1,12 +1,12 @@
 package my.LJExport;
 
-import java.io.Console;
+// import java.io.Console;
 import java.io.File;
 
-import javax.net.ssl.HostnameVerifier;
+// import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
+// import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.SecureRandom;
@@ -15,7 +15,11 @@ import java.util.List;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 
-import javax.swing.*;
+import my.LJExport.calendar.YYYY_MM;
+import my.LJExport.runtime.ConfigUI;
+import my.LJExport.runtime.Util;
+
+// import javax.swing.*;
 
 public class Config
 {
@@ -48,7 +52,7 @@ public class Config
 
     /* Download linked files of the listed locally, so they can be accessed offline */
     // public static List<String> DownloadFileTypes = null;
-    public static List<String> DownloadFileTypes = Util.asList("jpg,jpeg,gif,png,pdf,djvu,tif,tiff,doc,docx,rtf,zip,rar");
+    public static List<String> DownloadFileTypes = Util.asList("jpg,jpeg,gif,png,webp,pdf,djvu,tif,tiff,doc,docx,rtf,zip,rar");
 
     /* Whether to reload files already existing at DownloadRoot */
     public static boolean ReloadExistingFiles = false;

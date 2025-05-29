@@ -1,14 +1,14 @@
-package my.LJExport;
+package my.LJExport.readers;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+// import java.util.concurrent.atomic.AtomicInteger;
 import java.io.File;
 
-import org.apache.http.HttpStatus;
+// import org.apache.http.HttpStatus;
 import org.openqa.selenium.By;
-import org.openqa.selenium.Cookie;
-import org.openqa.selenium.WebDriver;
+// import org.openqa.selenium.Cookie;
+// import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -16,8 +16,14 @@ import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.WebDriverWait;
+
+import my.LJExport.Config;
+import my.LJExport.Main;
+import my.LJExport.runtime.Util;
+import my.LJExport.xml.JSOUP;
+
+// import org.openqa.selenium.support.ui.ExpectedCondition;
+// import org.openqa.selenium.support.ui.WebDriverWait;
 import org.jsoup.nodes.*;
 
 public class PageReaderSelenium extends PageParser implements PageReader
@@ -42,7 +48,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
 
     public static boolean manualOverride = false;
 
-    static class Context
+    public static class Context
     {
         public RemoteWebDriver driver;
         public boolean logged_in = false;

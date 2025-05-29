@@ -1,11 +1,13 @@
-package my.LJExport;
+package my.LJExport.xml;
 
 import java.util.*;
-import java.io.*;
+// import java.io.*;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
 import org.jsoup.parser.Tag;
+
+import my.LJExport.Main;
 
 public class JSOUP
 {
@@ -26,7 +28,7 @@ public class JSOUP
 
     public static Vector<Node> getChildren(Node n) throws Exception
     {
-        return new Vector(n.childNodes());
+        return new Vector<Node>(n.childNodes());
     }
 
     public static Node getParent(Node n) throws Exception
@@ -200,6 +202,8 @@ public class JSOUP
     {
         Vector<Node> vel = new Vector<Node>();
         Element el;
+
+        @SuppressWarnings("unused")
         String av;
 
         for (Node n : pageFlat)

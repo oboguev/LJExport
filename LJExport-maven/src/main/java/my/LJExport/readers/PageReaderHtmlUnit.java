@@ -1,28 +1,41 @@
-package my.LJExport;
+package my.LJExport.readers;
 
-import org.apache.http.HttpStatus;
-import org.w3c.dom.Node;
+// import org.apache.http.HttpStatus;
+// import org.w3c.dom.Node;
 
 import com.gargoylesoftware.htmlunit.IncorrectnessListener;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HTMLParserListener;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
+import my.LJExport.Config;
+import my.LJExport.Main;
+
 import java.io.*;
-import java.util.*;
+// import java.util.*;
 
 public class PageReaderHtmlUnit implements PageReader
 {
     private String rurl;
+    
+    @SuppressWarnings("unused")
     private String rid;
+
+    @SuppressWarnings("unused")
     private String fileDir;
+
+    @SuppressWarnings("unused")
     private int npages = -1;
+
     private WebClient webClient;
 
+    @SuppressWarnings("unused")
     private final static int COUNT_PAGES = (1 << 0);
+
+    @SuppressWarnings("unused")
     private final static int REMOVE_MAIN_TEXT = (1 << 1);
 
-    static class Context
+    public static class Context
     {
         public WebClient webClient;
 
@@ -100,7 +113,11 @@ public class PageReaderHtmlUnit implements PageReader
     public void readPage() throws Exception
     {
         HtmlPage page = webClient.getPage("http://" + Config.MangledUser + "." + Config.Site + "/" + rurl + "?format=light");
+
+        @SuppressWarnings("unused")
         String pageAsXml = page.asXml();
+
+        @SuppressWarnings("unused")
         String pageAsText = page.asText();
 
         out("-----");

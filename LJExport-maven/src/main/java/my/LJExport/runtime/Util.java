@@ -1,6 +1,9 @@
-package my.LJExport;
+package my.LJExport.runtime;
 
 import java.util.*;
+
+import my.LJExport.Config;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -129,7 +132,7 @@ public class Util
     /*
      * Check if @url is what should be after a login.
      */
-    static boolean isValidPostLoginUrl(String url) throws Exception
+    public static boolean isValidPostLoginUrl(String url) throws Exception
     {
         if (isJournalUrl(url))
             return true;
@@ -152,7 +155,7 @@ public class Util
         return isJournalUrl(url, new StringBuilder());
     }
 
-    static boolean isJournalUrl(String url, StringBuilder sb) throws Exception
+    public static boolean isJournalUrl(String url, StringBuilder sb) throws Exception
     {
         if (url.startsWith("/"))
         {
@@ -186,7 +189,7 @@ public class Util
      * If yes, strip the journal prefix, store the result in @sb and return @true.
      * If no, return @false and the value of @sb is unpredictable.
      */
-    static boolean isJournalRecordUrl(String url, StringBuilder sb) throws Exception
+    public static boolean isJournalRecordUrl(String url, StringBuilder sb) throws Exception
     {
         if (!isJournalUrl(url, sb))
             return false;
@@ -215,7 +218,7 @@ public class Util
      * If yes, strip the prefix, store the result in @sb and return @true.
      * If no, return @false and the value of @sb is unpredictable.
      */
-    static boolean beginsWith(String url, String prefix, StringBuilder sb) throws Exception
+    public static boolean beginsWith(String url, String prefix, StringBuilder sb) throws Exception
     {
         if (url.length() >= prefix.length() && url.substring(0, prefix.length()).equalsIgnoreCase(prefix))
         {
@@ -447,9 +450,9 @@ public class Util
 
         path = relative_path(obj, path);
 
-        Class cls = null;
+        Class<?> cls = null;
         if (obj instanceof Class)
-            cls = (Class) obj;
+            cls = (Class<?>) obj;
         else
             cls = obj.getClass();
 
@@ -472,9 +475,9 @@ public class Util
 
     public static String relative_path(Object obj, String path) throws Exception
     {
-        Class cls = null;
+        Class<?> cls = null;
         if (obj instanceof Class)
-            cls = (Class) obj;
+            cls = (Class<?>) obj;
         else
             cls = obj.getClass();
 

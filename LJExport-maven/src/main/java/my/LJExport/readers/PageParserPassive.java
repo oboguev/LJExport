@@ -1,4 +1,4 @@
-package my.LJExport;
+package my.LJExport.readers;
 
 public class PageParserPassive extends PageParser
 {

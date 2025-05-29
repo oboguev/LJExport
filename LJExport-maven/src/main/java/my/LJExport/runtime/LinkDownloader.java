@@ -1,8 +1,10 @@
-package my.LJExport;
+package my.LJExport.runtime;
 
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
+
+import my.LJExport.Config;
 
 public class LinkDownloader
 {

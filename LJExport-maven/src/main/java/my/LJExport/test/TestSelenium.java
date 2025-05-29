@@ -155,6 +155,7 @@ public class TestSelenium
             // ..div class=b-ljbutton
             // ....button value=expand data-value=expand name=mode type=submit
             // TODO
+            @SuppressWarnings("unused")
             String pageSource = driver.getPageSource();
             // try JSoup
 
@@ -243,7 +244,8 @@ public class TestSelenium
             WebElement b_massaction = getOne(driver.findElementsByXPath("//div[@class=\"b-massaction\"]"));
             WebElement massaction_checkbox = getOne(b_massaction.findElements(By
                     .xpath(".//input[@id='checkall'][@type='checkbox']")));
-            WebElement massaction_expand = getOne(b_massaction.findElements(By.xpath(".//button[@value='expand'][@type='submit']")));
+            WebElement massaction_expand = getOne(
+                    b_massaction.findElements(By.xpath(".//button[@value='expand'][@type='submit']")));
 
             if (b_massaction.isDisplayed() &&
                     massaction_checkbox.isDisplayed() &&
@@ -256,6 +258,8 @@ public class TestSelenium
                         elementClassContains("b-leaf-actions-expandchilds"));
 
                 List<WebElement> els;
+
+                @SuppressWarnings("unused")
                 List<WebElement> vels;
 
                 /*

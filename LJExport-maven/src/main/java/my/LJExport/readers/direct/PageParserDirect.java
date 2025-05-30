@@ -1,8 +1,7 @@
-package my.LJExport.readers;
+package my.LJExport.readers.direct;
 
 import java.util.Formatter;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -80,10 +79,13 @@ abstract public class PageParserDirect
             npages = numberOfCommentPages();
         }
 
-        if (0 != (flags & CHECK_COMMENTS_MERGEABLE))
-        {
-            checkCommentsMergeable();
-        }
+        /*
+         * Empty out the comments section
+         * under <article> find <div id="comments"> and empty it
+         */
+        Element commentsSection = findCommentsSection(pageRoot);
+        if (commentsSection != null)
+            JSOUP.removeNodes(JSOUP.getChildren(commentsSection));
 
         /*
          * Remove known sections that contain no essential record-related information.
@@ -125,6 +127,26 @@ abstract public class PageParserDirect
             vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "noscript");
             JSOUP.removeElements(pageRoot, vnodes);
         }
+    }
+    
+    protected Element findCommentsSection(Node pageRootCurrent) throws Exception
+    {
+        Element commentsSection = null;
+        
+        Vector<Node> articles = JSOUP.findElements(pageRootCurrent, "article");
+        for (Node n : articles)
+        {
+            Vector<Node> comms = JSOUP.findElements(JSOUP.flatten(pageRootCurrent), "div", "id", "comments");
+            for (Node cn : comms)
+            {
+                if (commentsSection == null)
+                    commentsSection = (Element) cn;
+                else if (commentsSection != cn)
+                    throw new Exception("Multiple comment sections");
+            }
+        }
+        
+        return commentsSection;
     }
 
     private void removeJunk_1() throws Exception
@@ -222,65 +244,6 @@ abstract public class PageParserDirect
         }
 
         return npages;
-    }
-
-    protected void checkCommentsMergeable() throws Exception
-    {
-        Vector<Node> flat = JSOUP.flatten(pageRoot);
-        Vector<Node> vn = JSOUP.findElementsWithClass(flat, "div", "b-tree-root");
-
-        if (vn.size() == 0)
-        {
-            if (npages >= 2)
-            {
-                throwNoCommentTreeRoot();
-            }
-            else
-            {
-                Vector<Node> vel = JSOUP.findElementsWithClass(flat, "div", "b-xylem-nocomment");
-                if (vel.size() == 0)
-                {
-                    throwNoCommentTreeRoot();
-                }
-            }
-        }
-        else if (vn.size() != 1)
-        {
-            throwNoCommentTreeRoot();
-        }
-
-        if (npages >= 2)
-        {
-            Node tr = vn.get(0);
-            List<Node> children = JSOUP.getChildren(tr);
-            if (children.size() == 0)
-                throwNoCommentTreeRoot();
-        }
-    }
-
-    private void throwNoCommentTreeRoot() throws Exception
-    {
-        Main.saveDebugPage("badpage-unable-locate-comment-tree-root.html", pageSource);
-        throw new Exception("Unable to locate comment tree root");
-    }
-
-    protected void mergeComments(Node firstPageRoot) throws Exception
-    {
-        Vector<Node> vn1 = JSOUP.findElementsWithClass(JSOUP.flatten(firstPageRoot), "div", "b-tree-root");
-        Vector<Node> vn2 = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
-
-        if (vn1.size() != 1 || vn2.size() != 1)
-            throw new Exception("Unable to locate comment tree root");
-
-        Node tr1 = vn1.get(0);
-        Node tr2 = vn2.get(0);
-
-        List<Node> children = JSOUP.getChildren(tr2);
-        for (Node n : children)
-        {
-            JSOUP.removeNode(n);
-            JSOUP.addChild(tr1, n);
-        }
     }
 
     static protected boolean isLoginLimitExceeded(String html) throws Exception
@@ -624,7 +587,7 @@ abstract public class PageParserDirect
     protected boolean matchTagClass(Node n, String name, String cls) throws Exception
     {
         return (name == null || JSOUP.nodeName(n).equalsIgnoreCase(name)) &&
-               (cls == null || JSOUP.classContains(JSOUP.getAttribute(n, "class"), cls));
+                (cls == null || JSOUP.classContains(JSOUP.getAttribute(n, "class"), cls));
     }
 
     protected boolean isEmpty(String s) throws Exception

@@ -1,11 +1,15 @@
-package my.LJExport.readers;
+package my.LJExport.readers.direct;
 
 import java.io.File;
+import java.util.List;
 
 import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.readers.Comment;
+import my.LJExport.readers.CommentsTree;
+import my.LJExport.readers.PageReader;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
@@ -16,7 +20,6 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
     private final String fileDir;
     private final String linksDir;
 
-    private final boolean saveAsSinglePage = true;
     private static final String PROCEED = "<PROCEED>";
 
     public PageReaderDirect(String rurl, String fileDir, String linksDir)
@@ -29,7 +32,7 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
         // rurl = "2532366.html"; // test: colonelcassad
         // rurl = "5182367.html"; // test: oboguev (private, no comments)
         // rurl = "2504913.html"; // test: krylov (unexpandable link)
-        
+
         this.rurl = rurl;
         this.rid = rurl.substring(0, rurl.indexOf('.'));
         this.fileDir = fileDir + File.separator;
@@ -39,10 +42,30 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
     @Override
     public void readPage() throws Exception
     {
-        if (saveAsSinglePage)
+        // process page 1 completely but without comments yet
+        pageSource = loadPage(1);
+        if (pageSource == null)
         {
-            // process page 1 completely
-            pageSource = loadPage(1);
+            Main.markFailedPage(rurl);
+            return;
+        }
+
+        if (pageRoot == null)
+            parseHtml();
+
+        List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(pageRoot);
+        CommentsTree commentTree = new CommentsTree(commentList); 
+
+        removeJunk(COUNT_PAGES | REMOVE_SCRIPTS);
+        Node firstPageRoot = pageRoot;
+
+        // ### load comments 
+        // ### to under <article> find <div id="comments"> and append inside it
+
+        // load extra pages of comments
+        for (int npage = 2; npage <= npages; npage++)
+        {
+            pageSource = loadPage(npage);
             if (pageSource == null)
             {
                 Main.markFailedPage(rurl);
@@ -52,69 +75,17 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
             if (pageRoot == null)
                 parseHtml();
 
-            removeJunk(COUNT_PAGES | REMOVE_SCRIPTS | CHECK_COMMENTS_MERGEABLE);
-            Node firstPageRoot = pageRoot;
-
-            // load extra pages of comments
-            for (int npage = 2; npage <= npages; npage++)
-            {
-                pageSource = loadPage(npage);
-                if (pageSource == null)
-                {
-                    Main.markFailedPage(rurl);
-                    return;
-                }
-
-                if (pageRoot == null)
-                    parseHtml();
-
-                removeJunk(REMOVE_MAIN_TEXT | REMOVE_SCRIPTS);
-                mergeComments(firstPageRoot);
-            }
-
-            downloadExternalLinks(firstPageRoot, linksDir);
-            pageSource = JSOUP.emitHtml(firstPageRoot);
-            Util.writeToFileSafe(fileDir + rid + ".html", pageSource);
+            removeJunk(REMOVE_MAIN_TEXT | REMOVE_SCRIPTS);
+            // ### mergeComments(firstPageRoot);
+            // ### load comments 
+            // ### to under <article> find <div id="comments"> and append inside it
         }
-        else
-        {
-            // save page 1 completely, except for junk sections
-            pageSource = loadPage(1);
-            if (pageSource == null)
-            {
-                Main.markFailedPage(rurl);
-                return;
-            }
 
-            String rbody_1 = removeJunkAndEmitHtml(COUNT_PAGES);
-
-            // load extra pages of comments
-            for (int npage = 2; npage <= npages; npage++)
-            {
-                pageSource = loadPage(npage);
-                if (pageSource == null)
-                {
-                    Main.markFailedPage(rurl);
-                    return;
-                }
-
-                pageSource = removeJunkAndEmitHtml(REMOVE_MAIN_TEXT);
-                Util.writeToFileSafe(fileDir + rid + "_page_" + npage + ".html", pageSource);
-            }
-
-            Util.writeToFileSafe(fileDir + rid + ".html", rbody_1);
-        }
+        downloadExternalLinks(firstPageRoot, linksDir);
+        pageSource = JSOUP.emitHtml(firstPageRoot);
+        Util.writeToFileSafe(fileDir + rid + ".html", pageSource);
 
         // out(">>> done " + rurl);
-    }
-
-    private String removeJunkAndEmitHtml(int flags) throws Exception
-    {
-        if (pageRoot == null)
-            parseHtml();
-        removeJunk(flags);
-        downloadExternalLinks(pageRoot, linksDir);
-        return JSOUP.emitHtml(pageRoot);
     }
 
     private String loadPage(int npage) throws Exception
@@ -169,7 +140,7 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
          */
         //  ### return loadPage_doExpandMoreComments(npage);
     }
-    
+
     private String lastReadPageSource = null;
 
     private String loadPage_initial(int npage, long t0) throws Exception
@@ -195,7 +166,7 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
                 retries++;
                 pass = 0;
             }
-            
+
             Response r = Web.get(sb.toString());
 
             if (isBadGatewayPage(r.body))

@@ -296,9 +296,13 @@ public class JSOUP
     public static void removeElements(Node pageRoot, Vector<Node> vnodes) throws Exception
     {
         for (Node n : vnodes)
-        {
             n.remove();
-        }
+    }
+
+    public static void removeNodes(Vector<Node> vnodes) throws Exception
+    {
+        for (Node n : vnodes)
+            n.remove();
     }
 
     public static void removeNode(Node n) throws Exception

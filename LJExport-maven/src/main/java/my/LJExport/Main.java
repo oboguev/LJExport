@@ -18,6 +18,7 @@ import org.apache.http.cookie.Cookie;
 import my.LJExport.calendar.Calendar;
 import my.LJExport.readers.PageReader;
 import my.LJExport.readers.PageReaderBasic;
+import my.LJExport.readers.PageReaderDirect;
 import my.LJExport.readers.PageReaderHtmlUnit;
 import my.LJExport.readers.PageReaderSelenium;
 import my.LJExport.runtime.ProxyServer;
@@ -437,10 +438,7 @@ public class Main
                 break;
 
             case BASIC:
-                break;
-                
             case DIRECT:
-                // ###
                 break;
             }
 
@@ -491,7 +489,7 @@ public class Main
                     break;
                     
                 case DIRECT:
-                    // ###
+                    reader = new PageReaderDirect(rurl, pageDir, linksDir);
                     break;
                 }
 

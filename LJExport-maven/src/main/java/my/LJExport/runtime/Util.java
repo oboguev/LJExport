@@ -518,4 +518,9 @@ public class Util
             return new ArrayList<String>();
         return Arrays.asList(s.split(sep));
     }
+    
+    public static void unused(Object... x)
+    {
+        // no-op
+    }
 }

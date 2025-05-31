@@ -252,11 +252,14 @@ public class TestSelenium
                     massaction_expand.isDisplayed())
             {
                 StringBuilder sb = new StringBuilder();
-                new Formatter(sb).format("//li[%1$s and (%2$s or %3$s)]",
-                        elementClassContains("b-leaf-actions-item"),
-                        elementClassContains("b-leaf-actions-expand"),
-                        elementClassContains("b-leaf-actions-expandchilds"));
-
+                try (Formatter fmt = new Formatter(sb))
+                {
+                    fmt.format("//li[%1$s and (%2$s or %3$s)]",
+                            elementClassContains("b-leaf-actions-item"),
+                            elementClassContains("b-leaf-actions-expand"),
+                            elementClassContains("b-leaf-actions-expandchilds"));
+                }
+                
                 List<WebElement> els;
 
                 @SuppressWarnings("unused")

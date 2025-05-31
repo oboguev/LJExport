@@ -3,6 +3,7 @@ package my.LJExport.readers.direct;
 import java.io.File;
 import java.util.List;
 
+import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
@@ -21,13 +22,12 @@ public class PageReaderDirect implements PageReader, PageContentSource
     private final String fileDir;
     private final String linksDir;
 
-    private static final String PROCEED = "<PROCEED>";
     private PageParserDirect parser;
 
     public PageReaderDirect(String rurl, String fileDir, String linksDir)
     {
         parser = new PageParserDirect(this);
-        
+
         rurl = "2352931.html"; // test: krylov (many pages of comments)
         // rurl = "5938498.html"; // test: oboguev (some comments)
 
@@ -57,30 +57,20 @@ public class PageReaderDirect implements PageReader, PageContentSource
         if (parser.pageRoot == null)
             parser.parseHtml();
 
-        List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
-        CommentsTree commentTree = new CommentsTree(commentList); 
+        // List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
+        // CommentsTree commentTree = new CommentsTree(commentList); 
 
         parser.removeJunk(PageParserDirect.COUNT_PAGES | PageParserDirect.REMOVE_SCRIPTS);
         Node firstPageRoot = parser.pageRoot;
 
-        // ### load comments 
-        // ### to under <article> find <div id="comments"> and append inside it
-
-        // load extra pages of comments
-        for (int npage = 2; npage <= parser.npages; npage++)
+        // load comments for each of the pages
+        for (int npage = 1; npage <= parser.npages; npage++)
         {
-            parser.pageSource = loadPage(npage);
-            if (parser.pageSource == null)
-            {
-                Main.markFailedPage(parser.rurl);
-                return;
-            }
+            String cjson = loadPageComments(npage);
+            List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson);
+            CommentsTree commentTree = new CommentsTree(commentList); 
 
-            if (parser.pageRoot == null)
-                parser.parseHtml();
-
-            parser.removeJunk(PageParserDirect.REMOVE_MAIN_TEXT | PageParserDirect.REMOVE_SCRIPTS);
-            // ### mergeComments(firstPageRoot);
+            Element commentsSection = parser.findCommentsSection(firstPageRoot);
             // ### load comments 
             // ### to under <article> find <div id="comments"> and append inside it
         }
@@ -112,42 +102,12 @@ public class PageReaderDirect implements PageReader, PageContentSource
         /*
          * Perform initial page load
          */
-        String res = loadPage_initial(npage, t0);
-        if (res != PROCEED)
-            return res;
-
-        // ###
-        return res;
-
-        /*
-         * See if we need to expand comments 
-         */
-        //  ### res = loadPage_checkNeedExpandAllComments(npage, t0);
-        //  ### if (res != PROCEED)
-        //  ###     return res;
-
-        /*
-         * Expand comments 
-         */
-        //  ### pageSource = loadPage_doExpandAllComments(npage);
-        //  ### if (pageSource == null)
-        //  ###             return null;
-
-        /*
-         * Second round of comment expansion.
-         * 
-         * On some pages, "Expand All" expands some (most) of the comments,
-         * but not all of the comments, leaving elements <span class="b-leaf-seemore-expand">
-         * with text like "...and 27 more comments..." next to them.
-         * We should locate and trigger an <a> element under these span elements
-         * until these span elements are gone.
-         */
-        //  ### return loadPage_doExpandMoreComments(npage);
+        return loadPage(npage, t0);
     }
 
     private String lastReadPageSource = null;
 
-    private String loadPage_initial(int npage, long t0) throws Exception
+    private String loadPage(int npage, long t0) throws Exception
     {
         StringBuilder sb = new StringBuilder();
         sb.append("http://" + Config.MangledUser + "." + Config.Site + "/" + parser.rurl + "?format=light");
@@ -159,6 +119,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         for (int pass = 0;; pass++)
         {
+            Util.unused(pass);
+            
             parser.pageRoot = null;
             lastReadPageSource = null;
 
@@ -173,14 +135,14 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
             Response r = Web.get(sb.toString());
 
-            if (parser.isBadGatewayPage(r.body))
+            if (r.code != 200)
             {
                 if (retries > 5)
                     return null;
                 retry = true;
                 Thread.sleep(1000 * (1 + retries));
             }
-            else if (r.code != 200)
+            else if (parser.isBadGatewayPage(r.body))
             {
                 if (retries > 5)
                     return null;
@@ -191,17 +153,68 @@ public class PageReaderDirect implements PageReader, PageContentSource
             {
                 lastReadPageSource = r.body;
                 parser.pageSource = lastReadPageSource;
-                // break; // ###
                 return lastReadPageSource;
             }
         }
-
-        // ### return PROCEED;
     }
 
     @Override
     public String getPageSource() throws Exception
     {
         return lastReadPageSource;
+    }
+
+    private String loadPageComments(int npage) throws Exception
+    {
+        long t0 = System.currentTimeMillis();
+        return loadPageComments(npage, t0);
+    }
+
+    private String loadPageComments(int npage, long t0) throws Exception
+    {
+        String url = String.format("http://%s.%s/%s/__rpc_get_thread?journal=%s&itemid=%s&skip=&media=&page=%d&expand_all=1",
+                Config.MangledUser, 
+                Config.Site, 
+                Config.MangledUser,
+                Config.User,
+                parser.rid,
+                npage);
+        
+        boolean retry = true;
+        int retries = 0;
+
+        for (int pass = 0;; pass++)
+        {
+            Util.unused(pass);
+            Main.checkAborting();
+
+            if (retry)
+            {
+                retry = false;
+                retries++;
+                pass = 0;
+            }
+
+            Response r = Web.get(url);
+
+            if (r.code != 200)
+            {
+                if (retries > 5)
+                    return null;
+                retry = true;
+                Thread.sleep(1000 * (1 + retries));
+            }
+            else if (parser.isBadGatewayPage(r.body))
+            {
+                if (retries > 5)
+                    return null;
+                retry = true;
+                Thread.sleep(1000 * (1 + retries));
+            }
+            else
+            {
+                return r.body;
+            }
+        }
     }
 }

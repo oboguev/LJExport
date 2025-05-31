@@ -71,6 +71,8 @@ public class Comment
         c.collapsed = getBoolean(jo, "collapsed");
         c.leafclass = getString(jo, "leafclass");
         
+        c.handle_thread_url();
+        
         if (c.isDeleted())
         {
             int zzz = 1;
@@ -139,6 +141,27 @@ public class Comment
             throwRuntimeException("Incorect JSON value for comment key " + key);
             return null;
         }
+    }
+    
+    private void handle_thread_url()
+    {
+        if (thread_url == null)
+            return;
+        
+        String key = "?thread=";
+        int index = thread_url.indexOf(key);
+        if (index == -1)
+            throwRuntimeException("Comment has invalid thread_url (no ?thread=)");
+
+        String s = thread_url.substring(index + key.length());
+        String sa[] = s.split("#");
+        if (sa.length != 2 || !sa[1].equals("t" + sa[0]))
+            throwRuntimeException("Comment has invalid thread_url (not xxx#txxx)");
+        
+        if (thread == null)
+            thread = sa[0];
+        else if (!thread.equals(sa[0]))
+            throwRuntimeException("Comment has invalid thread_url (mismatching thread)");
     }
 
     private static void throwRuntimeException(String msg)

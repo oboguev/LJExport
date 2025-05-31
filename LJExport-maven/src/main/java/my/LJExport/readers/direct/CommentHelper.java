@@ -18,6 +18,11 @@ public class CommentHelper
         if (jsonString == null)
             return null;
         
+        return extractCommentsBlockUnordered(jsonString);
+    }
+
+    public static List<Comment> extractCommentsBlockUnordered(String jsonString) throws Exception
+    {
         JSONObject jo = new JSONObject(jsonString);
         JSONArray jcs = jo.getJSONArray("comments");
         if (jcs == null)
@@ -35,7 +40,7 @@ public class CommentHelper
         
         return list;
     }
-
+    
     public static String extractCommentsBlockJson(Node pageRoot) throws Exception
     {
         String json = null;

@@ -33,7 +33,10 @@ public class Comment
     // such as "https://l-userpic.livejournal.com/50425886/4107583"
     public String userpic;
 
-    // text body of the comment
+    // subject line of the comment
+    public String subject;
+
+    // text body of the comment (html)
     public String article;
 
     public Boolean shown;
@@ -62,6 +65,7 @@ public class Comment
         c.ctime = getString(jo, "ctime");
         c.level = getInteger(jo, "level");
         c.userpic = getString(jo, "userpic");
+        c.subject = getString(jo, "subject");
         c.article = getString(jo, "article");
         c.shown = getBoolean(jo, "shown");
         c.collapsed = getBoolean(jo, "collapsed");

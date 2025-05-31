@@ -12,12 +12,18 @@ import org.jsoup.nodes.TextNode;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
-abstract public class PageParserDirect
+public class PageParserDirect
 {
+    public PageParserDirect(PageContentSource pageContentSource)
+    {
+        this.pageContentSource = pageContentSource;
+    }
+    
     public static class MissingCommentsTreeRootException extends Exception
     {
         private static final long serialVersionUID = 1L;
@@ -27,21 +33,22 @@ abstract public class PageParserDirect
             super(s);
         }
     }
+    
+    private final PageContentSource pageContentSource;
 
-    protected final static int COUNT_PAGES = (1 << 0);
-    protected final static int CHECK_COMMENTS_MERGEABLE = (1 << 1);
-    protected final static int REMOVE_MAIN_TEXT = (1 << 2);
-    protected final static int REMOVE_SCRIPTS = (1 << 3);
+    public final static int COUNT_PAGES = (1 << 0);
+    public final static int REMOVE_MAIN_TEXT = (1 << 2);
+    public final static int REMOVE_SCRIPTS = (1 << 3);
 
     protected boolean offline = false;
 
-    protected int npages = -1;
+    public int npages = -1;
 
-    protected Node pageRoot;
-    protected String pageSource;
+    public Node pageRoot;
+    public String pageSource;
 
-    protected String rurl;
-    protected String rid;
+    public String rurl;
+    public String rid;
 
     public static void out(String s)
     {
@@ -668,9 +675,12 @@ abstract public class PageParserDirect
         }
     }
 
-    abstract protected String getPageSource() throws Exception;
+    private String getPageSource() throws Exception
+    {
+        return pageContentSource.getPageSource();
+    }
 
-    static public void downloadExternalLinks(Node root, String linksDir) throws Exception
+    /*static*/ public void downloadExternalLinks(Node root, String linksDir) throws Exception
     {
         if (linksDir == null || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
             return;
@@ -678,7 +688,7 @@ abstract public class PageParserDirect
         downloadExternalLinks(root, linksDir, "img", "src");
     }
 
-    static private void downloadExternalLinks(Node root, String linksDir, String tag, String attr) throws Exception
+    /*static*/ private void downloadExternalLinks(Node root, String linksDir, String tag, String attr) throws Exception
     {
         for (Node n : JSOUP.findElements(root, tag))
         {

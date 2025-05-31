@@ -9,21 +9,25 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
+import my.LJExport.readers.PageContentSource;
 import my.LJExport.readers.PageReader;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
 import my.LJExport.xml.JSOUP;
 
-public class PageReaderDirect extends PageParserDirect implements PageReader
+public class PageReaderDirect implements PageReader, PageContentSource
 {
     private final String fileDir;
     private final String linksDir;
 
     private static final String PROCEED = "<PROCEED>";
+    private PageParserDirect parser;
 
     public PageReaderDirect(String rurl, String fileDir, String linksDir)
     {
+        parser = new PageParserDirect(this);
+        
         rurl = "2352931.html"; // test: krylov (many pages of comments)
         // rurl = "5938498.html"; // test: oboguev (some comments)
 
@@ -33,8 +37,8 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
         // rurl = "5182367.html"; // test: oboguev (private, no comments)
         // rurl = "2504913.html"; // test: krylov (unexpandable link)
 
-        this.rurl = rurl;
-        this.rid = rurl.substring(0, rurl.indexOf('.'));
+        parser.rurl = rurl;
+        parser.rid = rurl.substring(0, rurl.indexOf('.'));
         this.fileDir = fileDir + File.separator;
         this.linksDir = linksDir;
     }
@@ -43,47 +47,47 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
     public void readPage() throws Exception
     {
         // process page 1 completely but without comments yet
-        pageSource = loadPage(1);
-        if (pageSource == null)
+        parser.pageSource = loadPage(1);
+        if (parser.pageSource == null)
         {
-            Main.markFailedPage(rurl);
+            Main.markFailedPage(parser.rurl);
             return;
         }
 
-        if (pageRoot == null)
-            parseHtml();
+        if (parser.pageRoot == null)
+            parser.parseHtml();
 
-        List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(pageRoot);
+        List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
         CommentsTree commentTree = new CommentsTree(commentList); 
 
-        removeJunk(COUNT_PAGES | REMOVE_SCRIPTS);
-        Node firstPageRoot = pageRoot;
+        parser.removeJunk(PageParserDirect.COUNT_PAGES | PageParserDirect.REMOVE_SCRIPTS);
+        Node firstPageRoot = parser.pageRoot;
 
         // ### load comments 
         // ### to under <article> find <div id="comments"> and append inside it
 
         // load extra pages of comments
-        for (int npage = 2; npage <= npages; npage++)
+        for (int npage = 2; npage <= parser.npages; npage++)
         {
-            pageSource = loadPage(npage);
-            if (pageSource == null)
+            parser.pageSource = loadPage(npage);
+            if (parser.pageSource == null)
             {
-                Main.markFailedPage(rurl);
+                Main.markFailedPage(parser.rurl);
                 return;
             }
 
-            if (pageRoot == null)
-                parseHtml();
+            if (parser.pageRoot == null)
+                parser.parseHtml();
 
-            removeJunk(REMOVE_MAIN_TEXT | REMOVE_SCRIPTS);
+            parser.removeJunk(PageParserDirect.REMOVE_MAIN_TEXT | PageParserDirect.REMOVE_SCRIPTS);
             // ### mergeComments(firstPageRoot);
             // ### load comments 
             // ### to under <article> find <div id="comments"> and append inside it
         }
 
-        downloadExternalLinks(firstPageRoot, linksDir);
-        pageSource = JSOUP.emitHtml(firstPageRoot);
-        Util.writeToFileSafe(fileDir + rid + ".html", pageSource);
+        parser.downloadExternalLinks(firstPageRoot, linksDir);
+        parser.pageSource = JSOUP.emitHtml(firstPageRoot);
+        Util.writeToFileSafe(fileDir + parser.rid + ".html", parser.pageSource);
 
         // out(">>> done " + rurl);
     }
@@ -92,8 +96,8 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
     {
         long t0 = System.currentTimeMillis();
 
-        pageSource = null;
-        pageRoot = null;
+        parser.pageSource = null;
+        parser.pageRoot = null;
 
         /*
          * Try to load from manual-save override location.
@@ -101,9 +105,9 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
          * see e.g. http://oboguev.livejournal.com/701758.html
          * and need to be loaded from the manual-override area.
          */
-        pageSource = Main.manualPageLoad(rurl, npage);
-        if (pageSource != null)
-            return pageSource;
+        parser.pageSource = Main.manualPageLoad(parser.rurl, npage);
+        if (parser.pageSource != null)
+            return parser.pageSource;
 
         /*
          * Perform initial page load
@@ -146,7 +150,7 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
     private String loadPage_initial(int npage, long t0) throws Exception
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("http://" + Config.MangledUser + "." + Config.Site + "/" + rurl + "?format=light");
+        sb.append("http://" + Config.MangledUser + "." + Config.Site + "/" + parser.rurl + "?format=light");
         if (npage != 1)
             sb.append("&page=" + npage);
 
@@ -155,7 +159,7 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
 
         for (int pass = 0;; pass++)
         {
-            pageRoot = null;
+            parser.pageRoot = null;
             lastReadPageSource = null;
 
             Main.checkAborting();
@@ -169,7 +173,7 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
 
             Response r = Web.get(sb.toString());
 
-            if (isBadGatewayPage(r.body))
+            if (parser.isBadGatewayPage(r.body))
             {
                 if (retries > 5)
                     return null;
@@ -186,7 +190,7 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
             else
             {
                 lastReadPageSource = r.body;
-                pageSource = lastReadPageSource;
+                parser.pageSource = lastReadPageSource;
                 // break; // ###
                 return lastReadPageSource;
             }
@@ -196,7 +200,7 @@ public class PageReaderDirect extends PageParserDirect implements PageReader
     }
 
     @Override
-    protected String getPageSource() throws Exception
+    public String getPageSource() throws Exception
     {
         return lastReadPageSource;
     }

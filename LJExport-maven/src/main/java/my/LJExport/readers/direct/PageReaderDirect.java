@@ -85,8 +85,6 @@ public class PageReaderDirect implements PageReader, PageContentSource
         Util.writeToFileSafe(fileDir + parser.rid + ".html", parser.pageSource);
 
         // out(">>> done " + rurl);
-        
-        int zzz = 1;
     }
 
     private void expandCommentTree(int npage, CommentsTree commentTree) throws Exception

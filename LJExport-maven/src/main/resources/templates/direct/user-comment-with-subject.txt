@@ -1,5 +1,5 @@
 <div class="b-tree-twig  b-tree-twig-2 b-tree-twig-deep-0" style="margin-left: {$offset_px}px" data-tid="t{$thread}">
-    <div id="t{$thread}" class="b-leaf b-leaf-poster b-leaf-full comment p-comment" data-username="{$username}" data-displayname="{$username}" data-updated-ts="1747263599" data-full="1" data-subject="{$subject}">
+    <div id="t{$thread}" class="b-leaf b-leaf-poster b-leaf-full comment p-comment" data-username="{$username}" data-displayname="{$dname}" data-updated-ts="1747263599" data-full="1" data-subject="{$subject}">
         <div class=" b-leaf-inner svgpreloader svgpreloader-pseudo svgpreloader-16 ">
             <div class="b-leaf-header">
                 <div class="b-leaf-userpic">
@@ -12,8 +12,8 @@
                     <p class="b-leaf-username">
                         <span class="b-leaf-username-name">
                             <span class="ljuser  i-ljuser  i-ljuser-type-P" data-ljuser="{$username}" lj:user="{$username}">
-                                <a href="{$commenter_journal_base}profile/" class="i-ljuser-profile" target="_self"><img class="i-ljuser-userhead" src="https://l-stat.livejournal.net/img/userinfo_v8.svg?v=17080&amp;v=847"></a>
-                                <a href="{$commenter_journal_base}" class="i-ljuser-username" target="_self"><b>{$username}</b></a>
+                                <a href="{$profile_url}" class="i-ljuser-profile" target="_self"><img class="i-ljuser-userhead" src="{$userhead_url}"></a>
+                                <a href="{$journal_url}" class="i-ljuser-username" target="_self"><b>{dname}</b></a>
                             </span>
                         </span>
                     </p>

@@ -715,20 +715,30 @@ public class PageParserDirect
         List<Comment> list = commentTree.flatten();
         for (Comment c : list)
             injectComment(commentsSection, c);
-
-        int zzz = 0;
     }
 
     private void injectComment(Element commentsSection, Comment c) throws Exception
     {
         String dname = c.dname;
         if (dname == null)
-            dname = c.uname; 
-        
+            dname = c.uname;
+
         String profile_url = c.profile_url;
+        if (profile_url == null)
+            profile_url = c.commenter_journal_base + "profile/";
+
         String journal_url = c.journal_url;
+        if (journal_url == null)
+        {
+            journal_url = c.commenter_journal_base;
+            if (Util.lastChar(journal_url) == '/')
+                journal_url = Util.stripLastChar(journal_url, '/');
+        }
+
         String userhead_url = c.userhead_url;
-        
+        if (userhead_url == null)
+            userhead_url = Comment.DEFAULT_USERHEAD_URL;
+
         Map<String, String> vars = new HashMap<>();
         vars.put("username", c.uname);
         vars.put("dname", dname);

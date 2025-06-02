@@ -3,6 +3,7 @@ package my.LJExport.readers;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import my.LJExport.xml.JSOUP;
@@ -11,6 +12,7 @@ public class Comment
 {
     public final static String DEFAULT_USERPIC = "https://l-stat.livejournal.net/img/userpics/userpic-user.png";
     public final static String DEFAULT_UNAME = "Anonymous";
+    public final static String DEFAULT_USERHEAD_URL = "https://l-stat.livejournal.net/img/userinfo_v8.svg?v=17080&amp;v=847";
     
     // such as "31873680"
     public String thread;
@@ -91,12 +93,27 @@ public class Comment
 
         c.handle_thread_url();
         
-        JSONObject ujo = getJSONObject(jo, "username");
-        if (ujo != null)
+        JSONArray uarray = getJSONArray(jo, "username");
+        if (uarray != null)
         {
-            c.profile_url = getString(ujo, "profile_url");
-            c.journal_url = getString(ujo, "journal_url");
-            c.userhead_url = getString(ujo, "userhead_url");
+            if (uarray.length() == 0)
+            {
+                // do nothing
+            }
+            else if (uarray.length() == 1)
+            {
+                JSONObject ujo = getJSONArrayElement(uarray, "username", 0);
+                if (ujo != null)
+                {
+                    c.profile_url = getString(ujo, "profile_url");
+                    c.journal_url = getString(ujo, "journal_url");
+                    c.userhead_url = getString(ujo, "userhead_url");
+                }
+            }
+            else
+            {
+                throwRuntimeException("Comment has username array with unexpected length " + uarray.length());
+            }
         }
         
         if (!validate)
@@ -194,6 +211,40 @@ public class Comment
         else
         {
             throwRuntimeException("Incorect JSON value for comment key " + key);
+            return null;
+        }
+    }
+
+    private static JSONObject getJSONArrayElement(JSONArray array, String key, int index)
+    {
+        if (array.isNull(index))
+            return null;
+        
+        Object v = array.get(index);
+        if (v == null)
+            return null;
+        else if (v instanceof JSONObject)
+            return (JSONObject) v;
+        else
+        {
+            throwRuntimeException("Incorect JSON value type for comment key " + key + "[" + index + "]");
+            return null;
+        }
+    }
+
+    private static JSONArray getJSONArray(JSONObject jo, String key)
+    {
+        if (jo.isNull(key))
+            return null;
+        
+        Object v = jo.get(key);
+        if (v == null)
+            return null;
+        else if (v instanceof JSONArray)
+            return (JSONArray) v;
+        else
+        {
+            throwRuntimeException("Incorect JSON value type for comment key " + key);
             return null;
         }
     }

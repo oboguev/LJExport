@@ -22,6 +22,9 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.json.JSONObject;
+import org.json.JSONArray;
+
 public class Util
 {
     public static char lastChar(String s) throws Exception
@@ -134,8 +137,8 @@ public class Util
         else
         {
             return url.substring(lu - ls).equalsIgnoreCase(site) &&
-                   url.charAt(lu - ls - 1) == '.' &&
-                   url.charAt(0) != '.';
+                    url.charAt(lu - ls - 1) == '.' &&
+                    url.charAt(0) != '.';
         }
     }
 
@@ -387,7 +390,7 @@ public class Util
         url = stripProtocol(url);
         StringBuilder sb = new StringBuilder();
         if (beginsWith(url, Config.Site, sb) ||
-            beginsWith(url, "www." + Config.Site, sb))
+                beginsWith(url, "www." + Config.Site, sb))
         {
             url = sb.toString();
             return url.equals("/login.bml");
@@ -406,7 +409,7 @@ public class Util
             // got it
         }
         else if (beginsWith(url, Config.Site, sb) ||
-                 beginsWith(url, "www." + Config.Site, sb))
+                beginsWith(url, "www." + Config.Site, sb))
         {
             url = sb.toString();
             if (!url.startsWith("/logout.bml?"))
@@ -467,8 +470,8 @@ public class Util
             cls = obj.getClass();
 
         try (InputStream ris = cls.getClassLoader().getResourceAsStream(path);
-             InputStreamReader isr = new InputStreamReader(ris, "UTF-8");
-             BufferedReader bufferedReader = new BufferedReader(isr))
+                InputStreamReader isr = new InputStreamReader(ris, "UTF-8");
+                BufferedReader bufferedReader = new BufferedReader(isr))
         {
             while (null != (line = bufferedReader.readLine()))
             {
@@ -518,9 +521,23 @@ public class Util
             return new ArrayList<String>();
         return Arrays.asList(s.split(sep));
     }
-    
+
     public static void unused(Object... x)
     {
         // no-op
+    }
+
+    public static String prettyJSON(String json)
+    {
+        try
+        {
+            // Try as JSONObject
+            return new JSONObject(json).toString(4);
+        }
+        catch (Exception e1)
+        {
+            // Try as JSONArray
+            return new JSONArray(json).toString(4);
+        }
     }
 }

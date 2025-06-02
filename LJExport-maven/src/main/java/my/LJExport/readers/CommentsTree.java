@@ -16,9 +16,17 @@ public class CommentsTree
     {
         this.thread2comment = thread2comment(list);
         this.toplevelComments = new ArrayList<>();
+        
+        List<Comment> mores = new ArrayList<>();
 
         for (Comment c : list)
         {
+            if (c.isMore())
+            {
+                mores.add(c);
+                continue;
+            }
+            
             if (c.isEmptyPlaceholder())
                 continue;
             
@@ -47,6 +55,14 @@ public class CommentsTree
                 cparent.cChildren.add(c);
             }
         }
+        
+        for (Comment c : mores)
+        {
+            Comment cparent = thread2comment.get(c.parent);
+            if (cparent == null)
+                throwRuntimeException("Missing parent comment");
+            cparent.doExpand = true;
+        }
 
         for (Comment c : thread2comment.values())
         {
@@ -61,13 +77,49 @@ public class CommentsTree
             }
         }
     }
+    
+    public Comment findFirstUnloadedOrToExpandComment()
+    {
+        for (Comment c : toplevelComments)
+        {
+            if (c.shouldLoadOrExpand())
+                return c;
 
+            Comment cc = findFirstUnloadedOrToExpandComment(c);
+            if (cc != null)
+                return cc;
+        }
+        
+        return null;
+    }
+
+    private Comment findFirstUnloadedOrToExpandComment(Comment c)
+    {
+        if (c.shouldLoadOrExpand())
+            return c;
+        
+        for (Comment cc : c.cChildren)
+        {
+            if (cc.shouldLoadOrExpand())
+                return cc;
+
+            Comment ccc = findFirstUnloadedOrToExpandComment(cc);
+            if (ccc != null)
+                return ccc;
+        }
+        
+        return null;
+    }
+    
     private Map<String, Comment> thread2comment(List<Comment> list)
     {
         Map<String, Comment> m = new HashMap<>();
 
         for (Comment c : list)
         {
+            if (c.isMore())
+                continue;
+
             if (c.isEmptyPlaceholder())
                 continue;
             
@@ -86,5 +138,10 @@ public class CommentsTree
     private static void throwRuntimeException(String msg)
     {
         throw new RuntimeException(msg);
+    }
+
+    public void merge(Comment cload, List<Comment> list)
+    {
+        // ###
     }
 }

@@ -14,6 +14,12 @@ public class Comment
     public String parent;
 
     public Boolean loaded;
+    public boolean doExpand = false;
+
+    public boolean attemptedToLoad = false;
+
+    // can be "more"
+    public String type;
 
     // such as "https://bantaputu.livejournal.com/1044624.html?thread=31873680#t31873680"
     public String thread_url;
@@ -41,23 +47,24 @@ public class Comment
 
     public Boolean shown;
     public Boolean collapsed;
-    
+
     // can be "deleted"
     public String leafclass;
 
     public Comment cParent;
     public List<Comment> cChildren = new ArrayList<>();
 
-    public static Comment from(JSONObject jo)
+    public static Comment from(JSONObject jo, boolean validate, int deltaLevel)
     {
         Comment c = new Comment();
 
+        c.type = getString(jo, "type");
         c.thread = getString(jo, "thread");
-        
+
         c.parent = getString(jo, "parent");
         if (c.parent != null && c.parent.equals("0"))
             c.parent = null;
-        
+
         c.loaded = getBoolean(jo, "loaded");
         c.thread_url = getString(jo, "thread_url");
         c.uname = getString(jo, "uname");
@@ -70,16 +77,40 @@ public class Comment
         c.shown = getBoolean(jo, "shown");
         c.collapsed = getBoolean(jo, "collapsed");
         c.leafclass = getString(jo, "leafclass");
-        
+
         c.handle_thread_url();
         
-        if (c.isDeleted())
+        if (!validate)
+            return c;
+
+        if (c.type != null)
         {
-            int zzz = 1;
+            switch (c.type)
+            {
+            case "more":
+                if (c.parent == null)
+                    throwRuntimeException("Comment of type more does not have parent");
+                
+                break;
+            default:
+                throwRuntimeException("Comment type is not null or more");
+            }
+        }
+        
+        if (c.type != null && c.type.equals("more"))
+        {
+            // allow no thread id
+        }
+        else
+        {
+            if (c.thread == null)
+                throwRuntimeException("Comment does not have threadid");
         }
 
-        if (c.level <= 0)
+        if (c.level == null || c.level <= 0)
             throwRuntimeException("Missing comment level");
+        
+        c.level += deltaLevel;
 
         if (c.level == 1 && c.parent != null)
             throwRuntimeException("Top-level comment has a parent");
@@ -90,11 +121,16 @@ public class Comment
         return c;
     }
     
+    public boolean isMore()
+    {
+        return type != null && type.equals("more");
+    }
+
     public boolean isDeleted()
     {
-        return leafclass != null && leafclass.equals("deleted"); 
+        return leafclass != null && leafclass.equals("deleted");
     }
-    
+
     public boolean isEmptyPlaceholder()
     {
         return thread == null && uname == null && ctime == null && loaded == null;
@@ -142,12 +178,12 @@ public class Comment
             return null;
         }
     }
-    
+
     private void handle_thread_url()
     {
         if (thread_url == null)
             return;
-        
+
         String key = "?thread=";
         int index = thread_url.indexOf(key);
         if (index == -1)
@@ -157,11 +193,19 @@ public class Comment
         String sa[] = s.split("#");
         if (sa.length != 2 || !sa[1].equals("t" + sa[0]))
             throwRuntimeException("Comment has invalid thread_url (not xxx#txxx)");
-        
+
         if (thread == null)
             thread = sa[0];
         else if (!thread.equals(sa[0]))
             throwRuntimeException("Comment has invalid thread_url (mismatching thread)");
+    }
+
+    public boolean shouldLoadOrExpand()
+    {
+        if (attemptedToLoad)
+            return false;
+        
+        return doExpand || loaded == null || loaded == false;
     }
 
     private static void throwRuntimeException(String msg)

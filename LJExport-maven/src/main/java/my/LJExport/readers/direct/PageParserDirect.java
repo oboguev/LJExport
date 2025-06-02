@@ -143,7 +143,7 @@ public class PageParserDirect
         Vector<Node> articles = JSOUP.findElements(pageRootCurrent, "article");
         for (Node n : articles)
         {
-            Vector<Node> comms = JSOUP.findElements(JSOUP.flatten(pageRootCurrent), "div", "id", "comments");
+            Vector<Node> comms = JSOUP.findElements(JSOUP.flatten(n), "div", "id", "comments");
             for (Node cn : comms)
             {
                 if (commentsSection == null)

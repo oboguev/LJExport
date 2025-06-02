@@ -90,11 +90,10 @@ public class PageReaderDirect implements PageReader, PageContentSource
         Comment cload = null;
         while (null != (cload = commentTree.findFirstUnloadedOrToExpandComment()))
         {
+            Main.out(String.format("Expanding %s", cload.thread));
             String cjson = loadCommentsThread(cload.thread);
             List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson, cload);
             commentTree.merge(cload, commentList); 
-            // ### parse into tree
-            // ### merge trees
             int zzz = 11;
         }
         

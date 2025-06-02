@@ -212,4 +212,64 @@ public class Comment
     {
         throw new RuntimeException(msg);
     }
+    
+    // merge data for comment after expansion request
+    public void merge(Comment c)
+    {
+        if (parent == null || c.parent == null || !parent.equals(c.parent))
+            throwRuntimeException("Comment data merge: mismatching parent");
+        
+        if (loaded == null || c.loaded == null)
+            throwRuntimeException("Comment data merge: missing loaded status");
+        
+        if (loaded && c.loaded)
+        {
+            checkMatch(thread_url, c.thread_url, "thread_url");
+            checkMatch(uname, c.uname, "uname");
+            checkMatch(commenter_journal_base, c.commenter_journal_base, "commenter_journal_base");
+            checkMatch(ctime, c.ctime, "ctime");
+            checkMatch(level, c.level, "level");
+            checkMatch(userpic, c.userpic, "userpic");
+            checkMatch(subject, c.subject, "subject");
+            checkMatch(article, c.article, "article");
+            checkMatch(shown, c.shown, "shown");
+            checkMatch(collapsed, c.collapsed, "collapsed");
+            checkMatch(leafclass, c.leafclass, "leafclass");
+        }
+        else if (!loaded && c.loaded)
+        {
+            thread_url = mergeValue(thread_url, c.thread_url, "thread_url");
+            uname = mergeValue(uname, c.uname, "uname");
+            commenter_journal_base = mergeValue(commenter_journal_base, c.commenter_journal_base, "commenter_journal_base");
+            ctime = mergeValue(ctime, c.ctime, "ctime");
+            checkMatch(level, c.level, "level");
+            userpic = mergeValue(userpic, c.userpic, "userpic");
+            subject = mergeValue(subject, c.subject, "subject");
+            article = mergeValue(article, c.article, "article");
+            shown = c.shown;
+            collapsed = c.collapsed;
+            leafclass = c.leafclass;
+        }
+    }
+    
+    private void checkMatch(Object f1, Object f2, String fname)
+    {
+        if (f1 == null && f2 == null)
+            return;
+        if (f1 == null || f2 == null || !f1.equals(f2))
+            throwRuntimeException("Comment data merge: diverging field " + fname);
+    }
+    
+    private String mergeValue(String v0, String v2, String fname)
+    {
+        if (v0 == null)
+            return v2;
+
+        if (v0.length() == 0 && v2 != null)
+            return v2;
+        
+        checkMatch(v0, v2, fname);
+
+        return v2;
+    }
 }

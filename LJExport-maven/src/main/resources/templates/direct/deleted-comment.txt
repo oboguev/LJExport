@@ -1,0 +1,14 @@
+<div class=" b-tree-twig  b-tree-twig-3 b-tree-twig-deep-0  " style="margin-left: 60px" data-tid="t104790819">
+    <div class="b-leaf b-leaf-clipped b-leaf-deleted" id="t104790819">
+        <div class=" b-leaf-inner svgpreloader svgpreloader-pseudo svgpreloader-16 ">
+            <div class="b-leaf-cheader">
+                <p class="b-leaf-status">
+                    Deleted comment
+                </p>
+            </div>
+            <div class="b-leaf-footer">
+            </div>
+        </div>
+    </div>
+</div>
+

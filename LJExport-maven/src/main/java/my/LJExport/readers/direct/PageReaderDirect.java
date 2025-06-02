@@ -75,6 +75,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
             expandCommentTree(npage, commentTree);
 
             Element commentsSection = parser.findCommentsSection(firstPageRoot);
+            parser.injectComments(commentsSection, commentTree);
             // ### insert comments from commentTree into commentsSection 
             // ### i.e. to under <article> find <div id="comments"> and append inside it
         }

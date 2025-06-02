@@ -12,6 +12,7 @@ import org.jsoup.nodes.TextNode;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
@@ -23,7 +24,7 @@ public class PageParserDirect
     {
         this.pageContentSource = pageContentSource;
     }
-    
+
     public static class MissingCommentsTreeRootException extends Exception
     {
         private static final long serialVersionUID = 1L;
@@ -33,7 +34,7 @@ public class PageParserDirect
             super(s);
         }
     }
-    
+
     private final PageContentSource pageContentSource;
 
     public final static int COUNT_PAGES = (1 << 0);
@@ -135,11 +136,11 @@ public class PageParserDirect
             JSOUP.removeElements(pageRoot, vnodes);
         }
     }
-    
+
     protected Element findCommentsSection(Node pageRootCurrent) throws Exception
     {
         Element commentsSection = null;
-        
+
         Vector<Node> articles = JSOUP.findElements(pageRootCurrent, "article");
         for (Node n : articles)
         {
@@ -152,7 +153,7 @@ public class PageParserDirect
                     throw new Exception("Multiple comment sections");
             }
         }
-        
+
         return commentsSection;
     }
 
@@ -701,5 +702,28 @@ public class PageParserDirect
                     JSOUP.updateAttribute(n, attr, newref);
             }
         }
+    }
+
+    public void injectComments(Element commentsSection, CommentsTree commentTree)
+    {
+        // ### flatten, then for...
+        
+        // c.isDeleted()
+        
+        // https://pioneer-lj.livejournal.com/1949522.html?thread=131141202#t131141202
+
+        // username = pioneer_lj  (fron c.uname)
+        // thread = 131141202 
+        // commenter_journal_base = "https://sergay33.livejournal.com/"
+        // article = ....
+        // ctime = "November 30 2011, 03:00:30"
+        // userpic = "https://l-userpic.livejournal.com/109580921/12651460"
+        // offset_px = 0, 30, 60 etc. (level - 1) x 30
+        // thread_url ="https://krylov.livejournal.com/2352931.html?thread=105150243#t105150243" 
+        // record_url = https://pioneer-lj.livejournal.com/1949522.html
+        // 
+        // subject  "" (id=112) 
+        // 
+        // what if anonymous user with/without subject?
     }
 }

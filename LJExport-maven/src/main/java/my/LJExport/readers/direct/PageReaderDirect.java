@@ -62,7 +62,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         parser.removeJunk(PageParserDirect.COUNT_PAGES | PageParserDirect.REMOVE_SCRIPTS);
         Node firstPageRoot = parser.pageRoot;
-        
+
         // devCapturePageComments();
 
         // load comments for each of the pages
@@ -71,7 +71,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
             String cjson = loadPageComments(npage);
             // devSaveJson(cjson, "x-" + parser.rid);
             List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson);
-            CommentsTree commentTree = new CommentsTree(commentList); 
+            CommentsTree commentTree = new CommentsTree(commentList);
             expandCommentTree(npage, commentTree);
 
             Element commentsSection = parser.findCommentsSection(firstPageRoot);
@@ -96,31 +96,31 @@ public class PageReaderDirect implements PageReader, PageContentSource
             Thread.sleep(Config.commentThreadExpansionDelay);
             if (Config.False)
             {
-                Main.out(String.format("Expanding page=%d [call %d] thread %s, remaining %d of %d", 
+                Main.out(String.format("Expanding page=%d [call %d] thread %s, remaining %d of %d",
                         npage,
-                        nload, 
-                        cload.thread, 
+                        nload,
+                        cload.thread,
                         commentTree.countUnloadedOrUnexpandedComments(),
                         commentTree.totalComments()));
             }
             String cjson = loadCommentsThread(cload.thread);
             // devSaveJson(cjson, "x-" + parser.rid + "-" + nload + "-" + cload.thread);
             List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson, cload);
-            commentTree.merge(cload, commentList); 
+            commentTree.merge(cload, commentList);
             nload++;
         }
-        
+
         commentTree.checkHaveAllComments();
     }
 
     private String lastReadPageSource = null;
-    
+
     @Override
     public String getPageSource() throws Exception
     {
         return lastReadPageSource;
     }
-    
+
     private String loadPage(int npage) throws Exception
     {
         parser.pageSource = null;
@@ -143,27 +143,28 @@ public class PageReaderDirect implements PageReader, PageContentSource
         sb.append("http://" + Config.MangledUser + "." + Config.Site + "/" + parser.rurl + "?format=light");
         if (npage != 1)
             sb.append("&page=" + npage);
-        
+
         parser.pageRoot = null;
         lastReadPageSource = null;
-        
+
         parser.pageSource = lastReadPageSource = load(sb.toString());
         return lastReadPageSource;
     }
-    
+
+    @SuppressWarnings("unused")
     private String lastURL = null;
 
     private String load(String url) throws Exception
     {
         lastURL = url;
-        
+
         boolean retry = true;
         int retries = 0;
 
         for (int pass = 0;; pass++)
         {
             Util.unused(pass);
-            
+
             Main.checkAborting();
 
             if (retry)
@@ -199,13 +200,13 @@ public class PageReaderDirect implements PageReader, PageContentSource
     private String loadPageComments(int npage) throws Exception
     {
         String url = String.format("http://%s.%s/%s/__rpc_get_thread?journal=%s&itemid=%s&skip=&media=&page=%d&expand_all=1",
-                Config.MangledUser, 
-                Config.Site, 
+                Config.MangledUser,
+                Config.Site,
                 Config.MangledUser,
                 Config.User,
                 parser.rid,
                 npage);
-        
+
         return load(url);
     }
 
@@ -213,15 +214,15 @@ public class PageReaderDirect implements PageReader, PageContentSource
     {
         if (thread == null || thread.equals(""))
             throw new Exception("Missing comment thread id");
-        
+
         String url = String.format("http://%s.%s/%s/__rpc_get_thread?journal=%s&itemid=%s&skip=&media=&thread=%s&expand_all=1",
-                Config.MangledUser, 
-                Config.Site, 
+                Config.MangledUser,
+                Config.Site,
                 Config.MangledUser,
                 Config.User,
                 parser.rid,
                 thread);
-        
+
         return load(url);
     }
 
@@ -230,14 +231,14 @@ public class PageReaderDirect implements PageReader, PageContentSource
     {
         // flat/noflat совпвадают с точностью до imgprx
         // expand длиннее noexpand
-        
+
         final int npage = 1;
         String url, json;
         String dir = "c:\\@\\qqq\\";
-        
+
         url = String.format("http://%s.%s/%s/__rpc_get_thread?journal=%s&itemid=%s&skip=&media=&page=%d&expand_all=1",
-                Config.MangledUser, 
-                Config.Site, 
+                Config.MangledUser,
+                Config.Site,
                 Config.MangledUser,
                 Config.User,
                 parser.rid,
@@ -247,8 +248,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
         Util.writeToFile(dir + "1-expand" + ".json", json);
 
         url = String.format("http://%s.%s/%s/__rpc_get_thread?journal=%s&itemid=%s&flat=&skip=&media=&page=%d&expand_all=1",
-                Config.MangledUser, 
-                Config.Site, 
+                Config.MangledUser,
+                Config.Site,
                 Config.MangledUser,
                 Config.User,
                 parser.rid,
@@ -258,8 +259,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
         Util.writeToFile(dir + "1-expand-flat" + ".json", json);
 
         url = String.format("http://%s.%s/%s/__rpc_get_thread?journal=%s&itemid=%s&skip=&media=&page=%d",
-                Config.MangledUser, 
-                Config.Site, 
+                Config.MangledUser,
+                Config.Site,
                 Config.MangledUser,
                 Config.User,
                 parser.rid,
@@ -269,8 +270,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
         Util.writeToFile(dir + "1-noexpand" + ".json", json);
 
         url = String.format("http://%s.%s/%s/__rpc_get_thread?journal=%s&itemid=%s&flat=&skip=&media=&page=%d",
-                Config.MangledUser, 
-                Config.Site, 
+                Config.MangledUser,
+                Config.Site,
                 Config.MangledUser,
                 Config.User,
                 parser.rid,
@@ -279,7 +280,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
         json = Util.prettyJSON(json);
         Util.writeToFile(dir + "1-noexpand-flat" + ".json", json);
     }
-    
+
     @SuppressWarnings("unused")
     private void devSaveJson(String json, String path) throws Exception
     {

@@ -31,7 +31,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static String Users = "krylov";
+    public static String Users = "oboguev";
     // public static String Users = "eremei,afanarizm,jlm_taurus,corporatelie,wyradhe,nilsky_nikolay,von_hoffmann,a_samovarov,bantaputu,a_kaminsky,d_olshansky,rn_manifesto,ru_bezch,nep2,ego,hokma,laert,haritonov,1981dn,1981dn_dn,bantaputu,polit_ec,zhenziyou,a_bugaev,tor85,oboguev,morky,krylov,rms1,pioneer_lj,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
 
     /* Directory path to store downloaded files */
@@ -48,8 +48,8 @@ public class Config
     /* Range of dates to download (inclusive) */
     // public static YYYY_MM LoadSince = null;
     // public static YYYY_MM LoadTo = null;
-    public static YYYY_MM LoadSince = new YYYY_MM(2017, 5);
-    public static YYYY_MM LoadTo = new YYYY_MM(2017, 5);
+    public static YYYY_MM LoadSince = new YYYY_MM(2025, 1);
+    public static YYYY_MM LoadTo = new YYYY_MM(2025, 1);
 
     /* Download linked files of the listed locally, so they can be accessed offline */
     // public static List<String> DownloadFileTypes = null;
@@ -87,7 +87,7 @@ public class Config
     public static int Timeout = 150;
     public static int NWorkThreads = 0;
     public static int ThreadsPerCPU = 2;
-    public static int MaxThreads = 1;
+    public static int MaxThreads = 4;
     public static String TrustStore = null;
     public static String TrustStorePassword = null;
     public static int ProxyThreadsPerThread = 10;
@@ -97,7 +97,7 @@ public class Config
     public static boolean RandomizeLoadOrder = true;
     public static int StableIntevral = 3000;
     public static int RateLimitCalendar = 250;
-    public static int RateLimitPageLoad = 1000;
+    public static int RateLimitPageLoad = 1200;
 
     public static boolean UseFiddler = false;
     public static String FiddlerTrustStore = null;

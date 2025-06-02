@@ -444,4 +444,24 @@ public class JSOUP
         // Return only the body content (to avoid adding <html> and <head>)
         return doc.body().html();
     }
+
+    public static String nodeText(Node node)
+    {
+        if (node instanceof TextNode)
+        {
+            return ((TextNode) node).text();
+        }
+        else if (node instanceof Element)
+        {
+            // includes nested text
+            return ((Element) node).text();
+        }
+        else
+        {
+            StringBuilder sb = new StringBuilder();
+            for (Node child : node.childNodes())
+                sb.append(nodeText(child));
+            return sb.toString();
+        }
+    }
 }

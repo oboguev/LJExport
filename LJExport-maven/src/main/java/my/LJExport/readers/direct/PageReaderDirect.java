@@ -28,7 +28,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
     {
         parser = new PageParserDirect(this);
 
-        rurl = "2352931.html"; // test: krylov (many pages of comments)
+        // rurl = "7450356.html"; // test: oboguev (no comments)
+        // rurl = "2352931.html"; // test: krylov (many pages of comments)
         // rurl = "5938498.html"; // test: oboguev (some comments)
 
         // rurl = "2106296.html"; // test: tor85 (no comments)  
@@ -60,24 +61,27 @@ public class PageReaderDirect implements PageReader, PageContentSource
         // List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
         // CommentsTree commentTree = new CommentsTree(commentList); 
 
-        parser.removeJunk(PageParserDirect.COUNT_PAGES | PageParserDirect.REMOVE_SCRIPTS);
+        parser.removeJunk(PageParserDirect.COUNT_PAGES | PageParserDirect.CHECK_HAS_COMMENTS | PageParserDirect.REMOVE_SCRIPTS);
         Node firstPageRoot = parser.pageRoot;
 
         // devCapturePageComments();
-
-        // load comments for each of the pages
-        for (int npage = 1; npage <= parser.npages; npage++)
+        
+        if (parser.hasComments)
         {
-            String cjson = loadPageComments(npage);
-            // devSaveJson(cjson, "x-" + parser.rid);
-            List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson);
-            CommentsTree commentTree = new CommentsTree(commentList);
-            expandCommentTree(npage, commentTree);
+            // load comments for each of the pages
+            for (int npage = 1; npage <= parser.npages; npage++)
+            {
+                String cjson = loadPageComments(npage);
+                // devSaveJson(cjson, "x-" + parser.rid);
+                List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson);
+                CommentsTree commentTree = new CommentsTree(commentList);
+                expandCommentTree(npage, commentTree);
 
-            // insert comments from commentTree into commentsSection 
-            // i.e. to under <article> find <div id="comments"> and append inside it
-            Element commentsSection = parser.findCommentsSection(firstPageRoot);
-            parser.injectComments(commentsSection, commentTree);
+                // insert comments from commentTree into commentsSection 
+                // i.e. to under <article> find <div id="comments"> and append inside it
+                Element commentsSection = parser.findCommentsSection(firstPageRoot);
+                parser.injectComments(commentsSection, commentTree);
+            }
         }
 
         parser.downloadExternalLinks(firstPageRoot, linksDir);

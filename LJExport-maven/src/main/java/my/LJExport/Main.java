@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.http.HttpStatus;
 import org.apache.http.cookie.Cookie;
 
+import my.LJExport.Config.WebMethod;
 import my.LJExport.calendar.Calendar;
 import my.LJExport.readers.PageReader;
 import my.LJExport.readers.PageReaderBasic;
@@ -170,8 +171,9 @@ public class Main
             out("             Alternatively use http://www." + Config.Site + "/logout.bml.");
             out("");
         }
-        
-        UrlDurationHistory.display();
+
+        if (Config.Method == WebMethod.SELENIUM)
+            UrlDurationHistory.display();
     }
 
     private void do_user(String user)
@@ -228,7 +230,7 @@ public class Main
                 // do_logout();
                 // Web.shutdown();
                 break;
-            
+
             case BASIC:
             case DIRECT:
                 break;
@@ -327,7 +329,7 @@ public class Main
     public void do_login() throws Exception
     {
         RateLimiter.setRateLimit(0);
-        
+
         out(">>> Logging into " + Config.Site + " as user " + Config.LoginUser);
 
         StringBuilder sb = new StringBuilder();
@@ -348,7 +350,7 @@ public class Main
                 continue;
 
             if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
-                || cookie.getName().equals("ljsession"))
+                    || cookie.getName().equals("ljsession"))
             {
                 logged_in = true;
             }
@@ -372,7 +374,7 @@ public class Main
                 continue;
 
             if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
-                || cookie.getName().equals("ljsession"))
+                    || cookie.getName().equals("ljsession"))
             {
                 StringTokenizer st = new StringTokenizer(cookie.getValue(), ":");
 
@@ -495,7 +497,7 @@ public class Main
                 case BASIC:
                     reader = new PageReaderBasic(rurl, pageDir);
                     break;
-                    
+
                 case DIRECT:
                     reader = new PageReaderDirect(rurl, pageDir, linksDir);
                     break;
@@ -503,7 +505,8 @@ public class Main
 
                 int nc = nCurrent.incrementAndGet();
                 double fpct = 100.0 * ((double) nc / nTotal);
-                out(">>> " + "[" + Config.User + "] " + rurl + " (" + nc + "/" + nTotal + ", " + String.format("%.2f", fpct) + "%)");
+                out(">>> " + "[" + Config.User + "] " + rurl + " (" + nc + "/" + nTotal + ", " + String.format("%.2f", fpct)
+                        + "%)");
 
                 reader.readPage();
             }
@@ -635,7 +638,7 @@ public class Main
         if (Config.False && Config.User.equals("colonelcassad"))
         {
             if (rurl.equals("1109403.html") ||
-                rurl.equals("2412676.html"))
+                    rurl.equals("2412676.html"))
             {
                 return true;
             }

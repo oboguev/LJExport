@@ -44,12 +44,14 @@ public class PageParserDirect
     private final PageContentSource pageContentSource;
 
     public final static int COUNT_PAGES = (1 << 0);
+    public final static int CHECK_HAS_COMMENTS = (1 << 1);
     public final static int REMOVE_MAIN_TEXT = (1 << 2);
     public final static int REMOVE_SCRIPTS = (1 << 3);
 
     protected boolean offline = false;
 
     public int npages = -1;
+    public Boolean hasComments = null;
 
     public Node pageRoot;
     public String pageSource;
@@ -91,6 +93,12 @@ public class PageParserDirect
         {
             // find out if there are multiple pages with comments
             npages = numberOfCommentPages();
+        }
+
+        if (0 != (flags & CHECK_HAS_COMMENTS))
+        {
+            // count comments
+            hasComments = hasComments();
         }
 
         /*
@@ -258,6 +266,76 @@ public class PageParserDirect
         }
 
         return npages;
+    }
+
+    protected boolean hasComments() throws Exception
+    {
+        Boolean has = null;
+        
+        Element commentsSection = findCommentsSection(pageRoot);
+        if (commentsSection == null)
+            throw new Exception("Page has no comments section");
+        
+        if (pageSource.contains("b-xylem-nocomment"))
+        {
+            Vector<Node> vel = JSOUP.findElementsWithClass(commentsSection, "div", "b-xylem-nocomment");
+            for (Node n : vel)
+            {
+                String s = JSOUP.nodeText(n);
+                s = Util.despace(s);
+                if (s.equals("Comments for this post were disabled by the author"))
+                    has = Boolean.FALSE;
+            }
+        }
+
+        if (pageSource.contains("b-xylem-cell-amount"))
+        {
+            Vector<Node> vel = JSOUP.findElementsWithClass(commentsSection, "li", "b-xylem-cell-amount");
+            for (Node n : vel)
+            {
+                String s = JSOUP.nodeText(n);
+                s = Util.despace(s);
+                if (s.equals("0 comments"))
+                {
+                    has = hasComments(has, Boolean.FALSE);
+                }
+                else if (s.equals("1 comment"))
+                {
+                    has = hasComments(has, Boolean.TRUE);
+                }
+                else
+                {
+                    String sa[] = s.split(" ");
+                    if (sa.length == 2 && sa[1].equals("comments") && isPositiveNumber(sa[0]))
+                        has = hasComments(has, Boolean.TRUE);
+                }
+            }
+        }
+        
+        if (has == null)
+            throw new Exception("Unable to determine if page has comments");
+        
+        return has;
+    }
+    
+    private boolean isPositiveNumber(String s)
+    {
+        try
+        {
+            int i = Integer.parseInt(s);
+            return i >= 1;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+    
+    private Boolean hasComments(Boolean has1, Boolean has2)
+    {
+        if (has1 == null || has1.equals(has2))
+            return has2;
+        throw new RuntimeException("Page has conflicting comment count sections");
     }
 
     static protected boolean isLoginLimitExceeded(String html) throws Exception

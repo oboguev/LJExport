@@ -1,6 +1,7 @@
 package my.LJExport.readers.direct;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -713,7 +715,7 @@ public class PageParserDirect
         List<Comment> list = commentTree.flatten();
         for (Comment c : list)
             injectComment(commentsSection, c);
-        
+
         int zzz = 0;
     }
 
@@ -732,33 +734,45 @@ public class PageParserDirect
 
         String record_url = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
         vars.put("record_url", record_url);
-        
+
         String tname = null;
-        
+
         if (c.isDeleted())
         {
             tname = "templates/direct/deleted-comment.txt";
         }
         else if (c.uname == null || c.uname.equals(Comment.DEFAULT_UNAME))
         {
-            if (c.subject != null && c.subject.length() != 0) 
+            if (c.subject != null && c.subject.length() != 0)
                 tname = "templates/direct/anon-comment-with-subject.txt";
             else
                 tname = "templates/direct/anon-comment-without-subject.txt";
         }
         else
         {
-            if (c.subject != null && c.subject.length() != 0) 
+            if (c.subject != null && c.subject.length() != 0)
                 tname = "templates/direct/user-comment-with-subject.txt";
             else
                 tname = "templates/direct/user-comment-without-subject.txt";
         }
-        
+
         String template = Util.loadResource(tname);
-        template = template.replace("\r\n", "\n");
-        if (Util.lastChar(template) == '\n')
-            template = Util.stripLastChar(template, '\n');
         String html = expandVars(template, vars);
+
+        html = html.replace("\r\n", "\n");
+
+        if (Util.lastChar(html) == '\n')
+            html = Util.stripLastChar(html, '\n');
+
+        html = Arrays.stream(html.split("\n"))
+                .map(String::trim)
+                .collect(Collectors.joining("\n"));
+
+        if (Util.lastChar(html) == '\n')
+            html = Util.stripLastChar(html, '\n');
+
+        html = html.replace("\n", "");
+
         injectHtml(commentsSection, html, record_url);
     }
 
@@ -770,18 +784,18 @@ public class PageParserDirect
         for (Node node : nodes)
             commentsSection.appendChild(node);
     }
-    
+
     private String expandVars(String template, Map<String, String> vars)
     {
         String res = template;
-        
+
         for (String key : vars.keySet())
         {
             String value = vars.get(key);
             if (value != null)
                 res = res.replace("{$" + key + "}", value);
         }
-        
+
         return res;
     }
 }

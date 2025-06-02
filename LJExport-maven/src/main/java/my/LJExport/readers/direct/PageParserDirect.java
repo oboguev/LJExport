@@ -1,7 +1,9 @@
 package my.LJExport.readers.direct;
 
 import java.util.Formatter;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -12,6 +14,7 @@ import org.jsoup.nodes.TextNode;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.LinkDownloader;
@@ -704,12 +707,16 @@ public class PageParserDirect
         }
     }
 
-    public void injectComments(Element commentsSection, CommentsTree commentTree)
+    public void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception
     {
-        // ### flatten, then for...
-        
+        List<Comment> list = commentTree.flatten();
+        for (Comment c : list)
+            injectComment(commentsSection, c);
+
+        // ### flatten, then for... do injectComment
+
         // c.isDeleted()
-        
+
         // https://pioneer-lj.livejournal.com/1949522.html?thread=131141202#t131141202
 
         // username = pioneer_lj  (fron c.uname)
@@ -722,8 +729,76 @@ public class PageParserDirect
         // thread_url ="https://krylov.livejournal.com/2352931.html?thread=105150243#t105150243" 
         // record_url = https://pioneer-lj.livejournal.com/1949522.html
         // 
-        // subject  "" (id=112) 
+        // subject  ""  
         // 
         // what if anonymous user with/without subject?
+    }
+
+    private void injectComment(Element commentsSection, Comment c) throws Exception
+    {
+        Map<String, String> vars = new HashMap<>();
+        vars.put("username", c.uname);
+        vars.put("thread ", c.thread);
+        vars.put("commenter_journal_base", c.commenter_journal_base);
+        vars.put("article ", c.article);
+        vars.put("ctime", c.ctime);
+        vars.put("userpic", c.userpic);
+        vars.put("offset_px", "" + 30 * (c.level - 1));
+        vars.put("thread_url", c.thread_url);
+        vars.put("subject ", c.subject);
+
+        String record_url = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
+        vars.put("record_url", record_url);
+        
+        String tname = null;
+        
+        if (c.isDeleted())
+        {
+            tname = "templates/direct/deleted-comment.txt";
+        }
+        else if (c.uname == null || c.uname.equals(Comment.DEFAULT_UNAME))
+        {
+            if (c.subject != null && c.subject.length() != 0) 
+                tname = "templates/direct/anon-comment-with-subject.txt";
+            else
+                tname = "templates/direct/anon-comment-without-subject.txt";
+        }
+        else
+        {
+            if (c.subject != null && c.subject.length() != 0) 
+                tname = "templates/direct/user-comment-with-subject.txt";
+            else
+                tname = "templates/direct/user-comment-without-subject.txt";
+        }
+        
+        // ### make two anon templates
+        
+        String template = Util.loadResource(tname);
+        String html = expandVars(template, vars);
+        injectHtml(commentsSection, html);
+    }
+
+    private void injectHtml(Element commentsSection, String html)
+    {
+        List<Node> nodes = org.jsoup.parser.Parser.parseFragment(html, commentsSection, null);
+
+        for (Node node : nodes)
+        {
+            commentsSection.appendChild(node);
+        }
+    }
+    
+    private String expandVars(String template, Map<String, String> vars)
+    {
+        String res = template;
+        
+        for (String key : vars.keySet())
+        {
+            String value = vars.get(key);
+            if (value != null)
+                res = res.replace("{$" + key + "}", value);
+        }
+        
+        return res;
     }
 }

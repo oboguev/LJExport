@@ -230,11 +230,27 @@ public class CommentsTree
             }
         }
     }
-    
+
     public void checkHaveAllComments()
     {
         for (Comment c : thread2comment.values())
             c.checkHasData();
+    }
+
+    public List<Comment> flatten()
+    {
+        List<Comment> result = new ArrayList<>();
+        for (Comment comment : toplevelComments)
+            dfs(comment, result);
+        return result;
+    }
+
+    private void dfs(Comment node, List<Comment> result)
+    {
+        result.add(node);
+
+        for (Comment child : node.cChildren)
+            dfs(child, result);
     }
 
     private static void throwRuntimeException(String msg)

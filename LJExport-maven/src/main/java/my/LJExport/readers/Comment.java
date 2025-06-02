@@ -9,8 +9,8 @@ import my.LJExport.xml.JSOUP;
 
 public class Comment
 {
-    private final static String DEFAULT_USERPIC = "https://l-stat.livejournal.net/img/userpics/userpic-user.png";
-    private final static String DEFAULT_UNAME = "Anonymous";
+    public final static String DEFAULT_USERPIC = "https://l-stat.livejournal.net/img/userpics/userpic-user.png";
+    public final static String DEFAULT_UNAME = "Anonymous";
     
     // such as "31873680"
     public String thread;

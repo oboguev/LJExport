@@ -540,4 +540,21 @@ public class Util
             return new JSONArray(json).toString(4);
         }
     }
+
+    public static byte[] loadResourceAsBytes(String path) throws Exception
+    {
+        try
+        {
+            return Files.readAllBytes(Paths.get(Util.class.getClassLoader().getResource(path).toURI()));
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Unable to load resource " + path, ex);
+        }
+    }
+
+    public static String loadResource(String path) throws Exception
+    {
+        return new String(loadResourceAsBytes(path), StandardCharsets.UTF_8);
+    }
 }

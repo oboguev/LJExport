@@ -22,6 +22,7 @@ import my.LJExport.readers.PageReaderHtmlUnit;
 import my.LJExport.readers.PageReaderSelenium;
 import my.LJExport.readers.direct.PageReaderDirect;
 import my.LJExport.runtime.ProxyServer;
+import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.UrlDurationHistory;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
@@ -182,9 +183,12 @@ public class Main
             reinit();
             Config.init(user);
             Calendar.init();
+            RateLimiter.setRateLimit(0);
             Web.init();
             do_login();
+            RateLimiter.setRateLimit(Config.RateLimitCalendar);
             Calendar.index();
+            RateLimiter.setRateLimit(Config.RateLimitPageLoad);
 
             Util.mkdir(Config.DownloadRoot + File.separator + Config.User);
             pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "pages";
@@ -322,6 +326,8 @@ public class Main
 
     public void do_login() throws Exception
     {
+        RateLimiter.setRateLimit(0);
+        
         out(">>> Logging into " + Config.Site + " as user " + Config.LoginUser);
 
         StringBuilder sb = new StringBuilder();
@@ -356,6 +362,8 @@ public class Main
 
     public void do_logout() throws Exception
     {
+        RateLimiter.setRateLimit(0);
+
         String sessid = null;
 
         for (Cookie cookie : Web.cookieStore.getCookies())

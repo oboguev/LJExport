@@ -115,6 +115,7 @@ public class Web
 
     public static Response get(String url, boolean binary) throws Exception
     {
+        RateLimiter.limitRate();
         lastURL.set(url);
         Response r = new Response();
 
@@ -170,6 +171,7 @@ public class Web
 
     public static Response post(String url, String body) throws Exception
     {
+        RateLimiter.limitRate();
         lastURL.set(url);
         Response r = new Response();
 

@@ -96,7 +96,8 @@ public class Config
     public static int UnloadablePagesAllowed;
     public static boolean RandomizeLoadOrder = true;
     public static int StableIntevral = 3000;
-    public static int commentThreadExpansionDelay = 3000;
+    public static int RateLimitCalendar = 250;
+    public static int RateLimitPageLoad = 1000;
 
     public static boolean UseFiddler = false;
     public static String FiddlerTrustStore = null;

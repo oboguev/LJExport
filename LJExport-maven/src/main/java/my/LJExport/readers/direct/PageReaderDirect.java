@@ -93,7 +93,6 @@ public class PageReaderDirect implements PageReader, PageContentSource
         int nload = 1;
         while (null != (cload = commentTree.findFirstUnloadedOrToExpandComment()))
         {
-            Thread.sleep(Config.commentThreadExpansionDelay);
             if (Config.False)
             {
                 Main.out(String.format("Expanding page=%d [call %d] thread %s, remaining %d of %d",

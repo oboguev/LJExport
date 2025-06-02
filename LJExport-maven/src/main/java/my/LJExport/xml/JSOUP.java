@@ -11,7 +11,9 @@ import org.jsoup.nodes.Attributes;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.parser.Tag;
+import org.jsoup.select.Elements;
 
 import my.LJExport.Main;
 
@@ -428,5 +430,18 @@ public class JSOUP
     {
         String html = pageRoot.outerHtml();
         return html;
+    }
+
+    public static String filterOutImageTags(String html) // throws Exception
+    {
+        Document doc = Jsoup.parse(html);
+        Elements imgTags = doc.select("img");
+
+        // Replace the <img> element with a text node "<deleted-img>"
+        for (org.jsoup.nodes.Element img : imgTags)
+            img.replaceWith(new TextNode("<deleted-img>", ""));
+
+        // Return only the body content (to avoid adding <html> and <head>)
+        return doc.body().html();
     }
 }

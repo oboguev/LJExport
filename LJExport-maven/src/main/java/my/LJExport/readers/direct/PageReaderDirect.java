@@ -69,9 +69,10 @@ public class PageReaderDirect implements PageReader, PageContentSource
         for (int npage = 1; npage <= parser.npages; npage++)
         {
             String cjson = loadPageComments(npage);
+            // devSaveJson(cjson, "x-" + parser.rid);
             List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson);
             CommentsTree commentTree = new CommentsTree(commentList); 
-            expandCommentTree(commentTree);
+            expandCommentTree(npage, commentTree);
 
             Element commentsSection = parser.findCommentsSection(firstPageRoot);
             // ### insert comments from commentTree into commentsSection 
@@ -85,19 +86,30 @@ public class PageReaderDirect implements PageReader, PageContentSource
         // out(">>> done " + rurl);
     }
 
-    private void expandCommentTree(CommentsTree commentTree) throws Exception
+    private void expandCommentTree(int npage, CommentsTree commentTree) throws Exception
     {
         Comment cload = null;
+        int nload = 1;
         while (null != (cload = commentTree.findFirstUnloadedOrToExpandComment()))
         {
-            Main.out(String.format("Expanding %s", cload.thread));
+            Thread.sleep(Config.commentThreadExpansionDelay);
+            if (Config.False)
+            {
+                Main.out(String.format("Expanding page=%d [call %d] thread %s, remaining %d of %d", 
+                        npage,
+                        nload, 
+                        cload.thread, 
+                        commentTree.countUnloadedOrUnexpandedComments(),
+                        commentTree.totalComments()));
+            }
             String cjson = loadCommentsThread(cload.thread);
+            // devSaveJson(cjson, "x-" + parser.rid + "-" + nload + "-" + cload.thread);
             List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson, cload);
             commentTree.merge(cload, commentList); 
-            int zzz = 11;
+            nload++;
         }
         
-        int zzz2 = 11;
+        commentTree.checkHaveAllComments();
     }
 
     private String lastReadPageSource = null;
@@ -265,5 +277,13 @@ public class PageReaderDirect implements PageReader, PageContentSource
         json = load(url);
         json = Util.prettyJSON(json);
         Util.writeToFile(dir + "1-noexpand-flat" + ".json", json);
+    }
+    
+    @SuppressWarnings("unused")
+    private void devSaveJson(String json, String path) throws Exception
+    {
+        String dir = "c:\\@\\qqq\\";
+        json = Util.prettyJSON(json);
+        Util.writeToFileSafe(dir + path + ".json", json);
     }
 }

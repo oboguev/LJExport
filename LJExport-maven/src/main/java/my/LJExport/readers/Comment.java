@@ -5,8 +5,13 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import my.LJExport.xml.JSOUP;
+
 public class Comment
 {
+    private final static String DEFAULT_USERPIC = "https://l-stat.livejournal.net/img/userpics/userpic-user.png";
+    private final static String DEFAULT_UNAME = "Anonymous";
+    
     // such as "31873680"
     public String thread;
 
@@ -79,7 +84,7 @@ public class Comment
         c.leafclass = getString(jo, "leafclass");
 
         c.handle_thread_url();
-        
+
         if (!validate)
             return c;
 
@@ -90,13 +95,13 @@ public class Comment
             case "more":
                 if (c.parent == null)
                     throwRuntimeException("Comment of type more does not have parent");
-                
+
                 break;
             default:
                 throwRuntimeException("Comment type is not null or more");
             }
         }
-        
+
         if (c.type != null && c.type.equals("more"))
         {
             // allow no thread id
@@ -109,7 +114,7 @@ public class Comment
 
         if (c.level == null || c.level <= 0)
             throwRuntimeException("Missing comment level");
-        
+
         c.level += deltaLevel;
 
         if (c.level == 1 && c.parent != null)
@@ -120,7 +125,7 @@ public class Comment
 
         return c;
     }
-    
+
     public boolean isMore()
     {
         return type != null && type.equals("more");
@@ -204,24 +209,34 @@ public class Comment
     {
         if (attemptedToLoad)
             return false;
-        
-        return doExpand || loaded == null || loaded == false;
+
+        if (doExpand)
+            return true;
+
+        if (isDeleted())
+            return false;
+
+        return loaded == null || loaded == false;
     }
 
-    private static void throwRuntimeException(String msg)
-    {
-        throw new RuntimeException(msg);
-    }
-    
     // merge data for comment after expansion request
     public void merge(Comment c)
     {
-        if (parent == null || c.parent == null || !parent.equals(c.parent))
+        if (parent == null && c.parent == null)
+        {
+            checkMatch(level, c.level, "level");
+            if (level != 1)
+                throwRuntimeException("Comment data merge: missing parent for top-level comment");
+
+        }
+        else if (parent == null || c.parent == null || !parent.equals(c.parent))
+        {
             throwRuntimeException("Comment data merge: mismatching parent");
-        
+        }
+
         if (loaded == null || c.loaded == null)
             throwRuntimeException("Comment data merge: missing loaded status");
-        
+
         if (loaded && c.loaded)
         {
             checkMatch(thread_url, c.thread_url, "thread_url");
@@ -231,7 +246,7 @@ public class Comment
             checkMatch(level, c.level, "level");
             checkMatch(userpic, c.userpic, "userpic");
             checkMatch(subject, c.subject, "subject");
-            checkMatch(article, c.article, "article");
+            checkMatchArticle(article, c.article, "article");
             checkMatch(shown, c.shown, "shown");
             checkMatch(collapsed, c.collapsed, "collapsed");
             checkMatch(leafclass, c.leafclass, "leafclass");
@@ -245,13 +260,14 @@ public class Comment
             checkMatch(level, c.level, "level");
             userpic = mergeValue(userpic, c.userpic, "userpic");
             subject = mergeValue(subject, c.subject, "subject");
-            article = mergeValue(article, c.article, "article");
+            article = mergeValueArticle(article, c.article, "article");
             shown = c.shown;
             collapsed = c.collapsed;
             leafclass = c.leafclass;
+            loaded = true;
         }
     }
-    
+
     private void checkMatch(Object f1, Object f2, String fname)
     {
         if (f1 == null && f2 == null)
@@ -259,7 +275,50 @@ public class Comment
         if (f1 == null || f2 == null || !f1.equals(f2))
             throwRuntimeException("Comment data merge: diverging field " + fname);
     }
-    
+
+    private void checkMatchArticle(Object f1, Object f2, String fname)
+    {
+        if (f1 == null && f2 == null)
+            return;
+        if (f1 == null || f2 == null)
+            throwRuntimeException("Comment data merge: diverging field " + fname);
+
+        if (f1.equals(f2))
+            return;
+
+        if (!(f1 instanceof String && f2 instanceof String))
+            throwRuntimeException("Comment data merge: diverging field " + fname);
+
+        /*
+         * Sometimes one call returns original image URI
+         * and then second call returns imgprx wrapper.
+         * 
+         * Or 1st calls returns imgprx wrapper with one values
+         * and 2nd with another.
+         */
+        String sf1 = (String) f1;
+        String sf2 = (String) f2;
+        String lsf1 = sf1.toLowerCase();
+        String lsf2 = sf2.toLowerCase();
+        if (lsf1.contains("<img") && lsf2.contains("<img"))
+        {
+            int count = 0;
+            if (lsf1.contains("imgprx.livejournal.net"))
+                count++;
+            if (lsf2.contains("imgprx.livejournal.net"))
+                count++;
+            if (count != 0)
+            {
+                String x1 = JSOUP.filterOutImageTags(sf1);
+                String x2 = JSOUP.filterOutImageTags(sf2);
+                if (x1.equals(x2))
+                    return;
+            }
+        }
+
+        throwRuntimeException("Comment data merge: diverging field article");
+    }
+
     private String mergeValue(String v0, String v2, String fname)
     {
         if (v0 == null)
@@ -267,9 +326,91 @@ public class Comment
 
         if (v0.length() == 0 && v2 != null)
             return v2;
-        
+
         checkMatch(v0, v2, fname);
 
         return v2;
+    }
+
+    private String mergeValueArticle(String v0, String v2, String fname)
+    {
+        if (v0 == null)
+            return v2;
+
+        if (v0.length() == 0 && v2 != null)
+            return v2;
+
+        if (v0.equals(v2))
+            return v0;
+
+        String lv0 = v0.toLowerCase();
+        String lv2 = v2.toLowerCase();
+
+        if (lv0.contains("<img") && lv2.contains("<img"))
+        {
+            int count = 0;
+
+            if (lv0.contains("imgprx.livejournal.net"))
+                count++;
+            if (lv2.contains("imgprx.livejournal.net"))
+                count++;
+
+            if (count != 0)
+            {
+                String x0 = JSOUP.filterOutImageTags(v0);
+                String x2 = JSOUP.filterOutImageTags(v2);
+                if (x0.equals(x2))
+                {
+                    if (lv0.contains("imgprx.livejournal.net"))
+                        return v2;
+                    else
+                        return v0;
+                }
+            }
+        }
+
+        throwRuntimeException("Comment data merge: diverging field article");
+        return null;
+    }
+
+    public void checkHasData()
+    {
+        if (isDeleted())
+            return;
+
+        if (attemptedToLoad)
+            return;
+
+        if (article == null)
+            throwRuntimeException("Comment misses field article");
+
+        if (level <= 0)
+            throwRuntimeException("Comment misses level");
+
+        String msg = "Comment has blank field ";
+
+        if (isBlank(thread_url))
+            throwRuntimeException(msg + "thread_url");
+
+        if (isBlank(uname))
+            uname = DEFAULT_UNAME;
+        else if (isBlank(commenter_journal_base))
+            throwRuntimeException(msg + "commenter_journal_base");
+
+        if (isBlank(ctime))
+            throwRuntimeException(msg + "ctime");
+
+        if (isBlank(userpic))
+            userpic = DEFAULT_USERPIC;
+    }
+
+    private boolean isBlank(String s)
+    {
+        return s == null || s.length() == 0;
+    }
+
+    private static void throwRuntimeException(String msg)
+    {
+        throw new RuntimeException(msg);
     }
 }

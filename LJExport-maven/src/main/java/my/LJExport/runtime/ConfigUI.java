@@ -44,7 +44,8 @@ public class ConfigUI
         if (result == JOptionPane.OK_OPTION)
         {
             password = jpf.getPassword();
-            return new String(password);
+            String s = new String(password);
+            return Util.despace(s).trim();
         }
         else
         {

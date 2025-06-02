@@ -31,6 +31,11 @@ public class Comment
 
     // comment poster username e.g. "twincat"
     public String uname;
+    public String dname;
+    
+    public String profile_url;
+    public String journal_url;
+    public String userhead_url;
 
     // such as "https://twincat.livejournal.com/"
     public String commenter_journal_base;
@@ -73,6 +78,7 @@ public class Comment
         c.loaded = getBoolean(jo, "loaded");
         c.thread_url = getString(jo, "thread_url");
         c.uname = getString(jo, "uname");
+        c.dname = getString(jo, "dname");
         c.commenter_journal_base = getString(jo, "commenter_journal_base");
         c.ctime = getString(jo, "ctime");
         c.level = getInteger(jo, "level");
@@ -84,7 +90,15 @@ public class Comment
         c.leafclass = getString(jo, "leafclass");
 
         c.handle_thread_url();
-
+        
+        JSONObject ujo = getJSONObject(jo, "username");
+        if (ujo != null)
+        {
+            c.profile_url = getString(ujo, "profile_url");
+            c.journal_url = getString(ujo, "journal_url");
+            c.userhead_url = getString(ujo, "userhead_url");
+        }
+        
         if (!validate)
             return c;
 
@@ -184,6 +198,23 @@ public class Comment
         }
     }
 
+    private static JSONObject getJSONObject(JSONObject jo, String key)
+    {
+        if (jo.isNull(key))
+            return null;
+        
+        Object v = jo.get(key);
+        if (v == null)
+            return null;
+        else if (v instanceof JSONObject)
+            return (JSONObject) v;
+        else
+        {
+            throwRuntimeException("Incorect JSON value type for comment key " + key);
+            return null;
+        }
+    }
+
     private void handle_thread_url()
     {
         if (thread_url == null)
@@ -241,6 +272,10 @@ public class Comment
         {
             checkMatch(thread_url, c.thread_url, "thread_url");
             checkMatch(uname, c.uname, "uname");
+            checkMatch(dname, c.dname, "dname");
+            checkMatch(profile_url, c.profile_url, "profile_url");
+            checkMatch(journal_url, c.journal_url, "journal_url");
+            checkMatch(userhead_url, c.userhead_url, "userhead_url");
             checkMatch(commenter_journal_base, c.commenter_journal_base, "commenter_journal_base");
             checkMatch(ctime, c.ctime, "ctime");
             checkMatch(level, c.level, "level");
@@ -255,6 +290,10 @@ public class Comment
         {
             thread_url = mergeValue(thread_url, c.thread_url, "thread_url");
             uname = mergeValue(uname, c.uname, "uname");
+            dname = mergeValue(dname, c.dname, "dname");
+            profile_url = mergeValue(profile_url, c.profile_url, "profile_url");
+            journal_url = mergeValue(journal_url, c.journal_url, "journal_url");
+            userhead_url = mergeValue(userhead_url, c.userhead_url, "userhead_url");
             commenter_journal_base = mergeValue(commenter_journal_base, c.commenter_journal_base, "commenter_journal_base");
             ctime = mergeValue(ctime, c.ctime, "ctime");
             checkMatch(level, c.level, "level");

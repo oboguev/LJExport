@@ -721,8 +721,20 @@ public class PageParserDirect
 
     private void injectComment(Element commentsSection, Comment c) throws Exception
     {
+        String dname = c.dname;
+        if (dname == null)
+            dname = c.uname; 
+        
+        String profile_url = c.profile_url;
+        String journal_url = c.journal_url;
+        String userhead_url = c.userhead_url;
+        
         Map<String, String> vars = new HashMap<>();
         vars.put("username", c.uname);
+        vars.put("dname", dname);
+        vars.put("profile_url", profile_url);
+        vars.put("journal_url", journal_url);
+        vars.put("userhead_url", userhead_url);
         vars.put("thread", c.thread);
         vars.put("commenter_journal_base", c.commenter_journal_base);
         vars.put("article", c.article);

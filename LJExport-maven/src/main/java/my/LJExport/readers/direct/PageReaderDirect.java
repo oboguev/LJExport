@@ -74,10 +74,10 @@ public class PageReaderDirect implements PageReader, PageContentSource
             CommentsTree commentTree = new CommentsTree(commentList);
             expandCommentTree(npage, commentTree);
 
+            // insert comments from commentTree into commentsSection 
+            // i.e. to under <article> find <div id="comments"> and append inside it
             Element commentsSection = parser.findCommentsSection(firstPageRoot);
             parser.injectComments(commentsSection, commentTree);
-            // ### insert comments from commentTree into commentsSection 
-            // ### i.e. to under <article> find <div id="comments"> and append inside it
         }
 
         parser.downloadExternalLinks(firstPageRoot, linksDir);
@@ -85,6 +85,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
         Util.writeToFileSafe(fileDir + parser.rid + ".html", parser.pageSource);
 
         // out(">>> done " + rurl);
+        
+        int zzz = 1;
     }
 
     private void expandCommentTree(int npage, CommentsTree commentTree) throws Exception

@@ -1,0 +1,27 @@
+<div class="b-tree-twig  b-tree-twig-2 b-tree-twig-deep-0" style="margin-left: {$offset_px}px" data-tid="t{$thread}">
+    <div id="t{$thread}" class="b-leaf b-leaf-poster b-leaf-full comment p-comment" data-username="" data-displayname="" data-updated-ts="1747263599" data-full="1">
+        <div class=" b-leaf-inner svgpreloader svgpreloader-pseudo svgpreloader-16 ">
+            <div class="b-leaf-header">
+                <div class="b-leaf-userpic">
+                    <a href="" target="_blank" class="b-leaf-userpic-inner" lj:user=""><img src="https://l-stat.livejournal.net/img/userpics/userpic-anonymous.png?v=15821" alt="" loading="lazy"></a>
+                </div>
+                <div class="b-leaf-details">
+                    <p class="b-leaf-username"><span class="b-leaf-username-name">Anonymous</span></p>
+                    <p class="b-leaf-meta">
+                        <a href="{$thread_url}" class="b-leaf-permalink" target="_self">
+                            <span class="b-leaf-createdtime">{$ctime}</span>
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div class="b-leaf-article">{$article}"</div>
+            <div class="b-leaf-footer">
+                <ul class="b-leaf-actions b-leaf-footer-actions">
+                    <li class=" b-leaf-actions-item b-leaf-actions-reply" data-tid="t{$thread}">
+                        <a href="{$record_url}?replyto={$thread}" rel="nofollow" class="b-pseudo" target="_self">Reply</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

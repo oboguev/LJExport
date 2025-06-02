@@ -1,5 +1,6 @@
 package my.LJExport.readers.direct;
 
+import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -712,40 +713,22 @@ public class PageParserDirect
         List<Comment> list = commentTree.flatten();
         for (Comment c : list)
             injectComment(commentsSection, c);
-
-        // ### flatten, then for... do injectComment
-
-        // c.isDeleted()
-
-        // https://pioneer-lj.livejournal.com/1949522.html?thread=131141202#t131141202
-
-        // username = pioneer_lj  (fron c.uname)
-        // thread = 131141202 
-        // commenter_journal_base = "https://sergay33.livejournal.com/"
-        // article = ....
-        // ctime = "November 30 2011, 03:00:30"
-        // userpic = "https://l-userpic.livejournal.com/109580921/12651460"
-        // offset_px = 0, 30, 60 etc. (level - 1) x 30
-        // thread_url ="https://krylov.livejournal.com/2352931.html?thread=105150243#t105150243" 
-        // record_url = https://pioneer-lj.livejournal.com/1949522.html
-        // 
-        // subject  ""  
-        // 
-        // what if anonymous user with/without subject?
+        
+        int zzz = 0;
     }
 
     private void injectComment(Element commentsSection, Comment c) throws Exception
     {
         Map<String, String> vars = new HashMap<>();
         vars.put("username", c.uname);
-        vars.put("thread ", c.thread);
+        vars.put("thread", c.thread);
         vars.put("commenter_journal_base", c.commenter_journal_base);
-        vars.put("article ", c.article);
+        vars.put("article", c.article);
         vars.put("ctime", c.ctime);
         vars.put("userpic", c.userpic);
         vars.put("offset_px", "" + 30 * (c.level - 1));
         vars.put("thread_url", c.thread_url);
-        vars.put("subject ", c.subject);
+        vars.put("subject", c.subject);
 
         String record_url = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
         vars.put("record_url", record_url);
@@ -771,21 +754,21 @@ public class PageParserDirect
                 tname = "templates/direct/user-comment-without-subject.txt";
         }
         
-        // ### make two anon templates
-        
         String template = Util.loadResource(tname);
+        template = template.replace("\r\n", "\n");
+        if (Util.lastChar(template) == '\n')
+            template = Util.stripLastChar(template, '\n');
         String html = expandVars(template, vars);
-        injectHtml(commentsSection, html);
+        injectHtml(commentsSection, html, record_url);
     }
 
-    private void injectHtml(Element commentsSection, String html)
+    private void injectHtml(Element commentsSection, String html, String base_url)
     {
-        List<Node> nodes = org.jsoup.parser.Parser.parseFragment(html, commentsSection, null);
+        List<Node> nodes = org.jsoup.parser.Parser.parseFragment(html, commentsSection, base_url);
+        nodes = new ArrayList<>(nodes);
 
         for (Node node : nodes)
-        {
             commentsSection.appendChild(node);
-        }
     }
     
     private String expandVars(String template, Map<String, String> vars)

@@ -1,5 +1,6 @@
 package my.LJExport.xml;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -16,6 +17,7 @@ import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
 
 import my.LJExport.Main;
+import my.LJExport.runtime.Util;
 
 public class JSOUP
 {
@@ -463,5 +465,24 @@ public class JSOUP
                 sb.append(nodeText(child));
             return sb.toString();
         }
+    }
+    
+    public static Set<String> getClasses(Node n) throws Exception
+    {
+        Set<String> xs = new HashSet<>();
+
+        String classes = getAttribute(n, "class");
+        if (classes == null)
+            return xs;
+        classes = Util.despace(classes);
+        
+        for (String clz : classes.split(" "))
+        {
+            clz = clz.trim();
+            if (clz.length() != 0)
+                xs.add(clz);
+        }
+        
+        return xs;
     }
 }

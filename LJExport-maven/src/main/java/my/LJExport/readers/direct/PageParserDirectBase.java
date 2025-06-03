@@ -1,5 +1,6 @@
 package my.LJExport.readers.direct;
 
+import java.util.Set;
 import java.util.Vector;
 
 import org.jsoup.nodes.Element;
@@ -26,7 +27,7 @@ public abstract class PageParserDirectBase
     {
         return pageContentSource.getPageSource();
     }
-    
+
     /* ============================================================== */
 
     public final static int COUNT_PAGES = (1 << 0);
@@ -115,7 +116,44 @@ public abstract class PageParserDirectBase
 
     /* ============================================================== */
 
+    public String detectPageStyle() throws Exception
+    {
+        Vector<Node> vnodes = JSOUP.findElements(pageRoot, "article");
+        String style = null;
+
+        for (Node n : vnodes)
+        {
+            Set<String> classes = JSOUP.getClasses(n);
+
+            if (classes.contains("aentry") && classes.contains("aentry--post2017"))
+                style = detectPageStyle(style, "new");
+
+            if (classes.contains("b-singlepost") && classes.contains("hentry"))
+                style = detectPageStyle(style, "classic");
+
+            if (classes.contains("b-singlepost-body") && classes.contains("entry-content"))
+                style = detectPageStyle(style, "classic");
+        }
+
+        if (style == null)
+            throw new Exception("Unable to detect page style (missing indicators)");
+
+        return style;
+    }
+
+    public String detectPageStyle(String s1, String s2) throws Exception
+    {
+        if (s1 == null || s1.equals(s2))
+            return s2;
+
+        throw new Exception("Unable to detect page style (conflicting indicators)");
+    }
+
+    /* ============================================================== */
+
     public abstract void removeJunk(int flags) throws Exception;
+
     public abstract Element findCommentsSection(Node pageRootCurrent) throws Exception;
+
     public abstract void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception;
 }

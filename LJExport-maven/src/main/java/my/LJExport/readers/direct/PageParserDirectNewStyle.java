@@ -6,12 +6,14 @@ import org.jsoup.nodes.Node;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 
+// example: https://sergeytsvetkov.livejournal.com/2721896.html
+
 /**
  * Parser for LJ new-style pages
  */
-public class PageReaderDirectNewStyle extends PageParserDirectBase
+public class PageParserDirectNewStyle extends PageParserDirectBase
 {
-    public PageReaderDirectNewStyle(PageContentSource pageContentSource)
+    public PageParserDirectNewStyle(PageContentSource pageContentSource)
     {
         super(pageContentSource);
     }

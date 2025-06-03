@@ -26,7 +26,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
     public PageReaderDirect(String rurl, String fileDir, String linksDir)
     {
-        parser = new PageParserDirect(this);
+        parser = new PageParserDirectClassic(this);
 
         // rurl = "7430586.html"; // test: oboguev (with snipboard image)
         // rurl = "7450356.html"; // test: oboguev (no comments)

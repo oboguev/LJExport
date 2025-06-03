@@ -23,9 +23,9 @@ import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
-public class PageParserDirect extends PageParserDirectBase 
+public class PageParserDirectClassic extends PageParserDirectBase 
 {
-    public PageParserDirect(PageContentSource pageContentSource)
+    public PageParserDirectClassic(PageContentSource pageContentSource)
     {
         super(pageContentSource);
     }

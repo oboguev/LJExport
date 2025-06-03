@@ -249,6 +249,7 @@ public class Comment
         }
     }
 
+    @SuppressWarnings("unused")
     private static JSONObject getJSONObject(JSONObject jo, String key)
     {
         if (jo.isNull(key))

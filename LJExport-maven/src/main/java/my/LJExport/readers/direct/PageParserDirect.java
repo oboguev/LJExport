@@ -20,15 +20,14 @@ import my.LJExport.Main;
 import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
-import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
-public class PageParserDirect
+public class PageParserDirect extends PageParserDirectBase 
 {
     public PageParserDirect(PageContentSource pageContentSource)
     {
-        this.pageContentSource = pageContentSource;
+        super(pageContentSource);
     }
 
     public static class MissingCommentsTreeRootException extends Exception
@@ -41,46 +40,10 @@ public class PageParserDirect
         }
     }
 
-    private final PageContentSource pageContentSource;
-
-    public final static int COUNT_PAGES = (1 << 0);
-    public final static int CHECK_HAS_COMMENTS = (1 << 1);
-    public final static int REMOVE_MAIN_TEXT = (1 << 2);
-    public final static int REMOVE_SCRIPTS = (1 << 3);
-
     protected boolean offline = false;
 
-    public int npages = -1;
-    public Boolean hasComments = null;
-
-    public Node pageRoot;
-    public String pageSource;
-
-    public String rurl;
-    public String rid;
-
-    public static void out(String s)
-    {
-        Main.out(s);
-    }
-
-    public static void err(String s)
-    {
-        Main.err(s);
-    }
-
-    protected void parseHtml(String html) throws Exception
-    {
-        this.pageSource = html;
-        this.pageRoot = JSOUP.parseHtml(html);
-    }
-
-    protected void parseHtml() throws Exception
-    {
-        parseHtml(this.pageSource);
-    }
-
-    protected void removeJunk(int flags) throws Exception
+    @Override
+    public void removeJunk(int flags) throws Exception
     {
         /*
          * Record is a set of nested tables, with relevant content located under the <article> tag.
@@ -151,7 +114,8 @@ public class PageParserDirect
         }
     }
 
-    protected Element findCommentsSection(Node pageRootCurrent) throws Exception
+    @Override
+    public Element findCommentsSection(Node pageRootCurrent) throws Exception
     {
         Element commentsSection = null;
 
@@ -479,29 +443,6 @@ public class PageParserDirect
         return false;
     }
 
-    protected boolean isBadGatewayPage(String html) throws Exception
-    {
-        if (html.contains("Bad Gateway:") || html.contains("Gateway Timeout"))
-        {
-            if (pageRoot == null)
-                pageRoot = JSOUP.parseHtml(html);
-            Vector<Node> vel = JSOUP.findElements(JSOUP.flatten(pageRoot), "body");
-            if (vel.size() != 1)
-                throw new Exception("Unable to find BODY element in the html page");
-            for (Node n : JSOUP.getChildren(vel.get(0)))
-            {
-                if (n instanceof TextNode)
-                {
-                    TextNode tn = (TextNode) n;
-                    if (tn.text().contains("Bad Gateway:") || tn.text().contains("Gateway Timeout"))
-                        return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     protected boolean isRepost() throws Exception
     {
         if (!pageHasNoComments())
@@ -760,35 +701,7 @@ public class PageParserDirect
         }
     }
 
-    private String getPageSource() throws Exception
-    {
-        return pageContentSource.getPageSource();
-    }
-
-    /*static*/ public void downloadExternalLinks(Node root, String linksDir) throws Exception
-    {
-        if (linksDir == null || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
-            return;
-        downloadExternalLinks(root, linksDir, "a", "href");
-        downloadExternalLinks(root, linksDir, "img", "src");
-    }
-
-    /*static*/ private void downloadExternalLinks(Node root, String linksDir, String tag, String attr) throws Exception
-    {
-        for (Node n : JSOUP.findElements(root, tag))
-        {
-            String href = JSOUP.getAttribute(n, attr);
-
-            if (LinkDownloader.shouldDownload(href))
-            {
-                String referer = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
-                String newref = LinkDownloader.download(linksDir, href, referer);
-                if (newref != null)
-                    JSOUP.updateAttribute(n, attr, newref);
-            }
-        }
-    }
-
+    @Override
     public void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception
     {
         List<Comment> list = commentTree.flatten();

@@ -22,7 +22,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
     private final String fileDir;
     private final String linksDir;
 
-    private PageParserDirect parser;
+    private PageParserDirectBase parser;
 
     public PageReaderDirect(String rurl, String fileDir, String linksDir)
     {
@@ -62,11 +62,13 @@ public class PageReaderDirect implements PageReader, PageContentSource
         // List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
         // CommentsTree commentTree = new CommentsTree(commentList); 
 
-        parser.removeJunk(PageParserDirect.COUNT_PAGES | PageParserDirect.CHECK_HAS_COMMENTS | PageParserDirect.REMOVE_SCRIPTS);
+        parser.removeJunk(PageParserDirectBase.COUNT_PAGES |
+                PageParserDirectBase.CHECK_HAS_COMMENTS |
+                PageParserDirectBase.REMOVE_SCRIPTS);
         Node firstPageRoot = parser.pageRoot;
 
         // devCapturePageComments();
-        
+
         if (parser.hasComments)
         {
             // load comments for each of the pages

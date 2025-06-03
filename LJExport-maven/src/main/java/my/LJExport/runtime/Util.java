@@ -557,4 +557,12 @@ public class Util
     {
         return new String(loadResourceAsBytes(path), StandardCharsets.UTF_8);
     }
+    
+    public static Set<String> setOf(String... strings)
+    {
+        Set<String> xs = new HashSet<>();
+        for (String s : strings)
+            xs.add(s);
+        return xs;
+    }
 }

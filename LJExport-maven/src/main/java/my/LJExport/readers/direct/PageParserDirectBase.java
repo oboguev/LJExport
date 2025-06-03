@@ -123,7 +123,7 @@ public abstract class PageParserDirectBase
 
         for (Node n : vnodes)
         {
-            Set<String> classes = JSOUP.getClasses(n);
+            Set<String> classes = JSOUP.getClassesLowercase(n);
 
             if (classes.contains("aentry") && classes.contains("aentry--post2017"))
                 style = detectPageStyle(style, "new");
@@ -153,7 +153,7 @@ public abstract class PageParserDirectBase
 
     public abstract void removeJunk(int flags) throws Exception;
 
-    public abstract Element findCommentsSection(Node pageRootCurrent) throws Exception;
+    public abstract Element findCommentsSection(Node pageRootCurrent, boolean required) throws Exception;
 
     public abstract void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception;
 }

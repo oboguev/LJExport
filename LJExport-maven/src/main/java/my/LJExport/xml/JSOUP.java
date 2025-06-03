@@ -93,35 +93,48 @@ public class JSOUP
 
     public static Vector<Node> flatten(Node el) throws Exception
     {
-        Vector<Node> vec = new Vector<Node>();
-        flatten(vec, el, 0);
-        
+        Vector<Node> v1 = flatten_1(el);
+        Vector<Node> v2 = flatten_2(el);
+
         /*
          * Verification
          */
-        if (Config.False)
+        if (Config.True)
         {
-            Vector<Node> v2 = flatten2(el);
-            if (v2.size() != vec.size())
-                throw new Exception("Bug in flatten #1");
-            for (Node n : v2)
+            for (Node xn1 : v1)
             {
-                if (!vec.contains(n))
+                if (!v2.contains(xn1))
+                    throw new Exception("Bug in flatten #1");
+            }
+
+            for (Node xn2 : v2)
+            {
+                if (!v1.contains(xn2))
                     throw new Exception("Bug in flatten #2");
             }
+
+            if (v1.size() != v2.size())
+                throw new Exception("Bug in flatten #3");
         }
-        
+
+        return v1;
+    }
+
+    public static Vector<Node> flatten_1(Node el) throws Exception
+    {
+        Vector<Node> vec = new Vector<Node>();
+        flatten_1(vec, el, 0);
         return vec;
     }
 
-    private static void flatten(Vector<Node> vec, Node el, int level) throws Exception
+    private static void flatten_1(Vector<Node> vec, Node el, int level) throws Exception
     {
         if (el == null)
             return;
         vec.add(el);
-        flatten(vec, firstChild(el), level + 1);
+        flatten_1(vec, firstChild(el), level + 1);
         if (level != 0)
-            flatten(vec, el.nextSibling(), level + 1);
+            flatten_1(vec, el.nextSibling(), level + 1);
     }
 
     public static Node firstChild(Node n) throws Exception
@@ -136,14 +149,14 @@ public class JSOUP
     /*
      * Alternative version for flattening
      */
-    public static Vector<Node> flatten2(Node root)
+    public static Vector<Node> flatten_2(Node root)
     {
         Vector<Node> result = new Vector<>();
-        flatten2(root, result);
+        flatten_2(root, result);
         return result;
     }
 
-    private static void flatten2(Node node, Vector<Node> result)
+    private static void flatten_2(Node node, Vector<Node> result)
     {
         if (node == null)
             return;
@@ -153,7 +166,7 @@ public class JSOUP
 
         // Recurse into children
         for (Node child : node.childNodes())
-            flatten2(child, result);
+            flatten_2(child, result);
     }
 
     public static String nodeName(Node n) throws Exception
@@ -274,6 +287,38 @@ public class JSOUP
         return vel;
     }
 
+    public static Vector<Node> findElementsWithAllClasses(Node root, String tagname, Set<String> classes) throws Exception
+    {
+        return findElementsWithAllClasses(flatten(root), tagname, classes);
+    }
+
+    public static Vector<Node> findElementsWithAllClasses(Vector<Node> pageFlat, String tagname, Set<String> classes)
+            throws Exception
+    {
+        Vector<Node> vel = new Vector<Node>();
+        Element el;
+
+        @SuppressWarnings("unused")
+        String av;
+
+        for (Node n : pageFlat)
+        {
+            if (!(n instanceof Element))
+                continue;
+            if (tagname != null && !n.nodeName().equalsIgnoreCase(tagname))
+                continue;
+
+            el = (Element) n;
+
+            av = getAttribute(el, "class");
+
+            if (classContainsAll(getAttribute(el, "class"), classes))
+                vel.add(el);
+        }
+
+        return vel;
+    }
+
     public static boolean classContains(String clist, String cls) throws Exception
     {
         if (clist == null)
@@ -293,6 +338,31 @@ public class JSOUP
         }
 
         return false;
+    }
+
+    public static boolean classContainsAll(String clist, Set<String> classes) throws Exception
+    {
+        if (clist == null)
+            return false;
+
+        Set<String> xs = new HashSet<>();
+
+        clist = Util.despace(clist);
+
+        for (String clz : clist.split(" "))
+        {
+            clz = clz.trim();
+            if (clz.length() != 0)
+                xs.add(clz.toLowerCase());
+        }
+
+        for (String clz : classes)
+        {
+            if (!xs.contains(clz.toLowerCase()))
+                return false;
+        }
+
+        return true;
     }
 
     public static void removeElementsWithClass(Node pageRoot, String tagname, String cls) throws Exception
@@ -343,6 +413,11 @@ public class JSOUP
             n.remove();
     }
 
+    public static void removeElement(Node pageRoot, Node node) throws Exception
+    {
+        node.remove();
+    }
+    
     public static void removeNodes(Vector<Node> vnodes) throws Exception
     {
         for (Node n : vnodes)
@@ -523,6 +598,19 @@ public class JSOUP
                 xs.add(clz);
         }
 
+        return xs;
+    }
+
+    public static Set<String> getClassesLowercase(Node n) throws Exception
+    {
+        return toLowerCase(getClasses(n));
+    }
+
+    public static Set<String> toLowerCase(Set<String> ss)
+    {
+        Set<String> xs = new HashSet<>();
+        for (String s : ss)
+            xs.add(s.toLowerCase());
         return xs;
     }
 }

@@ -40,8 +40,8 @@ public class Config
     // public static String DownloadRoot = "F:\\@";
     // public static String DownloadRoot = "C:\\WINAPPS\\LJExport\\journals";
     // public static String DownloadRoot = "/home/sergey/LJExport/journals";
-    // public static String DownloadRoot = "C:\\LJExport-journals";
-    public static String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    public static String DownloadRoot = "C:\\LJExport-journals";
+    // public static String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Proxy server */
     public static String Proxy = null;

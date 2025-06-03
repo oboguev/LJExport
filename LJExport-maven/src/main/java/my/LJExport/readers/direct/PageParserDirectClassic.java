@@ -23,7 +23,7 @@ import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
-public class PageParserDirectClassic extends PageParserDirectBase 
+public class PageParserDirectClassic extends PageParserDirectBase
 {
     public PageParserDirectClassic(PageContentSource pageContentSource)
     {
@@ -68,7 +68,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
          * Empty out the comments section
          * under <article> find <div id="comments"> and empty it
          */
-        Element commentsSection = findCommentsSection(pageRoot);
+        Element commentsSection = findCommentsSection(pageRoot, false);
         if (commentsSection != null)
             JSOUP.removeNodes(JSOUP.getChildren(commentsSection));
 
@@ -79,7 +79,6 @@ public class PageParserDirectClassic extends PageParserDirectBase
         JSOUP.removeElementsWithClass(pageRoot, "iframe", "b-watering-commentator");
         JSOUP.removeElementsWithClass(pageRoot, "div", "b-popup-outer");
         JSOUP.removeElementsWithClass(pageRoot, "div", "threeposts__inner");
-        JSOUP.removeElementsWithClass(pageRoot, "div", "entry-unrelated");
         JSOUP.removeElementsWithClass(pageRoot, "div", "ng-scope");
         JSOUP.removeElementsWithClass(pageRoot, "div", "b-massaction");
         JSOUP.removeElementsWithClass(pageRoot, "div", "b-massaction-anchor");
@@ -90,7 +89,16 @@ public class PageParserDirectClassic extends PageParserDirectBase
         JSOUP.removeElementsWithClass(pageRoot, "div", "b-tree-best");
         JSOUP.removeElementsWithClass(pageRoot, "div", "b-tree-promo");
         JSOUP.removeElementsWithClass(pageRoot, "div", "appwidget-sitemessages");
+        JSOUP.removeElementsWithClass(pageRoot, "ul", "b-singlepos-tools");
 
+        for (Node n : JSOUP.findElementsWithClass(pageRoot, "div", "entry-unrelated"))
+        {
+            String id = JSOUP.getAttribute(n, "id");
+            if (id != null && id.equals("comments"))
+                continue;
+            JSOUP.removeElement(pageRoot, n);
+        }
+        
         for (Node n : JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-singlepost-standout"))
         {
             JSOUP.insertAfter(n, JSOUP.makeElement("br", n));
@@ -115,7 +123,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
     }
 
     @Override
-    public Element findCommentsSection(Node pageRootCurrent) throws Exception
+    public Element findCommentsSection(Node pageRootCurrent, boolean required) throws Exception
     {
         Element commentsSection = null;
 
@@ -131,6 +139,9 @@ public class PageParserDirectClassic extends PageParserDirectBase
                     throw new Exception("Multiple comment sections");
             }
         }
+        
+        if (required && commentsSection == null)
+            throw new Exception("Page has no comments section");
 
         return commentsSection;
     }
@@ -235,26 +246,40 @@ public class PageParserDirectClassic extends PageParserDirectBase
     protected boolean hasComments() throws Exception
     {
         Boolean has = null;
+
+        Element commentsSection = findCommentsSection(pageRoot, true);
+        has = hasComments(has, commentsSection);
         
-        Element commentsSection = findCommentsSection(pageRoot);
-        if (commentsSection == null)
-            throw new Exception("Page has no comments section");
-        
+        if (has == null)
+        {
+            Vector<Node> articles = JSOUP.findElementsWithAllClasses(pageRoot, "article", Util.setOf("b-singlepost", "hentry"));
+            for (Node article : articles)
+                has = hasComments(has, article);
+        }
+
+        if (has == null)
+            throw new Exception("Unable to determine if page has comments");
+
+        return has;
+    }
+
+    private Boolean hasComments(Boolean has, Node under) throws Exception
+    {
         if (pageSource.contains("b-xylem-nocomment"))
         {
-            Vector<Node> vel = JSOUP.findElementsWithClass(commentsSection, "div", "b-xylem-nocomment");
+            Vector<Node> vel = JSOUP.findElementsWithClass(under, "div", "b-xylem-nocomment");
             for (Node n : vel)
             {
                 String s = JSOUP.nodeText(n);
                 s = Util.despace(s);
                 if (s.equals("Comments for this post were disabled by the author"))
-                    has = Boolean.FALSE;
+                    has = hasComments(has, Boolean.FALSE);
             }
         }
 
         if (pageSource.contains("b-xylem-cell-amount"))
         {
-            Vector<Node> vel = JSOUP.findElementsWithClass(commentsSection, "li", "b-xylem-cell-amount");
+            Vector<Node> vel = JSOUP.findElementsWithClass(under, "li", "b-xylem-cell-amount");
             for (Node n : vel)
             {
                 String s = JSOUP.nodeText(n);
@@ -276,9 +301,6 @@ public class PageParserDirectClassic extends PageParserDirectBase
             }
         }
         
-        if (has == null)
-            throw new Exception("Unable to determine if page has comments");
-        
         return has;
     }
     
@@ -294,7 +316,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
             return false;
         }
     }
-    
+
     private Boolean hasComments(Boolean has1, Boolean has2)
     {
         if (has1 == null || has1.equals(has2))

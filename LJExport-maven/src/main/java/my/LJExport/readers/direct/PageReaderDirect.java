@@ -27,7 +27,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
     public PageReaderDirect(String rurl, String fileDir, String linksDir)
     {
         parser = new PageParserDirectClassic(this);
-
+        
+        // rurl = "1076886.html";  // test: genby
         // rurl = "7430586.html"; // test: oboguev (with snipboard image)
         // rurl = "7450356.html"; // test: oboguev (no comments)
         // rurl = "2352931.html"; // test: krylov (many pages of comments)
@@ -60,8 +61,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
             parser.parseHtml();
 
         // List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
-        // CommentsTree commentTree = new CommentsTree(commentList); 
-
+        // CommentsTree commentTree = new CommentsTree(commentList);
+        
         parser.removeJunk(PageParserDirectBase.COUNT_PAGES |
                 PageParserDirectBase.CHECK_HAS_COMMENTS |
                 PageParserDirectBase.REMOVE_SCRIPTS);
@@ -82,8 +83,11 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
                 // insert comments from commentTree into commentsSection 
                 // i.e. to under <article> find <div id="comments"> and append inside it
-                Element commentsSection = parser.findCommentsSection(firstPageRoot);
-                parser.injectComments(commentsSection, commentTree);
+                if (commentTree.hasComments())
+                {
+                    Element commentsSection = parser.findCommentsSection(firstPageRoot, true);
+                    parser.injectComments(commentsSection, commentTree);
+                }
             }
         }
 

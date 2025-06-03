@@ -26,7 +26,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
     }
 
     @Override
-    public Element findCommentsSection(Node pageRootCurrent) throws Exception
+    public Element findCommentsSection(Node pageRootCurrent, boolean required) throws Exception
     {
         // ###
         throw new RuntimeException("Not implemented");

@@ -257,4 +257,9 @@ public class CommentsTree
     {
         throw new RuntimeException(msg);
     }
+    
+    public boolean hasComments()
+    {
+        return toplevelComments.size() != 0;
+    }
 }

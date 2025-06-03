@@ -16,6 +16,7 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
 
+import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.Util;
 
@@ -94,6 +95,22 @@ public class JSOUP
     {
         Vector<Node> vec = new Vector<Node>();
         flatten(vec, el, 0);
+        
+        /*
+         * Verification
+         */
+        if (Config.False)
+        {
+            Vector<Node> v2 = flatten2(el);
+            if (v2.size() != vec.size())
+                throw new Exception("Bug in flatten #1");
+            for (Node n : v2)
+            {
+                if (!vec.contains(n))
+                    throw new Exception("Bug in flatten #2");
+            }
+        }
+        
         return vec;
     }
 
@@ -114,6 +131,29 @@ public class JSOUP
             return null;
         else
             return children.get(0);
+    }
+
+    /*
+     * Alternative version for flattening
+     */
+    public static Vector<Node> flatten2(Node root)
+    {
+        Vector<Node> result = new Vector<>();
+        flatten2(root, result);
+        return result;
+    }
+
+    private static void flatten2(Node node, Vector<Node> result)
+    {
+        if (node == null)
+            return;
+
+        // Visit current node
+        result.add(node);
+
+        // Recurse into children
+        for (Node child : node.childNodes())
+            flatten2(child, result);
     }
 
     public static String nodeName(Node n) throws Exception
@@ -466,7 +506,7 @@ public class JSOUP
             return sb.toString();
         }
     }
-    
+
     public static Set<String> getClasses(Node n) throws Exception
     {
         Set<String> xs = new HashSet<>();
@@ -475,14 +515,14 @@ public class JSOUP
         if (classes == null)
             return xs;
         classes = Util.despace(classes);
-        
+
         for (String clz : classes.split(" "))
         {
             clz = clz.trim();
             if (clz.length() != 0)
                 xs.add(clz);
         }
-        
+
         return xs;
     }
 }

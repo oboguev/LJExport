@@ -704,7 +704,7 @@ abstract public class PageParser
 
     abstract protected String getPageSource() throws Exception;
 
-    static public void downloadExternalLinks(Node root, String linksDir) throws Exception
+    public void downloadExternalLinks(Node root, String linksDir) throws Exception
     {
         if (linksDir == null || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
             return;
@@ -712,7 +712,7 @@ abstract public class PageParser
         downloadExternalLinks(root, linksDir, "img", "src");
     }
 
-    static private void downloadExternalLinks(Node root, String linksDir, String tag, String attr) throws Exception
+    private void downloadExternalLinks(Node root, String linksDir, String tag, String attr) throws Exception
     {
         for (Node n : JSOUP.findElements(root, tag))
         {
@@ -720,7 +720,8 @@ abstract public class PageParser
 
             if (LinkDownloader.shouldDownload(href))
             {
-                String newref = LinkDownloader.download(linksDir, href);
+                String referer = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
+                String newref = LinkDownloader.download(linksDir, href, referer);
                 if (newref != null)
                     JSOUP.updateAttribute(n, attr, newref);
             }

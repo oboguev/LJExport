@@ -87,7 +87,7 @@ public class Config
     public static int Timeout = 150;
     public static int NWorkThreads = 0;
     public static int ThreadsPerCPU = 2;
-    public static int MaxThreads = 4;
+    public static int MaxThreads = 1;
     public static String TrustStore = null;
     public static String TrustStorePassword = null;
     public static int ProxyThreadsPerThread = 10;

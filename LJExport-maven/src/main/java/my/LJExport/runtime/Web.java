@@ -25,6 +25,7 @@ import org.apache.http.client.config.CookieSpecs;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 // GZIP: http://stackoverflow.com/questions/1063004/how-to-decompress-http-response
 
@@ -110,10 +111,10 @@ public class Web
 
     public static Response get(String url) throws Exception
     {
-        return get(url, false);
+        return get(url, false, null);
     }
 
-    public static Response get(String url, boolean binary) throws Exception
+    public static Response get(String url, boolean binary, Map<String, String> headers) throws Exception
     {
         RateLimiter.limitRate();
         lastURL.set(url);
@@ -121,6 +122,12 @@ public class Web
 
         HttpGet request = new HttpGet(url);
         setCommon(request);
+        if (headers != null)
+        {
+            for (String key : headers.keySet())
+                request.setHeader(key, headers.get(key));
+        }
+
         CloseableHttpResponse response = httpClient.execute(request);
 
         try

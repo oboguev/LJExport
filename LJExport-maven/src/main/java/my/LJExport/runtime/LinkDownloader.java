@@ -3,12 +3,14 @@ package my.LJExport.runtime;
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import my.LJExport.Config;
 
 public class LinkDownloader
 {
-    public static String download(String linksDir, String href)
+    public static String download(String linksDir, String href, String referer)
     {
         try
         {
@@ -38,8 +40,29 @@ public class LinkDownloader
             if (f.exists())
                 return null;
             Util.mkdir(f.getParent());
+            
+            String host = (new URL(href)).getHost();
+            host = host.toLowerCase();
+            
+            Map<String,String> headers = new HashMap<>();
+            
+            if (referer != null && referer.length() != 0)
+            {
+                
+                if (host.equals("snag.gy") || host.endsWith(".snag.gy") || 
+                        host.equals("snipboard.io") || host.endsWith(".snipboard.io"))
+                {
+                    // use referer and accept
+                    headers.put("Referer", referer);
+                    headers.put("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+                }
+                else
+                {
+                    // do not use referer
+                }
+            }
 
-            Web.Response r = Web.get(href, true);
+            Web.Response r = Web.get(href, true, headers);
 
             if (r.code < 200 || r.code >= 300)
                 throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);

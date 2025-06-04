@@ -1,17 +1,25 @@
 package my.LJExport.readers.direct;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 
+import my.LJExport.Config;
+import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
-// example: https://sergeytsvetkov.livejournal.com/2721896.html
-//          https://genby.livejournal.com/982965.html
+// examples: https://sergeytsvetkov.livejournal.com/2721896.html
+//           https://genby.livejournal.com/982965.html
+//           https://oboguev-2.livejournal.com/399.html
 
 /**
  * Parser for LJ new-style pages
@@ -178,8 +186,28 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
     
     private Boolean hasComments(Boolean has, Node under) throws Exception
     {
-        // ###
-        throw new RuntimeException("Not implemented");
+        Vector<Node> va = JSOUP.findElementsWithClass(under, "a", "mdspost-comments-controls__count");
+        for (Node na : va)
+        {
+            String s = JSOUP.nodeText(na);
+            s = Util.despace(s);
+            if (s.equals("0 comments"))
+            {
+                has = hasComments(has, Boolean.FALSE);
+            }
+            else if (s.equals("1 comment"))
+            {
+                has = hasComments(has, Boolean.TRUE);
+            }
+            else
+            {
+                String sa[] = s.split(" ");
+                if (sa.length == 2 && sa[1].equals("comments") && isPositiveNumber(sa[0]))
+                    has = hasComments(has, Boolean.TRUE);
+            }
+        }
+        
+        return has;
     }
 
     @Override
@@ -211,7 +239,110 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
     @Override
     public void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception
     {
-        // ###
-        throw new RuntimeException("Not implemented");
+        List<Comment> list = commentTree.flatten();
+        for (Comment c : list)
+            injectComment(commentsSection, c);
+    }
+
+    private void injectComment(Element commentsSection, Comment c) throws Exception
+    {
+        String dname = c.dname;
+        if (dname == null)
+            dname = c.uname;
+
+        String profile_url = c.profile_url;
+        if (profile_url == null)
+            profile_url = c.commenter_journal_base + "profile/";
+
+        String journal_url = c.journal_url;
+        if (journal_url == null)
+        {
+            journal_url = c.commenter_journal_base;
+            if (Util.lastChar(journal_url) == '/')
+                journal_url = Util.stripLastChar(journal_url, '/');
+        }
+
+        String userhead_url = c.userhead_url;
+        if (userhead_url == null)
+            userhead_url = Comment.DEFAULT_USERHEAD_URL;
+
+        Map<String, String> vars = new HashMap<>();
+        vars.put("username", c.uname);
+        vars.put("dname", dname);
+        vars.put("profile_url", profile_url);
+        vars.put("journal_url", journal_url);
+        vars.put("userhead_url", userhead_url);
+        vars.put("thread", c.thread);
+        vars.put("commenter_journal_base", c.commenter_journal_base);
+        vars.put("article", c.article);
+        vars.put("ctime", c.ctime);
+        vars.put("userpic", c.userpic);
+        vars.put("offset_px", "" + 30 * (c.level - 1));
+        vars.put("level", "" + c.level);
+        vars.put("thread_url", c.thread_url);
+        vars.put("subject", c.subject);
+
+        String record_url = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
+        vars.put("record_url", record_url);
+
+        final String tdir = "templates/direct-new-style/";
+        String tname = null;
+        
+        if (c.isDeleted())
+        {
+            throw new Exception("No template for deleted comment " + c.thread_url);
+            // tname = tdir + "deleted-comment.txt";
+            // vars.put("deleted-comment-status", "Deleted comment");
+        }
+        else if (c.isScreened() && c.loaded != Boolean.TRUE)
+        {
+            throw new Exception("No template for screened comment " + c.thread_url);
+            // tname = tdir + "deleted-comment.txt";
+            // vars.put("deleted-comment-status", "Screened comment");
+        }
+        else if (c.uname == null || c.uname.equals(Comment.DEFAULT_UNAME))
+        {
+            if (c.subject != null && c.subject.length() != 0)
+            {
+                throw new Exception("No template for anonymous comment with subject " + c.thread_url);
+                // tname = tdir + "anon-comment-with-subject.txt";
+            }
+            else
+            {
+                throw new Exception("No template for anonymous comment without subject " + c.thread_url);
+                // tname = tdir + "anon-comment-without-subject.txt";
+            }
+        }
+        else
+        {
+            if (c.subject != null && c.subject.length() != 0)
+            {
+                throw new Exception("No template for non-anonymous comment with subject " + c.thread_url);
+                // tname = tdir + "user-comment-with-subject.txt";
+            }
+            else
+            {
+                tname = tdir + "user-comment-without-subject.txt";
+            }
+        }
+
+        String template = Util.loadResource(tname);
+        String html = expandVars(template, vars);
+
+        html = html.replace("\r\n", "\n");
+
+        if (Util.lastChar(html) == '\n')
+            html = Util.stripLastChar(html, '\n');
+
+        html = Arrays.stream(html.split("\n"))
+                .map(String::trim)
+                .collect(Collectors.joining("\n"));
+
+        if (Util.lastChar(html) == '\n')
+            html = Util.stripLastChar(html, '\n');
+
+        html = html.replace("\n", "");
+
+        injectHtml(commentsSection, html, record_url);
     }
 }

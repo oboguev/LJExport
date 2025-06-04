@@ -772,10 +772,16 @@ public class PageParserDirectClassic extends PageParserDirectBase
         vars.put("record_url", record_url);
 
         String tname = null;
-
+        
         if (c.isDeleted())
         {
             tname = "templates/direct/deleted-comment.txt";
+            vars.put("deleted-comment-status", "Deleted comment");
+        }
+        else if (c.isScreened() && c.loaded != Boolean.TRUE)
+        {
+            tname = "templates/direct/deleted-comment.txt";
+            vars.put("deleted-comment-status", "Screened comment");
         }
         else if (c.uname == null || c.uname.equals(Comment.DEFAULT_UNAME))
         {

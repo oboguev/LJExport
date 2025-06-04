@@ -151,7 +151,7 @@ public class Comment
         if (c.level == 1 && c.parent != null)
             throwRuntimeException("Top-level comment has a parent");
 
-        if (c.level == 1 && !c.loaded && !c.isDeleted())
+        if (c.level == 1 && !c.loaded && !c.isDeleted() && !c.isScreened())
             throwRuntimeException("Top-level comment is not loaded");
 
         return c;
@@ -165,6 +165,11 @@ public class Comment
     public boolean isDeleted()
     {
         return leafclass != null && leafclass.equals("deleted");
+    }
+
+    public boolean isScreened()
+    {
+        return leafclass != null && leafclass.equals("screened");
     }
 
     public boolean isEmptyPlaceholder()

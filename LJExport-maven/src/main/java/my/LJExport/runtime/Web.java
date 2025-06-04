@@ -128,6 +128,7 @@ public class Web
                 request.setHeader(key, headers.get(key));
         }
 
+        ActivityCounters.startedWebRequest();
         CloseableHttpResponse response = httpClient.execute(request);
 
         try
@@ -186,6 +187,8 @@ public class Web
         setCommon(request);
         request.setHeader("Content-Type", "application/x-www-form-urlencoded");
         request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
+
+        ActivityCounters.startedWebRequest();
         CloseableHttpResponse response = httpClient.execute(request);
 
         try

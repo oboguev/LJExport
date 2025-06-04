@@ -11,6 +11,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
 // example: https://sergeytsvetkov.livejournal.com/2721896.html
+//          https://genby.livejournal.com/982965.html
 
 /**
  * Parser for LJ new-style pages

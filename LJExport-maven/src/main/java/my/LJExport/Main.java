@@ -22,6 +22,7 @@ import my.LJExport.readers.PageReaderBasic;
 import my.LJExport.readers.PageReaderHtmlUnit;
 import my.LJExport.readers.PageReaderSelenium;
 import my.LJExport.readers.direct.PageReaderDirect;
+import my.LJExport.runtime.ActivityCounters;
 import my.LJExport.runtime.ProxyServer;
 import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.UrlDurationHistory;
@@ -250,6 +251,8 @@ public class Main
             case HTML_UNIT:
                 break;
             }
+            
+            ActivityCounters.reset();
 
             Vector<Thread> vt = new Vector<Thread>();
             // start worker threads
@@ -431,6 +434,8 @@ public class Main
 
         try
         {
+            Thread.currentThread().setName("page-loader: idle");
+
             switch (Config.Method)
             {
             case HTML_UNIT:
@@ -506,9 +511,14 @@ public class Main
                 int nc = nCurrent.incrementAndGet();
                 double fpct = 100.0 * ((double) nc / nTotal);
                 out(">>> " + "[" + Config.User + "] " + rurl + " (" + nc + "/" + nTotal + ", " + String.format("%.2f", fpct)
-                        + "%)");
+                        + "%) " + ActivityCounters.summary());
+
+                Thread.currentThread().setName("page-loader: loading " + rurl);
 
                 reader.readPage();
+                ActivityCounters.loadedPage();
+                
+                Thread.currentThread().setName("page-loader: idle");
             }
         }
         catch (Exception ex)
@@ -528,6 +538,8 @@ public class Main
 
             if (seleniumContext != null)
                 seleniumContext.close();
+
+            Thread.currentThread().setName("page-loader: idle");
         }
     }
 

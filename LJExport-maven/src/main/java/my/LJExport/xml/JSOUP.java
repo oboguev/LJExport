@@ -417,7 +417,7 @@ public class JSOUP
     {
         node.remove();
     }
-    
+
     public static void removeNodes(Vector<Node> vnodes) throws Exception
     {
         for (Node n : vnodes)
@@ -557,6 +557,27 @@ public class JSOUP
         // Replace the <img> element with a text node "<deleted-img>"
         for (org.jsoup.nodes.Element img : imgTags)
             img.replaceWith(new TextNode("<deleted-img>", ""));
+
+        // in all elements with attribute data-auth-token
+        // delete it or replace its value with empty
+        try
+        {
+            for (Node n : flatten(doc))
+            {
+                if (!(n instanceof Element))
+                    continue;
+
+                Element el = (Element) n;
+
+                if (getAttribute(el, "data-auth-token") != null)
+                    el.removeAttr("data-auth-token");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException(ex.getLocalizedMessage(), ex);
+        }
 
         // Return only the body content (to avoid adding <html> and <head>)
         return doc.body().html();

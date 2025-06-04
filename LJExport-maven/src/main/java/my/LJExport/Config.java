@@ -40,8 +40,8 @@ public class Config
     // public static String DownloadRoot = "F:\\@";
     // public static String DownloadRoot = "C:\\WINAPPS\\LJExport\\journals";
     // public static String DownloadRoot = "/home/sergey/LJExport/journals";
-    public static String DownloadRoot = "C:\\LJExport-journals";
-    // public static String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    // public static String DownloadRoot = "C:\\LJExport-journals";
+    public static String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Proxy server */
     public static String Proxy = null;
@@ -50,8 +50,8 @@ public class Config
     /* Range of dates to download (inclusive) */
     // public static YYYY_MM LoadSince = null;
     // public static YYYY_MM LoadTo = null;
-    public static YYYY_MM LoadSince = new YYYY_MM(2024, 3);
-    public static YYYY_MM LoadTo = new YYYY_MM(2024, 3);
+    public static YYYY_MM LoadSince = new YYYY_MM(2022, 1);
+    public static YYYY_MM LoadTo = new YYYY_MM(2023, 12);
 
     /* Download linked files of the listed locally, so they can be accessed offline */
     // public static List<String> DownloadFileTypes = null;
@@ -89,7 +89,7 @@ public class Config
     public static int Timeout = 150;
     public static int NWorkThreads = 0;
     public static int ThreadsPerCPU = 2;
-    public static int MaxThreads = 1;
+    public static int MaxThreads = 4;
     public static String TrustStore = null;
     public static String TrustStorePassword = null;
     public static int ProxyThreadsPerThread = 10;

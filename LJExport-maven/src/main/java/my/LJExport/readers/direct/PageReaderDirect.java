@@ -66,6 +66,12 @@ public class PageReaderDirect implements PageReader, PageContentSource
             break;
 
         case "new-style":
+            if (Config.True)
+            {
+                Main.out("Skipping new-style " + parser.rurl);
+                return;
+                // ###
+            }
             parser = new PageParserDirectNewStyle(parser);
             break;
         }

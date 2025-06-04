@@ -13,7 +13,7 @@ public class Comment
     public final static String DEFAULT_USERPIC = "https://l-stat.livejournal.net/img/userpics/userpic-user.png";
     public final static String DEFAULT_UNAME = "Anonymous";
     public final static String DEFAULT_USERHEAD_URL = "https://l-stat.livejournal.net/img/userinfo_v8.svg?v=17080&amp;v=847";
-    
+
     // such as "31873680"
     public String thread;
 
@@ -34,7 +34,7 @@ public class Comment
     // comment poster username e.g. "twincat"
     public String uname;
     public String dname;
-    
+
     public String profile_url;
     public String journal_url;
     public String userhead_url;
@@ -92,7 +92,7 @@ public class Comment
         c.leafclass = getString(jo, "leafclass");
 
         c.handle_thread_url();
-        
+
         JSONArray uarray = getJSONArray(jo, "username");
         if (uarray != null)
         {
@@ -115,7 +115,7 @@ public class Comment
                 throwRuntimeException("Comment has username array with unexpected length " + uarray.length());
             }
         }
-        
+
         if (!validate)
             return c;
 
@@ -224,7 +224,7 @@ public class Comment
     {
         if (array.isNull(index))
             return null;
-        
+
         Object v = array.get(index);
         if (v == null)
             return null;
@@ -241,7 +241,7 @@ public class Comment
     {
         if (jo.isNull(key))
             return null;
-        
+
         Object v = jo.get(key);
         if (v == null)
             return null;
@@ -259,7 +259,7 @@ public class Comment
     {
         if (jo.isNull(key))
             return null;
-        
+
         Object v = jo.get(key);
         if (v == null)
             return null;
@@ -396,12 +396,14 @@ public class Comment
         String sf2 = (String) f2;
         String lsf1 = sf1.toLowerCase();
         String lsf2 = sf2.toLowerCase();
-        if (lsf1.contains("<img") && lsf2.contains("<img"))
+        if (lsf1.contains("<img") && lsf2.contains("<img") ||
+                lsf1.contains("data-auth-token") ||
+                lsf2.contains("data-auth-token"))
         {
             int count = 0;
-            if (lsf1.contains("imgprx.livejournal.net"))
+            if (lsf1.contains("imgprx.livejournal.net") || lsf1.contains("data-auth-token"))
                 count++;
-            if (lsf2.contains("imgprx.livejournal.net"))
+            if (lsf2.contains("imgprx.livejournal.net") || lsf2.contains("data-auth-token"))
                 count++;
             if (count != 0)
             {

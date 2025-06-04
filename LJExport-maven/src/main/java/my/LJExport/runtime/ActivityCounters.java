@@ -49,7 +49,7 @@ public class ActivityCounters
         {
             if (ts0 == 0)
                 ts0 = entry.ts;
-            
+
             switch (entry.kind)
             {
             case "web-request":
@@ -70,7 +70,8 @@ public class ActivityCounters
             ms = 1;
         }
 
-        return String.format("over last 5 mins: web requests: %.2f/sec, loaded pages: %.2f/sec", 1000 * web_requests / ms,
-                1000 * loaded_pages / ms);
+        return String.format("over last 5 mins: web requests: %.2f/min, loaded pages: %.2f/min",
+                60 * 1000 * web_requests / ms,
+                60 * 1000 * loaded_pages / ms);
     }
 }

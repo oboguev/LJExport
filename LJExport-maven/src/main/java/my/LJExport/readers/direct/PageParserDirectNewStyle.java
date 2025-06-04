@@ -18,6 +18,11 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
         super(pageContentSource);
     }
 
+    public PageParserDirectNewStyle(PageParserDirectBase classic)
+    {
+        super(classic);
+    }
+    
     @Override
     public void removeJunk(int flags) throws Exception
     {

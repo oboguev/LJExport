@@ -27,8 +27,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
     public PageReaderDirect(String rurl, String fileDir, String linksDir)
     {
         parser = new PageParserDirectClassic(this);
-        
-        // rurl = "1076886.html";  // test: genby
+
+        // rurl = "1076886.html"; // test: genby
         // rurl = "7430586.html"; // test: oboguev (with snipboard image)
         // rurl = "7450356.html"; // test: oboguev (no comments)
         // rurl = "2352931.html"; // test: krylov (many pages of comments)
@@ -59,10 +59,20 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         if (parser.pageRoot == null)
             parser.parseHtml();
+        
+        switch (parser.detectPageStyle())
+        {
+        case "classic":
+            break;
+
+        case "new-style":
+            parser = new PageParserDirectNewStyle(parser);
+            break;
+        }
 
         // List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
         // CommentsTree commentTree = new CommentsTree(commentList);
-        
+
         parser.removeJunk(PageParserDirectBase.COUNT_PAGES |
                 PageParserDirectBase.CHECK_HAS_COMMENTS |
                 PageParserDirectBase.REMOVE_SCRIPTS);
@@ -158,6 +168,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
         lastReadPageSource = null;
 
         parser.pageSource = lastReadPageSource = load(sb.toString());
+
         return lastReadPageSource;
     }
 

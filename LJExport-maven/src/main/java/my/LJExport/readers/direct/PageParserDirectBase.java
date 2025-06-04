@@ -23,6 +23,18 @@ public abstract class PageParserDirectBase
         this.pageContentSource = pageContentSource;
     }
 
+    public PageParserDirectBase(PageParserDirectBase other)
+    {
+        this.pageContentSource = other.pageContentSource;
+
+        this.npages = other.npages;
+        this.hasComments = other.hasComments;
+        this.pageRoot = other.pageRoot;
+        this.pageSource = other.pageSource;
+        this.rurl = other.rurl;
+        this.rid = other.rid;
+    }
+
     protected String getPageSource() throws Exception
     {
         return pageContentSource.getPageSource();
@@ -126,7 +138,7 @@ public abstract class PageParserDirectBase
             Set<String> classes = JSOUP.getClassesLowercase(n);
 
             if (classes.contains("aentry") && classes.contains("aentry--post2017"))
-                style = detectPageStyle(style, "new");
+                style = detectPageStyle(style, "new-style");
 
             if (classes.contains("b-singlepost") && classes.contains("hentry"))
                 style = detectPageStyle(style, "classic");
@@ -141,7 +153,7 @@ public abstract class PageParserDirectBase
         return style;
     }
 
-    public String detectPageStyle(String s1, String s2) throws Exception
+    private String detectPageStyle(String s1, String s2) throws Exception
     {
         if (s1 == null || s1.equals(s2))
             return s2;

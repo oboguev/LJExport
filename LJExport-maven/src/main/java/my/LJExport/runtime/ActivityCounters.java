@@ -70,7 +70,7 @@ public class ActivityCounters
             ms = 1;
         }
 
-        return String.format("over last 5 mins: web requests: %.2f/sec, loaded pages: %.2f/sec", 0.001 * web_requests / ms,
-                0.001 * loaded_pages / ms);
+        return String.format("over last 5 mins: web requests: %.2f/sec, loaded pages: %.2f/sec", 1000 * web_requests / ms,
+                1000 * loaded_pages / ms);
     }
 }

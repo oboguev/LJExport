@@ -1,5 +1,9 @@
 package my.LJExport.readers.direct;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -168,4 +172,110 @@ public abstract class PageParserDirectBase
     public abstract Element findCommentsSection(Node pageRootCurrent, boolean required) throws Exception;
 
     public abstract void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception;
+
+    /* ============================================================== */
+
+    protected void injectHtml(Element commentsSection, String html, String base_url)
+    {
+        List<Node> nodes = org.jsoup.parser.Parser.parseFragment(html, commentsSection, base_url);
+        nodes = new ArrayList<>(nodes);
+
+        for (Node node : nodes)
+            commentsSection.appendChild(node);
+    }
+
+    protected String expandVars(String template, Map<String, String> vars)
+    {
+        String res = template;
+
+        for (String key : vars.keySet())
+        {
+            String value = vars.get(key);
+            if (value != null)
+                res = res.replace("{$" + key + "}", value);
+        }
+
+        return res;
+    }
+
+    protected void removeNonArticleParents() throws Exception
+    {
+        // find article tags
+        Vector<Node> articles = JSOUP.findElements(pageRoot, "article");
+
+        // something wrong? leave it alone
+        if (articles.size() == 0)
+            return;
+
+        // traverse upwards from articles and mark the nodes to keep
+        Set<Node> keepSet = new HashSet<Node>();
+        for (Node n : articles)
+        {
+            JSOUP.enumParents(keepSet, n);
+            keepSet.add(n);
+        }
+
+        // traverse from root recursively downwards (like in flatten)
+        // marking all <table>, <tr> and <td> not in created keep set
+        // to be deleted
+        Vector<Node> delvec = new Vector<Node>();
+        removeNonArticleParents_enum_deletes(delvec, keepSet, new HashSet<Node>(articles), pageRoot);
+
+        // delete these elements
+        if (delvec.size() != 0)
+            JSOUP.removeElements(pageRoot, delvec);
+    }
+
+    private void removeNonArticleParents_enum_deletes(Vector<Node> delvec, Set<Node> keepSet, Set<Node> stopSet, Node n) throws Exception
+    {
+        if (n == null)
+            return;
+
+        if (stopSet.contains(n))
+        {
+            // JSOUP.dumpNodeOffset(n, "STOP *** ");
+            return;
+        }
+
+        if (n instanceof Element)
+        {
+            Element el = (Element) n;
+            String name = JSOUP.nodeName(el);
+            if (name.equalsIgnoreCase("table") || name.equalsIgnoreCase("tr") || name.equalsIgnoreCase("td"))
+            {
+                if (!keepSet.contains(n))
+                {
+                    delvec.add(n);
+                    // JSOUP.dumpNodeOffset(n, "DELETE *** ");
+                    removeNonArticleParents_enum_deletes(delvec, keepSet, stopSet, JSOUP.nextSibling(n));
+                    return;
+                }
+            }
+        }
+
+        // JSOUP.dumpNodeOffset(n);
+
+        removeNonArticleParents_enum_deletes(delvec, keepSet, stopSet, JSOUP.firstChild(n));
+        removeNonArticleParents_enum_deletes(delvec, keepSet, stopSet, JSOUP.nextSibling(n));
+    }
+
+    protected boolean isPositiveNumber(String s)
+    {
+        try
+        {
+            int i = Integer.parseInt(s);
+            return i >= 1;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    protected Boolean hasComments(Boolean has1, Boolean has2)
+    {
+        if (has1 == null || has1.equals(has2))
+            return has2;
+        throw new RuntimeException("Page has conflicting comment count sections");
+    }
 }

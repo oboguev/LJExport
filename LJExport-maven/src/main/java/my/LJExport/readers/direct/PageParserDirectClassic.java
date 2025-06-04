@@ -1,13 +1,10 @@
 package my.LJExport.readers.direct;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
@@ -50,7 +47,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
          * Traverse the tree and delete all tables (<table>, <tr> and <td> tags) that do not
          * have <article> as their eventual child.
          */
-        removeJunk_1();
+        removeNonArticleParents();
 
         if (0 != (flags & COUNT_PAGES))
         {
@@ -144,67 +141,6 @@ public class PageParserDirectClassic extends PageParserDirectBase
             throw new Exception("Page has no comments section");
 
         return commentsSection;
-    }
-
-    private void removeJunk_1() throws Exception
-    {
-        // find article tags
-        Vector<Node> articles = JSOUP.findElements(pageRoot, "article");
-
-        // something wrong? leave it alone
-        if (articles.size() == 0)
-            return;
-
-        // traverse upwards from articles and mark the nodes to keep
-        Set<Node> keepSet = new HashSet<Node>();
-        for (Node n : articles)
-        {
-            JSOUP.enumParents(keepSet, n);
-            keepSet.add(n);
-        }
-
-        // traverse from root recursively downwards (like in flatten)
-        // marking all <table>, <tr> and <td> not in created keep set
-        // to be deleted
-        Vector<Node> delvec = new Vector<Node>();
-        rj1_enum_deletes(delvec, keepSet, new HashSet<Node>(articles), pageRoot);
-
-        // delete these elements
-        if (delvec.size() != 0)
-            JSOUP.removeElements(pageRoot, delvec);
-    }
-
-    private void rj1_enum_deletes(Vector<Node> delvec, Set<Node> keepSet, Set<Node> stopSet, Node n) throws Exception
-    {
-        if (n == null)
-            return;
-
-        if (stopSet.contains(n))
-        {
-            // JSOUP.dumpNodeOffset(n, "STOP *** ");
-            return;
-        }
-
-        if (n instanceof Element)
-        {
-            Element el = (Element) n;
-            String name = JSOUP.nodeName(el);
-            if (name.equalsIgnoreCase("table") || name.equalsIgnoreCase("tr") || name.equalsIgnoreCase("td"))
-            {
-                if (!keepSet.contains(n))
-                {
-                    delvec.add(n);
-                    // JSOUP.dumpNodeOffset(n, "DELETE *** ");
-                    rj1_enum_deletes(delvec, keepSet, stopSet, JSOUP.nextSibling(n));
-                    return;
-                }
-            }
-        }
-
-        // JSOUP.dumpNodeOffset(n);
-
-        rj1_enum_deletes(delvec, keepSet, stopSet, JSOUP.firstChild(n));
-        rj1_enum_deletes(delvec, keepSet, stopSet, JSOUP.nextSibling(n));
     }
 
     protected int numberOfCommentPages() throws Exception
@@ -304,26 +240,6 @@ public class PageParserDirectClassic extends PageParserDirectBase
         return has;
     }
     
-    private boolean isPositiveNumber(String s)
-    {
-        try
-        {
-            int i = Integer.parseInt(s);
-            return i >= 1;
-        }
-        catch (Exception ex)
-        {
-            return false;
-        }
-    }
-
-    private Boolean hasComments(Boolean has1, Boolean has2)
-    {
-        if (has1 == null || has1.equals(has2))
-            return has2;
-        throw new RuntimeException("Page has conflicting comment count sections");
-    }
-
     static protected boolean isLoginLimitExceeded(String html) throws Exception
     {
         Node root = JSOUP.parseHtml(html);
@@ -775,27 +691,27 @@ public class PageParserDirectClassic extends PageParserDirectBase
         
         if (c.isDeleted())
         {
-            tname = "templates/direct/deleted-comment.txt";
+            tname = "templates/direct-classic/deleted-comment.txt";
             vars.put("deleted-comment-status", "Deleted comment");
         }
         else if (c.isScreened() && c.loaded != Boolean.TRUE)
         {
-            tname = "templates/direct/deleted-comment.txt";
+            tname = "templates/direct-classic/deleted-comment.txt";
             vars.put("deleted-comment-status", "Screened comment");
         }
         else if (c.uname == null || c.uname.equals(Comment.DEFAULT_UNAME))
         {
             if (c.subject != null && c.subject.length() != 0)
-                tname = "templates/direct/anon-comment-with-subject.txt";
+                tname = "templates/direct-classic/anon-comment-with-subject.txt";
             else
-                tname = "templates/direct/anon-comment-without-subject.txt";
+                tname = "templates/direct-classic/anon-comment-without-subject.txt";
         }
         else
         {
             if (c.subject != null && c.subject.length() != 0)
-                tname = "templates/direct/user-comment-with-subject.txt";
+                tname = "templates/direct-classic/user-comment-with-subject.txt";
             else
-                tname = "templates/direct/user-comment-without-subject.txt";
+                tname = "templates/direct-classic/user-comment-without-subject.txt";
         }
 
         String template = Util.loadResource(tname);
@@ -816,28 +732,5 @@ public class PageParserDirectClassic extends PageParserDirectBase
         html = html.replace("\n", "");
 
         injectHtml(commentsSection, html, record_url);
-    }
-
-    private void injectHtml(Element commentsSection, String html, String base_url)
-    {
-        List<Node> nodes = org.jsoup.parser.Parser.parseFragment(html, commentsSection, base_url);
-        nodes = new ArrayList<>(nodes);
-
-        for (Node node : nodes)
-            commentsSection.appendChild(node);
-    }
-
-    private String expandVars(String template, Map<String, String> vars)
-    {
-        String res = template;
-
-        for (String key : vars.keySet())
-        {
-            String value = vars.get(key);
-            if (value != null)
-                res = res.replace("{$" + key + "}", value);
-        }
-
-        return res;
     }
 }

@@ -687,31 +687,32 @@ public class PageParserDirectClassic extends PageParserDirectBase
         String record_url = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
         vars.put("record_url", record_url);
 
+        final String tdir = "templates/direct-classic/";
         String tname = null;
         
         if (c.isDeleted())
         {
-            tname = "templates/direct-classic/deleted-comment.txt";
+            tname = tdir + "deleted-comment.txt";
             vars.put("deleted-comment-status", "Deleted comment");
         }
         else if (c.isScreened() && c.loaded != Boolean.TRUE)
         {
-            tname = "templates/direct-classic/deleted-comment.txt";
+            tname = tdir + "deleted-comment.txt";
             vars.put("deleted-comment-status", "Screened comment");
         }
         else if (c.uname == null || c.uname.equals(Comment.DEFAULT_UNAME))
         {
             if (c.subject != null && c.subject.length() != 0)
-                tname = "templates/direct-classic/anon-comment-with-subject.txt";
+                tname = tdir + "anon-comment-with-subject.txt";
             else
-                tname = "templates/direct-classic/anon-comment-without-subject.txt";
+                tname = tdir + "anon-comment-without-subject.txt";
         }
         else
         {
             if (c.subject != null && c.subject.length() != 0)
-                tname = "templates/direct-classic/user-comment-with-subject.txt";
+                tname = tdir + "user-comment-with-subject.txt";
             else
-                tname = "templates/direct-classic/user-comment-without-subject.txt";
+                tname = tdir + "user-comment-without-subject.txt";
         }
 
         String template = Util.loadResource(tname);

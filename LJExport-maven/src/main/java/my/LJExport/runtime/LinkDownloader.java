@@ -12,6 +12,10 @@ public class LinkDownloader
 {
     public static String download(String linksDir, String href, String referer)
     {
+        String threadName = Thread.currentThread().getName();
+        if (threadName == null)
+            threadName = "(unnamed)";
+
         try
         {
             href = Util.stripAnchor(href);
@@ -40,16 +44,16 @@ public class LinkDownloader
             if (f.exists())
                 return null;
             Util.mkdir(f.getParent());
-            
+
             String host = (new URL(href)).getHost();
             host = host.toLowerCase();
-            
-            Map<String,String> headers = new HashMap<>();
-            
+
+            Map<String, String> headers = new HashMap<>();
+
             if (referer != null && referer.length() != 0)
             {
-                
-                if (host.equals("snag.gy") || host.endsWith(".snag.gy") || 
+
+                if (host.equals("snag.gy") || host.endsWith(".snag.gy") ||
                         host.equals("snipboard.io") || host.endsWith(".snipboard.io"))
                 {
                     // use referer and accept
@@ -62,6 +66,7 @@ public class LinkDownloader
                 }
             }
 
+            Thread.currentThread().setName(threadName + " downloading " + href);
             Web.Response r = Web.get(href, true, headers);
 
             if (r.code < 200 || r.code >= 300)
@@ -77,6 +82,10 @@ public class LinkDownloader
         catch (Exception ex)
         {
             // Main.err("Unable to download external link " + href, ex);
+        }
+        finally
+        {
+            Thread.currentThread().setName(threadName);
         }
 
         return null;

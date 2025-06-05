@@ -290,15 +290,13 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
         
         if (c.isDeleted())
         {
-            throw new Exception("No template for deleted comment " + c.thread_url);
-            // tname = tdir + "deleted-comment.txt";
-            // vars.put("deleted-comment-status", "Deleted comment");
+            tname = tdir + "deleted-comment.txt";
+            vars.put("deleted-comment-status", "Deleted comment");
         }
         else if (c.isScreened() && c.loaded != Boolean.TRUE)
         {
-            throw new Exception("No template for screened comment " + c.thread_url);
-            // tname = tdir + "deleted-comment.txt";
-            // vars.put("deleted-comment-status", "Screened comment");
+            tname = tdir + "deleted-comment.txt";
+            vars.put("deleted-comment-status", "Screened comment");
         }
         else if (c.uname == null || c.uname.equals(Comment.DEFAULT_UNAME))
         {
@@ -317,8 +315,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
         {
             if (c.subject != null && c.subject.length() != 0)
             {
-                throw new Exception("No template for non-anonymous comment with subject " + c.thread_url);
-                // tname = tdir + "user-comment-with-subject.txt";
+                tname = tdir + "user-comment-with-subject.txt";
             }
             else
             {

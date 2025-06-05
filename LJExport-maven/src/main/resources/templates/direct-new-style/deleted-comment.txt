@@ -1,0 +1,9 @@
+<div class=" mdspost-thread  mdspost-thread--level-{$level} mdspost-thread--leveldeep-0  " style="margin-left: {$offset_px}px" data-tid="t{$thread}">
+    <article id="t{$thread}" class="mdspost-comment mdspost-comment--clipped  mdspost-comment--deleted">
+        <div class="mdspost-comment__inner">
+            <header class="mdspost-comment__header">
+                <div class="mdspost-comment-status">{$deleted-comment-status}</div>
+            </header>
+        </div>
+    </article>
+</div>

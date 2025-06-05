@@ -1,0 +1,25 @@
+<div class=" mdspost-thread  mdspost-thread--level-{$level} mdspost-thread--leveldeep-0  " style="margin-left: {$offset_px}px" data-tid="t{$thread}">
+    <article id="t{$thread}" class="mdspost-comment comment p-comment" data-username="{$username}" data-displayname="{$dname}" data-updated-ts="1715892132" data-full="1">
+        <div class="mdspost-comment__inner">
+            <header class="mdspost-comment__header">
+                <a href="{$commenter_journal_base}" target="_blank" class="mdspost-comment-userpic">
+                    <span class="mdspost-comment-userpic__pic" lj:user="{$username}">
+                        <img src="{$userpic}" alt="{$username}" loading="lazy" class="mdspost-comment-userpic__img ContextualPopup" title="{$username}"> 
+                    </span>
+                </a>
+                <div class="mdspost-comment-details">
+                    <p class="mdspost-comment-username">
+                        <span class="mdspost-comment-username__name">
+                            <span class="ljuser i-ljuser i-ljuser-type-P" data-ljuser="{$username}" lj:user="{$username}">
+                                <a href="{$profile_url}" class="i-ljuser-profile" target="_self"><img class="i-ljuser-userhead" src="{$userhead_url}"></a>
+                                <a href="{$journal_url}" class="i-ljuser-username" target="_self"><b>{$dname}</b></a>
+                            </span> 
+                        </span>
+                    </p>
+                    <p class=" mdspost-comment-meta  "><a href="{$thread_url}" class="mdspost-comment-time mdspost-comment-time--ctime" target="_self">{$ctime}</a></p>
+                </div>
+            </header>
+            <div class="mdspost-comment__body"><h4 class="mdspost-comment__subject">{$subject}</h4>{$article}</div>
+        </div>
+    </article>
+</div>

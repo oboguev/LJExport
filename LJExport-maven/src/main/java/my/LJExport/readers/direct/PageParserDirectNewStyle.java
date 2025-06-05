@@ -179,6 +179,9 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
                 has = hasComments(has, article);
         }
 
+        if (has == null && isCommentsLocked(commentsSection))
+            has = false;
+
         if (has == null)
             throw new Exception("Unable to determine if page has comments");
 
@@ -209,6 +212,17 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
         }
 
         return has;
+    }
+    private boolean isCommentsLocked(Element commentsSection) throws Exception
+    {
+        for (Node n : JSOUP.findElementsWithClass(JSOUP.flatten(commentsSection), "p", "b-bubble-alert"))
+        {
+            String text = JSOUP.nodeText(n);
+            if (text != null && Util.despace(text).equals("Comments for this post were locked by the author"))
+                return true;
+        }
+
+        return false;
     }
 
     @Override

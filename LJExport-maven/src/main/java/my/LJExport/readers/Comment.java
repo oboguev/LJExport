@@ -60,7 +60,7 @@ public class Comment
     public Boolean shown;
     public Boolean collapsed;
 
-    // can be "deleted"
+    // can be "deleted", "screened", "suspended"
     public String leafclass;
 
     public Comment cParent;
@@ -170,6 +170,11 @@ public class Comment
     public boolean isScreened()
     {
         return leafclass != null && leafclass.equals("screened");
+    }
+
+    public boolean isSuspended()
+    {
+        return leafclass != null && leafclass.equals("suspended");
     }
 
     public boolean isEmptyPlaceholder()
@@ -479,11 +484,15 @@ public class Comment
         if (attemptedToLoad)
             return;
 
-        if (article == null)
-            throwRuntimeException("Comment misses field article");
-
         if (level <= 0)
             throwRuntimeException("Comment misses level");
+
+        if (article == null)
+        {
+            if (isSuspended())
+                return;
+            throwRuntimeException("Comment misses field article");
+        }
 
         String msg = "Comment has blank field ";
 

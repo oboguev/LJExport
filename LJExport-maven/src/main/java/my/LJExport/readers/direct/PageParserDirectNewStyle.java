@@ -299,6 +299,11 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
             tname = tdir + "deleted-comment.txt";
             vars.put("deleted-comment-status", "Screened comment");
         }
+        else if (c.isSuspended() && c.article == null)
+        {
+            tname = tdir + "deleted-comment.txt";
+            vars.put("deleted-comment-status", "Suspended comment");
+        }
         else if (c.uname == null || c.uname.equals(Comment.DEFAULT_UNAME))
         {
             if (c.subject != null && c.subject.length() != 0)

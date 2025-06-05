@@ -1,5 +1,7 @@
 package my.LJExport.readers.direct;
 
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +11,8 @@ import java.util.stream.Collectors;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 
 import my.LJExport.Config;
 import my.LJExport.readers.Comment;
@@ -35,7 +39,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
     {
         super(classic);
     }
-    
+
     @Override
     public void removeJunk(int flags) throws Exception
     {
@@ -45,7 +49,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
          * have <article> as their eventual child.
          */
         removeNonArticleParents();
-        
+
         if (0 != (flags & COUNT_PAGES))
         {
             // find out if there are multiple pages with comments
@@ -64,7 +68,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
         Element commentsSection = findCommentsSection(pageRoot, false);
         if (commentsSection != null)
             JSOUP.removeNodes(JSOUP.getChildren(commentsSection));
-        
+
         /*
          * Remove known sections that contain no essential record-related information.
          */
@@ -93,7 +97,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
                 continue;
             JSOUP.removeElement(pageRoot, n);
         }
-        
+
         for (Node n : JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-singlepost-standout"))
         {
             JSOUP.insertAfter(n, JSOUP.makeElement("br", n));
@@ -113,11 +117,11 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
             JSOUP.removeElements(pageRoot, vnodes);
         }
     }
-    
+
     private int numberOfCommentPages() throws Exception
     {
         Integer maxPage = null;
-        
+
         for (Node pager : JSOUP.findElementsWithClass(pageRoot, "ul", "b-pager-pages"))
         {
             for (Node pageSelector : JSOUP.findElementsWithClass(pager, "li", "b-pager-page"))
@@ -128,36 +132,33 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
                 }
             }
         }
-        
+
         if (maxPage == null)
             return 1;
         else
             return maxPage;
     }
-    
+
     private Integer numberOfCommentPages(Integer maxPage, String href) throws Exception
     {
         if (href == null)
             return maxPage;
-        
-        if (href.contains("/"))
-            href = href.substring(href.lastIndexOf("/") + 1);
-        
-        if (!href.startsWith(rurl))
-            return maxPage;
-        href = href.substring(rurl.length());
-        
-        if (href.equals(""))
-            return maxPage == null ? 1 : Math.max(1, maxPage);
-        
-        final String key = "?pages=";
-        if (href.startsWith(key))
+
+        href = href.replace("&amp;", "&");
+        URL url = new URL("http://localhost");
+        url = new URL(url, href);
+
+        List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), StandardCharsets.UTF_8.toString());
+        for (NameValuePair pair : params)
         {
-            href = href.substring(key.length());
-            if (isPositiveNumber(href))
+            if (pair.getName().equals("page"))
             {
-                int page = Integer.parseInt(href);
-                return maxPage == null ? page : Math.max(1, page);
+                String val = pair.getValue();
+                if (isPositiveNumber(val))
+                {
+                    int page = Integer.parseInt(val);
+                    return maxPage == null ? page : Math.max(1, page);
+                }
             }
         }
 
@@ -170,7 +171,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
 
         Element commentsSection = findCommentsSection(pageRoot, true);
         has = hasComments(has, commentsSection);
-        
+
         if (has == null)
         {
             Vector<Node> articles = JSOUP.findElementsWithAllClasses(pageRoot, "article", Util.setOf("aentry"));
@@ -183,7 +184,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
 
         return has;
     }
-    
+
     private Boolean hasComments(Boolean has, Node under) throws Exception
     {
         Vector<Node> va = JSOUP.findElementsWithClass(under, "a", "mdspost-comments-controls__count");
@@ -206,7 +207,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
                     has = hasComments(has, Boolean.TRUE);
             }
         }
-        
+
         return has;
     }
 
@@ -229,7 +230,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
                     throw new Exception("Multiple comment sections");
             }
         }
-        
+
         if (required && commentsSection == null)
             throw new Exception("Page has no comments section");
 
@@ -287,7 +288,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
 
         final String tdir = "templates/direct-new-style/";
         String tname = null;
-        
+
         if (c.isDeleted())
         {
             tname = tdir + "deleted-comment.txt";

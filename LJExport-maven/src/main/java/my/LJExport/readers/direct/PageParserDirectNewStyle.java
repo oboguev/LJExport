@@ -213,6 +213,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
 
         return has;
     }
+    
     private boolean isCommentsLocked(Element commentsSection) throws Exception
     {
         for (Node n : JSOUP.findElementsWithClass(JSOUP.flatten(commentsSection), "p", "b-bubble-alert"))

@@ -67,7 +67,7 @@ public class LinkDownloader
             }
 
             Thread.currentThread().setName(threadName + " downloading " + href);
-            Web.Response r = Web.get(href, true, headers);
+            Web.Response r = Web.get(href, Web.BINARY | Web.PROGRESS, headers);
 
             if (r.code < 200 || r.code >= 300)
                 throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);

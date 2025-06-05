@@ -4,6 +4,7 @@ import java.io.*;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.StringEntity;
@@ -34,6 +35,9 @@ public class Web
     public static CloseableHttpClient httpClient;
     public static CookieStore cookieStore;
     private static ThreadLocal<String> lastURL;
+
+    public static final int BINARY = (1 << 0);
+    public static final int PROGRESS = (1 << 1);
 
     public static class Response
     {
@@ -111,11 +115,14 @@ public class Web
 
     public static Response get(String url) throws Exception
     {
-        return get(url, false, null);
+        return get(url, 0, null);
     }
 
-    public static Response get(String url, boolean binary, Map<String, String> headers) throws Exception
+    public static Response get(String url, int flags, Map<String, String> headers) throws Exception
     {
+        boolean binary = 0 != (flags & BINARY);
+        boolean progress = 0 != (flags & PROGRESS);
+
         RateLimiter.limitRate();
         lastURL.set(url);
         Response r = new Response();
@@ -146,14 +153,21 @@ public class Web
 
                 try
                 {
-                    entityStream = entity.getContent();
-
-                    if (binary)
+                    if (binary && progress)
                     {
+                        long totalBytes = entity.getContentLength();
+                        ProgressHttpEntity progressEntity = new ProgressHttpEntity(entity, totalBytes);
+                        entityStream = progressEntity.getContent();
+                        r.binaryBody = IOUtils.toByteArray(entityStream);
+                    }
+                    else if (binary)
+                    {
+                        entityStream = entity.getContent();
                         r.binaryBody = IOUtils.toByteArray(entityStream);
                     }
                     else
                     {
+                        entityStream = entity.getContent();
                         brd = new BufferedReader(new InputStreamReader(entityStream, StandardCharsets.UTF_8));
                         while ((line = brd.readLine()) != null)
                             sb.append(line + "\r\n");
@@ -256,5 +270,139 @@ public class Web
     public static String getLastURL() throws Exception
     {
         return lastURL.get();
+    }
+
+    /* ================================================================================= */
+
+    // Custom HttpEntity to track download progress
+    public static class ProgressHttpEntity extends HttpEntityWrapper
+    {
+        private long totalBytes;
+        private long bytesRead = 0;
+
+        public ProgressHttpEntity(HttpEntity entity, long totalBytes)
+        {
+            super(entity);
+            this.totalBytes = totalBytes;
+        }
+
+        @Override
+        public InputStream getContent() throws IOException
+        {
+            InputStream in = wrappedEntity.getContent();
+            return new ProgressInputStream(in);
+        }
+
+        private class ProgressInputStream extends InputStream
+        {
+            private InputStream wrappedInputStream;
+            private String threadNameBase = null;
+
+            public ProgressInputStream(InputStream wrappedInputStream)
+            {
+                this.threadNameBase = Thread.currentThread().getName();
+                this.wrappedInputStream = wrappedInputStream;
+            }
+
+            @Override
+            public int read() throws IOException
+            {
+                int byteRead = wrappedInputStream.read();
+                if (byteRead != -1)
+                {
+                    bytesRead++;
+                    displayProgress();
+                }
+                return byteRead;
+            }
+
+            @Override
+            public void close() throws IOException
+            {
+                Thread.currentThread().setName(this.threadNameBase);
+                wrappedInputStream.close();
+            }
+
+            private void displayProgress()
+            {
+                if (this.threadNameBase != null)
+                {
+                    StringBuilder sb = new StringBuilder(this.threadNameBase + " "); 
+                    sb.append(" downloaded " + bytesRead + " bytes");
+                    if (totalBytes != -1)
+                    {
+                        int progress = (int) ((bytesRead * 100) / totalBytes);
+                        sb.append(" (" + progress + "%)");
+                    }
+                    Thread.currentThread().setName(sb.toString());
+                }
+            }
+        }
+    }
+
+    // Wrapper class for HttpEntity
+    public static class HttpEntityWrapper implements HttpEntity
+    {
+        protected final HttpEntity wrappedEntity;
+
+        public HttpEntityWrapper(HttpEntity entity)
+        {
+            this.wrappedEntity = entity;
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override
+        public void consumeContent() throws IOException
+        {
+            wrappedEntity.consumeContent();
+        }
+
+        @Override
+        public InputStream getContent() throws IOException, UnsupportedOperationException
+        {
+            return wrappedEntity.getContent();
+        }
+
+        @Override
+        public Header getContentEncoding()
+        {
+            return wrappedEntity.getContentEncoding();
+        }
+
+        @Override
+        public long getContentLength()
+        {
+            return wrappedEntity.getContentLength();
+        }
+
+        @Override
+        public boolean isChunked()
+        {
+            return wrappedEntity.isChunked();
+        }
+
+        @Override
+        public boolean isRepeatable()
+        {
+            return wrappedEntity.isRepeatable();
+        }
+
+        @Override
+        public boolean isStreaming()
+        {
+            return wrappedEntity.isStreaming();
+        }
+
+        @Override
+        public void writeTo(OutputStream outstream) throws IOException
+        {
+            wrappedEntity.writeTo(outstream);
+        }
+
+        @Override
+        public Header getContentType()
+        {
+            return wrappedEntity.getContentType();
+        }
     }
 }

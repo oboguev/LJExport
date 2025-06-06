@@ -51,7 +51,7 @@ public class Config
     // public static YYYY_MM LoadSince = null;
     public static YYYY_MM LoadTo = null;
     public static YYYY_MM LoadSince = new YYYY_MM(2017, 1);
-    // public static YYYY_MM LoadTo = new YYYY_MM(2025, 10);
+    // public static YYYY_MM LoadTo = new YYYY_MM(2017, 1);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static boolean ReloadExistingFiles = false;
@@ -82,7 +82,7 @@ public class Config
     public static int Timeout = 150;
     public static int NWorkThreads = 0;
     public static int ThreadsPerCPU = 2;
-    public static int MaxThreads = 4;
+    public static int MaxThreads = 1;
     public static String TrustStore = null;
     public static String TrustStorePassword = null;
     public static int ProxyThreadsPerThread = 10;

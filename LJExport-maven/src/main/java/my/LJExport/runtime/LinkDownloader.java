@@ -18,6 +18,12 @@ public class LinkDownloader
 
         try
         {
+            // avoid HTTPS certificate problem
+            final String key1 = "https://l-stat.livejournal.net/";
+            final String key1_change = "http://l-stat.livejournal.net/";
+            if (href.startsWith(key1))
+                href = key1_change + href.substring(key1.length());
+            
             href = Util.stripAnchor(href);
             URL url = new URL(href);
             StringBuffer sb = new StringBuffer(linksDir + File.separator);
@@ -41,38 +47,45 @@ public class LinkDownloader
             // Main.out(">>> Downloading: " + href + " -> " + sb.toString());
 
             File f = new File(sb.toString());
-            if (f.exists())
-                return null;
-            Util.mkdir(f.getParent());
+            final String final_href = href;
+            final String final_threadName = threadName;
 
-            String host = (new URL(href)).getHost();
-            host = host.toLowerCase();
-
-            Map<String, String> headers = new HashMap<>();
-
-            if (referer != null && referer.length() != 0)
+            NamedLocks.interlock(sb.toString(), () ->
             {
-
-                if (host.equals("snag.gy") || host.endsWith(".snag.gy") ||
-                        host.equals("snipboard.io") || host.endsWith(".snipboard.io"))
+                if (!f.exists())
                 {
-                    // use referer and accept
-                    headers.put("Referer", referer);
-                    headers.put("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+                    Util.mkdir(f.getParent());
+
+                    String host = (new URL(final_href)).getHost();
+                    host = host.toLowerCase();
+
+                    Map<String, String> headers = new HashMap<>();
+
+                    if (referer != null && referer.length() != 0)
+                    {
+
+                        if (host.equals("snag.gy") || host.endsWith(".snag.gy") ||
+                                host.equals("snipboard.io") || host.endsWith(".snipboard.io"))
+                        {
+                            // use referer and accept
+                            headers.put("Referer", referer);
+                            headers.put("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+                        }
+                        else
+                        {
+                            // do not use referer
+                        }
+                    }
+
+                    Thread.currentThread().setName(final_threadName + " downloading " + final_href);
+                    Web.Response r = Web.get(final_href, Web.BINARY | Web.PROGRESS, headers);
+
+                    if (r.code < 200 || r.code >= 300)
+                        throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);
+
+                    Util.writeToFileSafe(sb.toString(), r.binaryBody);
                 }
-                else
-                {
-                    // do not use referer
-                }
-            }
-
-            Thread.currentThread().setName(threadName + " downloading " + href);
-            Web.Response r = Web.get(href, Web.BINARY | Web.PROGRESS, headers);
-
-            if (r.code < 200 || r.code >= 300)
-                throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);
-
-            Util.writeToFile(sb.toString(), r.binaryBody);
+            });
 
             String newref = sb.toString().substring((linksDir + File.separator).length());
             newref = newref.replace(File.separator, "/");
@@ -81,6 +94,7 @@ public class LinkDownloader
         }
         catch (Exception ex)
         {
+            Util.noop();
             // Main.err("Unable to download external link " + href, ex);
         }
         finally

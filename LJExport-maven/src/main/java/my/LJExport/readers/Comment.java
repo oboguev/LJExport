@@ -529,15 +529,29 @@ public class Comment
                 loaded == Boolean.TRUE &&
                 level != null && level.equals(1))
         {
-            if (uname != null && uname.equals("livejournal"))
+            if (eq(uname, "livejournal"))
+            {
                 return true;
-
-            if (thread_url.equals("https://sergeytsvetkov.livejournal.com/1285867.html?thread=24018155#t24018155") &&
-                    uname != null && uname.equals("ppetrovichh"))
+            }
+            
+            if (eq(thread_url, "https://sergeytsvetkov.livejournal.com/1285867.html?thread=24018155#t24018155") &&
+                eq(uname, "ppetrovichh"))
+            {
                 return true;
+            }
         }
 
         return false;
+    }
+
+    private boolean eq(String s1, String s2)
+    {
+        if (s1 == null && s2 == null)
+            return true;
+        else if (s1 != null && s2 != null && s1.equals(s2))
+            return true;
+        else
+            return false;
     }
 
     private boolean isBlank(String s)

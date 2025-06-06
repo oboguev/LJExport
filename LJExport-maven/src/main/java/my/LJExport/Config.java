@@ -31,7 +31,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static String Users = "blog_10101";
+    public static String Users = "sergeytsvetkov";
     // public static String Users = "nikital2014,bash_m_ak,genby,olegnemen,eremei,afanarizm,jlm_taurus,corporatelie,wyradhe,nilsky_nikolay,von_hoffmann,a_samovarov,bantaputu,a_kaminsky,d_olshansky,rn_manifesto,ru_bezch,nep2,ego,hokma,laert,haritonov,1981dn,1981dn_dn,bantaputu,polit_ec,zhenziyou,a_bugaev,tor85,oboguev,morky,krylov,rms1,pioneer_lj,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
     // public static String Users = "alex_vergin,sergeytsvetkov,blog_10101"; // new-style journals 
 
@@ -48,14 +48,10 @@ public class Config
     // public static String Proxy = "http://proxy.xxx.com:8080";
 
     /* Range of dates to download (inclusive) */
-    public static YYYY_MM LoadSince = null;
+    // public static YYYY_MM LoadSince = null;
     public static YYYY_MM LoadTo = null;
-    // public static YYYY_MM LoadSince = new YYYY_MM(2011, 1); 
-    // public static YYYY_MM LoadTo = new YYYY_MM(2011, 1);
-
-    /* Download linked files of the listed types locally, so they can be accessed offline */
-    // public static List<String> DownloadFileTypes = null;
-    public static List<String> DownloadFileTypes = Util.asList("jpg,jpeg,gif,png,webp,pdf,djvu,tif,tiff,doc,docx,rtf,zip,rar");
+    public static YYYY_MM LoadSince = new YYYY_MM(2017, 1);
+    // public static YYYY_MM LoadTo = new YYYY_MM(2025, 10);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static boolean ReloadExistingFiles = false;
@@ -63,9 +59,6 @@ public class Config
     /* Minimum and maximum number of unloadable pages allowed before the download aborts */
     public static int MinUnloadablePagesAllowed = 20;
     public static int MaxUnloadablePagesAllowed = 50;
-
-    // public static int MinUnloadablePagesAllowed = 100;
-    // public static int MaxUnloadablePagesAllowed = 100;
 
     /**************************/
     /** TECHNICAL PARAMETERS **/
@@ -108,6 +101,10 @@ public class Config
     public static boolean TrustAnySSL = true;
 
     public static String NullFile = null;
+
+    /* Download linked files of the listed types locally, so they can be accessed offline */
+    // public static List<String> DownloadFileTypes = null;
+    public static List<String> DownloadFileTypes = Util.asList("jpg,jpeg,gif,png,webp,pdf,djvu,tif,tiff,doc,docx,rtf,zip,rar");
 
     /*
      * Adding Fiddler certificate:

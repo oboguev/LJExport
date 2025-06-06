@@ -491,7 +491,15 @@ public class Comment
         {
             if (isSuspended())
                 return;
-            throwRuntimeException("Comment misses field article");
+
+            if (canHaveEmptyArticle())
+            {
+                article = "";
+            }
+            else
+            {
+                throwRuntimeException("Comment misses field article");
+            }
         }
 
         String msg = "Comment has blank field ";
@@ -509,6 +517,27 @@ public class Comment
 
         if (isBlank(userpic))
             userpic = DEFAULT_USERPIC;
+    }
+
+    private boolean canHaveEmptyArticle()
+    {
+        /*
+         * Degenerate cases
+         */
+
+        if (leafclass == null &&
+                loaded == Boolean.TRUE &&
+                level != null && level.equals(1))
+        {
+            if (uname != null && uname.equals("livejournal"))
+                return true;
+
+            if (thread_url.equals("https://sergeytsvetkov.livejournal.com/1285867.html?thread=24018155#t24018155") &&
+                    uname != null && uname.equals("ppetrovichh"))
+                return true;
+        }
+
+        return false;
     }
 
     private boolean isBlank(String s)

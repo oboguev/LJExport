@@ -19,10 +19,8 @@ public class LinkDownloader
         try
         {
             // avoid HTTPS certificate problem
-            final String key1 = "https://l-stat.livejournal.net/";
-            final String key1_change = "http://l-stat.livejournal.net/";
-            if (href.startsWith(key1))
-                href = key1_change + href.substring(key1.length());
+            href = https2http(href, "l-stat.livejournal.net");
+            href = https2http(href, "ic.pics.livejournal.com");
             
             href = Util.stripAnchor(href);
             URL url = new URL(href);
@@ -103,6 +101,15 @@ public class LinkDownloader
         }
 
         return null;
+    }
+    
+    private static String https2http(String href, String host)
+    {
+        final String key = "https://" + host + "/";
+        final String key_change = "http://" + host + "/";
+        if (href.startsWith(key))
+            href = key_change + href.substring(key.length());
+        return href;
     }
 
     public static boolean shouldDownload(String href)

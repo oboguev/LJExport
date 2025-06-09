@@ -180,7 +180,7 @@ public class Config
             ProxyBlockingMessage = null;
     }
 
-    private static void mangleUser() throws Exception
+    public static void mangleUser() throws Exception
     {
         int len = User.length();
         StringBuilder sb = new StringBuilder();

@@ -21,7 +21,7 @@ import my.LJExport.xml.JSOUP;
  * Они могут быть пропущены, если в момент загрузки страниц севрер, содержаший ссылки,
  * не работал.
  */
-public class MainDownloadLinks extends PageParserDirectBase  
+public class MainDownloadLinks  
 {
     private String pagesDir;
     private String linksDir;
@@ -29,7 +29,8 @@ public class MainDownloadLinks extends PageParserDirectBase
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
-    private static String User = "sergeytsvetkov";
+    // private static String User = "sergeytsvetkov";
+    private static String User = "alex_vergin";
 
     private static final int NWorkThreads = 8;
 
@@ -50,18 +51,18 @@ public class MainDownloadLinks extends PageParserDirectBase
     
     private MainDownloadLinks()
     {
-        super(new NoPageSource());
     }
 
     private void do_user(String user) throws Exception
     {
+        Config.User = user;
+        Config.mangleUser();
+
+        pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "pages";
         linksDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "links";
         // offline = true;
 
-        Config.User = user;
         out(">>> Processing download links for user " + Config.User);
-
-        pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "pages";
 
         pageFiles = Util.enumerateFiles(pagesDir);
         pageFilesTotalCount = pageFiles.size();
@@ -109,35 +110,55 @@ public class MainDownloadLinks extends PageParserDirectBase
 
             String pageFileFullPath = pagesDir + File.separator + pageFile;
             Thread.currentThread().setName("page-scanner: scanning " + Config.User + " " + pageFile);
-            pageSource = Util.readFileAsString(pageFileFullPath);
-            parseHtml(pageSource);
+            
+            PageParserDirectBase parser = new PageParserDirectBasePassive();
+            parser.pageSource = Util.readFileAsString(pageFileFullPath);
+            parser.parseHtml(parser.pageSource);
 
-            if (downloadExternalLinks(pageRoot, linksDir))
+            if (parser.downloadExternalLinks(parser.pageRoot, linksDir))
             {
-                String newpageSource = JSOUP.emitHtml(pageRoot);
-                Util.writeToFileSafe(pageFileFullPath, newpageSource);
+                String newPageSource = JSOUP.emitHtml(parser.pageRoot);
+                Util.writeToFileSafe(pageFileFullPath, newPageSource);
             }
         }
     }
+    
+    private static void out(String s)
+    {
+        Main.out(s);
+    }
+
+    private static void err(String s)
+    {
+        Main.err(s);
+    }
 
     /* =============================================================== */
-
-    @Override
-    public void removeJunk(int flags) throws Exception
+    
+    public static class PageParserDirectBasePassive extends PageParserDirectBase
     {
-        throw new Exception("Not implemented");
-    }
+        public PageParserDirectBasePassive()
+        {
+            super(new NoPageSource());
+        }
 
-    @Override
-    public Element findCommentsSection(Node pageRootCurrent, boolean required) throws Exception
-    {
-        throw new Exception("Not implemented");
-    }
+        @Override
+        public void removeJunk(int flags) throws Exception
+        {
+            throw new Exception("Not implemented");
+        }
 
-    @Override
-    public void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception
-    {
-        throw new Exception("Not implemented");
+        @Override
+        public Element findCommentsSection(Node pageRootCurrent, boolean required) throws Exception
+        {
+            throw new Exception("Not implemented");
+        }
+
+        @Override
+        public void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception
+        {
+            throw new Exception("Not implemented");
+        }
     }
 
     /* =============================================================== */

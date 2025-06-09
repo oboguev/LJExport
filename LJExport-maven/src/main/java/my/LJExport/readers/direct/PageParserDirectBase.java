@@ -59,6 +59,18 @@ public abstract class PageParserDirectBase
 
     public String rurl;
     public String rid;
+    
+    public void resetParser()
+    {
+        npages = -1;
+        hasComments = null;
+
+        pageRoot = null;
+        pageSource = null;
+
+        rurl = null;
+        rid = null;
+    }
 
     /* ============================================================== */
 
@@ -72,13 +84,13 @@ public abstract class PageParserDirectBase
         Main.err(s);
     }
 
-    protected void parseHtml(String html) throws Exception
+    public void parseHtml(String html) throws Exception
     {
         this.pageSource = html;
         this.pageRoot = JSOUP.parseHtml(html);
     }
 
-    protected void parseHtml() throws Exception
+    public void parseHtml() throws Exception
     {
         parseHtml(this.pageSource);
     }

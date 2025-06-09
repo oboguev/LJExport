@@ -2,8 +2,6 @@ package my.LJExport.runtime;
 
 import java.io.File;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -245,7 +243,7 @@ public class LinkDownloader
         if (isSanePathComponent(component))
             return component;
         else
-            return uniformURLEncoded(URLEncoder.encode(component, "UTF-8"));
+            return URLCodec.encode(component);
     }
 
     private static String unicodePathComponent(String component)
@@ -254,9 +252,9 @@ public class LinkDownloader
         {
             if (component.contains("%"))
             {
-                String decoded = URLDecoder.decode(component, "UTF-8");
-                String encoded = URLEncoder.encode(decoded, "UTF-8");
-                if (uniformURLEncoded(encoded).equals(uniformURLEncoded(component)))
+                String decoded = URLCodec.decode(component);
+                String encoded = URLCodec.encode(decoded);
+                if (encoded.equals(component))
                     return decoded;
                 else
                     return component;
@@ -272,11 +270,6 @@ public class LinkDownloader
         }
     }
     
-    private static String uniformURLEncoded(String s)
-    {
-        return s.replace("+", "%20");
-    }
-
     private static boolean isSanePathComponent(String component)
     {
         if (File.separatorChar == '/')
@@ -284,6 +277,8 @@ public class LinkDownloader
         else
             return isSaneWindowsPathComponent(component);
     }
+
+    /* ======================================================================== */
 
     // Illegal characters in Windows file names
     private static final char[] WINDOWS_ILLEGAL_CHARS = {
@@ -333,6 +328,8 @@ public class LinkDownloader
 
         return true;
     }
+
+    /* ======================================================================== */
 
     // Characters that are problematic even if technically allowed
     private static final char[] LINUX_DISCOURAGED_CHARS = {

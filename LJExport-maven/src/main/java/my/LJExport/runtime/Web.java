@@ -335,7 +335,7 @@ public class Web
                 if (this.threadNameBase != null)
                 {
                     StringBuilder sb = new StringBuilder(this.threadNameBase + " "); 
-                    sb.append(" downloaded " + bytesRead + " bytes");
+                    sb.append(String.format(" downloaded %,d bytes", bytesRead));
                     if (totalBytes != -1)
                     {
                         int progress = (int) ((bytesRead * 100) / totalBytes);

@@ -550,8 +550,15 @@ public class JSOUP
 
     public static String emitHtml(Node pageRoot) throws Exception
     {
-        String html = pageRoot.outerHtml();
-        return html;
+        try
+        {
+            String html = pageRoot.outerHtml();
+            return html;
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
     }
 
     public static String filterOutImageTags(String html) // throws Exception

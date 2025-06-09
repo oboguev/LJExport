@@ -723,7 +723,10 @@ abstract public class PageParser
                 String referer = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
                 String newref = LinkDownloader.download(linksDir, href, referer);
                 if (newref != null)
+                {
                     JSOUP.updateAttribute(n, attr, newref);
+                    JSOUP.setAttribute(n, "original-" + attr, href);
+                }
             }
         }
     }

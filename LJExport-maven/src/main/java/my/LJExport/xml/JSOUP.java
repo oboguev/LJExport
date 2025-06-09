@@ -83,6 +83,11 @@ public class JSOUP
         }
     }
 
+    public static void setAttribute(Node n, String attrname, String value) throws Exception
+    {
+        n.attr(attrname, value);
+    }
+
     public static Vector<Node> flattenChildren(Node el) throws Exception
     {
         Vector<Node> vec = flatten(el);

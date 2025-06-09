@@ -134,6 +134,7 @@ public abstract class PageParserDirectBase
                 if (newref != null)
                 {
                     JSOUP.updateAttribute(n, attr, newref);
+                    JSOUP.setAttribute(n, "original-" + attr, href);
                     downloaded = true;
                 }
             }

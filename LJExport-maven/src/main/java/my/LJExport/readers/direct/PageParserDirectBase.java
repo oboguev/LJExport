@@ -106,16 +106,23 @@ public abstract class PageParserDirectBase
         return false;
     }
 
-    /*static*/ public void downloadExternalLinks(Node root, String linksDir) throws Exception
+    /*static*/ public boolean downloadExternalLinks(Node root, String linksDir) throws Exception
     {
         if (linksDir == null || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
-            return;
-        downloadExternalLinks(root, linksDir, "a", "href");
-        downloadExternalLinks(root, linksDir, "img", "src");
+            return false;
+
+        boolean downloaded = false;
+
+        downloaded = downloaded || downloadExternalLinks(root, linksDir, "a", "href");
+        downloaded = downloaded || downloadExternalLinks(root, linksDir, "img", "src");
+
+        return downloaded;
     }
 
-    /*static*/ private void downloadExternalLinks(Node root, String linksDir, String tag, String attr) throws Exception
+    /*static*/ private boolean downloadExternalLinks(Node root, String linksDir, String tag, String attr) throws Exception
     {
+        boolean downloaded = false;
+        
         for (Node n : JSOUP.findElements(root, tag))
         {
             String href = JSOUP.getAttribute(n, attr);
@@ -125,9 +132,14 @@ public abstract class PageParserDirectBase
                 String referer = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
                 String newref = LinkDownloader.download(linksDir, href, referer);
                 if (newref != null)
+                {
                     JSOUP.updateAttribute(n, attr, newref);
+                    downloaded = true;
+                }
             }
         }
+        
+        return downloaded;
     }
 
     /* ============================================================== */

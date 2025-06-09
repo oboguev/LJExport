@@ -2,6 +2,7 @@ package my.LJExport;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -74,7 +75,7 @@ public class MainMoveReposts extends PageParserPassive
         repostsDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "reposts";
 
         Set<String> createdDirs = new HashSet<String>();
-        Set<String> pageFiles = enumerateFiles(pagesDir);
+        List<String> pageFiles = Util.enumerateFiles(pagesDir);
 
         int nTotal = pageFiles.size();
         int nCurrent = 0;
@@ -88,7 +89,7 @@ public class MainMoveReposts extends PageParserPassive
                 if (isRepost(src))
                 {
                     String dst = repostsDir + File.separator + s;
-                    String dir = getFileDirectory(dst);
+                    String dir = Util.getFileDirectory(dst);
 
                     if (!createdDirs.contains(dir))
                     {
@@ -118,50 +119,6 @@ public class MainMoveReposts extends PageParserPassive
         }
 
         out(">>> Completed processing reposts for user " + Config.User);
-    }
-
-    Set<String> enumerateFiles(String root) throws Exception
-    {
-        Set<String> fset = new HashSet<String>();
-        File f = new File(root);
-        if (!f.exists() || !f.isDirectory())
-            throw new Exception("Directory " + root + " does not exist");
-        enumerateFiles(fset, root, null);
-        return fset;
-    }
-
-    void enumerateFiles(Set<String> fset, String root, String subpath) throws Exception
-    {
-        String xroot = root;
-        if (subpath != null)
-            xroot += File.separator + subpath;
-        File xrf = new File(xroot);
-        File[] xlist = xrf.listFiles();
-        if (xlist == null)
-            throw new Exception("Unable to enumerate files under " + xroot);
-        for (File xf : xlist)
-        {
-            if (xf.isDirectory())
-            {
-                if (subpath == null)
-                    enumerateFiles(fset, root, xf.getName());
-                else
-                    enumerateFiles(fset, root, subpath + File.separator + xf.getName());
-            }
-            else if (xf.getName().toLowerCase().endsWith(".html"))
-            {
-                if (subpath == null)
-                    fset.add(xf.getName());
-                else
-                    fset.add(subpath + File.separator + xf.getName());
-            }
-        }
-    }
-
-    String getFileDirectory(String filepath) throws Exception
-    {
-        File d = new File(filepath).getParentFile();
-        return d.getCanonicalPath();
     }
 
     boolean isRepost(String filepath) throws Exception

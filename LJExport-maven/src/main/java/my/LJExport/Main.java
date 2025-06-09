@@ -133,7 +133,7 @@ public class Main
     {
         try
         {
-            deadLinks = Util.read_list(this, "deadlinks.txt");
+            deadLinks = Util.read_set("deadlinks.txt");
             // TODO: parse args or display user interface
             StringTokenizer st = new StringTokenizer(Config.Users, ", \t\r\n");
             int nuser = 0;

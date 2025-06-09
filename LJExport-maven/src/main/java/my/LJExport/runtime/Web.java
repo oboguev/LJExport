@@ -13,6 +13,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 import my.LJExport.Config;
 
@@ -85,8 +86,14 @@ public class Web
 
         // RequestConfig globalConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.NETSCAPE).build();
         RequestConfig globalConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+        
+        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+        // Set max total connections
+        connManager.setMaxTotal(100);
+        // Set max connections per route (i.e., per host)
+        connManager.setDefaultMaxPerRoute(8);
 
-        HttpClientBuilder hcb = HttpClients.custom().setDefaultRequestConfig(globalConfig).setDefaultCookieStore(cookieStore);
+        HttpClientBuilder hcb = HttpClients.custom().setDefaultRequestConfig(globalConfig).setDefaultCookieStore(cookieStore).setConnectionManager(connManager);
 
         if (routePlanner != null)
             hcb = hcb.setRoutePlanner(routePlanner);

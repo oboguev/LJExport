@@ -2,11 +2,8 @@ package my.LJExport.runtime;
 
 import my.LJExport.Config;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -456,50 +453,21 @@ public class Util
     /*
      * Read list of strings from file.  
      */
-    public static Set<String> read_list(Object obj, String path) throws Exception
+    public static Set<String> read_set(String path) throws Exception
     {
         Set<String> ws = new HashSet<String>();
-        String line;
-
-        path = relative_path(obj, path);
-
-        Class<?> cls = null;
-        if (obj instanceof Class)
-            cls = (Class<?>) obj;
-        else
-            cls = obj.getClass();
-
-        try (InputStream ris = cls.getClassLoader().getResourceAsStream(path);
-                InputStreamReader isr = new InputStreamReader(ris, "UTF-8");
-                BufferedReader bufferedReader = new BufferedReader(isr))
+        
+        String rs = loadResource(path) + "\n";
+        for (String line : rs.split("\n"))
         {
-            while (null != (line = bufferedReader.readLine()))
-            {
-                line = stripComment(line);
-                line = despace(line);
-                if (line.equals(" ") || line.length() == 0)
-                    continue;
-                ws.add(line);
-            }
+            line = stripComment(line);
+            line = despace(line);
+            if (line.equals(" ") || line.length() == 0 || line.startsWith("#"))
+                continue;
+            ws.add(line);
         }
-
+        
         return ws;
-    }
-
-    public static String relative_path(Object obj, String path) throws Exception
-    {
-        Class<?> cls = null;
-        if (obj instanceof Class)
-            cls = (Class<?>) obj;
-        else
-            cls = obj.getClass();
-
-        String root = cls.getName().replace('.', '/');
-        int k = root.lastIndexOf('/');
-        if (k == -1)
-            throw new Exception("Unexpected class name: " + cls.getName());
-        root = root.substring(0, k);
-        return root + "/" + path;
     }
 
     public static String stripComment(String s) throws Exception
@@ -569,5 +537,51 @@ public class Util
     public static void noop()
     {
 
+    }
+
+    public static List<String> enumerateFiles(String root) throws Exception
+    {
+        Set<String> fset = new HashSet<String>();
+        File f = new File(root);
+        if (!f.exists() || !f.isDirectory())
+            throw new Exception("Directory " + root + " does not exist");
+        enumerateFiles(fset, root, null);
+        List<String> list = new ArrayList<>(fset);
+        Collections.sort(list);
+        return list;
+    }
+
+    private static void enumerateFiles(Set<String> fset, String root, String subpath) throws Exception
+    {
+        String xroot = root;
+        if (subpath != null)
+            xroot += File.separator + subpath;
+        File xrf = new File(xroot);
+        File[] xlist = xrf.listFiles();
+        if (xlist == null)
+            throw new Exception("Unable to enumerate files under " + xroot);
+        for (File xf : xlist)
+        {
+            if (xf.isDirectory())
+            {
+                if (subpath == null)
+                    enumerateFiles(fset, root, xf.getName());
+                else
+                    enumerateFiles(fset, root, subpath + File.separator + xf.getName());
+            }
+            else if (xf.getName().toLowerCase().endsWith(".html"))
+            {
+                if (subpath == null)
+                    fset.add(xf.getName());
+                else
+                    fset.add(subpath + File.separator + xf.getName());
+            }
+        }
+    }
+
+    public static String getFileDirectory(String filepath) throws Exception
+    {
+        File d = new File(filepath).getParentFile().getAbsoluteFile();
+        return d.getCanonicalPath();
     }
 }

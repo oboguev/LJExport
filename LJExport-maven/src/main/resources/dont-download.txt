@@ -1,0 +1,6 @@
+#
+# Don't download these files, e.g. because they are stuck forever
+#
+
+https://devad.ru/vlj/rolf.jpg
+https://www.washingtonpost.com/resizer/q0trS1jYXOfiuqRa-aUEDiMMCDA=/1440x0/smart/arc-anglerfish-washpost-prod-washpost.s3.amazonaws.com/public/ORXQHIXANU4WPHQLL6MTYKA5OQ.jpg

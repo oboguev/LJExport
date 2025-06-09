@@ -5,13 +5,19 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import my.LJExport.Config;
 
 public class LinkDownloader
 {
+    private static Set<String> dontDownload;
+    
     public static String download(String linksDir, String href, String referer)
     {
+        AtomicReference<Web.Response> response = new AtomicReference<>(null);
+
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
             threadName = "(unnamed)";
@@ -21,8 +27,7 @@ public class LinkDownloader
             // avoid HTTPS certificate problem
             href = https2http(href, "l-stat.livejournal.net");
             href = https2http(href, "ic.pics.livejournal.com");
-            
-            href = Util.stripAnchor(href);
+
             URL url = new URL(href);
             StringBuffer sb = new StringBuffer(linksDir + File.separator);
             sb.append(url.getHost());
@@ -48,8 +53,12 @@ public class LinkDownloader
             final String final_href = href;
             final String final_threadName = threadName;
 
+            Thread.currentThread().setName(threadName + " downloading " + final_href + " namelock wait");
+
             NamedLocks.interlock(sb.toString(), () ->
             {
+                Thread.currentThread().setName(final_threadName + " downloading " + final_href + " prepare");
+
                 if (!f.exists())
                 {
                     Util.mkdir(f.getParent());
@@ -85,6 +94,8 @@ public class LinkDownloader
                 }
             });
 
+            Thread.currentThread().setName(threadName);
+
             String newref = sb.toString().substring((linksDir + File.separator).length());
             newref = newref.replace(File.separator, "/");
             newref = "../../../links/" + newref;
@@ -92,8 +103,24 @@ public class LinkDownloader
         }
         catch (Exception ex)
         {
-            Util.noop();
+            String host = extractHostSafe(href);
+            Web.Response r = response.get();
+
+            if (host != null && r != null)
+            {
+                if (host.contains("l-stat.livejournal.net"))
+                {
+                    Util.noop();
+                }
+
+                if (host.contains("ic.pics.livejournal.com") && r.code != 404)
+                {
+                    Util.noop();
+                }
+            }
+
             // Main.err("Unable to download external link " + href, ex);
+            Util.noop();
         }
         finally
         {
@@ -102,7 +129,7 @@ public class LinkDownloader
 
         return null;
     }
-    
+
     private static String https2http(String href, String host)
     {
         final String key = "https://" + host + "/";
@@ -112,13 +139,23 @@ public class LinkDownloader
         return href;
     }
 
-    public static boolean shouldDownload(String href)
+    public static boolean shouldDownload(String href) throws Exception
     {
+        synchronized (LinkDownloader.class)
+        {
+            if (dontDownload == null)
+                dontDownload = Util.read_set("dont-download.txt");
+        }
+        
         try
         {
             if (href == null || href.length() == 0)
                 return false;
             href = Util.stripAnchor(href);
+
+            if (dontDownload.contains(href))
+                return false;
+            
             URL url = new URL(href);
 
             String protocol = url.getProtocol();
@@ -141,6 +178,25 @@ public class LinkDownloader
         catch (Exception ex)
         {
             return false;
+        }
+    }
+
+    private static String extractHost(String href) throws Exception
+    {
+        String host = (new URL(href)).getHost();
+        host = host.toLowerCase();
+        return host;
+    }
+
+    private static String extractHostSafe(String href)
+    {
+        try
+        {
+            return extractHost(href);
+        }
+        catch (Exception ex)
+        {
+            return null;
         }
     }
 }

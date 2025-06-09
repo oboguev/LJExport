@@ -39,6 +39,9 @@ public class Web
 
     public static final int BINARY = (1 << 0);
     public static final int PROGRESS = (1 << 1);
+    
+    // max connections per route (i.e., per host)
+    public static int MaxConnectionsPerRoute = 8; 
 
     public static class Response
     {
@@ -91,7 +94,7 @@ public class Web
         // Set max total connections
         connManager.setMaxTotal(100);
         // Set max connections per route (i.e., per host)
-        connManager.setDefaultMaxPerRoute(8);
+        connManager.setDefaultMaxPerRoute(MaxConnectionsPerRoute);
 
         HttpClientBuilder hcb = HttpClients.custom().setDefaultRequestConfig(globalConfig).setDefaultCookieStore(cookieStore).setConnectionManager(connManager);
 

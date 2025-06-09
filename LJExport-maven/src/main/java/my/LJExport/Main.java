@@ -187,6 +187,7 @@ public class Main
             Config.init(user);
             Calendar.init();
             RateLimiter.setRateLimit(0);
+            Web.MaxConnectionsPerRoute = Config.MaxConnectionsPerRoute; 
             Web.init();
             do_login();
             RateLimiter.setRateLimit(Config.RateLimitCalendar);

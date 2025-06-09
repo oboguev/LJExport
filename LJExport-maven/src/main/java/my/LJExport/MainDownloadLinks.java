@@ -67,6 +67,7 @@ public class MainDownloadLinks
         pageFiles = Util.enumerateFiles(pagesDir);
         pageFilesTotalCount = pageFiles.size();
 
+        Web.MaxConnectionsPerRoute = NWorkThreads; 
         Web.init();
         ActivityCounters.reset();
         RateLimiter.setRateLimit(100);

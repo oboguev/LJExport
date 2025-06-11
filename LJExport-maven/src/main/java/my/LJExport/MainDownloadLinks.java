@@ -18,7 +18,7 @@ import my.LJExport.xml.JSOUP;
 
 /*
  * Загрузить отсутствующие локальные копии сссылок в страницах пользователя.
- * Они могут быть пропущены, если в момент загрузки страниц севрер, содержаший ссылки,
+ * Они могут быть пропущены, если в момент загрузки страниц сервер, содержаший ссылки,
  * не работал.
  */
 public class MainDownloadLinks  
@@ -30,8 +30,11 @@ public class MainDownloadLinks
     private int countFetched = 0;
 
     // private static String User = "sergeytsvetkov";
+    // private static String User = "alex_vergin";
     // private static String User = "genby";
-    private static String User = "blog_10101";
+    // private static String User = "blog_10101";
+    // private static String User = "nikital2014";
+    private static String User = "bash_m_ak";
 
     private static final int NWorkThreads = 8;
 

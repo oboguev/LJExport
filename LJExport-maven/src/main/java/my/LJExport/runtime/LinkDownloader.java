@@ -71,7 +71,10 @@ public class LinkDownloader
                     Web.Response r = Web.get(final_href, Web.BINARY | Web.PROGRESS, headers);
 
                     if (r.code < 200 || r.code >= 300)
+                    {
+                        response.set(r);
                         throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);
+                    }
 
                     try
                     {
@@ -105,7 +108,7 @@ public class LinkDownloader
                     Util.noop();
                 }
 
-                if (host.contains("l-stat.livejournal.net"))
+                if (host.contains("l-stat.livejournal.net") && r.code != 404)
                 {
                     Util.noop();
                 }
@@ -116,6 +119,28 @@ public class LinkDownloader
                 }
 
                 if (host.contains("archive.org") && r.code != 404)
+                {
+                    Util.noop();
+                }
+            }
+            else if (host != null & r == null)
+            {
+                if (host.contains("imgprx.livejournal.net"))
+                {
+                    Util.noop();
+                }
+
+                if (host.contains("l-stat.livejournal.net"))
+                {
+                    Util.noop();
+                }
+
+                if (host.contains("ic.pics.livejournal.com"))
+                {
+                    Util.noop();
+                }
+
+                if (host.contains("archive.org"))
                 {
                     Util.noop();
                 }

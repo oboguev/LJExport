@@ -14,10 +14,19 @@ import my.LJExport.Config;
 public class LinkDownloader
 {
     private static Set<String> dontDownload;
+    
+    private static FileBackedMap href2file = new FileBackedMap() ;
+    
+    public static void init(String linksDir) throws Exception
+    {
+        href2file.close();
+        href2file.init(linksDir + File.separator + "map-href-file.txt");
+    }
 
     public static String download(String linksDir, String href, String referer)
     {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);
+        AtomicReference<String> filename = new AtomicReference<>(null);
 
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
@@ -29,22 +38,36 @@ public class LinkDownloader
             href = https2http(href, "l-stat.livejournal.net");
             href = https2http(href, "ic.pics.livejournal.com");
 
-            StringBuilder sb = buildFilePath(linksDir, href);
+            String href_noanchor = Util.stripAnchor(href);
+            filename.set(buildFilePath(linksDir, href));
 
-            // Main.out(">>> Downloading: " + href + " -> " + sb.toString());
+            // Main.out(">>> Downloading: " + href + " -> " + filename.get());
 
-            File f = new File(sb.toString());
             final String final_href = href;
             final String final_threadName = threadName;
-            final StringBuilder final_sb = sb;
 
-            Thread.currentThread().setName(threadName + " downloading " + final_href + " namelock wait");
+            Thread.currentThread().setName(threadName + " downloading " + href + " namelock wait");
 
-            NamedLocks.interlock(sb.toString(), () ->
+            NamedLocks.interlock(href_noanchor, () ->
             {
                 Thread.currentThread().setName(final_threadName + " downloading " + final_href + " prepare");
+                
+                String actual_filename = filename.get();
+                String afn = href2file.get(href_noanchor);
+                if (afn != null)
+                    actual_filename = afn;
 
-                if (!f.exists())
+                File f = new File(actual_filename);
+                if (f.exists())
+                {
+                    filename.set(actual_filename);
+                    synchronized (href2file)
+                    {
+                        if (null == href2file.get(href_noanchor))
+                            href2file.put(href_noanchor, actual_filename);
+                    }
+                }
+                else
                 {
                     String host = (new URL(final_href)).getHost();
                     host = host.toLowerCase();
@@ -78,8 +101,14 @@ public class LinkDownloader
 
                     try
                     {
-                        Util.mkdir(f.getParent());
-                        Util.writeToFileSafe(final_sb.toString(), r.binaryBody);
+                        Util.mkdir(f.getAbsoluteFile().getParent());
+                        Util.writeToFileSafe(actual_filename, r.binaryBody);
+                        synchronized (href2file)
+                        {
+                            if (null == href2file.get(href_noanchor))
+                                href2file.put(href_noanchor, actual_filename);
+                        }
+                        filename.set(actual_filename);
                     }
                     catch (Exception ex)
                     {
@@ -91,7 +120,7 @@ public class LinkDownloader
 
             Thread.currentThread().setName(threadName);
 
-            String newref = sb.toString().substring((linksDir + File.separator).length());
+            String newref = filename.get().substring((linksDir + File.separator).length());
             newref = newref.replace(File.separator, "/");
             newref = "../../../links/" + encodePathCopmonents(newref);
             return newref;
@@ -113,7 +142,7 @@ public class LinkDownloader
                     Util.noop();
                 }
 
-                if (host.contains("ic.pics.livejournal.com") && r.code != 404)
+                if (host.contains("ic.pics.livejournal.com") && r.code != 404 && r.code != 412)
                 {
                     Util.noop();
                 }
@@ -259,7 +288,7 @@ public class LinkDownloader
 
     /* ======================================================================== */
 
-    private static StringBuilder buildFilePath(String linksDir, String href) throws Exception
+    private static String buildFilePath(String linksDir, String href) throws Exception
     {
         URL url = new URL(href);
 
@@ -321,7 +350,7 @@ public class LinkDownloader
             }
         }
 
-        return path;
+        return path.toString();
     }
 
     private static final int MaxPathComponentLength = 80;

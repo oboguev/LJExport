@@ -11,6 +11,7 @@ import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.runtime.ActivityCounters;
+import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
@@ -67,6 +68,9 @@ public class MainDownloadLinks
         // offline = true;
 
         out(">>> Processing download links for user " + Config.User);
+        
+        Util.mkdir(linksDir);
+        LinkDownloader.init(linksDir);
 
         pageFiles = Util.enumerateFiles(pagesDir);
         pageFilesTotalCount = pageFiles.size();

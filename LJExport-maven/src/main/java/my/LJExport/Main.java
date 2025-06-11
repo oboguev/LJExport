@@ -23,6 +23,7 @@ import my.LJExport.readers.PageReaderHtmlUnit;
 import my.LJExport.readers.PageReaderSelenium;
 import my.LJExport.readers.direct.PageReaderDirect;
 import my.LJExport.runtime.ActivityCounters;
+import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.ProxyServer;
 import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.UrlDurationHistory;
@@ -198,6 +199,8 @@ public class Main
             repostsDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "reposts";
             linksDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "links";
             Util.mkdir(pagesDir);
+            Util.mkdir(linksDir);
+            LinkDownloader.init(linksDir);
 
             manualDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "manual-load";
             enumManualPages();

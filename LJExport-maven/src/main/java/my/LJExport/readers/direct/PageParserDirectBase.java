@@ -125,13 +125,13 @@ public abstract class PageParserDirectBase
 
         boolean downloaded = false;
 
-        downloaded = downloaded || downloadExternalLinks(root, linksDir, "a", "href");
-        downloaded = downloaded || downloadExternalLinks(root, linksDir, "img", "src");
+        downloaded = downloaded || downloadExternalLinks(root, linksDir, "a", "href", true);
+        downloaded = downloaded || downloadExternalLinks(root, linksDir, "img", "src", false);
 
         return downloaded;
     }
 
-    /*static*/ private boolean downloadExternalLinks(Node root, String linksDir, String tag, String attr) throws Exception
+    /*static*/ private boolean downloadExternalLinks(Node root, String linksDir, String tag, String attr, boolean filterDownloadFileTypes) throws Exception
     {
         boolean downloaded = false;
         
@@ -139,7 +139,7 @@ public abstract class PageParserDirectBase
         {
             String href = JSOUP.getAttribute(n, attr);
 
-            if (LinkDownloader.shouldDownload(href))
+            if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
                 String referer = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
                 String newref = LinkDownloader.download(linksDir, href, referer);

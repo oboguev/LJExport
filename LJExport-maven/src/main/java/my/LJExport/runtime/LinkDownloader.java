@@ -23,12 +23,6 @@ public class LinkDownloader
         if (threadName == null)
             threadName = "(unnamed)";
 
-        if (href.equals(
-                "https://www.hse.ru/data/2012/06/17/1255493485/%D0%9A%D1%83%D0%BB%D0%B8%D0%BA%D0%BE%D0%B2%20%D0%A1.%D0%92.%20%D0%98%D0%BC%D0%BF%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D1%80%20%D0%9D%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%D0%B9%20II%20%D0%BA%D0%B0%D0%BA%20%D1%80%D0%B5%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D0%BE%D1%80_%D0%BA%20%D0%BF%D0%BE%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B5%20%D0%BF%D1%80%D0%BE%D0%B1%D0%BB%D0%B5%D0%BC.pdf"))
-        {
-            Util.noop();
-        }
-
         try
         {
             // avoid HTTPS certificate problem
@@ -52,8 +46,6 @@ public class LinkDownloader
 
                 if (!f.exists())
                 {
-                    Util.mkdir(f.getParent());
-
                     String host = (new URL(final_href)).getHost();
                     host = host.toLowerCase();
 
@@ -81,7 +73,16 @@ public class LinkDownloader
                     if (r.code < 200 || r.code >= 300)
                         throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);
 
-                    Util.writeToFileSafe(final_sb.toString(), r.binaryBody);
+                    try
+                    {
+                        Util.mkdir(f.getParent());
+                        Util.writeToFileSafe(final_sb.toString(), r.binaryBody);
+                    }
+                    catch (Exception ex)
+                    {
+                        Util.noop();
+                        throw ex;
+                    }
                 }
             });
 
@@ -99,12 +100,22 @@ public class LinkDownloader
 
             if (host != null && r != null)
             {
+                if (host.contains("imgprx.livejournal.net") && r.code != 404)
+                {
+                    Util.noop();
+                }
+
                 if (host.contains("l-stat.livejournal.net"))
                 {
                     Util.noop();
                 }
 
                 if (host.contains("ic.pics.livejournal.com") && r.code != 404)
+                {
+                    Util.noop();
+                }
+
+                if (host.contains("archive.org") && r.code != 404)
                 {
                     Util.noop();
                 }
@@ -130,7 +141,7 @@ public class LinkDownloader
         return href;
     }
 
-    public static boolean shouldDownload(String href) throws Exception
+    public static boolean shouldDownload(String href, boolean filterDownloadFileTypes) throws Exception
     {
         synchronized (LinkDownloader.class)
         {
@@ -154,17 +165,30 @@ public class LinkDownloader
                 return false;
             if (!(protocol.equalsIgnoreCase("http") || protocol.equalsIgnoreCase("https")))
                 return false;
+            
+            // https://xc3.services.livejournal.com/ljcounter
+            String host = url.getHost();
+            if (host != null && host.equalsIgnoreCase("xc3.services.livejournal.com"))
+                return false;
 
             String path = url.getPath();
             if (path == null)
                 return false;
-            for (String ext : Config.DownloadFileTypes)
-            {
-                if (path.toLowerCase().endsWith("." + ext))
-                    return true;
-            }
 
-            return false;
+            if (filterDownloadFileTypes)
+            {
+                for (String ext : Config.DownloadFileTypes)
+                {
+                    if (path.toLowerCase().endsWith("." + ext))
+                        return true;
+                }
+
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
         catch (Exception ex)
         {
@@ -207,157 +231,94 @@ public class LinkDownloader
         list.add(sb);
         sb = null;
 
-        for (String pc : Util.asList(url.getPath(), "/"))
+        if (url.getHost().equals("imgprx.livejournal.net"))
         {
-            if (pc.length() != 0)
+            for (String pc : Util.asList(url.getPath(), "/"))
             {
-                sb = new StringBuilder(pc);
-                list.add(sb);
+                if (pc.length() != 0)
+                {
+                    sb = new StringBuilder("x-" + Util.uuid());
+                    list.add(sb);
+                }
             }
         }
-
-        String query = url.getQuery();
-        if (query != null && query.length() != 0)
-            sb.append("?" + query);
-
-        sb = new StringBuilder();
-        for (StringBuilder sbx : list)
+        else
         {
-            if (sb.length() == 0)
+            for (String pc : Util.asList(url.getPath(), "/"))
             {
-                sb.append(sbx.toString());
+                if (pc.length() != 0)
+                {
+                    sb = new StringBuilder(pc);
+                    list.add(sb);
+                }
+            }
+
+            String query = url.getQuery();
+            if (query != null && query.length() != 0)
+                sb.append("?" + query);
+        }
+
+        StringBuilder path = new StringBuilder();
+        for (StringBuilder x : list)
+        {
+            if (path.length() == 0)
+            {
+                path.append(x.toString());
             }
             else
             {
-                sb.append(File.separator);
-                sb.append(makeSanePathComponent(sbx.toString()));
+                path.append(File.separator);
+                path.append(makeSanePathComponent(x.toString()));
             }
         }
 
-        return sb;
+        return path;
     }
+
+    private static final int MaxPathComponentLength = 80;
 
     private static String makeSanePathComponent(String component) throws Exception
     {
-        component = unicodePathComponent(component);
-        if (isSanePathComponent(component))
-            return component;
-        else
-            return URLCodec.encode(component);
-    }
+        /*
+         * Unpack %xx sequences -> unicode.
+         * Somtimes it has double encoding.
+         */
+        String fn = URLCodec.decodeMixed(component);
+        fn = URLCodec.decodeMixed(fn);
 
-    private static String unicodePathComponent(String component)
-    {
-        try
+        /*
+         * If reserved file name, mangle it
+         */
+        if (Util.isReservedFileName(fn))
+            return "x-" + Util.uuid() + "_" + fn;
+
+        /*
+         * If name is too long
+         */
+        if (fn.length() > MaxPathComponentLength)
         {
-            if (component.contains("%"))
-            {
-                String decoded = URLCodec.decode(component);
-                String encoded = URLCodec.encode(decoded);
-                if (encoded.equals(component))
-                    return decoded;
-                else
-                    return component;
-            }
+            String ext = getFileExtension(fn);
+            if (ext == null || ext.length() == 0 || ext.length() > 4)
+                return "x-" + Util.uuid();
             else
-            {
-                return component;
-            }
+                return "x-" + Util.uuid() + "." + ext;
         }
-        catch (Exception ex)
-        {
-            return component;
-        }
+
+        /*
+         * Encode reserved characters to URL representation
+         */
+        fn = URLCodec.encodeFilename(fn);
+
+        return fn;
     }
-    
-    private static boolean isSanePathComponent(String component)
+
+    public static String getFileExtension(String fn)
     {
-        if (File.separatorChar == '/')
-            return isSaneLinuxPathComponent(component);
+        int dotIndex = fn.lastIndexOf('.');
+        // no extension or dot is at the end
+        if (dotIndex == -1 || dotIndex == fn.length() - 1)
+            return null;
         else
-            return isSaneWindowsPathComponent(component);
-    }
-
-    /* ======================================================================== */
-
-    // Illegal characters in Windows file names
-    private static final char[] WINDOWS_ILLEGAL_CHARS = {
-            '\\', '/', ':', '*', '?', '"', '<', '>', '|'
-    };
-
-    // Reserved device names in Windows (case-insensitive)
-    private static final String[] WINDOWS_RESERVED_NAMES = {
-            "CON", "PRN", "AUX", "NUL",
-            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
-    };
-
-    private static boolean isSaneWindowsPathComponent(String name)
-    {
-        // null or empty is not a valid filename
-        if (name == null || name.isEmpty())
-            return false;
-
-        // Check for illegal characters
-        for (char c : name.toCharArray())
-        {
-            if (c == '\'' || c == '/')
-                return false;
-
-            for (char bad : WINDOWS_ILLEGAL_CHARS)
-            {
-                if (c == bad)
-                    return false;
-            }
-
-            // Control character
-            if (c < 32 || c == 255)
-                return false;
-        }
-
-        // Check for reserved device names (case-insensitive)
-        for (String reserved : WINDOWS_RESERVED_NAMES)
-        {
-            if (name.equalsIgnoreCase(reserved))
-                return false;
-        }
-
-        // Check for leading/trailing space
-        if (name.startsWith(" ") || name.endsWith(" "))
-            return false;
-
-        return true;
-    }
-
-    /* ======================================================================== */
-
-    // Characters that are problematic even if technically allowed
-    private static final char[] LINUX_DISCOURAGED_CHARS = {
-            '*', '?', '|', '>', '<', ':', '"', '\\'
-    };
-
-    private static boolean isSaneLinuxPathComponent(String name)
-    {
-        // null or empty is not a valid filename
-        if (name == null || name.isEmpty())
-            return false;
-
-        for (char c : name.toCharArray())
-        {
-            if (c == '\'' || c == '/')
-                return false;
-
-            for (char bad : LINUX_DISCOURAGED_CHARS)
-            {
-                if (c == bad)
-                    return false;
-            }
-
-            // Control character
-            if (c < 32 || c == 255)
-                return false;
-        }
-
-        return true;
+            return fn.substring(dotIndex + 1);
     }
 }

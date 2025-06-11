@@ -30,7 +30,8 @@ public class MainDownloadLinks
     private int countFetched = 0;
 
     // private static String User = "sergeytsvetkov";
-    private static String User = "alex_vergin";
+    // private static String User = "genby";
+    private static String User = "blog_10101";
 
     private static final int NWorkThreads = 8;
 
@@ -67,7 +68,7 @@ public class MainDownloadLinks
         pageFiles = Util.enumerateFiles(pagesDir);
         pageFilesTotalCount = pageFiles.size();
 
-        Web.MaxConnectionsPerRoute = NWorkThreads; 
+        Config.MaxConnectionsPerRoute = NWorkThreads; 
         Web.init();
         ActivityCounters.reset();
         RateLimiter.setRateLimit(100);
@@ -111,6 +112,14 @@ public class MainDownloadLinks
 
             String pageFileFullPath = pagesDir + File.separator + pageFile;
             Thread.currentThread().setName("page-scanner: scanning " + Config.User + " " + pageFile);
+            
+            if (Config.False)
+            {
+                String fn = Util.extractFileName(pageFileFullPath);
+                if (!fn.equals("592466.html"))
+                    continue;
+                Util.noop();
+            }
             
             PageParserDirectBase parser = new PageParserDirectBasePassive();
             parser.pageSource = Util.readFileAsString(pageFileFullPath);

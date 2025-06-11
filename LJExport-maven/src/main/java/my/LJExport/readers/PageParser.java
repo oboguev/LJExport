@@ -708,17 +708,17 @@ abstract public class PageParser
     {
         if (linksDir == null || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
             return;
-        downloadExternalLinks(root, linksDir, "a", "href");
-        downloadExternalLinks(root, linksDir, "img", "src");
+        downloadExternalLinks(root, linksDir, "a", "href", true);
+        downloadExternalLinks(root, linksDir, "img", "src", false);
     }
 
-    private void downloadExternalLinks(Node root, String linksDir, String tag, String attr) throws Exception
+    private void downloadExternalLinks(Node root, String linksDir, String tag, String attr, boolean filterDownloadFileTypes) throws Exception
     {
         for (Node n : JSOUP.findElements(root, tag))
         {
             String href = JSOUP.getAttribute(n, attr);
 
-            if (LinkDownloader.shouldDownload(href))
+            if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
                 String referer = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
                 String newref = LinkDownloader.download(linksDir, href, referer);

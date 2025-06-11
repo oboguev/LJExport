@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.UUID;
 import java.util.Vector;
 
 import org.json.JSONObject;
@@ -456,7 +457,7 @@ public class Util
     public static Set<String> read_set(String path) throws Exception
     {
         Set<String> ws = new HashSet<String>();
-        
+
         String rs = loadResource(path) + "\n";
         for (String line : rs.split("\n"))
         {
@@ -466,7 +467,7 @@ public class Util
                 continue;
             ws.add(line);
         }
-        
+
         return ws;
     }
 
@@ -583,5 +584,61 @@ public class Util
     {
         File d = new File(filepath).getParentFile().getAbsoluteFile();
         return d.getCanonicalPath();
+    }
+
+    public static String extractFileName(String filePath)
+    {
+        return new File(filePath).getName();
+    }
+
+    public static String uuid()
+    {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+
+    public static String uuid2()
+    {
+        return uuid() + uuid();
+    }
+
+    // Reserved device names in Windows (case-insensitive)
+    private static final String[] WINDOWS_RESERVED_NAMES = {
+            "CON", "PRN", "AUX", "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+    };
+    
+    // Illegal characters in Windows file names
+    @SuppressWarnings("unused")
+    private static final char[] WINDOWS_ILLEGAL_CHARS = {
+            '\\', '/', ':', '*', '?', '"', '<', '>', '|'
+    };
+
+    // Characters that are problematic even if technically allowed
+    @SuppressWarnings("unused")
+    private static final char[] LINUX_DISCOURAGED_CHARS = {
+            '*', '?', '|', '>', '<', ':', '"', '\\'
+    };
+    
+    public static boolean isWindowsOS()
+    {
+        return File.separatorChar == '\\';
+    }
+
+    public static boolean isReservedFileName(String fn)
+    {
+        if (fn.equals(".") || fn.equals(".."))
+            return true;
+
+        if (isWindowsOS())
+        {
+            for (String reserved : WINDOWS_RESERVED_NAMES)
+            {
+                if (reserved.equalsIgnoreCase(fn))
+                    return true;
+            }
+        }
+
+        return false;
     }
 }

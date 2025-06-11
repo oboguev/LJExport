@@ -93,7 +93,7 @@ public class LinkDownloader
 
             String newref = sb.toString().substring((linksDir + File.separator).length());
             newref = newref.replace(File.separator, "/");
-            newref = "../../../links/" + newref;
+            newref = "../../../links/" + encodePathCopmonents(newref);
             return newref;
         }
         catch (Exception ex)
@@ -155,6 +155,23 @@ public class LinkDownloader
         }
 
         return null;
+    }
+    
+    private static String encodePathCopmonents(String ref)
+    {
+        StringBuilder sb = new StringBuilder();
+        
+        for (String pc : Util.asList(ref, "/"))
+        {
+            if (pc.length() != 0)
+            {
+                if (sb.length() != 0)
+                    sb.append("/");
+                sb.append(URLCodec.encode(pc));
+            }
+        }
+        
+        return sb.toString();
     }
 
     private static String https2http(String href, String host)

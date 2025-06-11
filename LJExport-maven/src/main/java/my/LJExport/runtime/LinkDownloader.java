@@ -277,10 +277,17 @@ public class LinkDownloader
                     list.add(sb);
                 }
             }
+            
+            String ext = getFileExtension(sb.toString());
 
             String query = url.getQuery();
             if (query != null && query.length() != 0)
+            {
                 sb.append("?" + query);
+                // reappend extenstion
+                if (ext != null && ext.length() != 0 && ext.length() <= 4)
+                    sb.append("." + ext);
+            }    
         }
 
         StringBuilder path = new StringBuilder();

@@ -50,8 +50,8 @@ public class Config
     /* Range of dates to download (inclusive) */
     public static YYYY_MM LoadSince = null;
     public static YYYY_MM LoadTo = null;
-    // public static YYYY_MM LoadSince = new YYYY_MM(2017, 9);
-    // public static YYYY_MM LoadTo = new YYYY_MM(2017, 9);
+    // public static YYYY_MM LoadSince = new YYYY_MM(2010, 6);
+    // public static YYYY_MM LoadTo = new YYYY_MM(2010, 6);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static boolean ReloadExistingFiles = false;

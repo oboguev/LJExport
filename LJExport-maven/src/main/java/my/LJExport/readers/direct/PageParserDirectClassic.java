@@ -137,6 +137,19 @@ public class PageParserDirectClassic extends PageParserDirectBase
             }
         }
         
+        Vector<Node> alones = this.findStandaloneCommentsSections(pageRootCurrent);
+        for (Node n : alones)
+        {
+            Vector<Node> comms = JSOUP.findElements(JSOUP.flatten(n), "div", "id", "comments");
+            for (Node cn : comms)
+            {
+                if (commentsSection == null)
+                    commentsSection = (Element) cn;
+                else if (commentsSection != cn)
+                    throw new Exception("Multiple comment sections");
+            }
+        }
+        
         if (required && commentsSection == null)
             throw new Exception("Page has no comments section");
 

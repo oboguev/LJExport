@@ -1,5 +1,6 @@
 package my.LJExport.xml;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -206,6 +207,11 @@ public class JSOUP
         return vel;
     }
 
+    public static Vector<Node> findElements(Node root, String tagname, String an1, String av1) throws Exception
+    {
+        return findElements(flatten(root), tagname, an1, av1);
+    }
+    
     public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1) throws Exception
     {
         Vector<Node> vel = new Vector<Node>();
@@ -645,5 +651,35 @@ public class JSOUP
         for (String s : ss)
             xs.add(s.toLowerCase());
         return xs;
+    }
+
+    public static boolean hasParent(Node n, String tagname)
+    {
+        for (Node p = n.parent(); p != null && p != n; n = p)
+        {
+            if (p instanceof Element && p.nodeName().equalsIgnoreCase(tagname))
+                return true;
+        }
+
+        return false;
+    }
+
+    public static Vector<Node> union(Collection<Node> c1, Collection<Node> c2)
+    {
+        Vector<Node> vn = new Vector<>();
+        
+        for (Node n : c1)
+        {
+            if (!vn.contains(n))
+                vn.add(n);
+        }
+        
+        for (Node n : c2)
+        {
+            if (!vn.contains(n))
+                vn.add(n);
+        }
+
+        return vn;
     }
 }

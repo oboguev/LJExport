@@ -28,6 +28,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
     {
         parser = new PageParserDirectClassic(this);
 
+        // rurl = "88279.html"; // test: nilsky_nikolay
         // rurl = "1076886.html"; // test: genby
         // rurl = "7430586.html"; // test: oboguev (with snipboard image)
         // rurl = "7450356.html"; // test: oboguev (no comments)

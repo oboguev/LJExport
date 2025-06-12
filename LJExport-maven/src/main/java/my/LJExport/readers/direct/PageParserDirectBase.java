@@ -59,7 +59,7 @@ public abstract class PageParserDirectBase
 
     public String rurl;
     public String rid;
-    
+
     public void resetParser()
     {
         npages = -1;
@@ -131,10 +131,11 @@ public abstract class PageParserDirectBase
         return downloaded;
     }
 
-    /*static*/ private boolean downloadExternalLinks(Node root, String linksDir, String tag, String attr, boolean filterDownloadFileTypes) throws Exception
+    /*static*/ private boolean downloadExternalLinks(Node root, String linksDir, String tag, String attr,
+            boolean filterDownloadFileTypes) throws Exception
     {
         boolean downloaded = false;
-        
+
         for (Node n : JSOUP.findElements(root, tag))
         {
             String href = JSOUP.getAttribute(n, attr);
@@ -151,7 +152,7 @@ public abstract class PageParserDirectBase
                 }
             }
         }
-        
+
         return downloaded;
     }
 
@@ -231,10 +232,14 @@ public abstract class PageParserDirectBase
         // something wrong? leave it alone
         if (articles.size() == 0)
             return;
+        
+        // in older LJ page styles <div id=comments> can be not under article, but standalone 
+        Vector<Node> alones = findStandaloneCommentsSections(pageRoot);
+        Vector<Node> articles_and_alones = JSOUP.union(articles, alones);
 
         // traverse upwards from articles and mark the nodes to keep
         Set<Node> keepSet = new HashSet<Node>();
-        for (Node n : articles)
+        for (Node n : articles_and_alones)
         {
             JSOUP.enumParents(keepSet, n);
             keepSet.add(n);
@@ -244,14 +249,15 @@ public abstract class PageParserDirectBase
         // marking all <table>, <tr> and <td> not in created keep set
         // to be deleted
         Vector<Node> delvec = new Vector<Node>();
-        removeNonArticleParents_enum_deletes(delvec, keepSet, new HashSet<Node>(articles), pageRoot);
+        removeNonArticleParents_enum_deletes(delvec, keepSet, new HashSet<Node>(articles_and_alones), pageRoot);
 
         // delete these elements
         if (delvec.size() != 0)
             JSOUP.removeElements(pageRoot, delvec);
     }
 
-    private void removeNonArticleParents_enum_deletes(Vector<Node> delvec, Set<Node> keepSet, Set<Node> stopSet, Node n) throws Exception
+    private void removeNonArticleParents_enum_deletes(Vector<Node> delvec, Set<Node> keepSet, Set<Node> stopSet, Node n)
+            throws Exception
     {
         if (n == null)
             return;
@@ -302,5 +308,20 @@ public abstract class PageParserDirectBase
         if (has1 == null || has1.equals(has2))
             return has2;
         throw new RuntimeException("Page has conflicting comment count sections");
+    }
+
+    // in older LJ page styles <div id=comments> can be not under article, but standalone 
+    // find <div id=comments> sections that are not under <article>  
+    protected Vector<Node> findStandaloneCommentsSections(Node root) throws Exception
+    {
+        Vector<Node> vn = new Vector<>();
+
+        for (Node n : JSOUP.findElements(root, "div", "id", "comments"))
+        {
+            if (!JSOUP.hasParent(n, "article"))
+                vn.add(n);
+        }
+        
+        return vn;
     }
 }

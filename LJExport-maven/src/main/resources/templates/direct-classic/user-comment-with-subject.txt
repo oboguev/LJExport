@@ -13,7 +13,7 @@
                         <span class="b-leaf-username-name">
                             <span class="ljuser  i-ljuser  i-ljuser-type-P" data-ljuser="{$username}" lj:user="{$username}">
                                 <a href="{$profile_url}" class="i-ljuser-profile" target="_self"><img class="i-ljuser-userhead" src="{$userhead_url}"></a>
-                                <a href="{$journal_url}" class="i-ljuser-username" target="_self"><b>{dname}</b></a>
+                                <a href="{$journal_url}" class="i-ljuser-username" target="_self"><b>{$dname}</b></a>
                             </span>
                         </span>
                     </p>

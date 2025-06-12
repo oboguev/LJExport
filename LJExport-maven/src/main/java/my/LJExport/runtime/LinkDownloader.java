@@ -371,6 +371,11 @@ public class LinkDownloader
             return "x-" + Util.uuid() + "_" + fn;
 
         /*
+         * Encode reserved characters to URL representation
+         */
+        fn = URLCodec.encodeFilename(fn);
+
+        /*
          * If name is too long
          */
         if (fn.length() > MaxPathComponentLength)
@@ -381,11 +386,6 @@ public class LinkDownloader
             else
                 return "x-" + Util.uuid() + "." + ext;
         }
-
-        /*
-         * Encode reserved characters to URL representation
-         */
-        fn = URLCodec.encodeFilename(fn);
 
         return fn;
     }

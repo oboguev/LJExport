@@ -93,7 +93,7 @@ public class LinkDownloader
                     Thread.currentThread().setName(final_threadName + " downloading " + final_href);
                     Web.Response r = Web.get(final_href, Web.BINARY | Web.PROGRESS, headers);
 
-                    if (r.code < 200 || r.code >= 300)
+                    if (r.code < 200 || r.code >= 300 || r.code == 204)
                     {
                         response.set(r);
                         throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);
@@ -130,7 +130,7 @@ public class LinkDownloader
             String host = extractHostSafe(href);
             Web.Response r = response.get();
 
-            if (host != null && r != null)
+            if (host != null && r != null && r.code != 204)
             {
                 if (host.contains("imgprx.livejournal.net") && r.code != 404)
                 {

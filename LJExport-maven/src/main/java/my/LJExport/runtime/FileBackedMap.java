@@ -11,8 +11,9 @@ public class FileBackedMap
     private BufferedWriter writer;
     private boolean initialized = false;
     private File file;
-    
-    private static final String SEPARATOR = "----";
+    private String filePathPrefix;
+
+    public static final String SEPARATOR = "----";
 
     public synchronized void init(String path) throws IOException
     {
@@ -22,6 +23,10 @@ public class FileBackedMap
         file = new File(path);
         if (!file.exists())
             file.createNewFile();
+
+        filePathPrefix = file.getParentFile().getAbsoluteFile().getCanonicalPath();
+        if (!filePathPrefix.endsWith(File.separator))
+            filePathPrefix += File.separator;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)))
         {
@@ -35,7 +40,7 @@ public class FileBackedMap
                     throw new IOException("Invalid file format");
                 key = key.trim();
                 value = value.trim();
-                map.put(key, value);
+                map.put(key, toFullLocalPath(value));
             }
         }
 
@@ -57,7 +62,7 @@ public class FileBackedMap
 
         writer.write(key);
         writer.newLine();
-        writer.write(value);
+        writer.write(toRelativeUnixPath(value));
         writer.newLine();
         writer.write(SEPARATOR);
         writer.newLine();
@@ -73,11 +78,24 @@ public class FileBackedMap
             writer.close();
             writer = null;
         }
-        
+
         map.clear();
-        
+
         file = null;
 
         initialized = false;
+    }
+
+    private String toFullLocalPath(String s)
+    {
+        return filePathPrefix + s.replace("/", File.separator);
+    }
+
+    private String toRelativeUnixPath(String s)
+    {
+        if (!s.startsWith(filePathPrefix))
+            throw new RuntimeException("Link file path is not within links storage");
+        s = s.substring(filePathPrefix.length());
+        return s.replace(File.separator, "/");
     }
 }

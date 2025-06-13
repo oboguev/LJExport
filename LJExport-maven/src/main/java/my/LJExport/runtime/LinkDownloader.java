@@ -241,6 +241,10 @@ public class LinkDownloader
             String host = url.getHost();
             if (host != null && host.equalsIgnoreCase("xc3.services.livejournal.com"))
                 return false;
+            
+            // sergeytsvetkov has plenty of duplicate book cover images in avatars.dzeninfra.ru
+            if (Config.User.equals("sergeytsvetkov") && host != null && host.equals("avatars.dzeninfra.ru"))
+                return false;
 
             String path = url.getPath();
             if (path == null)

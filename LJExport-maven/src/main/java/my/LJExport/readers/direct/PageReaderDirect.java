@@ -27,19 +27,22 @@ public class PageReaderDirect implements PageReader, PageContentSource
     public PageReaderDirect(String rurl, String fileDir, String linksDir)
     {
         parser = new PageParserDirectClassic(this);
+        
+        if (Config.False)
+        {
+            // rurl = "88279.html";   // test: nilsky_nikolay
+            // rurl = "1076886.html"; // test: genby
+            // rurl = "7430586.html"; // test: oboguev (with snipboard image)
+            // rurl = "7450356.html"; // test: oboguev (no comments)
+            // rurl = "2352931.html"; // test: krylov (many pages of comments)
+            // rurl = "5938498.html"; // test: oboguev (some comments)
 
-        // rurl = "88279.html"; // test: nilsky_nikolay
-        // rurl = "1076886.html"; // test: genby
-        // rurl = "7430586.html"; // test: oboguev (with snipboard image)
-        // rurl = "7450356.html"; // test: oboguev (no comments)
-        // rurl = "2352931.html"; // test: krylov (many pages of comments)
-        // rurl = "5938498.html"; // test: oboguev (some comments)
-
-        // rurl = "2106296.html"; // test: tor85 (no comments)  
-        // rurl = "175603.html";  // test: a_bugaev (comments disabled)
-        // rurl = "2532366.html"; // test: colonelcassad
-        // rurl = "5182367.html"; // test: oboguev (private, no comments)
-        // rurl = "2504913.html"; // test: krylov (unexpandable link)
+            // rurl = "2106296.html"; // test: tor85 (no comments)  
+            // rurl = "175603.html";  // test: a_bugaev (comments disabled)
+            // rurl = "2532366.html"; // test: colonelcassad
+            // rurl = "5182367.html"; // test: oboguev (private, no comments)
+            // rurl = "2504913.html"; // test: krylov (unexpandable link)
+        }
 
         parser.rurl = rurl;
         parser.rid = rurl.substring(0, rurl.indexOf('.'));
@@ -80,12 +83,15 @@ public class PageReaderDirect implements PageReader, PageContentSource
         Node firstPageRoot = parser.pageRoot;
 
         // devCapturePageComments();
-
+        
+        String threadName = Thread.currentThread().getName();
+        
         if (parser.hasComments)
         {
             // load comments for each of the pages
             for (int npage = 1; npage <= parser.npages; npage++)
             {
+                Thread.currentThread().setName(threadName + " comments page " + npage);
                 String cjson = loadPageComments(npage);
                 // devSaveJson(cjson, "x-" + parser.rid);
                 List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson);
@@ -102,6 +108,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
             }
         }
 
+        Thread.currentThread().setName(threadName);
+
         parser.downloadExternalLinks(firstPageRoot, linksDir);
         parser.pageSource = JSOUP.emitHtml(firstPageRoot);
         Util.writeToFileSafe(fileDir + parser.rid + ".html", parser.pageSource);
@@ -111,24 +119,34 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
     private void expandCommentTree(int npage, CommentsTree commentTree) throws Exception
     {
-        Comment cload = null;
-        int nload = 1;
-        while (null != (cload = commentTree.findFirstUnloadedOrToExpandComment()))
+        String threadNameBase = Thread.currentThread().getName();
+        
+        try
         {
-            if (Config.False)
+            Comment cload = null;
+            int nload = 1;
+            while (null != (cload = commentTree.findFirstUnloadedOrToExpandComment()))
             {
-                Main.out(String.format("Expanding page=%d [call %d] thread %s, remaining %d of %d",
-                        npage,
-                        nload,
-                        cload.thread,
-                        commentTree.countUnloadedOrUnexpandedComments(),
-                        commentTree.totalComments()));
+                if (Config.False)
+                {
+                    Main.out(String.format("Expanding page=%d [call %d] thread %s, remaining %d of %d",
+                            npage,
+                            nload,
+                            cload.thread,
+                            commentTree.countUnloadedOrUnexpandedComments(),
+                            commentTree.totalComments()));
+                }
+                Thread.currentThread().setName(threadNameBase + " expansion #" + nload);
+                String cjson = loadCommentsThread(cload.thread);
+                // devSaveJson(cjson, "x-" + parser.rid + "-" + nload + "-" + cload.thread);
+                List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson, cload);
+                commentTree.merge(cload, commentList);
+                nload++;
             }
-            String cjson = loadCommentsThread(cload.thread);
-            // devSaveJson(cjson, "x-" + parser.rid + "-" + nload + "-" + cload.thread);
-            List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson, cload);
-            commentTree.merge(cload, commentList);
-            nload++;
+        }
+        finally
+        {
+            Thread.currentThread().setName(threadNameBase);
         }
 
         commentTree.checkHaveAllComments();

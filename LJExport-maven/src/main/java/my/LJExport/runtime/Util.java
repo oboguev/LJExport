@@ -289,9 +289,11 @@ public class Util
     {
         File f = new File(path);
         File ft = new File(path + ".tmp");
+        if (ft.exists())
+            ft.delete();
+        writeToFile(path + ".tmp", content);
         if (f.exists())
             f.delete();
-        writeToFile(path + ".tmp", content);
         ft.renameTo(f);
     }
 

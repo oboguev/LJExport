@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -25,6 +26,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
 
+import java.net.SocketException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -39,7 +41,7 @@ public class Web
 
     public static final int BINARY = (1 << 0);
     public static final int PROGRESS = (1 << 1);
-    
+
     public static class Response
     {
         public int code;
@@ -86,14 +88,15 @@ public class Web
 
         // RequestConfig globalConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.NETSCAPE).build();
         RequestConfig globalConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
-        
+
         PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
         // Set max total connections
         connManager.setMaxTotal(100);
         // Set max connections per route (i.e., per host)
         connManager.setDefaultMaxPerRoute(Config.MaxConnectionsPerRoute);
 
-        HttpClientBuilder hcb = HttpClients.custom().setDefaultRequestConfig(globalConfig).setDefaultCookieStore(cookieStore).setConnectionManager(connManager);
+        HttpClientBuilder hcb = HttpClients.custom().setDefaultRequestConfig(globalConfig).setDefaultCookieStore(cookieStore)
+                .setConnectionManager(connManager);
 
         if (routePlanner != null)
             hcb = hcb.setRoutePlanner(routePlanner);
@@ -126,6 +129,58 @@ public class Web
     }
 
     public static Response get(String url, int flags, Map<String, String> headers) throws Exception
+    {
+        final int maxpasses = 3;
+
+        for (int pass = 1;; pass++)
+        {
+            try
+            {
+                return get_retry(url, flags, headers);
+            }
+            catch (Exception ex)
+            {
+                if (pass <= maxpasses && isRetriable(ex))
+                {
+                    retryDelay(pass);
+                    continue;
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
+        }
+    }
+    
+    private static boolean isRetriable(Exception ex)
+    {
+        String msg = ex.getLocalizedMessage();
+        if (msg == null)
+            msg = "";
+        
+        if (ex instanceof NoHttpResponseException)
+            return true;
+        
+        if (ex instanceof SocketException && msg.contains("An established connection was aborted by the software in your host machine"))
+            return true;
+        
+        return false;
+    }
+
+    private static void retryDelay(int pass)
+    {
+        try
+        {
+            Thread.sleep(500 + 1000 * (pass + 1));
+        }
+        catch (InterruptedException ex)
+        {
+            Util.noop();
+        }
+    }
+
+    private static Response get_retry(String url, int flags, Map<String, String> headers) throws Exception
     {
         boolean binary = 0 != (flags & BINARY);
         boolean progress = 0 != (flags & PROGRESS);
@@ -334,7 +389,7 @@ public class Web
             {
                 if (this.threadNameBase != null)
                 {
-                    StringBuilder sb = new StringBuilder(this.threadNameBase + " "); 
+                    StringBuilder sb = new StringBuilder(this.threadNameBase + " ");
                     sb.append(String.format(" downloaded %,d bytes", bytesRead));
                     if (totalBytes != -1)
                     {

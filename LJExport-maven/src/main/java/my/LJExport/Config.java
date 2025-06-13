@@ -49,9 +49,9 @@ public class Config
 
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
-    public static final YYYY_MM LoadTo = null;
-    public static final YYYY_MM LoadSince = new YYYY_MM(2020, 1);
-    // public static final YYYY_MM LoadTo = new YYYY_MM(2010, 6);
+    // public static final YYYY_MM LoadTo = null;
+    public static final YYYY_MM LoadSince = new YYYY_MM(2019, 1);
+    public static final YYYY_MM LoadTo = new YYYY_MM(2021, 12);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;
@@ -82,8 +82,8 @@ public class Config
     public static final int Timeout = 150;
     public static int NWorkThreads = 0;
     public static final int ThreadsPerCPU = 2;
-    public static final int MaxThreads = 8;
-    public static int MaxConnectionsPerRoute = 4; // max concurrent connections per route (i.e., per host)
+    public static final int MaxThreads = 12;
+    public static int MaxConnectionsPerRoute = 6; // max concurrent connections per route (i.e. per host)
     public static String TrustStore = null;
     public static String TrustStorePassword = null;
     public static final int ProxyThreadsPerThread = 10;
@@ -105,7 +105,8 @@ public class Config
 
     /* Download linked files of the listed types locally, so they can be accessed offline */
     // public static List<String> DownloadFileTypes = null;
-    public static final List<String> DownloadFileTypes = Util.asList("jpg,jpeg,gif,png,webp,pdf,djvu,tif,tiff,doc,docx,rtf,zip,rar");
+    public static final List<String> DownloadFileTypes = Util
+            .asList("jpg,jpeg,gif,png,webp,pdf,djvu,tif,tiff,doc,docx,rtf,zip,rar");
 
     /*
      * Adding Fiddler certificate:

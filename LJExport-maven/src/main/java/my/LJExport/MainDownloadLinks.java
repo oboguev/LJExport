@@ -35,7 +35,7 @@ public class MainDownloadLinks
     // private static String User = "genby";
     // private static String User = "blog_10101";
     // private static String User = "nikital2014";
-    private static String User = "bash_m_ak";
+    private static String User = "von_hoffmann";
 
     private static final int NWorkThreads = 8;
 
@@ -178,6 +178,16 @@ public class MainDownloadLinks
         }
     }
 
+    
+    public static class NoPageSource implements PageContentSource
+    {
+        @Override
+        public String getPageSource() throws Exception
+        {
+            throw new Exception("Not implemented");
+        }
+    }
+
     /* =============================================================== */
 
     public static class MainDownloadLinksRunnable implements Runnable
@@ -210,15 +220,6 @@ public class MainDownloadLinks
                     ex.printStackTrace();
                 }
             }
-        }
-    }
-    
-    public static class NoPageSource implements PageContentSource
-    {
-        @Override
-        public String getPageSource() throws Exception
-        {
-            throw new Exception("Not implemented");
         }
     }
 }

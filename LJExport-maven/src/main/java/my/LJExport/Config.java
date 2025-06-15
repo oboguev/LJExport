@@ -31,7 +31,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "pioneer_lj";
+    public static final String Users = "man_with_dogs";
     // public static final String Users = "nikital2014,bash_m_ak,genby,olegnemen,eremei,afanarizm,jlm_taurus,corporatelie,wyradhe,nilsky_nikolay,von_hoffmann,a_samovarov,bantaputu,a_kaminsky,d_olshansky,rn_manifesto,ru_bezch,nep2,ego,hokma,laert,haritonov,1981dn,1981dn_dn,bantaputu,polit_ec,zhenziyou,a_bugaev,tor85,oboguev,morky,krylov,rms1,pioneer_lj,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
     // public static final String Users = "alex_vergin,sergeytsvetkov,blog_10101"; // new-style journals 
 
@@ -50,8 +50,8 @@ public class Config
     /* Range of dates to download (inclusive) */
     public static final YYYY_MM LoadSince = null;
     public static final YYYY_MM LoadTo = null;
-    // public static final YYYY_MM LoadSince = new YYYY_MM(2012, 1);
-    // public static final YYYY_MM LoadTo = new YYYY_MM(2016, 12);
+    // public static final YYYY_MM LoadSince = new YYYY_MM(2009, 4);
+    // public static final YYYY_MM LoadTo = new YYYY_MM(2009, 4);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;

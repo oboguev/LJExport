@@ -95,7 +95,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
                 continue;
             JSOUP.removeElement(pageRoot, n);
         }
-        
+
         for (Node n : JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-singlepost-standout"))
         {
             JSOUP.insertAfter(n, JSOUP.makeElement("br", n));
@@ -136,7 +136,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
                     throw new Exception("Multiple comment sections");
             }
         }
-        
+
         Vector<Node> alones = this.findStandaloneCommentsSections(pageRootCurrent);
         for (Node n : alones)
         {
@@ -149,7 +149,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
                     throw new Exception("Multiple comment sections");
             }
         }
-        
+
         if (required && commentsSection == null)
             throw new Exception("Page has no comments section");
 
@@ -198,7 +198,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
 
         Element commentsSection = findCommentsSection(pageRoot, true);
         has = hasComments(has, commentsSection);
-        
+
         if (has == null)
         {
             Vector<Node> articles = JSOUP.findElementsWithAllClasses(pageRoot, "article", Util.setOf("b-singlepost", "hentry"));
@@ -221,8 +221,11 @@ public class PageParserDirectClassic extends PageParserDirectBase
             {
                 String s = JSOUP.nodeText(n);
                 s = Util.despace(s);
-                if (s.equals("Comments for this post were disabled by the author"))
+                if (s.equals("Comments for this post were disabled by the author")
+                        || s.equals("Comments for this post were locked by the author"))
+                {
                     has = hasComments(has, Boolean.FALSE);
+                }
             }
         }
 
@@ -233,7 +236,9 @@ public class PageParserDirectClassic extends PageParserDirectBase
             {
                 String s = JSOUP.nodeText(n);
                 s = Util.despace(s);
-                if (s.equals("0 comments"))
+                if (s.equals("0 comments") ||
+                        s.equals("Comments for this post were disabled by the author") ||
+                        s.equals("Comments for this post were locked by the author"))
                 {
                     has = hasComments(has, Boolean.FALSE);
                 }
@@ -249,10 +254,10 @@ public class PageParserDirectClassic extends PageParserDirectBase
                 }
             }
         }
-        
+
         return has;
     }
-    
+
     static protected boolean isLoginLimitExceeded(String html) throws Exception
     {
         Node root = JSOUP.parseHtml(html);
@@ -702,7 +707,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
 
         final String tdir = "templates/direct-classic/";
         String tname = null;
-        
+
         if (c.isDeleted())
         {
             tname = tdir + "deleted-comment.txt";

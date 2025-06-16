@@ -35,7 +35,7 @@ public class MainDownloadLinks
     // private static String User = "blog_10101";
     // private static String User = "nikital2014";
     // private static String User = "von_hoffmann";
-    private static String User = "pioneer_lj";
+    private static String User = "oboguev";
 
     private static final int NWorkThreads = 10;
 

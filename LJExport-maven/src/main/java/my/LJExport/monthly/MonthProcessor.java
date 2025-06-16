@@ -1,7 +1,10 @@
 package my.LJExport.monthly;
 
+import java.io.File;
 import java.util.List;
 
+import my.LJExport.MainDownloadLinks.PageParserDirectBasePassive;
+import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.runtime.Util;
 
 public class MonthProcessor
@@ -19,6 +22,17 @@ public class MonthProcessor
     
     public void process() throws Exception
     {
+        for (String fn : pageFileNames)
+        {
+            String pageFileFullPath = pagesMonthDir + File.separator + fn;
+            
+            PageParserDirectBase parser = new PageParserDirectBasePassive();
+            parser.rurl = Util.extractFileName(pageFileFullPath);
+            
+            parser.pageSource = Util.readFileAsString(pageFileFullPath);
+            parser.parseHtml(parser.pageSource);
+        }
+        
         Util.noop();
     }
 }

@@ -1,11 +1,11 @@
 package my.LJExport.readers.direct;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.stream.Collectors;
 
 import org.jsoup.nodes.Element;
@@ -111,7 +111,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
 
         if (0 != (flags & REMOVE_SCRIPTS))
         {
-            Vector<Node> vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "script");
+            List<Node> vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "script");
             JSOUP.removeElements(pageRoot, vnodes);
 
             vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "noscript");
@@ -124,10 +124,10 @@ public class PageParserDirectClassic extends PageParserDirectBase
     {
         Element commentsSection = null;
 
-        Vector<Node> articles = JSOUP.findElements(pageRootCurrent, "article");
+        List<Node> articles = JSOUP.findElements(pageRootCurrent, "article");
         for (Node n : articles)
         {
-            Vector<Node> comms = JSOUP.findElements(JSOUP.flatten(n), "div", "id", "comments");
+            List<Node> comms = JSOUP.findElements(JSOUP.flatten(n), "div", "id", "comments");
             for (Node cn : comms)
             {
                 if (commentsSection == null)
@@ -137,10 +137,10 @@ public class PageParserDirectClassic extends PageParserDirectBase
             }
         }
 
-        Vector<Node> alones = this.findStandaloneCommentsSections(pageRootCurrent);
+        List<Node> alones = this.findStandaloneCommentsSections(pageRootCurrent);
         for (Node n : alones)
         {
-            Vector<Node> comms = JSOUP.findElements(JSOUP.flatten(n), "div", "id", "comments");
+            List<Node> comms = JSOUP.findElements(JSOUP.flatten(n), "div", "id", "comments");
             for (Node cn : comms)
             {
                 if (commentsSection == null)
@@ -201,7 +201,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
 
         if (has == null)
         {
-            Vector<Node> articles = JSOUP.findElementsWithAllClasses(pageRoot, "article", Util.setOf("b-singlepost", "hentry"));
+            List<Node> articles = JSOUP.findElementsWithAllClasses(pageRoot, "article", Util.setOf("b-singlepost", "hentry"));
             for (Node article : articles)
                 has = hasComments(has, article);
         }
@@ -216,7 +216,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
     {
         if (pageSource.contains("b-xylem-nocomment"))
         {
-            Vector<Node> vel = JSOUP.findElementsWithClass(under, "div", "b-xylem-nocomment");
+            List<Node> vel = JSOUP.findElementsWithClass(under, "div", "b-xylem-nocomment");
             for (Node n : vel)
             {
                 String s = JSOUP.nodeText(n);
@@ -231,7 +231,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
 
         if (pageSource.contains("b-xylem-cell-amount"))
         {
-            Vector<Node> vel = JSOUP.findElementsWithClass(under, "li", "b-xylem-cell-amount");
+            List<Node> vel = JSOUP.findElementsWithClass(under, "li", "b-xylem-cell-amount");
             for (Node n : vel)
             {
                 String s = JSOUP.nodeText(n);
@@ -327,7 +327,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
         {
             if (pageRoot == null)
                 pageRoot = JSOUP.parseHtml(html);
-            Vector<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-xylem-nocomment");
+            List<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-xylem-nocomment");
             if (vel.size() != 0)
                 return true;
         }
@@ -337,7 +337,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
         {
             if (pageRoot == null)
                 pageRoot = JSOUP.parseHtml(html);
-            Vector<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
+            List<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
             if (vel.size() != 1)
             {
                 Main.saveDebugPage("badpage-unable-find-root-node-for-comments.html", html);
@@ -357,7 +357,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
 
     protected boolean pageHasNoComments() throws Exception
     {
-        Vector<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
+        List<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
 
         if (vel.size() == 0)
         {
@@ -391,7 +391,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
         {
             if (pageRoot == null)
                 pageRoot = JSOUP.parseHtml(html);
-            Vector<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-grove-loading");
+            List<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-grove-loading");
             if (vel.size() != 0)
                 return true;
         }
@@ -404,14 +404,14 @@ public class PageParserDirectClassic extends PageParserDirectBase
         if (!pageHasNoComments())
             return false;
 
-        Vector<Node> vel = JSOUP.findElementsWithClass(pageRoot, "article", "b-singlepost-body");
+        List<Node> vel = JSOUP.findElementsWithClass(pageRoot, "article", "b-singlepost-body");
         if (vel.size() > 1)
             vel = filterTrueSinglepostBodies(vel);
         if (vel.size() != 1)
             throw new Exception("Unable to find record body");
         Node rbody = vel.get(0);
 
-        Vector<Node> children = JSOUP.getChildren(rbody);
+        List<Node> children = JSOUP.getChildren(rbody);
         vel = JSOUP.findElementsWithClass(children, "div", "repost");
         if (vel.size() != 1)
             return false;
@@ -515,9 +515,9 @@ public class PageParserDirectClassic extends PageParserDirectBase
         return true;
     }
 
-    private Vector<Node> filterTrueSinglepostBodies(Vector<Node> vel) throws Exception
+    private List<Node> filterTrueSinglepostBodies(List<Node> vel) throws Exception
     {
-        Vector<Node> res = new Vector<Node>();
+        List<Node> res = new ArrayList<>();
 
         for (Node n : vel)
         {
@@ -548,9 +548,9 @@ public class PageParserDirectClassic extends PageParserDirectBase
         return true;
     }
 
-    private Vector<Node> filterTrueSinglepostTitles(Vector<Node> vel) throws Exception
+    private List<Node> filterTrueSinglepostTitles(List<Node> vel) throws Exception
     {
-        Vector<Node> res = new Vector<Node>();
+        List<Node> res = new ArrayList<>();
 
         for (Node n : vel)
         {

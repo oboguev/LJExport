@@ -1,11 +1,11 @@
 package my.LJExport.xml;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -38,9 +38,9 @@ public class JSOUP
         return new Element(Tag.valueOf(tagname), baseUri, new Attributes());
     }
 
-    public static Vector<Node> getChildren(Node n) throws Exception
+    public static List<Node> getChildren(Node n) throws Exception
     {
-        return new Vector<Node>(n.childNodes());
+        return new ArrayList<>(n.childNodes());
     }
 
     public static Node getParent(Node n) throws Exception
@@ -89,18 +89,18 @@ public class JSOUP
         n.attr(attrname, value);
     }
 
-    public static Vector<Node> flattenChildren(Node el) throws Exception
+    public static List<Node> flattenChildren(Node el) throws Exception
     {
-        Vector<Node> vec = flatten(el);
+        List<Node> vec = flatten(el);
         if (vec.size() != 0 && vec.get(0) == el)
             vec.remove(0);
         return vec;
     }
 
-    public static Vector<Node> flatten(Node el) throws Exception
+    public static List<Node> flatten(Node el) throws Exception
     {
-        Vector<Node> v1 = flatten_1(el);
-        Vector<Node> v2 = flatten_2(el);
+        List<Node> v1 = flatten_1(el);
+        List<Node> v2 = flatten_2(el);
 
         /*
          * Verification
@@ -126,14 +126,14 @@ public class JSOUP
         return v1;
     }
 
-    public static Vector<Node> flatten_1(Node el) throws Exception
+    public static List<Node> flatten_1(Node el) throws Exception
     {
-        Vector<Node> vec = new Vector<Node>();
+        List<Node> vec = new ArrayList<>();
         flatten_1(vec, el, 0);
         return vec;
     }
 
-    private static void flatten_1(Vector<Node> vec, Node el, int level) throws Exception
+    private static void flatten_1(List<Node> vec, Node el, int level) throws Exception
     {
         if (el == null)
             return;
@@ -155,14 +155,14 @@ public class JSOUP
     /*
      * Alternative version for flattening
      */
-    public static Vector<Node> flatten_2(Node root)
+    public static List<Node> flatten_2(Node root)
     {
-        Vector<Node> result = new Vector<>();
+        List<Node> result = new ArrayList<>();
         flatten_2(root, result);
         return result;
     }
 
-    private static void flatten_2(Node node, Vector<Node> result)
+    private static void flatten_2(Node node, List<Node> result)
     {
         if (node == null)
             return;
@@ -185,14 +185,14 @@ public class JSOUP
         return n.nextSibling();
     }
 
-    public static Vector<Node> findElements(Node root, String tagname) throws Exception
+    public static List<Node> findElements(Node root, String tagname) throws Exception
     {
         return findElements(flatten(root), tagname);
     }
 
-    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname) throws Exception
+    public static List<Node> findElements(List<Node> pageFlat, String tagname) throws Exception
     {
-        Vector<Node> vel = new Vector<Node>();
+        List<Node> vel = new ArrayList<>();
 
         for (Node n : pageFlat)
         {
@@ -207,14 +207,14 @@ public class JSOUP
         return vel;
     }
 
-    public static Vector<Node> findElements(Node root, String tagname, String an1, String av1) throws Exception
+    public static List<Node> findElements(Node root, String tagname, String an1, String av1) throws Exception
     {
         return findElements(flatten(root), tagname, an1, av1);
     }
     
-    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1) throws Exception
+    public static List<Node> findElements(List<Node> pageFlat, String tagname, String an1, String av1) throws Exception
     {
-        Vector<Node> vel = new Vector<Node>();
+        List<Node> vel = new ArrayList<>();
         Element el;
         String av;
 
@@ -237,10 +237,10 @@ public class JSOUP
         return vel;
     }
 
-    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1, String an2, String av2)
+    public static List<Node> findElements(List<Node> pageFlat, String tagname, String an1, String av1, String an2, String av2)
             throws Exception
     {
-        Vector<Node> vel = new Vector<Node>();
+        List<Node> vel = new ArrayList<>();
         Element el;
         String av;
 
@@ -267,14 +267,14 @@ public class JSOUP
         return vel;
     }
 
-    public static Vector<Node> findElementsWithClass(Node root, String tagname, String cls) throws Exception
+    public static List<Node> findElementsWithClass(Node root, String tagname, String cls) throws Exception
     {
         return findElementsWithClass(flatten(root), tagname, cls);
     }
 
-    public static Vector<Node> findElementsWithClass(Vector<Node> pageFlat, String tagname, String cls) throws Exception
+    public static List<Node> findElementsWithClass(List<Node> pageFlat, String tagname, String cls) throws Exception
     {
-        Vector<Node> vel = new Vector<Node>();
+        List<Node> vel = new ArrayList<>();
         Element el;
 
         @SuppressWarnings("unused")
@@ -298,15 +298,15 @@ public class JSOUP
         return vel;
     }
 
-    public static Vector<Node> findElementsWithAllClasses(Node root, String tagname, Set<String> classes) throws Exception
+    public static List<Node> findElementsWithAllClasses(Node root, String tagname, Set<String> classes) throws Exception
     {
         return findElementsWithAllClasses(flatten(root), tagname, classes);
     }
 
-    public static Vector<Node> findElementsWithAllClasses(Vector<Node> pageFlat, String tagname, Set<String> classes)
+    public static List<Node> findElementsWithAllClasses(List<Node> pageFlat, String tagname, Set<String> classes)
             throws Exception
     {
-        Vector<Node> vel = new Vector<Node>();
+        List<Node> vel = new ArrayList<>();
         Element el;
 
         @SuppressWarnings("unused")
@@ -381,11 +381,11 @@ public class JSOUP
         removeElementsWithClass(pageRoot, null, tagname, cls);
     }
 
-    public static void removeElementsWithClass(Node pageRoot, Vector<Node> pageFlat, String tagname, String cls) throws Exception
+    public static void removeElementsWithClass(Node pageRoot, List<Node> pageFlat, String tagname, String cls) throws Exception
     {
         if (pageFlat == null)
             pageFlat = flatten(pageRoot);
-        Vector<Node> vel = findElementsWithClass(pageFlat, tagname, cls);
+        List<Node> vel = findElementsWithClass(pageFlat, tagname, cls);
         removeElements(pageRoot, vel);
     }
 
@@ -394,12 +394,12 @@ public class JSOUP
         removeElements(pageRoot, null, tagname, an1, av1);
     }
 
-    public static void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1)
+    public static void removeElements(Node pageRoot, List<Node> pageFlat, String tagname, String an1, String av1)
             throws Exception
     {
         if (pageFlat == null)
             pageFlat = flatten(pageRoot);
-        Vector<Node> vel = findElements(pageFlat, tagname, an1, av1);
+        List<Node> vel = findElements(pageFlat, tagname, an1, av1);
         removeElements(pageRoot, vel);
     }
 
@@ -409,16 +409,16 @@ public class JSOUP
         removeElements(pageRoot, null, tagname, an1, av1, an2, av2);
     }
 
-    public static void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1, String an2,
+    public static void removeElements(Node pageRoot, List<Node> pageFlat, String tagname, String an1, String av1, String an2,
             String av2) throws Exception
     {
         if (pageFlat == null)
             pageFlat = flatten(pageRoot);
-        Vector<Node> vel = findElements(pageFlat, tagname, an1, av1, an2, av2);
+        List<Node> vel = findElements(pageFlat, tagname, an1, av1, an2, av2);
         removeElements(pageRoot, vel);
     }
 
-    public static void removeElements(Node pageRoot, Vector<Node> vnodes) throws Exception
+    public static void removeElements(Node pageRoot, List<Node> vnodes) throws Exception
     {
         for (Node n : vnodes)
             n.remove();
@@ -429,7 +429,7 @@ public class JSOUP
         node.remove();
     }
 
-    public static void removeNodes(Vector<Node> vnodes) throws Exception
+    public static void removeNodes(List<Node> vnodes) throws Exception
     {
         for (Node n : vnodes)
             n.remove();
@@ -457,18 +457,18 @@ public class JSOUP
         }
     }
 
-    public static void dumpNodes(Vector<Node> vnodes, String prefix) throws Exception
+    public static void dumpNodes(List<Node> vnodes, String prefix) throws Exception
     {
         for (Node n : vnodes)
             dumpNode(n, prefix);
     }
 
-    public static void dumpNodesOffset(Vector<Node> vnodes) throws Exception
+    public static void dumpNodesOffset(List<Node> vnodes) throws Exception
     {
         dumpNodesOffset(vnodes, null);
     }
 
-    public static void dumpNodesOffset(Vector<Node> vnodes, String comment) throws Exception
+    public static void dumpNodesOffset(List<Node> vnodes, String comment) throws Exception
     {
         for (Node n : vnodes)
             dumpNodeOffset(n, comment);
@@ -522,16 +522,16 @@ public class JSOUP
         dumpNode(n, sb.toString());
     }
 
-    public static Vector<String> extractHrefs(String html) throws Exception
+    public static List<String> extractHrefs(String html) throws Exception
     {
         Node rootNode = parseHtml(html);
         return extractHrefs(rootNode);
     }
 
-    public static Vector<String> extractHrefs(Node root) throws Exception
+    public static List<String> extractHrefs(Node root) throws Exception
     {
-        Vector<String> vs = new Vector<String>();
-        Vector<Node> vnodes = flatten(root);
+        List<String> vs = new ArrayList<String>();
+        List<Node> vnodes = flatten(root);
 
         for (Node n : vnodes)
         {
@@ -664,9 +664,9 @@ public class JSOUP
         return false;
     }
 
-    public static Vector<Node> union(Collection<Node> c1, Collection<Node> c2)
+    public static List<Node> union(Collection<Node> c1, Collection<Node> c2)
     {
-        Vector<Node> vn = new Vector<>();
+        List<Node> vn = new ArrayList<>();
         
         for (Node n : c1)
         {

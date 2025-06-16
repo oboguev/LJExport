@@ -1,11 +1,11 @@
 package my.LJExport.readers;
 
+import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -119,7 +119,7 @@ abstract public class PageParser
 
         if (0 != (flags & REMOVE_SCRIPTS))
         {
-            Vector<Node> vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "script");
+            List<Node> vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "script");
             JSOUP.removeElements(pageRoot, vnodes);
         }
     }
@@ -127,7 +127,7 @@ abstract public class PageParser
     private void removeJunk_1() throws Exception
     {
         // find article tags
-        Vector<Node> articles = JSOUP.findElements(pageRoot, "article");
+        List<Node> articles = JSOUP.findElements(pageRoot, "article");
 
         // something wrong? leave it alone
         if (articles.size() == 0)
@@ -144,7 +144,7 @@ abstract public class PageParser
         // traverse from root recursively downwards (like in flatten)
         // marking all <table>, <tr> and <td> not in created keep set
         // to be deleted
-        Vector<Node> delvec = new Vector<Node>();
+        List<Node> delvec = new ArrayList<>();
         rj1_enum_deletes(delvec, keepSet, new HashSet<Node>(articles), pageRoot);
 
         // delete these elements
@@ -152,7 +152,7 @@ abstract public class PageParser
             JSOUP.removeElements(pageRoot, delvec);
     }
 
-    private void rj1_enum_deletes(Vector<Node> delvec, Set<Node> keepSet, Set<Node> stopSet, Node n) throws Exception
+    private void rj1_enum_deletes(List<Node> delvec, Set<Node> keepSet, Set<Node> stopSet, Node n) throws Exception
     {
         if (n == null)
             return;
@@ -223,8 +223,8 @@ abstract public class PageParser
 
     protected void checkCommentsMergeable() throws Exception
     {
-        Vector<Node> flat = JSOUP.flatten(pageRoot);
-        Vector<Node> vn = JSOUP.findElementsWithClass(flat, "div", "b-tree-root");
+        List<Node> flat = JSOUP.flatten(pageRoot);
+        List<Node> vn = JSOUP.findElementsWithClass(flat, "div", "b-tree-root");
 
         if (vn.size() == 0)
         {
@@ -234,7 +234,7 @@ abstract public class PageParser
             }
             else
             {
-                Vector<Node> vel = JSOUP.findElementsWithClass(flat, "div", "b-xylem-nocomment");
+                List<Node> vel = JSOUP.findElementsWithClass(flat, "div", "b-xylem-nocomment");
                 if (vel.size() == 0)
                 {
                     throwNoCommentTreeRoot();
@@ -263,8 +263,8 @@ abstract public class PageParser
 
     protected void mergeComments(Node firstPageRoot) throws Exception
     {
-        Vector<Node> vn1 = JSOUP.findElementsWithClass(JSOUP.flatten(firstPageRoot), "div", "b-tree-root");
-        Vector<Node> vn2 = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
+        List<Node> vn1 = JSOUP.findElementsWithClass(JSOUP.flatten(firstPageRoot), "div", "b-tree-root");
+        List<Node> vn2 = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
 
         if (vn1.size() != 1 || vn2.size() != 1)
             throw new Exception("Unable to locate comment tree root");
@@ -349,7 +349,7 @@ abstract public class PageParser
         {
             if (pageRoot == null)
                 pageRoot = JSOUP.parseHtml(html);
-            Vector<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-xylem-nocomment");
+            List<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-xylem-nocomment");
             if (vel.size() != 0)
                 return true;
         }
@@ -359,7 +359,7 @@ abstract public class PageParser
         {
             if (pageRoot == null)
                 pageRoot = JSOUP.parseHtml(html);
-            Vector<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
+            List<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
             if (vel.size() != 1)
             {
                 Main.saveDebugPage("badpage-unable-find-root-node-for-comments.html", html);
@@ -379,7 +379,7 @@ abstract public class PageParser
 
     protected boolean pageHasNoComments() throws Exception
     {
-        Vector<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
+        List<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
 
         if (vel.size() == 0)
         {
@@ -413,7 +413,7 @@ abstract public class PageParser
         {
             if (pageRoot == null)
                 pageRoot = JSOUP.parseHtml(html);
-            Vector<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-grove-loading");
+            List<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-grove-loading");
             if (vel.size() != 0)
                 return true;
         }
@@ -427,7 +427,7 @@ abstract public class PageParser
         {
             if (pageRoot == null)
                 pageRoot = JSOUP.parseHtml(html);
-            Vector<Node> vel = JSOUP.findElements(JSOUP.flatten(pageRoot), "body");
+            List<Node> vel = JSOUP.findElements(JSOUP.flatten(pageRoot), "body");
             if (vel.size() != 1)
                 throw new Exception("Unable to find BODY element in the html page");
             for (Node n : JSOUP.getChildren(vel.get(0)))
@@ -449,14 +449,14 @@ abstract public class PageParser
         if (!pageHasNoComments())
             return false;
 
-        Vector<Node> vel = JSOUP.findElementsWithClass(pageRoot, "article", "b-singlepost-body");
+        List<Node> vel = JSOUP.findElementsWithClass(pageRoot, "article", "b-singlepost-body");
         if (vel.size() > 1)
             vel = filterTrueSinglepostBodies(vel);
         if (vel.size() != 1)
             throw new Exception("Unable to find record body");
         Node rbody = vel.get(0);
 
-        Vector<Node> children = JSOUP.getChildren(rbody);
+        List<Node> children = JSOUP.getChildren(rbody);
         vel = JSOUP.findElementsWithClass(children, "div", "repost");
         if (vel.size() != 1)
             return false;
@@ -560,9 +560,9 @@ abstract public class PageParser
         return true;
     }
 
-    private Vector<Node> filterTrueSinglepostBodies(Vector<Node> vel) throws Exception
+    private List<Node> filterTrueSinglepostBodies(List<Node> vel) throws Exception
     {
-        Vector<Node> res = new Vector<Node>();
+        List<Node> res = new ArrayList<>();
 
         for (Node n : vel)
         {
@@ -593,9 +593,9 @@ abstract public class PageParser
         return true;
     }
 
-    private Vector<Node> filterTrueSinglepostTitles(Vector<Node> vel) throws Exception
+    private List<Node> filterTrueSinglepostTitles(List<Node> vel) throws Exception
     {
-        Vector<Node> res = new Vector<Node>();
+        List<Node> res = new ArrayList<>();
 
         for (Node n : vel)
         {

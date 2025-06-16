@@ -29,8 +29,9 @@ import javax.xml.transform.stream.StreamResult;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 import java.io.StringReader;
 
 public class DOM
@@ -40,14 +41,14 @@ public class DOM
         Main.out(s);
     }
 
-    public static Vector<Node> flatten(Node el) throws Exception
+    public static List<Node> flatten(Node el) throws Exception
     {
-        Vector<Node> vec = new Vector<Node>();
+        List<Node> vec = new ArrayList<>();
         flatten(vec, el);
         return vec;
     }
 
-    public static void flatten(Vector<Node> vec, Node el) throws Exception
+    public static void flatten(List<Node> vec, Node el) throws Exception
     {
         if (el == null)
             return;
@@ -132,10 +133,10 @@ public class DOM
         return xml;
     }
 
-    public static Vector<String> extractHrefs(String html) throws Exception
+    public static List<String> extractHrefs(String html) throws Exception
     {
-        Vector<String> vs = new Vector<String>();
-        Vector<Node> vnodes = flatten(parseHtmlAsXml(html));
+        List<String> vs = new ArrayList<>();
+        List<Node> vnodes = flatten(parseHtmlAsXml(html));
 
         for (Node n : vnodes)
         {
@@ -152,27 +153,27 @@ public class DOM
         return vs;
     }
 
-    public static void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1)
+    public static void removeElements(Node pageRoot, List<Node> pageFlat, String tagname, String an1, String av1)
             throws Exception
     {
         if (pageFlat == null)
             pageFlat = flatten(pageRoot);
-        Vector<Node> vel = findElements(pageFlat, tagname, an1, av1);
+        List<Node> vel = findElements(pageFlat, tagname, an1, av1);
         removeElements(pageRoot, vel);
     }
 
-    public static void removeElements(Node pageRoot, Vector<Node> pageFlat, String tagname, String an1, String av1, String an2,
+    public static void removeElements(Node pageRoot, List<Node> pageFlat, String tagname, String an1, String av1, String an2,
             String av2) throws Exception
     {
         if (pageFlat == null)
             pageFlat = flatten(pageRoot);
-        Vector<Node> vel = findElements(pageFlat, tagname, an1, av1, an2, av2);
+        List<Node> vel = findElements(pageFlat, tagname, an1, av1, an2, av2);
         removeElements(pageRoot, vel);
     }
 
-    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname) throws Exception
+    public static List<Node> findElements(List<Node> pageFlat, String tagname) throws Exception
     {
-        Vector<Node> vel = new Vector<Node>();
+        List<Node> vel = new ArrayList<>();
 
         for (Node n : pageFlat)
         {
@@ -187,9 +188,9 @@ public class DOM
         return vel;
     }
 
-    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1) throws Exception
+    public static List<Node> findElements(List<Node> pageFlat, String tagname, String an1, String av1) throws Exception
     {
-        Vector<Node> vel = new Vector<Node>();
+        List<Node> vel = new ArrayList<>();
         Element el;
         String av;
 
@@ -212,10 +213,10 @@ public class DOM
         return vel;
     }
 
-    public static Vector<Node> findElements(Vector<Node> pageFlat, String tagname, String an1, String av1, String an2, String av2)
+    public static List<Node> findElements(List<Node> pageFlat, String tagname, String an1, String av1, String an2, String av2)
             throws Exception
     {
-        Vector<Node> vel = new Vector<Node>();
+        List<Node> vel = new ArrayList<>();
         Element el;
         String av;
 
@@ -242,7 +243,7 @@ public class DOM
         return vel;
     }
 
-    public static void removeElements(Node pageRoot, Vector<Node> vnodes) throws Exception
+    public static void removeElements(Node pageRoot, List<Node> vnodes) throws Exception
     {
         for (Node n : vnodes)
         {

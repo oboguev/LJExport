@@ -5,10 +5,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
@@ -161,7 +162,7 @@ public class PageReaderBasic implements PageReader
     private void removeJunk_1() throws Exception
     {
         // find article tags
-        Vector<Node> articles = DOM.findElements(DOM.flatten(pageRoot), "article");
+        List<Node> articles = DOM.findElements(DOM.flatten(pageRoot), "article");
 
         // something wrong? leave it alone
         if (articles.size() == 0)
@@ -178,7 +179,7 @@ public class PageReaderBasic implements PageReader
         // traverse from root recursively downwards (like in flatten)
         // marking all <table>, <tr> and <td> not in created keep set
         // to be deleted
-        Vector<Node> delvec = new Vector<Node>();
+        List<Node> delvec = new ArrayList<>();
         rj1_enum_deletes(delvec, keepSet, new HashSet<Node>(articles), pageRoot);
 
         // delete these elements
@@ -188,7 +189,7 @@ public class PageReaderBasic implements PageReader
         }
     }
 
-    private void rj1_enum_deletes(Vector<Node> delvec, Set<Node> keepSet, Set<Node> stopSet, Node n) throws Exception
+    private void rj1_enum_deletes(List<Node> delvec, Set<Node> keepSet, Set<Node> stopSet, Node n) throws Exception
     {
         if (n == null)
             return;

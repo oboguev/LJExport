@@ -130,24 +130,24 @@ public class LinkDownloader
             String host = extractHostSafe(href);
             Web.Response r = response.get();
 
-            if (host != null && r != null && r.code != 204)
+            if (host != null && r != null && r.code != 204 && r.code != 404)
             {
-                if (host.contains("imgprx.livejournal.net") && r.code != 404)
+                if (host.contains("imgprx.livejournal.net"))
                 {
                     Util.noop();
                 }
 
-                if (host.contains("l-stat.livejournal.net") && r.code != 404)
+                if (host.contains("l-stat.livejournal.net"))
                 {
                     Util.noop();
                 }
 
-                if (host.contains("ic.pics.livejournal.com") && r.code != 404 && r.code != 412)
+                if (host.contains("ic.pics.livejournal.com") && r.code != 403 && r.code != 412)
                 {
                     Util.noop();
                 }
 
-                if (host.contains("archive.org") && r.code != 404)
+                if (host.contains("archive.org"))
                 {
                     Util.noop();
                 }

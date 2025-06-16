@@ -576,7 +576,7 @@ public class Main
         }
     }
 
-    Vector<String> removeExistingRecords(Vector<String> src) throws Exception
+    private Vector<String> removeExistingRecords(Vector<String> src) throws Exception
     {
         Vector<String> res = new Vector<String>();
 

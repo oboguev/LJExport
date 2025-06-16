@@ -51,13 +51,18 @@ public class Util
         return s;
     }
 
-    public static Vector<String> sort(Set<String> set) throws Exception
+    public static List<String> sort(Set<String> set) throws Exception
     {
-        Vector<String> vs = new Vector<String>();
+        List<String> vs = new ArrayList<>();
         for (String s : set)
             vs.add(s);
         Collections.sort(vs);
         return vs;
+    }
+
+    public static Vector<String> sortAsVector(Set<String> set) throws Exception
+    {
+        return new Vector<>(sort(set));
     }
 
     public static boolean is_in_domain(String site, String domain) throws Exception

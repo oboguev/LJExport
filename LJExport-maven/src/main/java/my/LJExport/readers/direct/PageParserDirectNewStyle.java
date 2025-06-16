@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.stream.Collectors;
 
 import org.jsoup.nodes.Element;
@@ -110,7 +109,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
 
         if (0 != (flags & REMOVE_SCRIPTS))
         {
-            Vector<Node> vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "script");
+            List<Node> vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "script");
             JSOUP.removeElements(pageRoot, vnodes);
 
             vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "noscript");
@@ -174,7 +173,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
 
         if (has == null)
         {
-            Vector<Node> articles = JSOUP.findElementsWithAllClasses(pageRoot, "article", Util.setOf("aentry"));
+            List<Node> articles = JSOUP.findElementsWithAllClasses(pageRoot, "article", Util.setOf("aentry"));
             for (Node article : articles)
                 has = hasComments(has, article);
         }
@@ -190,7 +189,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
 
     private Boolean hasComments(Boolean has, Node under) throws Exception
     {
-        Vector<Node> va = JSOUP.findElementsWithClass(under, "a", "mdspost-comments-controls__count");
+        List<Node> va = JSOUP.findElementsWithClass(under, "a", "mdspost-comments-controls__count");
         for (Node na : va)
         {
             String s = JSOUP.nodeText(na);
@@ -231,12 +230,12 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
     {
         Element commentsSection = null;
 
-        Vector<Node> articles = JSOUP.findElements(pageRootCurrent, "article");
+        List<Node> articles = JSOUP.findElements(pageRootCurrent, "article");
         for (Node n : articles)
         {
             // can also use div id=comments (which is located inside div claas=acomments)
             // but additional cleanup will be needed to remove extra junk
-            Vector<Node> comms = JSOUP.findElementsWithClass(JSOUP.flatten(n), "div", "acomments");
+            List<Node> comms = JSOUP.findElementsWithClass(JSOUP.flatten(n), "div", "acomments");
             for (Node cn : comms)
             {
                 if (commentsSection == null)

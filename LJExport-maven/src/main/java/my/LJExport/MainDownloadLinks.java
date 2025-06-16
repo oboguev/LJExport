@@ -37,7 +37,7 @@ public class MainDownloadLinks
     // private static String User = "von_hoffmann";
     private static String User = "pioneer_lj";
 
-    private static final int NWorkThreads = 8;
+    private static final int NWorkThreads = 10;
 
     public static void main(String[] args)
     {

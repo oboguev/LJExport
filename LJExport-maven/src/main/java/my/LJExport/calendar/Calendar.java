@@ -51,7 +51,7 @@ public class Calendar
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to read user records calendar: " + Web.describe(r.code));
 
-        Vector<String> hrefs = DOM.extractHrefs(r.body);
+        List<String> hrefs = DOM.extractHrefs(r.body);
         for (String href : hrefs)
         {
             if (Util.isJournalUrl(href, sb))
@@ -108,7 +108,7 @@ public class Calendar
             }
         }
 
-        Records = Util.sort(set_records);
+        Records = Util.sortAsVector(set_records);
 
         if (Config.RandomizeLoadOrder)
             Records = Util.randomize(Records);

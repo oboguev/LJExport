@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -101,7 +100,7 @@ public abstract class PageParserDirectBase
         {
             if (pageRoot == null)
                 pageRoot = JSOUP.parseHtml(html);
-            Vector<Node> vel = JSOUP.findElements(JSOUP.flatten(pageRoot), "body");
+            List<Node> vel = JSOUP.findElements(JSOUP.flatten(pageRoot), "body");
             if (vel.size() != 1)
                 throw new Exception("Unable to find BODY element in the html page");
             for (Node n : JSOUP.getChildren(vel.get(0)))
@@ -160,7 +159,7 @@ public abstract class PageParserDirectBase
 
     public String detectPageStyle() throws Exception
     {
-        Vector<Node> vnodes = JSOUP.findElements(pageRoot, "article");
+        List<Node> vnodes = JSOUP.findElements(pageRoot, "article");
         String style = null;
 
         for (Node n : vnodes)
@@ -227,15 +226,15 @@ public abstract class PageParserDirectBase
     protected void removeNonArticleParents() throws Exception
     {
         // find article tags
-        Vector<Node> articles = JSOUP.findElements(pageRoot, "article");
+        List<Node> articles = JSOUP.findElements(pageRoot, "article");
 
         // something wrong? leave it alone
         if (articles.size() == 0)
             return;
         
         // in older LJ page styles <div id=comments> can be not under article, but standalone 
-        Vector<Node> alones = findStandaloneCommentsSections(pageRoot);
-        Vector<Node> articles_and_alones = JSOUP.union(articles, alones);
+        List<Node> alones = findStandaloneCommentsSections(pageRoot);
+        List<Node> articles_and_alones = JSOUP.union(articles, alones);
 
         // traverse upwards from articles and mark the nodes to keep
         Set<Node> keepSet = new HashSet<Node>();
@@ -248,7 +247,7 @@ public abstract class PageParserDirectBase
         // traverse from root recursively downwards (like in flatten)
         // marking all <table>, <tr> and <td> not in created keep set
         // to be deleted
-        Vector<Node> delvec = new Vector<Node>();
+        List<Node> delvec = new ArrayList<>();
         removeNonArticleParents_enum_deletes(delvec, keepSet, new HashSet<Node>(articles_and_alones), pageRoot);
 
         // delete these elements
@@ -256,7 +255,7 @@ public abstract class PageParserDirectBase
             JSOUP.removeElements(pageRoot, delvec);
     }
 
-    private void removeNonArticleParents_enum_deletes(Vector<Node> delvec, Set<Node> keepSet, Set<Node> stopSet, Node n)
+    private void removeNonArticleParents_enum_deletes(List<Node> delvec, Set<Node> keepSet, Set<Node> stopSet, Node n)
             throws Exception
     {
         if (n == null)
@@ -312,9 +311,9 @@ public abstract class PageParserDirectBase
 
     // in older LJ page styles <div id=comments> can be not under article, but standalone 
     // find <div id=comments> sections that are not under <article>  
-    protected Vector<Node> findStandaloneCommentsSections(Node root) throws Exception
+    protected List<Node> findStandaloneCommentsSections(Node root) throws Exception
     {
-        Vector<Node> vn = new Vector<>();
+        List<Node> vn = new ArrayList<>();
 
         for (Node n : JSOUP.findElements(root, "div", "id", "comments"))
         {

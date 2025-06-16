@@ -14,9 +14,9 @@ import my.LJExport.Config;
 public class LinkDownloader
 {
     private static Set<String> dontDownload;
-    
-    private static FileBackedMap href2file = new FileBackedMap() ;
-    
+
+    private static FileBackedMap href2file = new FileBackedMap();
+
     public static void init(String linksDir) throws Exception
     {
         href2file.close();
@@ -51,7 +51,7 @@ public class LinkDownloader
             NamedLocks.interlock(href_noanchor, () ->
             {
                 Thread.currentThread().setName(final_threadName + " downloading " + final_href + " prepare");
-                
+
                 String actual_filename = filename.get();
                 String afn = href2file.get(href_noanchor);
                 if (afn != null)
@@ -185,11 +185,11 @@ public class LinkDownloader
 
         return null;
     }
-    
+
     private static String encodePathCopmonents(String ref)
     {
         StringBuilder sb = new StringBuilder();
-        
+
         for (String pc : Util.asList(ref, "/"))
         {
             if (pc.length() != 0)
@@ -199,7 +199,7 @@ public class LinkDownloader
                 sb.append(URLCodec.encode(pc));
             }
         }
-        
+
         return sb.toString();
     }
 
@@ -236,12 +236,12 @@ public class LinkDownloader
                 return false;
             if (!(protocol.equalsIgnoreCase("http") || protocol.equalsIgnoreCase("https")))
                 return false;
-            
+
             // https://xc3.services.livejournal.com/ljcounter
             String host = url.getHost();
             if (host != null && host.equalsIgnoreCase("xc3.services.livejournal.com"))
                 return false;
-            
+
             // sergeytsvetkov has plenty of duplicate book cover images in avatars.dzeninfra.ru
             if (Config.User.equals("sergeytsvetkov") && host != null && host.equals("avatars.dzeninfra.ru"))
                 return false;
@@ -327,7 +327,7 @@ public class LinkDownloader
                     list.add(sb);
                 }
             }
-            
+
             String ext = getFileExtension(sb.toString());
 
             String query = url.getQuery();
@@ -337,7 +337,7 @@ public class LinkDownloader
                 // reappend extenstion
                 if (ext != null && ext.length() != 0 && ext.length() <= 4)
                     sb.append("." + ext);
-            }    
+            }
         }
 
         StringBuilder path = new StringBuilder();

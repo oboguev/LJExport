@@ -19,8 +19,7 @@ import my.LJExport.xml.JSOUP;
 
 /*
  * Загрузить отсутствующие локальные копии сссылок в страницах пользователя.
- * Они могут быть пропущены, если в момент загрузки страниц сервер, содержаший ссылки,
- * не работал.
+ * Они могут быть пропущены, если в момент загрузки страниц сервер, содержащий ссылки, не работал.
  */
 public class MainDownloadLinks  
 {
@@ -35,7 +34,8 @@ public class MainDownloadLinks
     // private static String User = "genby";
     // private static String User = "blog_10101";
     // private static String User = "nikital2014";
-    private static String User = "von_hoffmann";
+    // private static String User = "von_hoffmann";
+    private static String User = "pioneer_lj";
 
     private static final int NWorkThreads = 8;
 
@@ -120,15 +120,16 @@ public class MainDownloadLinks
             String pageFileFullPath = pagesDir + File.separator + pageFile;
             Thread.currentThread().setName("page-scanner: scanning " + Config.User + " " + pageFile);
             
+            PageParserDirectBase parser = new PageParserDirectBasePassive();
+            parser.rurl = Util.extractFileName(pageFileFullPath);
+
             if (Config.False)
             {
-                String fn = Util.extractFileName(pageFileFullPath);
-                if (!fn.equals("592466.html"))
+                if (!parser.rurl.equals("592466.html"))
                     continue;
                 Util.noop();
             }
             
-            PageParserDirectBase parser = new PageParserDirectBasePassive();
             parser.pageSource = Util.readFileAsString(pageFileFullPath);
             parser.parseHtml(parser.pageSource);
 

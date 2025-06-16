@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -287,24 +288,22 @@ public class Util
 
     public static void writeToFileSafe(String path, String content) throws Exception
     {
-        File f = new File(path);
-        File ft = new File(path + ".tmp");
+        File f = new File(path).getAbsoluteFile().getCanonicalFile();
+        File ft = new File(path + ".tmp").getAbsoluteFile().getCanonicalFile();
         if (ft.exists())
             ft.delete();
-        writeToFile(path + ".tmp", content);
-        if (f.exists())
-            f.delete();
-        ft.renameTo(f);
+        writeToFile(ft.getCanonicalPath(), content);
+        Files.move(ft.toPath(), f.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     }
 
     public static void writeToFileSafe(String path, byte[] content) throws Exception
     {
-        File f = new File(path);
-        File ft = new File(path + ".tmp");
-        if (f.exists())
-            f.delete();
-        writeToFile(path + ".tmp", content);
-        ft.renameTo(f);
+        File f = new File(path).getAbsoluteFile().getCanonicalFile();
+        File ft = new File(path + ".tmp").getAbsoluteFile().getCanonicalFile();
+        if (ft.exists())
+            ft.delete();
+        writeToFile(ft.getCanonicalPath(), content);
+        Files.move(ft.toPath(), f.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     }
 
     public static String readFileAsString(String path) throws Exception

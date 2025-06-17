@@ -145,12 +145,11 @@ public class MonthCollectors
             fp = fp.getParentFile();
             if (!fp.exists())
                 fp.mkdirs();
-
+            
             mc.parser.remapLocalRelativeLinks("../../../links/", "../../links/");
             String monthlyPageSource = JSOUP.emitHtml(mc.parser.pageRoot);
+            
             Util.writeToFileSafe(monthlyFilePath, monthlyPageSource);
-
-            Util.noop();
         }
     }
 

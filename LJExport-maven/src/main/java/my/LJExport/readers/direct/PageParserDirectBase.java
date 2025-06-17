@@ -126,8 +126,11 @@ public abstract class PageParserDirectBase
 
         boolean downloaded = false;
 
-        downloaded = downloaded || downloadExternalLinks(root, linksDir, "a", "href", true);
-        downloaded = downloaded || downloadExternalLinks(root, linksDir, "img", "src", false);
+        if (downloadExternalLinks(root, linksDir, "a", "href", true))
+            downloaded = true;
+        
+        if (downloadExternalLinks(root, linksDir, "img", "src", false))
+            downloaded = true;
 
         return downloaded;
     }
@@ -161,8 +164,11 @@ public abstract class PageParserDirectBase
     {
         boolean remapped = false;
 
-        remapped = remapped || remapLocalRelativeLinks(oldPrefix, newPrefix, "a", "href");
-        remapped = remapped || remapLocalRelativeLinks(oldPrefix, newPrefix, "img", "src");
+        if (remapLocalRelativeLinks(oldPrefix, newPrefix, "a", "href"))
+            remapped = true;
+        
+        if (remapLocalRelativeLinks(oldPrefix, newPrefix, "img", "src"))
+            remapped = true;
 
         return remapped;
     }

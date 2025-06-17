@@ -487,4 +487,26 @@ public abstract class PageParserDirectBase
             return false;
         }
     }
+
+    public void deleteDivThreeposts() throws Exception
+    {
+        List<Node> delvec = new ArrayList<>();
+        
+        // div class=" threeposts threeposts--count-9 "
+        List<Node> divs = JSOUP.findElementsWithAllClasses(pageRoot, "div", Util.setOf("threeposts"));
+        for (Node div : divs)
+        {
+            boolean hasElementChild = false;
+            for (Node n : JSOUP.flatten(div))
+            {
+                if (n instanceof Element && n != div)
+                    hasElementChild = true;
+            }
+            
+            if (!hasElementChild)
+                delvec.add(div);
+        }
+        
+        JSOUP.removeNodes(delvec);
+    }
 }

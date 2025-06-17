@@ -41,7 +41,7 @@ public class MonthProcessor
             
             parser.pageSource = Util.readFileAsString(pageFileFullPath);
             parser.parseHtml(parser.pageSource);
-
+            
             switch (parser.detectPageStyle())
             {
             case "classic":
@@ -53,6 +53,7 @@ public class MonthProcessor
                 break;
             }
             
+            parser.deleteDivThreeposts();
             mcs.addPage(parser, rid_numeric);
         }
         

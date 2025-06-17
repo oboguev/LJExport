@@ -2,6 +2,7 @@ package my.LJExport.readers.direct;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -212,7 +213,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
 
         return has;
     }
-    
+
     private boolean isCommentsLocked(Element commentsSection) throws Exception
     {
         for (Node n : JSOUP.findElementsWithClass(JSOUP.flatten(commentsSection), "p", "b-bubble-alert"))

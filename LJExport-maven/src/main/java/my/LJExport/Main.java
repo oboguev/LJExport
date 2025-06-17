@@ -80,6 +80,7 @@ public class Main
     private static AtomicInteger nCurrent;
     public static AtomicInteger unloadablePages;
     private static Set<String> deadLinks;
+    private static boolean logged_in = false;
 
     public static void setAborting()
     {
@@ -306,6 +307,7 @@ public class Main
             setAborting();
             System.err.println("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
+            emergency_logout();
         }
     }
 
@@ -334,6 +336,11 @@ public class Main
 
     public void do_login() throws Exception
     {
+        if (logged_in)
+            throw new Exception("Already logged in");
+        
+        logged_in = false;
+
         RateLimiter.setRateLimit(0);
 
         out(">>> Logging into " + Config.Site + " as user " + Config.LoginUser);
@@ -347,8 +354,6 @@ public class Main
         Web.Response r = Web.post("https://www." + Config.Site + "/login.bml?ret=1", sb.toString());
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));
-
-        boolean logged_in = false;
 
         for (Cookie cookie : Web.cookieStore.getCookies())
         {
@@ -421,6 +426,7 @@ public class Main
         if (r != null && r.code == HttpStatus.SC_OK)
         {
             out(">>> Logged off");
+            logged_in = false;
         }
         else
         {
@@ -429,6 +435,21 @@ public class Main
         }
     }
 
+    private void emergency_logout()
+    {
+        if (logged_in)
+        {
+            try
+            {
+                do_logout();
+            }
+            catch (Exception ex)
+            {
+                Util.noop();
+            }
+        }
+    }
+    
     public static void do_work() throws Exception
     {
         PageReaderHtmlUnit.Context htmlUnitContext = null;

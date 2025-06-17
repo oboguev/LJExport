@@ -15,7 +15,7 @@ import my.LJExport.runtime.Util;
 public class MainMakeMonthlyPages
 {
     // private static String Users = "alex_vergin,asriyan,blog_10101,hokma,sergeytsvetkov";
-    private static String Users = "blog_10101";
+    private static String Users = "alex_vergin";
 
     public static void main(String[] args)
     {

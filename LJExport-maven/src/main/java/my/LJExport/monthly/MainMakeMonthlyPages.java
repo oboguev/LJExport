@@ -12,7 +12,7 @@ import my.LJExport.runtime.Util;
 /*
  * Создать помесячные страницы с записями
  */
-public class MakeMonthlyPages
+public class MainMakeMonthlyPages
 {
     private static String Users = "alex_vergin,asriyan,blog_10101,hokma,sergeytsvetkov";
 
@@ -25,7 +25,7 @@ public class MakeMonthlyPages
                 user = user.trim();
                 if (user.length() != 0)
                 {
-                    new MakeMonthlyPages().makeUser(user);
+                    new MainMakeMonthlyPages().processUser(user);
                 }
             }
         }
@@ -36,15 +36,15 @@ public class MakeMonthlyPages
         }
     }
 
-    private void makeUser(String user) throws Exception
+    private void processUser(String user) throws Exception
     {
         Config.User = user;
         Config.mangleUser();
-        makeUser("pages", true);
-        makeUser("reposts", false);
+        processUserSection("pages", true);
+        processUserSection("reposts", false);
     }
 
-    private void makeUser(String whichDir, boolean required) throws Exception
+    private void processUserSection(String whichDir, boolean required) throws Exception
     {
         String pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + whichDir;
         String monthlyPagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "monthly-" + whichDir;
@@ -70,7 +70,9 @@ public class MakeMonthlyPages
                     Main.out(String.format("Processing [%s] %s-%s", Config.User, year, month));
                     MonthProcessor mp = new MonthProcessor(pagesMonthDir, 
                             pageFileNames, 
-                            String.format("%s%s-%s", monthlyPagesDir + File.separator, year, month));
+                            String.format("%s%s-%s", monthlyPagesDir + File.separator, year, month), 
+                            year, 
+                            month);
                     mp.process();
                 }
             }

@@ -9,6 +9,7 @@ import java.util.Set;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
+import org.jsoup.parser.Tag;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
@@ -231,7 +232,7 @@ public abstract class PageParserDirectBase
         // something wrong? leave it alone
         if (articles.size() == 0)
             return;
-        
+
         // in older LJ page styles <div id=comments> can be not under article, but standalone 
         List<Node> alones = findStandaloneCommentsSections(pageRoot);
         List<Node> articles_and_alones = JSOUP.union(articles, alones);
@@ -320,7 +321,92 @@ public abstract class PageParserDirectBase
             if (!JSOUP.hasParent(n, "article"))
                 vn.add(n);
         }
-        
+
         return vn;
+    }
+
+    /* ============================================================== */
+
+    public String extractCleanedHead() throws Exception
+    {
+        List<Node> heads = JSOUP.findElements(pageRoot, "head");
+        if (heads.size() != 1)
+            throw new Exception("Unable to locate the HEAD tag");
+
+        // perform deep clone
+        Node head = heads.get(0).clone();
+
+        // remove individual entries
+        JSOUP.removeElements(head, JSOUP.findElements(head, "title"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "meta"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "next"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "prev"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "noscript"));
+        JSOUP.removeElements(head, JSOUP.findComments(head));
+        JSOUP.removeWhitespaceNodes(head);
+
+        String outerHtml = head.outerHtml();
+        return outerHtml;
+    }
+
+    public void cleanHead(String titleText) throws Exception
+    {
+        List<Node> heads = JSOUP.findElements(pageRoot, "head");
+        if (heads.size() != 1)
+            throw new Exception("Unable to locate the HEAD tag");
+
+        // perform deep clone
+        Element head = (Element) heads.get(0);
+
+        // remove individual entries
+        JSOUP.removeElements(head, JSOUP.findElements(head, "title"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "meta"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "next"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "prev"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "noscript"));
+        // JSOUP.removeElements(head, JSOUP.findComments(head));
+
+        // Create and append <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        Element meta = new Element(Tag.valueOf("meta"), "");
+        meta.attr("http-equiv", "Content-Type");
+        meta.attr("content", "text/html; charset=utf-8");
+        head.appendChild(meta);
+
+        // Create and append <title>....</title>
+        Element title = new Element(Tag.valueOf(titleText), "");
+        title.text("Лебедевские чтения");
+        head.appendChild(title);
+    }
+
+    // remove comments section and other parts except article body
+    public void removeNonArticleBodyContent() throws Exception
+    {
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "comments"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElementsWithClass(pageRoot, "div", "acomments"));
+
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "hello-world"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElementsWithClass(pageRoot, "div", "b-fader"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElementsWithClass(pageRoot, "div", "b-singlepost-reactions"));
+
+        List<Node> vel = new ArrayList<>();
+
+        for (Node n : JSOUP.findElements(pageRoot, "div"))
+        {
+            if (null != JSOUP.getAttribute(n, "suggestion-for-unlogged") ||
+                    null != JSOUP.getAttribute(n, "rd-post-view-related-list"))
+            {
+                vel.add(n);
+            }
+        }
+
+        JSOUP.removeElements(pageRoot, vel);
+    }
+    
+    public Element getBodyTag() throws Exception
+    {
+        List<Node> bodies = JSOUP.findElements(pageRoot, "body");
+        if (bodies.size() != 1)
+            throw new Exception("Unable to locate the BODY tag");
+        return (Element) bodies.get(0);
     }
 }

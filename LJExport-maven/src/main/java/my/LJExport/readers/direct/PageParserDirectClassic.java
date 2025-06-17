@@ -27,6 +27,11 @@ public class PageParserDirectClassic extends PageParserDirectBase
         super(pageContentSource);
     }
 
+    public PageParserDirectClassic(PageParserDirectBase classic)
+    {
+        super(classic);
+    }
+
     public static class MissingCommentsTreeRootException extends Exception
     {
         private static final long serialVersionUID = 1L;

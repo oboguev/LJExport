@@ -182,6 +182,7 @@ public abstract class PageParserDirectBase
                 if (ref.startsWith(oldPrefix))
                 {
                     ref = newPrefix + ref.substring(oldPrefix.length());
+                    JSOUP.updateAttribute(n, attr, ref);
                     remapped = true;
                 }
             }

@@ -51,6 +51,20 @@ public class Util
         return s;
     }
 
+    public static String stripTail(String s, String tail) throws Exception
+    {
+        if (!s.endsWith(tail))
+            throw new Exception("stripTail: [" + s + "] does not end with [" + tail + "]");
+        return s.substring(0, s.length() - tail.length());
+    }
+
+    public static String stripStart(String s, String start) throws Exception
+    {
+        if (!s.startsWith(start))
+            throw new Exception("stripTail: [" + s + "] does not start with [" + start + "]");
+        return s.substring(start.length());
+    }
+    
     public static List<String> sort(Set<String> set) throws Exception
     {
         List<String> vs = new ArrayList<>();

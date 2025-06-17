@@ -13,7 +13,9 @@ import org.jsoup.nodes.Attributes;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
+import org.jsoup.nodes.Comment;
 import org.jsoup.nodes.TextNode;
+import org.jsoup.parser.Parser;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
 
@@ -100,13 +102,14 @@ public class JSOUP
     public static List<Node> flatten(Node el) throws Exception
     {
         List<Node> v1 = flatten_1(el);
-        List<Node> v2 = flatten_2(el);
 
         /*
          * Verification
          */
-        if (Config.True)
+        if (Config.False)
         {
+            List<Node> v2 = flatten_2(el);
+
             for (Node xn1 : v1)
             {
                 if (!v2.contains(xn1))
@@ -185,6 +188,24 @@ public class JSOUP
         return n.nextSibling();
     }
 
+    public static List<Node> findComments(Node root) throws Exception
+    {
+        return findComments(flatten(root));
+    }
+
+    public static List<Node> findComments(List<Node> pageFlat) throws Exception
+    {
+        List<Node> vel = new ArrayList<>();
+
+        for (Node n : pageFlat)
+        {
+            if (n instanceof Comment)
+                vel.add(n);
+        }
+
+        return vel;
+    }
+
     public static List<Node> findElements(Node root, String tagname) throws Exception
     {
         return findElements(flatten(root), tagname);
@@ -211,7 +232,7 @@ public class JSOUP
     {
         return findElements(flatten(root), tagname, an1, av1);
     }
-    
+
     public static List<Node> findElements(List<Node> pageFlat, String tagname, String an1, String av1) throws Exception
     {
         List<Node> vel = new ArrayList<>();
@@ -667,13 +688,13 @@ public class JSOUP
     public static List<Node> union(Collection<Node> c1, Collection<Node> c2)
     {
         List<Node> vn = new ArrayList<>();
-        
+
         for (Node n : c1)
         {
             if (!vn.contains(n))
                 vn.add(n);
         }
-        
+
         for (Node n : c2)
         {
             if (!vn.contains(n))
@@ -681,5 +702,40 @@ public class JSOUP
         }
 
         return vn;
+    }
+
+    public static void removeWhitespaceNodes(Node node)
+    {
+        for (int i = 0; i < node.childNodeSize(); i++)
+        {
+            Node child = node.childNode(i);
+            if (child instanceof TextNode)
+            {
+                TextNode textNode = (TextNode) child;
+                if (textNode.isBlank())
+                {
+                    child.remove();
+                    i--; // adjust index after removal
+                }
+            }
+            else
+            {
+                removeWhitespaceNodes(child);
+            }
+        }
+    }
+
+    public static List<Node> parseFragment(String html, Element context, String baseUri)
+    {
+        return Parser.parseFragment(html, context, baseUri);
+    }
+
+    public static List<Node> parseBodyFragment(String html)
+    {
+        List<Node> result = new ArrayList<>();
+        Element dummy = Jsoup.parseBodyFragment(html).body();
+        for (Node n : dummy.childNodes())
+            result.add(n.clone());
+        return result;    
     }
 }

@@ -43,40 +43,14 @@ public class MonthCollectors
         String cleanedHead = parser.extractCleanedHead();
 
         parser.removeNonArticleBodyContent();
+        parser.unsizeArticleHeight();
 
         MonthCollector mc = forCleanedHead(cleanedHead);
-        if (mc != null)
+        if (mc == null)
         {
-            Element sourceBody = parser.getBodyTag();
-            Element targetBody = mc.parser.getBodyTag();
-
-            // add divider to mc.parser inner body
-            // add link to mc.parser inner body
-            String htmlToAppend = "<br><br>{$hr}<br><br>" +
-                    "<b>{$title}&nbsp;" +
-                    "<a href=\"{$local_href}\">{$visible_href}</a>" +
-                    "</b><br><br>";
-
-            htmlToAppend = htmlToAppend
-                    .replace("{$title}", "Полная запись:")
-                    .replace("{$hr}", hr)
-                    .replace("{$local_href}", local_href)
-                    .replace("{$visible_href}", visible_href);
-
-            // Parse the fragment into a list of nodes and append to targetBody
-            List<Node> newNodes = JSOUP.parseBodyFragment(htmlToAppend);
-            for (Node node : newNodes)
-                targetBody.appendChild(node.clone());
-
-            // add parser inner body to mc.parser inner body  
-            // append each child of the cloned <body> to the targetBody
-            // use clone to ensure full independence
-            Element sourceBodyClone = (Element) sourceBody.clone();
-            for (Node child : sourceBodyClone.childNodes())
-                targetBody.appendChild(child.clone());
-        }
-        else
-        {
+            /*
+             * First record for the monthly page
+             */
             mc = new MonthCollector();
             mc.cleanedHead = cleanedHead;
             mc.first_rid = rid;
@@ -98,9 +72,58 @@ public class MonthCollectors
 
             // Parse the fragment into a list of nodes and prepend before targetBody
             List<Node> newNodes = JSOUP.parseBodyFragment(htmlToPrepend);
-            Collections.reverse(newNodes);
+
+            Element article = parser.findMainArticle();
+
+            if (Config.True)
+            {
+                Element parent = (Element) article.parent();
+
+                // Find the index of 'article' among parent's children
+                int index = parent.childNodes().indexOf(article);
+
+                // Insert all nodes from newNodes before 'article'
+                parent.insertChildren(index, newNodes);
+            }
+            else
+            {
+                Collections.reverse(newNodes);
+                for (Node node : newNodes)
+                    targetBody.insertChildren(0, Arrays.asList(node.clone()));
+            }
+        }
+        else
+        {
+            /*
+             * Subsequent records
+             */
+            Element sourceBody = parser.getBodyTag();
+            Element targetBody = mc.parser.getBodyTag();
+
+            // add divider to mc.parser inner body
+            // add link to mc.parser inner body
+            String htmlToAppend = "<br>{$hr}<br><br>" +
+                    "<b>{$title}&nbsp;" +
+                    "<a href=\"{$local_href}\">{$visible_href}</a>" +
+                    "</b><br><br>";
+
+            htmlToAppend = htmlToAppend
+                    .replace("{$title}", "Полная запись:")
+                    .replace("{$hr}", hr)
+                    .replace("{$local_href}", local_href)
+                    .replace("{$visible_href}", visible_href);
+
+            // Parse the fragment into a list of nodes and append to targetBody
+            List<Node> newNodes = JSOUP.parseBodyFragment(htmlToAppend);
             for (Node node : newNodes)
-                targetBody.insertChildren(0, Arrays.asList(node.clone()));
+                targetBody.appendChild(node.clone());
+
+            // add parser inner body to mc.parser inner body  
+            // append each child of the cloned <body> to the targetBody
+            // use clone to ensure full independence
+            Element sourceBodyClone = (Element) sourceBody.clone();
+            for (Node child : sourceBodyClone.childNodes())
+                targetBody.appendChild(child.clone());
         }
     }
 

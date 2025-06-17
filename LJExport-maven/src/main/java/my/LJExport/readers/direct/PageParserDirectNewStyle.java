@@ -362,4 +362,22 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
 
         injectHtml(commentsSection, html, record_url);
     }
+
+    @Override
+    public Element findMainArticle() throws Exception
+    {
+        List<Node> articles = JSOUP.findElementsWithAllClasses(pageRoot, "article", Util.setOf("aentry"));
+        if (articles.size() == 0)
+        {
+            throw new Exception("Unable to locate main article");
+        }
+        else if (articles.size() != 1)
+        {
+            throw new Exception("Unexpected multiple main articles");
+        }
+        else
+        {
+            return (Element) articles.get(0);
+        }
+    }
 }

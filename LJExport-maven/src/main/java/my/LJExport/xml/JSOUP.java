@@ -91,6 +91,20 @@ public class JSOUP
         n.attr(attrname, value);
     }
 
+    public static void deleteAttribute(Node n, String attrname) throws Exception
+    {
+        if (n instanceof Element)
+        {
+
+            Element el = (Element) n;
+            for (Attribute attr : el.attributes().asList())
+            {
+                if (attr.getKey().equalsIgnoreCase(attrname))
+                    el.removeAttr(attr.getKey());
+            }
+        }
+    }
+
     public static List<Node> flattenChildren(Node el) throws Exception
     {
         List<Node> vec = flatten(el);
@@ -478,6 +492,22 @@ public class JSOUP
         }
     }
 
+    public static List<Node> enumParents(Node n) throws Exception
+    {
+        List<Node> parents = new ArrayList<>();
+
+        for (;;)
+        {
+            Node p = n.parent();
+            if (p == null || p == n)
+                break;
+            parents.add(p);
+            n = p;
+        }
+
+        return parents;
+    }
+
     public static void dumpNodes(List<Node> vnodes, String prefix) throws Exception
     {
         for (Node n : vnodes)
@@ -736,6 +766,6 @@ public class JSOUP
         Element dummy = Jsoup.parseBodyFragment(html).body();
         for (Node n : dummy.childNodes())
             result.add(n.clone());
-        return result;    
+        return result;
     }
 }

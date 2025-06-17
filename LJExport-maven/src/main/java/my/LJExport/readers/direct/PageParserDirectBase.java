@@ -16,6 +16,7 @@ import my.LJExport.Main;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.LinkDownloader;
+import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
 public abstract class PageParserDirectBase
@@ -169,8 +170,8 @@ public abstract class PageParserDirectBase
     private boolean remapLocalRelativeLinks(String oldPrefix, String newPrefix, String tag, String attr) throws Exception
     {
         boolean remapped = false;
-        final String fileProtocol = "file://"; 
-        
+        final String fileProtocol = "file://";
+
         for (Node n : JSOUP.findElements(this.pageRoot, tag))
         {
             String ref = JSOUP.getAttribute(n, attr);
@@ -178,7 +179,7 @@ public abstract class PageParserDirectBase
             {
                 if (ref.startsWith(fileProtocol))
                     ref = ref.substring(fileProtocol.length());
-                
+
                 if (ref.startsWith(oldPrefix))
                 {
                     ref = newPrefix + ref.substring(oldPrefix.length());
@@ -190,7 +191,7 @@ public abstract class PageParserDirectBase
 
         return remapped;
     }
-    
+
     /* ============================================================== */
 
     public String detectPageStyle() throws Exception
@@ -233,6 +234,8 @@ public abstract class PageParserDirectBase
     public abstract Element findCommentsSection(Node pageRootCurrent, boolean required) throws Exception;
 
     public abstract void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception;
+
+    public abstract Element findMainArticle() throws Exception;
 
     /* ============================================================== */
 
@@ -408,8 +411,8 @@ public abstract class PageParserDirectBase
         head.appendChild(meta);
 
         // Create and append <title>....</title>
-        Element title = new Element(Tag.valueOf(titleText), "");
-        title.text("Лебедевские чтения");
+        Element title = new Element(Tag.valueOf("title"), "");
+        title.text(titleText);
         head.appendChild(title);
     }
 
@@ -443,5 +446,45 @@ public abstract class PageParserDirectBase
         if (bodies.size() != 1)
             throw new Exception("Unable to locate the BODY tag");
         return (Element) bodies.get(0);
+    }
+
+    // from article tag scan upwards
+    // in all "td" remove numeric "height"
+    // such as td height=585
+    public void unsizeArticleHeight() throws Exception
+    {
+        List<Node> articles = JSOUP.findElements(pageRoot, "article");
+
+        for (Node article : articles)
+        {
+            for (Node ap : JSOUP.enumParents(article))
+            {
+                if (ap instanceof Element)
+                {
+                    Element el = (Element) ap;
+
+                    if (el.tagName().equalsIgnoreCase("td"))
+                    {
+                        String height = JSOUP.getAttribute(el, "height");
+                        if (height != null && isNumber(height))
+                            JSOUP.deleteAttribute(el, "height");
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isNumber(String s)
+    {
+        try
+        {
+            int v = Integer.parseInt(s);
+            Util.unused(v);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
     }
 }

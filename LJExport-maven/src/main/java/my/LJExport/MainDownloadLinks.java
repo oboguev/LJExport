@@ -177,6 +177,12 @@ public class MainDownloadLinks
         {
             throw new Exception("Not implemented");
         }
+        
+        @Override
+        public Element findMainArticle() throws Exception
+        {
+            throw new Exception("Not implemented");
+        }
     }
 
     

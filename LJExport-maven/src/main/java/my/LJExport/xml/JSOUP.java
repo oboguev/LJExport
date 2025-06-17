@@ -102,13 +102,14 @@ public class JSOUP
     public static List<Node> flatten(Node el) throws Exception
     {
         List<Node> v1 = flatten_1(el);
-        List<Node> v2 = flatten_2(el);
 
         /*
          * Verification
          */
-        if (Config.True)
+        if (Config.False)
         {
+            List<Node> v2 = flatten_2(el);
+
             for (Node xn1 : v1)
             {
                 if (!v2.contains(xn1))

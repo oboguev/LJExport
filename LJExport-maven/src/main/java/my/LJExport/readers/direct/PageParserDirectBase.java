@@ -156,6 +156,40 @@ public abstract class PageParserDirectBase
         return downloaded;
     }
 
+    public boolean remapLocalRelativeLinks(String oldPrefix, String newPrefix) throws Exception
+    {
+        boolean remapped = false;
+
+        remapped = remapped || remapLocalRelativeLinks(oldPrefix, newPrefix, "a", "href");
+        remapped = remapped || remapLocalRelativeLinks(oldPrefix, newPrefix, "img", "src");
+
+        return remapped;
+    }
+
+    private boolean remapLocalRelativeLinks(String oldPrefix, String newPrefix, String tag, String attr) throws Exception
+    {
+        boolean remapped = false;
+        final String fileProtocol = "file://"; 
+        
+        for (Node n : JSOUP.findElements(this.pageRoot, tag))
+        {
+            String ref = JSOUP.getAttribute(n, attr);
+            if (ref != null)
+            {
+                if (ref.startsWith(fileProtocol))
+                    ref = ref.substring(fileProtocol.length());
+                
+                if (ref.startsWith(oldPrefix))
+                {
+                    ref = newPrefix + ref.substring(oldPrefix.length());
+                    remapped = true;
+                }
+            }
+        }
+
+        return remapped;
+    }
+    
     /* ============================================================== */
 
     public String detectPageStyle() throws Exception
@@ -401,7 +435,7 @@ public abstract class PageParserDirectBase
 
         JSOUP.removeElements(pageRoot, vel);
     }
-    
+
     public Element getBodyTag() throws Exception
     {
         List<Node> bodies = JSOUP.findElements(pageRoot, "body");

@@ -70,7 +70,7 @@ public class MainMakeMonthlyPages
                     Main.out(String.format("Processing [%s] %s-%s", Config.User, year, month));
                     MonthProcessor mp = new MonthProcessor(pagesMonthDir, 
                             pageFileNames, 
-                            String.format("%s%s-%s", monthlyPagesDir + File.separator, year, month), 
+                            String.format("%s%s%s-%s", monthlyPagesDir + File.separator, year + File.separator, year, month), 
                             year, 
                             month);
                     mp.process();

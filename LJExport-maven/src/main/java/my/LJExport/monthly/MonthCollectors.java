@@ -43,11 +43,16 @@ public class MonthCollectors
 
             // add divider to mc.parser inner body
             // add link to mc.parser inner body
-            // ####
-            String htmlToAppend = "<br><hr><br>" +
-                    "<b>Полная запись:&nbsp;" +
-                    "<a href=\"zzz\">1234.html</a>" +
+            String htmlToAppend = "<br><hr style=\"height: 5px;\"><br>" +
+                    "<b>{$title}&nbsp;" +
+                    "<a href=\"{$local_href}\">{$visible_href}</a>" +
                     "</b><br>";
+            
+            String local_href = String.format("../../pages/%s/%s/%s.html", year, month, rid);
+            htmlToAppend = htmlToAppend
+                    .replace("{$title}", "Полная запись:")
+                    .replace("{$local_href}", local_href)
+                    .replace("{$visible_href}", rid + ".html");
 
             // Parse the fragment into a list of nodes
             List<Node> newNodes = JSOUP.parseBodyFragment(htmlToAppend);
@@ -91,11 +96,10 @@ public class MonthCollectors
             if (!fp.exists())
                 fp.mkdirs();
             
+            mc.parser.remapLocalRelativeLinks("../../../links/", "../../links/");
             String monthlyPageSource = JSOUP.emitHtml(mc.parser.pageRoot);
             Util.writeToFileSafe(monthlyFilePath, monthlyPageSource);
-            
-            // ### write out
-            // ### maintain same levels
+
             Util.noop();
         }
     }

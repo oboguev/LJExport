@@ -2,6 +2,7 @@ package my.LJExport.runtime;
 
 import java.io.File;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -205,6 +206,10 @@ public class LinkDownloader
                 {
                     // ignore
                 }
+                else if (host.endsWith(".us.archive.org") && ex instanceof UnknownHostException)
+                {
+                    // ignore
+                }
                 else if (host.contains("archive.org"))
                 {
                     Util.noop();
@@ -282,6 +287,8 @@ public class LinkDownloader
                 return false;
             // permanently stuck host
             if (host != null && host.equalsIgnoreCase("im0-tub-ru.yandex.net"))
+                return false;
+            if (host != null && host.equalsIgnoreCase("im1-tub-ru.yandex.net"))
                 return false;
 
             // sergeytsvetkov has plenty of duplicate book cover images in avatars.dzeninfra.ru

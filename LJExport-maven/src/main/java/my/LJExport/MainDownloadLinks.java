@@ -64,6 +64,7 @@ public class MainDownloadLinks
         Config.mangleUser();
 
         pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "pages";
+        // pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "reposts";
         linksDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "links";
         // offline = true;
 

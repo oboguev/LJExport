@@ -5,12 +5,41 @@
 https://devad.ru/vlj/rolf.jpg
 https://www.washingtonpost.com/resizer/q0trS1jYXOfiuqRa-aUEDiMMCDA=/1440x0/smart/arc-anglerfish-washpost-prod-washpost.s3.amazonaws.com/public/ORXQHIXANU4WPHQLL6MTYKA5OQ.jpg
 http://demotivators.to/media/posters/633/87471601_oni-suschestvuyut.jpg
-http://ic.pics.livejournal.com/zhenziyou/14947834/32843/32843_600.jpg
-http://ic.pics.livejournal.com/zhenziyou/14947834/33276/33276_600.jpg
-http://cs606728.vk.me/v606728377/54a7/p_Y2Eh5lcbc.jpg
-http://cs606728.vk.me/v606728377/549e/Q8HG35hAEwo.jpg
-http://cs606728.vk.me/v606728217/3d22/DCIc8d4M5i8.jpg
-https://im0-tub-ru.yandex.net/i?id=1e195376a12b40d5634b21b95587d004-l&n=13
-https://im0-tub-ru.yandex.net/i?id=4aaf22359cfd8669a6eacf2f45dad3c5&n=33&h=215&w=323
 http://www.kuleuven.be/icag/files/Paul_Brassley.pdf
 
+http://ic.pics.livejournal.com/zhenziyou/14947834/32843/32843_600.jpg
+http://ic.pics.livejournal.com/zhenziyou/14947834/33276/33276_600.jpg
+
+http://binaryanimal.spb.ru/tmp/moonlight_pushkin/1_1200.png
+http://binaryanimal.spb.ru/tmp/moonlight_pushkin/2_1200.png
+http://binaryanimal.spb.ru/tmp/moonlight_pushkin/3_1200.png
+http://binaryanimal.spb.ru/tmp/moonlight_pushkin/*	
+
+# counters
+http://xc3.services.livejournal.com/*
+https://xc3.services.livejournal.com/*
+
+# permanently stuck sites
+http://im0-tub-ru.yandex.net/*
+http://im1-tub-ru.yandex.net/*
+https://im0-tub-ru.yandex.net/*
+https://im1-tub-ru.yandex.net/*
+
+# permanently stuck sites
+http://cs606728.vk.me/v606728377/*
+https://cs606728.vk.me/v606728377/*
+http://cs606728.vk.me/v606728353/*
+https://cs606728.vk.me/v606728353/*
+http://cs606728.vk.me/v606728747/*
+https://cs606728.vk.me/v606728747/*
+http://cs606728.vk.me/v606728365/*
+https://cs606728.vk.me/v606728365/*
+http://cs606728.vk.me/v606728217/*
+https://cs606728.vk.me/v606728217/*
+http://cs606728.vk.me/v606728952/*
+https://cs606728.vk.me/v606728952/*
+http://cs606728.vk.me/*
+
+# moved to istmat.org 
+http://istmat.info/*
+https://istmat.info/*

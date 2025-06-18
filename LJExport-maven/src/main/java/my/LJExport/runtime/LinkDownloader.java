@@ -45,7 +45,7 @@ public class LinkDownloader
             // avoid HTTPS certificate problem
             href = https2http(href, "l-stat.livejournal.net");
             href = https2http(href, "ic.pics.livejournal.com");
-
+            
             href_noanchor = Util.stripAnchor(href);
             if (failedSet.contains(href_noanchor))
                 return null;
@@ -272,6 +272,16 @@ public class LinkDownloader
 
             if (dontDownload.contains(href))
                 return false;
+            
+            for (String dont : dontDownload)
+            {
+                if (dont.endsWith("/*"))
+                {
+                    dont = Util.stripTail(dont, "*");
+                    if (href.startsWith(dont))
+                        return false;
+                }
+            }
 
             URL url = new URL(href);
 
@@ -281,15 +291,22 @@ public class LinkDownloader
             if (!(protocol.equalsIgnoreCase("http") || protocol.equalsIgnoreCase("https")))
                 return false;
 
-            // https://xc3.services.livejournal.com/ljcounter
             String host = url.getHost();
-            if (host != null && host.equalsIgnoreCase("xc3.services.livejournal.com"))
-                return false;
-            // permanently stuck host
-            if (host != null && host.equalsIgnoreCase("im0-tub-ru.yandex.net"))
-                return false;
-            if (host != null && host.equalsIgnoreCase("im1-tub-ru.yandex.net"))
-                return false;
+            if (Config.False)
+            {
+                // counters
+                // https://xc3.services.livejournal.com/ljcounter
+                if (host != null && host.equalsIgnoreCase("xc3.services.livejournal.com"))
+                    return false;
+
+                // permanently stuck hosts
+                if (host != null && host.equalsIgnoreCase("im0-tub-ru.yandex.net"))
+                    return false;
+                if (host != null && host.equalsIgnoreCase("im1-tub-ru.yandex.net"))
+                    return false;
+                if (href.startsWith("http://cs606728.vk.me/v606728377/"))
+                    return false;
+            }
 
             // sergeytsvetkov has plenty of duplicate book cover images in avatars.dzeninfra.ru
             if (Config.User.equals("sergeytsvetkov") && host != null && host.equals("avatars.dzeninfra.ru"))

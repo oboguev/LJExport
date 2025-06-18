@@ -29,6 +29,7 @@ import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.UrlDurationHistory;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
+import my.LJExport.runtime.audio.PlaySound;
 
 import java.io.File;
 
@@ -115,6 +116,7 @@ public class Main
         // TestSelenium.test3();
         Main main = new Main();
         main.do_main(args);
+        playCompletionSound();
     }
 
     private void reinit() throws Exception
@@ -703,5 +705,10 @@ public class Main
     public static boolean isDeadLink(String url) throws Exception
     {
         return deadLinks.contains(url);
+    }
+    
+    public static void playCompletionSound()
+    {
+        PlaySound.play("audio/flute-alert.wav");
     }
 }

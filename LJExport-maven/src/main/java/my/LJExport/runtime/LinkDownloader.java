@@ -3,11 +3,15 @@ package my.LJExport.runtime;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.apache.http.conn.HttpHostConnectException;
 
 import my.LJExport.Config;
 
@@ -16,17 +20,20 @@ public class LinkDownloader
     private static Set<String> dontDownload;
 
     private static FileBackedMap href2file = new FileBackedMap();
+    private static Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public static void init(String linksDir) throws Exception
     {
         href2file.close();
         href2file.init(linksDir + File.separator + "map-href-file.txt");
+        failedSet.clear();
     }
 
     public static String download(String linksDir, String href, String referer)
     {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);
         AtomicReference<String> filename = new AtomicReference<>(null);
+        String href_noanchor = null;
 
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
@@ -38,22 +45,28 @@ public class LinkDownloader
             href = https2http(href, "l-stat.livejournal.net");
             href = https2http(href, "ic.pics.livejournal.com");
 
-            String href_noanchor = Util.stripAnchor(href);
+            href_noanchor = Util.stripAnchor(href);
+            if (failedSet.contains(href_noanchor))
+                return null;
             filename.set(buildFilePath(linksDir, href));
 
             // Main.out(">>> Downloading: " + href + " -> " + filename.get());
 
             final String final_href = href;
+            final String final_href_noanchor = href_noanchor;
             final String final_threadName = threadName;
 
             Thread.currentThread().setName(threadName + " downloading " + href + " namelock wait");
 
             NamedLocks.interlock(href_noanchor, () ->
             {
+                if (failedSet.contains(final_href_noanchor))
+                    throw new AlreadyFailedException();
+                
                 Thread.currentThread().setName(final_threadName + " downloading " + final_href + " prepare");
 
                 String actual_filename = filename.get();
-                String afn = href2file.get(href_noanchor);
+                String afn = href2file.get(final_href_noanchor);
                 if (afn != null)
                     actual_filename = afn;
 
@@ -63,8 +76,8 @@ public class LinkDownloader
                     filename.set(actual_filename);
                     synchronized (href2file)
                     {
-                        if (null == href2file.get(href_noanchor))
-                            href2file.put(href_noanchor, actual_filename);
+                        if (null == href2file.get(final_href_noanchor))
+                            href2file.put(final_href_noanchor, actual_filename);
                     }
                 }
                 else
@@ -89,13 +102,26 @@ public class LinkDownloader
                             // do not use referer
                         }
                     }
-
-                    Thread.currentThread().setName(final_threadName + " downloading " + final_href);
-                    Web.Response r = Web.get(final_href, Web.BINARY | Web.PROGRESS, headers);
+                    
+                    Web.Response r = null;
+                    
+                    try
+                    {
+                        Thread.currentThread().setName(final_threadName + " downloading " + final_href);
+                        r = Web.get(final_href, Web.BINARY | Web.PROGRESS, headers);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (final_href_noanchor != null)
+                            failedSet.add(final_href_noanchor);
+                        throw ex;
+                    }
 
                     if (r.code < 200 || r.code >= 300 || r.code == 204)
                     {
                         response.set(r);
+                        if (final_href_noanchor != null)
+                            failedSet.add(final_href_noanchor);
                         throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);
                     }
 
@@ -105,14 +131,16 @@ public class LinkDownloader
                         Util.writeToFileSafe(actual_filename, r.binaryBody);
                         synchronized (href2file)
                         {
-                            if (null == href2file.get(href_noanchor))
-                                href2file.put(href_noanchor, actual_filename);
+                            if (null == href2file.get(final_href_noanchor))
+                                href2file.put(final_href_noanchor, actual_filename);
                         }
                         filename.set(actual_filename);
                     }
                     catch (Exception ex)
                     {
                         Util.noop();
+                        if (final_href_noanchor != null)
+                            failedSet.add(final_href_noanchor);
                         throw ex;
                     }
                 }
@@ -130,7 +158,11 @@ public class LinkDownloader
             String host = extractHostSafe(href);
             Web.Response r = response.get();
 
-            if (host != null && r != null && r.code != 204 && r.code != 404)
+            if (ex instanceof AlreadyFailedException)
+            {
+                // ignore
+            }
+            else if (host != null && r != null && r.code != 204 && r.code != 404)
             {
                 if (host.contains("imgprx.livejournal.net"))
                 {
@@ -169,21 +201,28 @@ public class LinkDownloader
                     Util.noop();
                 }
 
-                if (host.contains("archive.org"))
+                if (host.endsWith(".us.archive.org") && ex instanceof HttpHostConnectException)
+                {
+                    // ignore
+                }
+                else if (host.contains("archive.org"))
                 {
                     Util.noop();
                 }
             }
 
             // Main.err("Unable to download external link " + href, ex);
+            if (href_noanchor != null)
+                failedSet.add(href_noanchor);
+
             Util.noop();
+
+            return null;
         }
         finally
         {
             Thread.currentThread().setName(threadName);
         }
-
-        return null;
     }
 
     private static String encodePathCopmonents(String ref)
@@ -240,6 +279,9 @@ public class LinkDownloader
             // https://xc3.services.livejournal.com/ljcounter
             String host = url.getHost();
             if (host != null && host.equalsIgnoreCase("xc3.services.livejournal.com"))
+                return false;
+            // permanently stuck host
+            if (host != null && host.equalsIgnoreCase("im0-tub-ru.yandex.net"))
                 return false;
 
             // sergeytsvetkov has plenty of duplicate book cover images in avatars.dzeninfra.ru
@@ -402,5 +444,10 @@ public class LinkDownloader
             return null;
         else
             return fn.substring(dotIndex + 1);
+    }
+    
+    public static class AlreadyFailedException extends Exception
+    {
+        private static final long serialVersionUID = 1L;
     }
 }

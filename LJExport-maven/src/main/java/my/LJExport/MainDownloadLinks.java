@@ -21,7 +21,7 @@ import my.LJExport.xml.JSOUP;
  * Загрузить отсутствующие локальные копии сссылок в страницах пользователя.
  * Они могут быть пропущены, если в момент загрузки страниц сервер, содержащий ссылки, не работал.
  */
-public class MainDownloadLinks  
+public class MainDownloadLinks
 {
     private String pagesDir;
     private String linksDir;
@@ -29,13 +29,12 @@ public class MainDownloadLinks
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
-    // private static String User = "sergeytsvetkov";
+    private static String User = "harmfulgrumpy";
     // private static String User = "alex_vergin";
     // private static String User = "genby";
     // private static String User = "blog_10101";
     // private static String User = "nikital2014";
     // private static String User = "von_hoffmann";
-    private static String User = "oboguev";
 
     private static final int NWorkThreads = 10;
 
@@ -52,8 +51,9 @@ public class MainDownloadLinks
             ex.printStackTrace();
         }
 
+        Main.playCompletionSound();
     }
-    
+
     private MainDownloadLinks()
     {
     }
@@ -68,14 +68,14 @@ public class MainDownloadLinks
         // offline = true;
 
         out(">>> Processing download links for user " + Config.User);
-        
+
         Util.mkdir(linksDir);
         LinkDownloader.init(linksDir);
 
         pageFiles = Util.enumerateFiles(pagesDir);
         pageFilesTotalCount = pageFiles.size();
 
-        Config.MaxConnectionsPerRoute = NWorkThreads; 
+        Config.MaxConnectionsPerRoute = NWorkThreads;
         Web.init();
         ActivityCounters.reset();
         RateLimiter.setRateLimit(100);
@@ -119,7 +119,7 @@ public class MainDownloadLinks
 
             String pageFileFullPath = pagesDir + File.separator + pageFile;
             Thread.currentThread().setName("page-scanner: scanning " + Config.User + " " + pageFile);
-            
+
             PageParserDirectBase parser = new PageParserDirectBasePassive();
             parser.rurl = Util.extractFileName(pageFileFullPath);
 
@@ -129,7 +129,7 @@ public class MainDownloadLinks
                     continue;
                 Util.noop();
             }
-            
+
             parser.pageSource = Util.readFileAsString(pageFileFullPath);
             parser.parseHtml(parser.pageSource);
 
@@ -140,7 +140,7 @@ public class MainDownloadLinks
             }
         }
     }
-    
+
     private static void out(String s)
     {
         Main.out(s);
@@ -152,7 +152,7 @@ public class MainDownloadLinks
     }
 
     /* =============================================================== */
-    
+
     public static class PageParserDirectBasePassive extends PageParserDirectBase
     {
         public PageParserDirectBasePassive()
@@ -177,7 +177,7 @@ public class MainDownloadLinks
         {
             throw new Exception("Not implemented");
         }
-        
+
         @Override
         public Element findMainArticle() throws Exception
         {
@@ -185,7 +185,6 @@ public class MainDownloadLinks
         }
     }
 
-    
     public static class NoPageSource implements PageContentSource
     {
         @Override

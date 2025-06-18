@@ -35,6 +35,8 @@ public class MainMakeMonthlyPages
             Main.err("** Exception: " + ex.getLocalizedMessage());
             ex.printStackTrace();
         }
+
+        Main.playCompletionSound();
     }
 
     private void processUser(String user) throws Exception

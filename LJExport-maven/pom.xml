@@ -374,7 +374,13 @@
 			<artifactId>json</artifactId>
 			<version>20250517</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>javazoom</groupId>
+			<artifactId>jlayer</artifactId>
+			<version>1.0.1</version>
+		</dependency>
+
 	</dependencies>
 
 </project>

@@ -1,0 +1,18 @@
+<div class=" mdspost-thread  mdspost-thread--level-{$level} mdspost-thread--leveldeep-0  " style="margin-left: {$offset_px}px" data-tid="t{$thread}">
+    <article id="t{$thread}" class="mdspost-comment comment p-comment" data-username="" data-displayname="" data-updated-ts="1715892132" data-full="1">
+        <div class="mdspost-comment__inner">
+            <header class="mdspost-comment__header">
+                <a href="" target="_blank" class="mdspost-comment-userpic">
+                    <span class="mdspost-comment-userpic__pic" lj:user="">
+                        <img src="{$userpic}" alt="" loading="lazy" class="mdspost-comment-userpic__img ContextualPopup"> 
+                    </span>
+                </a>
+                <div class="mdspost-comment-details">
+                    <p class="mdspost-comment-username"><span class="mdspost-comment-username__name">Anonymous</span></p>
+                    <p class=" mdspost-comment-meta  "><a href="{$thread_url}" class="mdspost-comment-time mdspost-comment-time--ctime" target="_self">{$ctime}</a></p>
+                </div>
+            </header>
+            <div class="mdspost-comment__body">{$article}</div>
+        </div>
+    </article>
+</div>

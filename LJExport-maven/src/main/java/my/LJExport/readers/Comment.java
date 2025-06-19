@@ -13,6 +13,7 @@ public class Comment
     public final static String DEFAULT_USERPIC = "https://l-stat.livejournal.net/img/userpics/userpic-user.png";
     public final static String DEFAULT_UNAME = "Anonymous";
     public final static String DEFAULT_USERHEAD_URL = "https://l-stat.livejournal.net/img/userinfo_v8.svg?v=17080&amp;v=847";
+    public final static String ANONYMOUS_USER_USERPIC = "https://l-stat.livejournal.net/img/userpics/userpic-anonymous.png?v=15821";
 
     // such as "31873680"
     public String thread;

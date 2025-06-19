@@ -331,9 +331,11 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
             }
             else
             {
-                throw new Exception("No template for anonymous comment without subject " + c.thread_url);
-                // tname = tdir + "anon-comment-without-subject.txt";
+                tname = tdir + "anon-comment-without-subject.txt";
             }
+
+            if (vars.get("userpic") == null || vars.get("userpic").trim().length() == 0)
+                vars.put("userpic", Comment.ANONYMOUS_USER_USERPIC);
         }
         else
         {

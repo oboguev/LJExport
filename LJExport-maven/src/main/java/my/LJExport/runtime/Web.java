@@ -32,6 +32,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.IntPredicate;
+import static java.lang.Math.max;
 
 // GZIP: http://stackoverflow.com/questions/1063004/how-to-decompress-http-response
 
@@ -93,13 +94,28 @@ public class Web
 
         PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
         // Set max total connections
-        connManager.setMaxTotal(100);
+        connManager.setMaxTotal(200);
         // Set max connections per route (i.e., per host)
         connManager.setDefaultMaxPerRoute(Config.MaxConnectionsPerRoute);
-        
+
         // higher limits for some routes
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("l-userpic.livejournal.com", 80, "http")), 15);        
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("ic.pics.livejournal.com", 80, "http")), 10);        
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("l-userpic.livejournal.com", 80, "http")),
+                max(15, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("ic.pics.livejournal.com", 80, "http")),
+                max(10, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 80, "http")),
+                max(10, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 443, "https")),
+                max(10, Config.MaxConnectionsPerRoute));
+
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh3.googleusercontent.com", 443, "https")),
+                max(20, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh4.googleusercontent.com", 443, "https")),
+                max(20, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh5.googleusercontent.com", 443, "https")),
+                max(20, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh6.googleusercontent.com", 443, "https")),
+                max(20, Config.MaxConnectionsPerRoute));
 
         HttpClientBuilder hcb = HttpClients.custom().setDefaultRequestConfig(globalConfig).setDefaultCookieStore(cookieStore)
                 .setConnectionManager(connManager);
@@ -158,19 +174,20 @@ public class Web
             }
         }
     }
-    
+
     private static boolean isRetriable(Exception ex)
     {
         String msg = ex.getLocalizedMessage();
         if (msg == null)
             msg = "";
-        
+
         if (ex instanceof NoHttpResponseException)
             return true;
-        
-        if (ex instanceof SocketException && msg.contains("An established connection was aborted by the software in your host machine"))
+
+        if (ex instanceof SocketException
+                && msg.contains("An established connection was aborted by the software in your host machine"))
             return true;
-        
+
         return false;
     }
 
@@ -186,12 +203,15 @@ public class Web
         }
     }
 
-    private static Response get_retry(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody) throws Exception
+    private static Response get_retry(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody)
+            throws Exception
     {
         boolean binary = 0 != (flags & BINARY);
         boolean progress = 0 != (flags & PROGRESS);
 
-        RateLimiter.limitRate();
+        if (shouldLimitRate(url))
+            RateLimiter.limitRate();
+
         lastURL.set(url);
         Response r = new Response();
 
@@ -210,7 +230,7 @@ public class Web
         {
             r.code = response.getStatusLine().getStatusCode();
             r.reason = response.getStatusLine().getReasonPhrase();
-            
+
             if (shouldLoadBody == null || shouldLoadBody.test(r.code))
             {
                 HttpEntity entity = response.getEntity();
@@ -265,7 +285,9 @@ public class Web
 
     public static Response post(String url, String body) throws Exception
     {
-        RateLimiter.limitRate();
+        if (shouldLimitRate(url))
+            RateLimiter.limitRate();
+
         lastURL.set(url);
         Response r = new Response();
 
@@ -342,6 +364,19 @@ public class Web
     public static String getLastURL() throws Exception
     {
         return lastURL.get();
+    }
+
+    private static boolean shouldLimitRate(String url) throws Exception
+    {
+        String host = (new URL(url)).getHost();
+        host = host.toLowerCase();
+
+        if (host.equals("livejournal.net") || host.endsWith(".livejournal.net"))
+            return true;
+        if (host.equals("livejournal.com") || host.endsWith(".livejournal.com"))
+            return true;
+
+        return false;
     }
 
     /* ================================================================================= */

@@ -334,7 +334,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
                 tname = tdir + "anon-comment-without-subject.txt";
             }
 
-            if (vars.get("userpic") == null || vars.get("userpic").trim().length() == 0)
+            if (Config.True || vars.get("userpic") == null || vars.get("userpic").trim().length() == 0)
                 vars.put("userpic", Comment.ANONYMOUS_USER_USERPIC);
         }
         else

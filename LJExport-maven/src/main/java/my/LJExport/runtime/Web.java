@@ -23,6 +23,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
 
@@ -95,6 +96,10 @@ public class Web
         connManager.setMaxTotal(100);
         // Set max connections per route (i.e., per host)
         connManager.setDefaultMaxPerRoute(Config.MaxConnectionsPerRoute);
+        
+        // higher limits for some routes
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("l-userpic.livejournal.com", 80, "http")), 15);        
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("ic.pics.livejournal.com", 80, "http")), 10);        
 
         HttpClientBuilder hcb = HttpClients.custom().setDefaultRequestConfig(globalConfig).setDefaultCookieStore(cookieStore)
                 .setConnectionManager(connManager);

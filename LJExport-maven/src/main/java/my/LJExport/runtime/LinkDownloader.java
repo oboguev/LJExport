@@ -45,6 +45,7 @@ public class LinkDownloader
             // avoid HTTPS certificate problem
             href = https2http(href, "l-stat.livejournal.net");
             href = https2http(href, "ic.pics.livejournal.com");
+            href = https2http(href, "l-userpic.livejournal.com");
 
             href_noanchor = Util.stripAnchor(href);
             if (failedSet.contains(href_noanchor))

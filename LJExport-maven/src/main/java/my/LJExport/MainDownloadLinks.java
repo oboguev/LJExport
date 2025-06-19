@@ -11,6 +11,7 @@ import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.runtime.ActivityCounters;
+import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.Util;
@@ -29,19 +30,21 @@ public class MainDownloadLinks
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
-    private static String User = "oboguev";
+    private static String User = "krylov";
     // private static String User = "alex_vergin";
     // private static String User = "genby";
     // private static String User = "blog_10101";
     // private static String User = "nikital2014";
     // private static String User = "von_hoffmann";
 
-    private static final int NWorkThreads = 10;
+    private static final int NWorkThreads = 100;
+    private static final int MaxConnectionsPerRoute = 10;
 
     public static void main(String[] args)
     {
         try
         {
+            LimitProcessorUsage.limit();
             MainDownloadLinks self = new MainDownloadLinks();
             self.do_user(User);
         }
@@ -76,7 +79,7 @@ public class MainDownloadLinks
         pageFiles = Util.enumerateFiles(pagesDir);
         pageFilesTotalCount = pageFiles.size();
 
-        Config.MaxConnectionsPerRoute = NWorkThreads;
+        Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
         Web.init();
         ActivityCounters.reset();
         RateLimiter.setRateLimit(100);

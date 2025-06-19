@@ -30,6 +30,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.function.IntPredicate;
 
 // GZIP: http://stackoverflow.com/questions/1063004/how-to-decompress-http-response
 
@@ -125,10 +126,10 @@ public class Web
 
     public static Response get(String url) throws Exception
     {
-        return get(url, 0, null);
+        return get(url, 0, null, null);
     }
 
-    public static Response get(String url, int flags, Map<String, String> headers) throws Exception
+    public static Response get(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody) throws Exception
     {
         final int maxpasses = 3;
 
@@ -136,7 +137,7 @@ public class Web
         {
             try
             {
-                return get_retry(url, flags, headers);
+                return get_retry(url, flags, headers, shouldLoadBody);
             }
             catch (Exception ex)
             {
@@ -180,7 +181,7 @@ public class Web
         }
     }
 
-    private static Response get_retry(String url, int flags, Map<String, String> headers) throws Exception
+    private static Response get_retry(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody) throws Exception
     {
         boolean binary = 0 != (flags & BINARY);
         boolean progress = 0 != (flags & PROGRESS);
@@ -204,44 +205,48 @@ public class Web
         {
             r.code = response.getStatusLine().getStatusCode();
             r.reason = response.getStatusLine().getReasonPhrase();
-            HttpEntity entity = response.getEntity();
-
-            if (entity != null)
+            
+            if (shouldLoadBody == null || shouldLoadBody.test(r.code))
             {
-                InputStream entityStream = null;
-                BufferedReader brd = null;
-                StringBuilder sb = new StringBuilder();
-                String line;
+                HttpEntity entity = response.getEntity();
 
-                try
+                if (entity != null)
                 {
-                    if (binary && progress)
+                    InputStream entityStream = null;
+                    BufferedReader brd = null;
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+
+                    try
                     {
-                        long totalBytes = entity.getContentLength();
-                        ProgressHttpEntity progressEntity = new ProgressHttpEntity(entity, totalBytes);
-                        entityStream = progressEntity.getContent();
-                        r.binaryBody = IOUtils.toByteArray(entityStream);
+                        if (binary && progress)
+                        {
+                            long totalBytes = entity.getContentLength();
+                            ProgressHttpEntity progressEntity = new ProgressHttpEntity(entity, totalBytes);
+                            entityStream = progressEntity.getContent();
+                            r.binaryBody = IOUtils.toByteArray(entityStream);
+                        }
+                        else if (binary)
+                        {
+                            entityStream = entity.getContent();
+                            r.binaryBody = IOUtils.toByteArray(entityStream);
+                        }
+                        else
+                        {
+                            entityStream = entity.getContent();
+                            brd = new BufferedReader(new InputStreamReader(entityStream, StandardCharsets.UTF_8));
+                            while ((line = brd.readLine()) != null)
+                                sb.append(line + "\r\n");
+                            r.body = sb.toString();
+                        }
                     }
-                    else if (binary)
+                    finally
                     {
-                        entityStream = entity.getContent();
-                        r.binaryBody = IOUtils.toByteArray(entityStream);
+                        if (brd != null)
+                            brd.close();
+                        if (entityStream != null)
+                            entityStream.close();
                     }
-                    else
-                    {
-                        entityStream = entity.getContent();
-                        brd = new BufferedReader(new InputStreamReader(entityStream, StandardCharsets.UTF_8));
-                        while ((line = brd.readLine()) != null)
-                            sb.append(line + "\r\n");
-                        r.body = sb.toString();
-                    }
-                }
-                finally
-                {
-                    if (brd != null)
-                        brd.close();
-                    if (entityStream != null)
-                        entityStream.close();
                 }
             }
         }

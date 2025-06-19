@@ -45,7 +45,7 @@ public class LinkDownloader
             // avoid HTTPS certificate problem
             href = https2http(href, "l-stat.livejournal.net");
             href = https2http(href, "ic.pics.livejournal.com");
-            
+
             href_noanchor = Util.stripAnchor(href);
             if (failedSet.contains(href_noanchor))
                 return null;
@@ -63,7 +63,7 @@ public class LinkDownloader
             {
                 if (failedSet.contains(final_href_noanchor))
                     throw new AlreadyFailedException();
-                
+
                 Thread.currentThread().setName(final_threadName + " downloading " + final_href + " prepare");
 
                 String actual_filename = filename.get();
@@ -103,13 +103,16 @@ public class LinkDownloader
                             // do not use referer
                         }
                     }
-                    
+
                     Web.Response r = null;
-                    
+
                     try
                     {
                         Thread.currentThread().setName(final_threadName + " downloading " + final_href);
-                        r = Web.get(final_href, Web.BINARY | Web.PROGRESS, headers);
+                        r = Web.get(final_href, Web.BINARY | Web.PROGRESS, headers, (code) ->
+                        {
+                            return code >= 200 && code <= 299 && code != 204;
+                        });
                     }
                     catch (Exception ex)
                     {
@@ -272,7 +275,7 @@ public class LinkDownloader
 
             if (dontDownload.contains(href))
                 return false;
-            
+
             for (String dont : dontDownload)
             {
                 if (dont.endsWith("/*"))
@@ -469,7 +472,7 @@ public class LinkDownloader
         else
             return fn.substring(dotIndex + 1);
     }
-    
+
     public static class AlreadyFailedException extends Exception
     {
         private static final long serialVersionUID = 1L;

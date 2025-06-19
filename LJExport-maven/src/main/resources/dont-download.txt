@@ -43,3 +43,7 @@ http://cs606728.vk.me/*
 # moved to istmat.org 
 http://istmat.info/*
 https://istmat.info/*
+
+# gone
+http://img15.nnm.ru/e/a/1/0/a/6fac0a7d4b0e393fe974e8cda03_prev.jpg
+http://img11.nnm.ru/0/9/7/1/6/4b4c9c61debeccec3e2fb3d6aa5_prev.jpg

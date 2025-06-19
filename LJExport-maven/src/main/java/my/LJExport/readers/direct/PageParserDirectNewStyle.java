@@ -87,6 +87,10 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
         JSOUP.removeElementsWithClass(pageRoot, "div", "appwidget-sitemessages");
         JSOUP.removeElementsWithClass(pageRoot, "div", "appwidget");
         JSOUP.removeElementsWithClass(pageRoot, "div", "aentry-post-tools");
+        JSOUP.removeElementsWithClass(pageRoot, "div", "social-panel");
+        JSOUP.removeElementsWithClass(pageRoot, "div", "aentry-post__socials");
+        JSOUP.removeElementsWithClass(pageRoot, "div", "warning-background");
+        JSOUP.removeElementsWithClass(pageRoot, "p", "b-bubble-alert");
         JSOUP.removeElementsWithClass(pageRoot, "ul", "b-singlepos-tools");
 
         for (Node n : JSOUP.findElementsWithClass(pageRoot, "div", "entry-unrelated"))

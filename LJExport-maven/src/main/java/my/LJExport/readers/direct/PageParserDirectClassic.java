@@ -88,9 +88,12 @@ public class PageParserDirectClassic extends PageParserDirectBase
         JSOUP.removeElementsWithClass(pageRoot, "div", "b-massaction-top");
         JSOUP.removeElementsWithClass(pageRoot, "div", "b-xylem");
         JSOUP.removeElementsWithClass(pageRoot, "div", "b-singlepost-prevnext");
+        JSOUP.removeElementsWithClass(pageRoot, "div", "b-singlepost-standout");
         JSOUP.removeElementsWithClass(pageRoot, "div", "b-tree-best");
         JSOUP.removeElementsWithClass(pageRoot, "div", "b-tree-promo");
         JSOUP.removeElementsWithClass(pageRoot, "div", "appwidget-sitemessages");
+        JSOUP.removeElementsWithClass(pageRoot, "div", "warning-background");
+        JSOUP.removeElementsWithClass(pageRoot, "p", "b-bubble-alert");
         JSOUP.removeElementsWithClass(pageRoot, "ul", "b-singlepos-tools");
 
         for (Node n : JSOUP.findElementsWithClass(pageRoot, "div", "entry-unrelated"))

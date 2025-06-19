@@ -23,6 +23,7 @@ import my.LJExport.readers.PageReaderHtmlUnit;
 import my.LJExport.readers.PageReaderSelenium;
 import my.LJExport.readers.direct.PageReaderDirect;
 import my.LJExport.runtime.ActivityCounters;
+import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.ProxyServer;
 import my.LJExport.runtime.RateLimiter;
@@ -137,6 +138,7 @@ public class Main
     {
         try
         {
+            LimitProcessorUsage.limit();
             deadLinks = Util.read_set("deadlinks.txt");
             // TODO: parse args or display user interface
             StringTokenizer st = new StringTokenizer(Config.Users, ", \t\r\n");

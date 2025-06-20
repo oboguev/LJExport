@@ -23,6 +23,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
@@ -116,6 +118,17 @@ public class Web
                 max(20, Config.MaxConnectionsPerRoute));
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh6.googleusercontent.com", 443, "https")),
                 max(20, Config.MaxConnectionsPerRoute));
+
+        connManager.setDefaultSocketConfig(SocketConfig.custom()
+                // .setTcpNoDelay(true)
+                .setSndBufSize(65536) // 64KB send buffer
+                .setRcvBufSize(65536) // 64KB receive buffer
+                .build());
+
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setBufferSize(65536) // 64KB buffer
+                .build();
+        connManager.setDefaultConnectionConfig(connectionConfig);
 
         HttpClientBuilder hcb = HttpClients.custom().setDefaultRequestConfig(globalConfig).setDefaultCookieStore(cookieStore)
                 .setConnectionManager(connManager);
@@ -249,12 +262,12 @@ public class Web
                             long totalBytes = entity.getContentLength();
                             ProgressHttpEntity progressEntity = new ProgressHttpEntity(entity, totalBytes);
                             entityStream = progressEntity.getContent();
-                            r.binaryBody = IOUtils.toByteArray(entityStream);
+                            r.binaryBody = toByteArray(entityStream);
                         }
                         else if (binary)
                         {
                             entityStream = entity.getContent();
-                            r.binaryBody = IOUtils.toByteArray(entityStream);
+                            r.binaryBody = toByteArray(entityStream);
                         }
                         else
                         {
@@ -379,6 +392,33 @@ public class Web
         return false;
     }
 
+    private static byte[] toByteArray(InputStream input) throws IOException
+    {
+        if (input == null)
+            throw new IllegalArgumentException("Input stream must not be null");
+
+        if (Config.False)
+        {
+            return IOUtils.toByteArray(input);
+
+        }
+        else
+        {
+            final int BUFFER_SIZE = 64 * 1024; // 64KB buffer
+
+            try (ByteArrayOutputStream output = new ByteArrayOutputStream(2 * BUFFER_SIZE))
+            {
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int bytesRead;
+
+                while ((bytesRead = input.read(buffer)) != -1)
+                    output.write(buffer, 0, bytesRead);
+
+                return output.toByteArray();
+            }
+        }
+    }
+
     /* ================================================================================= */
 
     // Custom HttpEntity to track download progress
@@ -421,6 +461,24 @@ public class Web
                     displayProgress();
                 }
                 return byteRead;
+            }
+
+            @Override
+            public int read(byte[] b) throws IOException
+            {
+                return read(b, 0, b.length);
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException
+            {
+                int bytesReadThisTime = wrappedInputStream.read(b, off, len);
+                if (bytesReadThisTime > 0)
+                {
+                    bytesRead += bytesReadThisTime;
+                    displayProgress();
+                }
+                return bytesReadThisTime;
             }
 
             @Override

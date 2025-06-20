@@ -222,8 +222,14 @@ public class Web
         boolean binary = 0 != (flags & BINARY);
         boolean progress = 0 != (flags & PROGRESS);
 
-        if (shouldLimitRate(url))
+        if (isLivejournalPicture(url))
+        {
+            RateLimiter.limitRateMinMax(Config.RateLimitImages, Config.RateLimitImages);
+        }
+        else if (shouldLimitRate(url))
+        {
             RateLimiter.limitRate();
+        }
 
         lastURL.set(url);
         Response r = new Response();
@@ -377,6 +383,21 @@ public class Web
     public static String getLastURL() throws Exception
     {
         return lastURL.get();
+    }
+
+    private static boolean isLivejournalPicture(String url) throws Exception
+    {
+        String host = (new URL(url)).getHost();
+        host = host.toLowerCase();
+
+        if (host.equals("l-userpic.livejournal.com") || host.endsWith(".l-userpic.livejournal.com"))
+            return true;
+
+        if (host.equals("pics.livejournal.com") || host.equals("ic.pics.livejournal.com") || host.endsWith(".pics.livejournal.com"))
+            return true;
+
+        return false;
+
     }
 
     private static boolean shouldLimitRate(String url) throws Exception

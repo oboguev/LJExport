@@ -19,9 +19,18 @@ public class RateLimiter
         limitRate(delay);
     }
     
+    public static void limitRateMinMax(int msmin, int msmax)
+    {
+        int ms = delay;
+        ms = Math.max(ms, msmin);
+        ms = Math.min(ms, msmax);
+        limitRate(ms);
+    }
+    
     public static void limitRate(int ms)
     {
         lock.lock();
+        
         try
         {
             long currentTime = System.currentTimeMillis();

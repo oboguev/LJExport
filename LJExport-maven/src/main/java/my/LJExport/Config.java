@@ -94,6 +94,7 @@ public class Config
     public static final int StableIntevral = 3000;
     public static final int RateLimitCalendar = 500;
     public static final int RateLimitPageLoad = 1200;
+    public static final int RateLimitImages = 200;
 
     public static boolean UseFiddler = false;
     public static final String FiddlerTrustStore = null;

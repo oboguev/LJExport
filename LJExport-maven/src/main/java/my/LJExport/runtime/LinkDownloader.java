@@ -39,7 +39,7 @@ public class LinkDownloader
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
             threadName = "(unnamed)";
-
+        
         try
         {
             // avoid HTTPS certificate problem

@@ -2,24 +2,34 @@ package my.LJExport.runtime;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import my.LJExport.Config;
+
 public class RateLimiter
 {
-    private static final ReentrantLock lock = new ReentrantLock();
-    private static volatile long lastReturnTime = System.currentTimeMillis();
+    public static final RateLimiter LJ_PAGES = new RateLimiter(Config.RateLimitPageLoad);  
+    public static final RateLimiter LJ_IMAGES = new RateLimiter(Config.RateLimitImages);  
     
-    private static int delay = 0;
+    private final ReentrantLock lock = new ReentrantLock();
+    private volatile long lastReturnTime = System.currentTimeMillis();
     
-    public static void setRateLimit(int ms)
+    private int delay = 0;
+    
+    public RateLimiter(int ms)
+    {
+        delay = ms;
+    }
+    
+    public void setRateLimit(int ms)
     {
         delay = ms;
     }
 
-    public static void limitRate()
+    public void limitRate()
     {
         limitRate(delay);
     }
     
-    public static void limitRateMinMax(int msmin, int msmax)
+    public void limitRateMinMax(int msmin, int msmax)
     {
         int ms = delay;
         ms = Math.max(ms, msmin);
@@ -27,7 +37,7 @@ public class RateLimiter
         limitRate(ms);
     }
     
-    public static void limitRate(int ms)
+    public void limitRate(int ms)
     {
         lock.lock();
         

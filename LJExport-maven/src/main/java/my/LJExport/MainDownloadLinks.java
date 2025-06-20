@@ -30,7 +30,7 @@ public class MainDownloadLinks
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
-    private static String User = "harmfulgrumpy";
+    private static String User = "colonelcassad";
     // private static String User = "alex_vergin";
     // private static String User = "genby";
     // private static String User = "blog_10101";
@@ -82,7 +82,7 @@ public class MainDownloadLinks
         Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
         Web.init();
         ActivityCounters.reset();
-        RateLimiter.setRateLimit(100);
+        RateLimiter.LJ_IMAGES.setRateLimit(100);
 
         // start worker threads
         List<Thread> vt = new ArrayList<Thread>();

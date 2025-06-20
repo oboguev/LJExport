@@ -534,12 +534,21 @@ public class Comment
             {
                 return true;
             }
-            
+
             if (eq(thread_url, "https://sergeytsvetkov.livejournal.com/1285867.html?thread=24018155#t24018155") &&
-                eq(uname, "ppetrovichh"))
+                    eq(uname, "ppetrovichh"))
             {
                 return true;
             }
+        }
+
+        if (leafclass == null &&
+                type == null && 
+                loaded == Boolean.TRUE &&
+                shown == Boolean.TRUE &&
+                level != null)
+        {
+            return true;
         }
 
         return false;

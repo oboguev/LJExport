@@ -192,12 +192,12 @@ public class Main
             reinit();
             Config.init(user);
             Calendar.init();
-            RateLimiter.setRateLimit(0);
+            RateLimiter.LJ_PAGES.setRateLimit(100);
             Web.init();
             do_login();
-            RateLimiter.setRateLimit(Config.RateLimitCalendar);
+            RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimitCalendar);
             Calendar.index();
-            RateLimiter.setRateLimit(Config.RateLimitPageLoad);
+            RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimitPageLoad);
 
             Util.mkdir(Config.DownloadRoot + File.separator + Config.User);
             pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "pages";
@@ -345,7 +345,7 @@ public class Main
         
         logged_in = false;
 
-        RateLimiter.setRateLimit(0);
+        RateLimiter.LJ_PAGES.setRateLimit(100);
 
         out(">>> Logging into " + Config.Site + " as user " + Config.LoginUser);
 
@@ -379,7 +379,7 @@ public class Main
 
     public void do_logout() throws Exception
     {
-        RateLimiter.setRateLimit(0);
+        RateLimiter.LJ_PAGES.setRateLimit(100);
 
         String sessid = null;
 

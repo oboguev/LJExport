@@ -228,11 +228,11 @@ public class Web
 
         if (isLivejournalPicture(url))
         {
-            RateLimiter.limitRateMinMax(Config.RateLimitImages, Config.RateLimitImages);
+            RateLimiter.LJ_IMAGES.limitRate();
         }
         else if (shouldLimitRate(url))
         {
-            RateLimiter.limitRate();
+            RateLimiter.LJ_PAGES.limitRate();
         }
 
         lastURL.set(url);
@@ -309,7 +309,7 @@ public class Web
     public static Response post(String url, String body) throws Exception
     {
         if (shouldLimitRate(url))
-            RateLimiter.limitRate();
+            RateLimiter.LJ_PAGES.limitRate();
 
         lastURL.set(url);
         Response r = new Response();

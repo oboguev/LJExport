@@ -31,7 +31,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "alzheimer";
+    public static final String Users = "andrewmed";
     // public static final String Users = "nikital2014,bash_m_ak,genby,olegnemen,eremei,afanarizm,jlm_taurus,corporatelie,wyradhe,nilsky_nikolay,von_hoffmann,a_samovarov,bantaputu,a_kaminsky,d_olshansky,rn_manifesto,ru_bezch,nep2,ego,hokma,laert,haritonov,1981dn,1981dn_dn,bantaputu,polit_ec,zhenziyou,a_bugaev,tor85,oboguev,morky,krylov,rms1,pioneer_lj,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
     // public static final String Users = "alex_vergin,sergeytsvetkov,blog_10101"; // new-style journals 
 
@@ -80,9 +80,9 @@ public class Config
     public static final String UserAgentAcceptEncoding = "gzip, deflate";
     public static final BrowserVersion HtmlUnitBrowserVersion = BrowserVersion.FIREFOX_38;
     public static final int Timeout = 150;
-    public static int NWorkThreads = 0;
+    public static int NWorkThreads = 70;
     public static final int ThreadsPerCPU = 2;
-    public static final int MaxThreads = 12;
+    public static final int MaxThreads = 70;
     public static int MaxConnectionsPerRoute = 6; // max concurrent connections per route (i.e. per host)
     public static String TrustStore = null;
     public static String TrustStorePassword = null;

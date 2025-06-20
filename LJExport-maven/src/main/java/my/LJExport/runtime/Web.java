@@ -109,6 +109,10 @@ public class Web
                 max(10, Config.MaxConnectionsPerRoute));
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 443, "https")),
                 max(10, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 80, "http")),
+                max(10, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 443, "https")),
+                max(10, Config.MaxConnectionsPerRoute));
 
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh3.googleusercontent.com", 443, "https")),
                 max(20, Config.MaxConnectionsPerRoute));
@@ -394,6 +398,9 @@ public class Web
             return true;
 
         if (host.equals("pics.livejournal.com") || host.equals("ic.pics.livejournal.com") || host.endsWith(".pics.livejournal.com"))
+            return true;
+
+        if (host.equals("imgprx.livejournal.net"))
             return true;
 
         return false;

@@ -39,7 +39,7 @@ public class LinkDownloader
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
             threadName = "(unnamed)";
-        
+
         try
         {
             // avoid HTTPS certificate problem
@@ -47,6 +47,9 @@ public class LinkDownloader
             href = https2http(href, "ic.pics.livejournal.com");
             href = https2http(href, "pics.livejournal.com");
             href = https2http(href, "l-userpic.livejournal.com");
+            
+            // map washingtonpost image resizer url
+            href = map_washpost_imr(href);
 
             href_noanchor = Util.stripAnchor(href);
             if (failedSet.contains(href_noanchor))
@@ -258,6 +261,19 @@ public class LinkDownloader
         final String key_change = "http://" + host + "/";
         if (href.startsWith(key))
             href = key_change + href.substring(key.length());
+        return href;
+    }
+
+    private static String map_washpost_imr(String href) throws Exception
+    {
+        final String prefix = "https://img.washingtonpost.com/wp-apps/imrs.php?src=https://img.washingtonpost.com/";
+        final String postfix = "&w=1484";
+
+        if (href.startsWith(prefix) && href.endsWith(postfix))
+        {
+            href = Util.stripTail(href, postfix);
+            href = "https://img.washingtonpost.com/" + href.substring(prefix.length());
+        }
         return href;
     }
 

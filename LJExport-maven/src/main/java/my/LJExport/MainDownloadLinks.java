@@ -30,7 +30,7 @@ public class MainDownloadLinks
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
-    private static String User = "galkovsky";
+    private static String User = "harmfulgrumpy";
     // private static String User = "alex_vergin";
     // private static String User = "genby";
     // private static String User = "blog_10101";

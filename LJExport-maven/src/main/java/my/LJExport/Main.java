@@ -270,10 +270,18 @@ public class Main
                 vt.add(t);
                 t.start();
             }
+            
             // wait for worker threads to complete
+            boolean firstCompleted = false;
             for (int nt = 0; nt < vt.size(); nt++)
             {
                 vt.get(nt).join();
+                if (!firstCompleted)
+                {
+                    firstCompleted = true;
+                    if (!isAborting())
+                        out(">>> Wiating for active worker threads to complete ...");
+                }
             }
 
             if (Calendar.Records.size() != 0)

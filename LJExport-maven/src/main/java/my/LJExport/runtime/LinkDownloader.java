@@ -1,6 +1,7 @@
 package my.LJExport.runtime;
 
 import java.io.File;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -12,6 +13,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.http.client.CircularRedirectException;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.conn.HttpHostConnectException;
 
 import my.LJExport.Config;
@@ -219,6 +222,18 @@ public class LinkDownloader
                     // ignore
                 }
                 else if (host.contains("archive.org"))
+                {
+                    Util.noop();
+                }
+                else if (ex instanceof SocketTimeoutException)
+                {
+                    Util.noop();
+                }
+                else if (ex instanceof ClientProtocolException && ex.getCause() instanceof CircularRedirectException)
+                {
+                    Util.noop();
+                }
+                else
                 {
                     Util.noop();
                 }

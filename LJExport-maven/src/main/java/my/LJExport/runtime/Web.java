@@ -11,6 +11,7 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
@@ -91,9 +92,6 @@ public class Web
             routePlanner = new DefaultProxyRoutePlanner(proxy);
         }
 
-        // RequestConfig globalConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.NETSCAPE).build();
-        RequestConfig globalConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
-
         PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
         // Set max total connections
         connManager.setMaxTotal(200);
@@ -134,8 +132,18 @@ public class Web
                 .build();
         connManager.setDefaultConnectionConfig(connectionConfig);
 
-        HttpClientBuilder hcb = HttpClients.custom().setDefaultRequestConfig(globalConfig).setDefaultCookieStore(cookieStore)
-                .setConnectionManager(connManager);
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
+                .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
+                .setSocketTimeout(Config.WebSocketTimeout) // Time waiting for data read on the socket after connection established
+                .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
+                .build();
+
+        HttpClientBuilder hcb = HttpClients.custom()
+                .setConnectionManager(connManager)
+                .setDefaultRequestConfig(requestConfig)
+                .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setDefaultCookieStore(cookieStore);
 
         if (routePlanner != null)
             hcb = hcb.setRoutePlanner(routePlanner);

@@ -31,7 +31,8 @@ public class MainDownloadLinks
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
-    private static String Users = "amfora,andrewmed,anya_anya_anya,archives_ru,asriyan,atorin";
+    private static String Users = "oboguev";
+    // private static String Users = "um_plus,vladimir_tor,von_hoffmann,wiradhe,wyradhe,zhenziyou,tverdyi_znak";
     // private static String Users = "alex_vergin";
     // private static String Users = "genby";
     // private static String Users = "blog_10101";
@@ -80,7 +81,7 @@ public class MainDownloadLinks
                 out("");
                 Web.shutdown();
             }
-            
+
             MainDownloadLinks self = new MainDownloadLinks();
             self.do_user(user);
         }
@@ -130,7 +131,7 @@ public class MainDownloadLinks
                     out(">>> Wiating for active worker threads to complete ...");
             }
         }
-        
+
         Web.shutdown();
 
         if (Main.isAborting())

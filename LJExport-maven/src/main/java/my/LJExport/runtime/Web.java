@@ -31,6 +31,7 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
 
 import java.net.SocketException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -435,6 +436,10 @@ public class Web
                     retryDelay(pass);
                     continue;
                 }
+                else if (ex instanceof IllegalArgumentException && ex.getCause() instanceof URISyntaxException)
+                {
+                    return null;
+                }
                 else
                 {
                     throw ex;
@@ -486,7 +491,9 @@ public class Web
                 case 308:
                     if (response.containsHeader("Location"))
                         return response.getFirstHeader("Location").getValue();
-                    throw new RedirectLocationException("Redirect response received, but no Location header present");
+                    // sometimes imgproxy responds with no Location header and XML reply body
+                    // throw new RedirectLocationException("Redirect response received, but no Location header present");
+                    return null;
 
                 case 200:
                 case 426:
@@ -502,15 +509,23 @@ public class Web
                     /* ??? */
                     return null;
                     
-                case 400:
                 case 303:
+                case 400:
+                case 406:
+                case 409:
+                case 422:
+                case 429:
+                case 507:
                     /* cannot map */
                     return null;
 
                 case 500:
                 case 502:
+                case 503:
                 case 504:
+                case 520:
                 case 521:
+                case 523:
                     if (lastPass)
                         return null;
                     throw new RetryableException("Not a redirect (status " + statusCode + ")");

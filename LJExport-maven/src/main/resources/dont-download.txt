@@ -30,6 +30,13 @@ http://im4-tub.yandex.net/*
 http://im5-tub.yandex.net/*
 
 https://im-tub.yandex.ru/*
+https://im1-tub.yandex.net/*
+https://im2-tub.yandex.net/*
+https://im3-tub.yandex.net/*
+https://im4-tub.yandex.net/*
+https://im5-tub.yandex.net/*
+https://im6-tub.yandex.net/*
+
 https://im0-tub-ru.yandex.net/*
 https://im1-tub-ru.yandex.net/*
 https://im2-tub.yandex.net/*
@@ -56,6 +63,15 @@ https://im5-tub-ru.yandex.net/*
 https://im6-tub-ru.yandex.net/*
 https://im7-tub-ru.yandex.net/*
 https://im8-tub-ru.yandex.net/*
+
+https://im1-tub.yandex.ru/*
+https://im2-tub.yandex.ru/*
+https://im3-tub.yandex.ru/*
+https://im4-tub.yandex.ru/*
+https://im5-tub.yandex.ru/*
+https://im6-tub.yandex.ru/*
+https://im7-tub.yandex.ru/*
+https://im8-tub.yandex.ru/*
 
 # permanently stuck sites
 http://cs606728.vk.me/v606728377/*

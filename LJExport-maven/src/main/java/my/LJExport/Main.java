@@ -367,7 +367,7 @@ public class Main
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));
 
-        for (Cookie cookie : Web.cookieStore.getCookies())
+        for (Cookie cookie : Web.getCookieStore().getCookies())
         {
             if (!Util.is_in_domain(Config.Site, cookie.getDomain()))
                 continue;
@@ -391,7 +391,7 @@ public class Main
 
         String sessid = null;
 
-        for (Cookie cookie : Web.cookieStore.getCookies())
+        for (Cookie cookie : Web.getCookieStore().getCookies())
         {
             if (!Util.is_in_domain(Config.Site, cookie.getDomain()))
                 continue;

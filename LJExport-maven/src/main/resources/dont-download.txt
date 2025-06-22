@@ -21,6 +21,7 @@ https://xc3.services.livejournal.com/*
 http://2.s05.flagcounter.com/count/MECnk/*
 
 # permanently stuck sites
+http://im-tub.yandex.ru/*
 http://im0-tub-ru.yandex.net/*
 http://im1-tub-ru.yandex.net/*
 http://im2-tub.yandex.net/*
@@ -28,6 +29,7 @@ http://im3-tub.yandex.net/*
 http://im4-tub.yandex.net/*
 http://im5-tub.yandex.net/*
 
+https://im-tub.yandex.ru/*
 https://im0-tub-ru.yandex.net/*
 https://im1-tub-ru.yandex.net/*
 https://im2-tub.yandex.net/*

@@ -17,6 +17,7 @@ import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.Web;
 import my.LJExport.xml.JSOUP;
 
 public abstract class PageParserDirectBase
@@ -125,14 +126,27 @@ public abstract class PageParserDirectBase
             return false;
 
         boolean downloaded = false;
+        boolean unwrapped = false;
+        
+        if (unwrapImgPrx(root, "img", "src"))
+            unwrapped = true;
+
+        if (unwrapImgPrx(root, "img", "original-src"))
+            unwrapped = true;
+
+        if (unwrapImgPrx(root, "a", "href"))
+            unwrapped = true;
+
+        if (unwrapImgPrx(root, "a", "original-href"))
+            unwrapped = true;
 
         if (downloadExternalLinks(root, linksDir, "a", "href", true))
             downloaded = true;
         
         if (downloadExternalLinks(root, linksDir, "img", "src", false))
             downloaded = true;
-
-        return downloaded;
+        
+        return downloaded || unwrapped;
     }
 
     /*static*/ private boolean downloadExternalLinks(Node root, String linksDir, String tag, String attr,
@@ -158,6 +172,28 @@ public abstract class PageParserDirectBase
         }
 
         return downloaded;
+    }
+    
+    private boolean unwrapImgPrx(Node root, String tag, String attr) throws Exception
+    {
+        boolean unwrapped = false;
+
+        for (Node n : JSOUP.findElements(root, tag))
+        {
+            String href = JSOUP.getAttribute(n, attr);
+            
+            if (href != null && Web.isLivejournalImgPrx(href))
+            {
+                String newref = Web.getRedirectLocation(href, null);
+                if (newref != null)
+                {
+                    JSOUP.updateAttribute(n, attr, newref);
+                    unwrapped = true;
+                }
+            }
+        }
+
+        return unwrapped;
     }
 
     public boolean remapLocalRelativeLinks(String oldPrefix, String newPrefix) throws Exception

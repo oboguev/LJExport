@@ -15,6 +15,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.Web;
 import my.LJExport.xml.JSOUP;
 
 abstract public class PageParser
@@ -621,7 +622,7 @@ abstract public class PageParser
     protected boolean matchTagClass(Node n, String name, String cls) throws Exception
     {
         return (name == null || JSOUP.nodeName(n).equalsIgnoreCase(name)) &&
-               (cls == null || JSOUP.classContains(JSOUP.getAttribute(n, "class"), cls));
+                (cls == null || JSOUP.classContains(JSOUP.getAttribute(n, "class"), cls));
     }
 
     protected boolean isEmpty(String s) throws Exception
@@ -708,11 +709,18 @@ abstract public class PageParser
     {
         if (linksDir == null || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
             return;
+
+        unwrapImgPrx(root, "img", "src");
+        unwrapImgPrx(root, "img", "original-src");
+        unwrapImgPrx(root, "a", "href");
+        unwrapImgPrx(root, "a", "original-href");
+
         downloadExternalLinks(root, linksDir, "a", "href", true);
         downloadExternalLinks(root, linksDir, "img", "src", false);
     }
 
-    private void downloadExternalLinks(Node root, String linksDir, String tag, String attr, boolean filterDownloadFileTypes) throws Exception
+    private void downloadExternalLinks(Node root, String linksDir, String tag, String attr, boolean filterDownloadFileTypes)
+            throws Exception
     {
         for (Node n : JSOUP.findElements(root, tag))
         {
@@ -727,6 +735,21 @@ abstract public class PageParser
                     JSOUP.updateAttribute(n, attr, newref);
                     JSOUP.setAttribute(n, "original-" + attr, href);
                 }
+            }
+        }
+    }
+
+    private void unwrapImgPrx(Node root, String tag, String attr) throws Exception
+    {
+        for (Node n : JSOUP.findElements(root, tag))
+        {
+            String href = JSOUP.getAttribute(n, attr);
+
+            if (href != null && Web.isLivejournalImgPrx(href))
+            {
+                String newref = Web.getRedirectLocation(href, null);
+                if (newref != null)
+                    JSOUP.updateAttribute(n, attr, newref);
             }
         }
     }

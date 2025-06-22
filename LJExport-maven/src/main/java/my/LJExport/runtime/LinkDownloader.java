@@ -98,7 +98,6 @@ public class LinkDownloader
 
                     if (referer != null && referer.length() != 0)
                     {
-
                         if (host.equals("snag.gy") || host.endsWith(".snag.gy") ||
                                 host.equals("snipboard.io") || host.endsWith(".snipboard.io"))
                         {

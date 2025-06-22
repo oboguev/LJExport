@@ -41,9 +41,11 @@ import static java.lang.Math.max;
 
 public class Web
 {
-    public static CloseableHttpClient httpClient;
-    public static CookieStore cookieStore;
+    private static CloseableHttpClient httpClient;
+    private static CloseableHttpClient httpRedirectClient;
+    private static CookieStore cookieStore;
     private static ThreadLocal<String> lastURL;
+    private static PoolingHttpClientConnectionManager connManager;
 
     public static final int BINARY = (1 << 0);
     public static final int PROGRESS = (1 << 1);
@@ -92,7 +94,7 @@ public class Web
             routePlanner = new DefaultProxyRoutePlanner(proxy);
         }
 
-        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+        connManager = new PoolingHttpClientConnectionManager();
         // Set max total connections
         connManager.setMaxTotal(200);
         // Set max connections per route (i.e., per host)
@@ -139,16 +141,34 @@ public class Web
                 .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
                 .build();
 
+        RequestConfig requestConfigRedirect = RequestConfig.custom()
+                .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
+                .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
+                .setSocketTimeout(Config.WebSocketTimeout) // Time waiting for data read on the socket after connection established
+                .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
+                .setRedirectsEnabled(false) // Prevent automatic redirect following
+                .build();
+
         HttpClientBuilder hcb = HttpClients.custom()
                 .setConnectionManager(connManager)
                 .setDefaultRequestConfig(requestConfig)
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
                 .setDefaultCookieStore(cookieStore);
 
+        HttpClientBuilder hcbRedirect = HttpClients.custom()
+                .setConnectionManager(connManager)
+                .setDefaultRequestConfig(requestConfigRedirect)
+                .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setDefaultCookieStore(cookieStore);
+
         if (routePlanner != null)
+        {
             hcb = hcb.setRoutePlanner(routePlanner);
+            hcbRedirect = hcb.setRoutePlanner(routePlanner);
+        }
 
         httpClient = hcb.build();
+        httpRedirectClient = hcbRedirect.build();
     }
 
     public static void shutdown() throws Exception
@@ -162,6 +182,20 @@ public class Web
             httpClient = null;
             // let Apache HttpClient to settle
             Thread.sleep(1500);
+        }
+
+        if (httpRedirectClient != null)
+        {
+            httpRedirectClient.close();
+            httpRedirectClient = null;
+            // let Apache HttpClient to settle
+            Thread.sleep(1500);
+        }
+
+        if (connManager != null)
+        {
+            connManager.shutdown();
+            connManager = null;
         }
     }
 
@@ -205,6 +239,9 @@ public class Web
         String msg = ex.getLocalizedMessage();
         if (msg == null)
             msg = "";
+        
+        if (ex instanceof RetryableException)
+            return true;
 
         if (ex instanceof NoHttpResponseException)
             return true;
@@ -377,6 +414,142 @@ public class Web
         request.setHeader("Pragma", "no-cache");
     }
 
+    public static String getRedirectLocation(String url, Map<String, String> headers) throws Exception
+    {
+        final int maxpasses = 3;
+
+        for (int pass = 1;; pass++)
+        {
+            try
+            {
+                return retry_getRedirectLocation(url, headers, pass > maxpasses);
+            }
+            catch (RedirectLocationException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                if (pass <= maxpasses && isRetriable(ex))
+                {
+                    retryDelay(pass);
+                    continue;
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    private static String retry_getRedirectLocation(String url, Map<String, String> headers, boolean lastPass) throws Exception
+    {
+        if (isLivejournalPicture(url))
+        {
+            RateLimiter.LJ_IMAGES.limitRate();
+        }
+        else if (shouldLimitRate(url))
+        {
+            RateLimiter.LJ_PAGES.limitRate();
+        }
+
+        lastURL.set(url);
+
+        HttpGet request = new HttpGet(url);
+
+        setCommon(request);
+        if (headers != null)
+        {
+            for (String key : headers.keySet())
+                request.setHeader(key, headers.get(key));
+        }
+
+        ActivityCounters.startedWebRequest();
+        
+        String threadName = Thread.currentThread().getName();
+        
+        try
+        {
+            Thread.currentThread().setName(threadName + " mapping " + url);
+            CloseableHttpResponse response = httpRedirectClient.execute(request);
+
+            try
+            {
+                int statusCode = response.getStatusLine().getStatusCode();
+
+                switch (statusCode)
+                {
+                case 301:
+                case 302:
+                case 307:
+                case 308:
+                    if (response.containsHeader("Location"))
+                        return response.getFirstHeader("Location").getValue();
+                    throw new RedirectLocationException("Redirect response received, but no Location header present");
+
+                case 200:
+                case 426:
+                    /* will transfer directly */
+                    return null;
+                    
+                case 404:
+                case 410:
+                    /* imgprx no longer has mapping */
+                    return null;
+                    
+                case 403:
+                    /* ??? */
+                    return null;
+                    
+                case 400:
+                case 303:
+                    /* cannot map */
+                    return null;
+
+                case 500:
+                case 502:
+                case 504:
+                case 521:
+                    if (lastPass)
+                        return null;
+                    throw new RetryableException("Not a redirect (status " + statusCode + ")");
+                    
+                default:
+                    throw new RedirectLocationException("Not a redirect (status " + statusCode + ")");
+                }
+            }
+            finally
+            {
+                response.close();
+            }
+        }
+        finally
+        {
+            Thread.currentThread().setName(threadName);
+        }
+    }
+
+    public static class RetryableException extends Exception
+    {
+        private static final long serialVersionUID = 1L;
+
+        public RetryableException(String s)
+        {
+            super(s);
+        }
+    }
+
+    public static class RedirectLocationException extends Exception
+    {
+        private static final long serialVersionUID = 1L;
+
+        public RedirectLocationException(String s)
+        {
+            super(s);
+        }
+    }
+
     public static String describe(int sc) throws Exception
     {
         return "HTTP status code " + sc;
@@ -412,7 +585,16 @@ public class Web
             return true;
 
         return false;
+    }
+    
+    public static boolean isLivejournalImgPrx(String url) throws Exception
+    {
+        String lc = url.toLowerCase();
+        
+        if (lc.startsWith("http://imgprx.livejournal.net/") || lc.startsWith("https://imgprx.livejournal.net/"))
+            return true;
 
+        return false;
     }
 
     private static boolean shouldLimitRate(String url) throws Exception

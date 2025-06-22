@@ -3,6 +3,7 @@ package my.LJExport;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -30,12 +31,12 @@ public class MainDownloadLinks
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
-    private static String User = "colonelcassad";
-    // private static String User = "alex_vergin";
-    // private static String User = "genby";
-    // private static String User = "blog_10101";
-    // private static String User = "nikital2014";
-    // private static String User = "von_hoffmann";
+    private static String Users = "amfora,andrewmed,anya_anya_anya,archives_ru,asriyan,atorin";
+    // private static String Users = "alex_vergin";
+    // private static String Users = "genby";
+    // private static String Users = "blog_10101";
+    // private static String Users = "nikital2014";
+    // private static String Users = "von_hoffmann";
 
     private static final int NWorkThreads = 100;
     private static final int MaxConnectionsPerRoute = 10;
@@ -45,8 +46,7 @@ public class MainDownloadLinks
         try
         {
             LimitProcessorUsage.limit();
-            MainDownloadLinks self = new MainDownloadLinks();
-            self.do_user(User);
+            do_users(Users);
         }
         catch (Exception ex)
         {
@@ -59,6 +59,31 @@ public class MainDownloadLinks
 
     private MainDownloadLinks()
     {
+    }
+
+    private static void do_users(String users) throws Exception
+    {
+        StringTokenizer st = new StringTokenizer(users, ", \t\r\n");
+        int nuser = 0;
+
+        while (st.hasMoreTokens() && !Main.isAborting())
+        {
+            String user = st.nextToken();
+            user = user.trim().replace("\t", "").replace(" ", "");
+            if (user.equals(""))
+                continue;
+
+            if (nuser++ != 0)
+            {
+                out("");
+                out("=====================================================================================");
+                out("");
+                Web.shutdown();
+            }
+            
+            MainDownloadLinks self = new MainDownloadLinks();
+            self.do_user(user);
+        }
     }
 
     private void do_user(String user) throws Exception
@@ -94,8 +119,19 @@ public class MainDownloadLinks
         }
 
         // wait for worker threads to complete
+        boolean firstCompleted = false;
         for (int nt = 0; nt < vt.size(); nt++)
+        {
             vt.get(nt).join();
+            if (!firstCompleted)
+            {
+                firstCompleted = true;
+                if (!Main.isAborting())
+                    out(">>> Wiating for active worker threads to complete ...");
+            }
+        }
+        
+        Web.shutdown();
 
         if (Main.isAborting())
             err(">>> Aborted scanning the journal for user " + Config.User);
@@ -118,7 +154,7 @@ public class MainDownloadLinks
                     return;
 
                 pageFile = pageFiles.remove(0);
-                out(String.format(">>> %s (%d/%d)", pageFile, ++this.countFetched, pageFilesTotalCount));
+                out(String.format(">>> [%s] %s (%d/%d)", Config.User, pageFile, ++this.countFetched, pageFilesTotalCount));
             }
 
             String pageFileFullPath = pagesDir + File.separator + pageFile;

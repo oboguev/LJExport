@@ -115,6 +115,11 @@ public class Web
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 443, "https")),
                 max(10, Config.MaxConnectionsPerRoute));
 
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("avatars.dzeninfra.ru", 80, "http")),
+                max(15, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("avatars.dzeninfra.ru", 443, "https")),
+                max(15, Config.MaxConnectionsPerRoute));
+        
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh3.googleusercontent.com", 443, "https")),
                 max(20, Config.MaxConnectionsPerRoute));
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh4.googleusercontent.com", 443, "https")),

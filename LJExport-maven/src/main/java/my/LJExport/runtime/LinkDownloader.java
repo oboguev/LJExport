@@ -344,7 +344,7 @@ public class LinkDownloader
             }
 
             // sergeytsvetkov has plenty of duplicate book cover images in avatars.dzeninfra.ru
-            if (Config.User.equals("sergeytsvetkov") && host != null && host.equals("avatars.dzeninfra.ru"))
+            if (Config.False && Config.User.equals("sergeytsvetkov") && host != null && host.equals("avatars.dzeninfra.ru"))
                 return false;
 
             String path = url.getPath();

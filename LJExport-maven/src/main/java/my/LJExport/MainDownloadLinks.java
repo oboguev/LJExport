@@ -31,7 +31,8 @@ public class MainDownloadLinks
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
-    private static String Users = "tbv,galkovsky,colonelcassad";
+    private static String Users = "sergeytsvetkov";
+    // private static String Users = "tbv,galkovsky,colonelcassad";
     // private static String Users = "um_plus,vladimir_tor,von_hoffmann,wiradhe,wyradhe,zhenziyou,tverdyi_znak";
     // private static String Users = "alex_vergin";
     // private static String Users = "genby";
@@ -91,7 +92,7 @@ public class MainDownloadLinks
     {
         Config.User = user;
         Config.mangleUser();
-        
+
         final String userRoot = Config.DownloadRoot + File.separator + Config.User;
 
         pagesDir = userRoot + File.separator + "pages";

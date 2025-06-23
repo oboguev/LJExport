@@ -31,7 +31,7 @@ public class MainDownloadLinks
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
-    private static String Users = "oboguev";
+    private static String Users = "tbv,galkovsky,colonelcassad";
     // private static String Users = "um_plus,vladimir_tor,von_hoffmann,wiradhe,wyradhe,zhenziyou,tverdyi_znak";
     // private static String Users = "alex_vergin";
     // private static String Users = "genby";

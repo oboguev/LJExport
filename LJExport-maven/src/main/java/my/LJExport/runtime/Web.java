@@ -515,6 +515,7 @@ public class Web
                 case 409:
                 case 422:
                 case 429:
+                case 451:
                 case 507:
                     /* cannot map */
                     return null;

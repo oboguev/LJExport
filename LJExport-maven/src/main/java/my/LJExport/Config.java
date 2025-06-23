@@ -38,10 +38,6 @@ public class Config
     // public static final String DownloadRoot = "C:\\LJExport-journals";
     public static final String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
-    /* Proxy server */
-    public static String Proxy = null;
-    // public static String Proxy = "http://proxy.xxx.com:8080";
-
     /* Range of dates to download (inclusive) */
     public static final YYYY_MM LoadSince = null;
     public static final YYYY_MM LoadTo = null;
@@ -50,10 +46,6 @@ public class Config
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;
-
-    /* Minimum and maximum number of unloadable pages allowed before the download aborts */
-    public static final int MinUnloadablePagesAllowed = 20;
-    public static final int MaxUnloadablePagesAllowed = 50;
 
     /* Rate limits (ms between requests) */
     public static final int RateLimitCalendar = 500;
@@ -69,6 +61,14 @@ public class Config
     public static final int ThreadsPerCPU = 2;
     public static final int MaxThreads = 70;
     public static int MaxConnectionsPerRoute = 6; // max concurrent connections per route (i.e. per host)
+
+    /* Proxy server */
+    public static String Proxy = null;
+    // public static String Proxy = "http://proxy.xxx.com:8080";
+
+    /* Minimum and maximum number of unloadable pages allowed before the download aborts */
+    public static final int MinUnloadablePagesAllowed = 20;
+    public static final int MaxUnloadablePagesAllowed = 50;
 
     /**************************/
     /** TECHNICAL PARAMETERS **/

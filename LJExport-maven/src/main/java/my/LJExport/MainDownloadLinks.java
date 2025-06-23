@@ -91,10 +91,12 @@ public class MainDownloadLinks
     {
         Config.User = user;
         Config.mangleUser();
+        
+        final String userRoot = Config.DownloadRoot + File.separator + Config.User;
 
-        pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "pages";
-        // pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "reposts";
-        linksDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "links";
+        pagesDir = userRoot + File.separator + "pages";
+        // pagesDir = userRoot + File.separator + "reposts";
+        linksDir = userRoot + File.separator + "links";
         // offline = true;
 
         out(">>> Processing download links for user " + Config.User);

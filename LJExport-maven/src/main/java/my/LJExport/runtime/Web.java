@@ -575,6 +575,7 @@ public class Web
                 case 429:
                 case 451:
                 case 507:
+                case 530:
                     /* cannot map */
                     return null;
 

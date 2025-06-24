@@ -32,10 +32,10 @@ public class MainDownloadLinks
     private int countFetched = 0;
 
     // private static String Users = "funt";
-    private static String Users = "_devol_,1981dn,1981dn_dn,64vlad,a_bugaev,a_kaminsky,a_samovarov,a_sevastianov,abcdefgh,afanarizm,afrika_sl,aleksei";
-    // private static String Users = "alex_mashin,alex_vergin,alexandrovich,allemand1990,allin777,alzheimer,amfora,andrewmed,anya_anya_anya";
+    // private static String Users = "_devol_,1981dn,1981dn_dn,64vlad,a_bugaev,a_kaminsky,a_samovarov,a_sevastianov,abcdefgh,afanarizm,afrika_sl,aleksei";
+    // private static String Users = "amfora,andrewmed,anya_anya_anya";
     // private static String Users = "archives_ru,arkhip,artemov_igor,asriyan,atorin";
-    // private static String Users = "bantaputu,bash_m_ak,blog_10101,bohemicus,cherniaev,chukcheev,clen_lj,colonelcassad,corporatelie,d_olshansky.lj";
+    private static String Users = "bantaputu,bash_m_ak,blog_10101,bohemicus,cherniaev,chukcheev,clen_lj,colonelcassad,corporatelie,d_olshansky.lj";
     // private static String Users = "dmitrij_sergeev,doppel_herz,ego,eremei,f_f,fat_yankey,fluffyduck2,funt";
     // private static String Users = "galkovsky,genby,glaue2dk,guran_ussury,haritonov,harmfulgrumpy,hokma,holmogor,istoriograf,ivkonstant,jlm_taurus";
     // private static String Users = "karaulov,knigipoistcccp,kordonsky,kornev,kot_begemott,kouzdra,krylov,krylov_arhiv,kushnirenko,laert,langobard";

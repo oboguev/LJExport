@@ -31,7 +31,7 @@ public class MainDownloadLinks
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
-    private static String Users = "sergeytsvetkov";
+    private static String Users = "funt";
     // private static String Users = "tbv,galkovsky,colonelcassad";
     // private static String Users = "um_plus,vladimir_tor,von_hoffmann,wiradhe,wyradhe,zhenziyou,tverdyi_znak";
     // private static String Users = "alex_vergin";
@@ -54,6 +54,7 @@ public class MainDownloadLinks
         {
             err("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
+            Main.emergency_logout();
         }
 
         Main.playCompletionSound();
@@ -65,6 +66,13 @@ public class MainDownloadLinks
 
     private static void do_users(String users) throws Exception
     {
+        Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
+        Web.init();
+        Config.promptLoginPassword();
+        Main.do_login();
+        ActivityCounters.reset();
+        RateLimiter.LJ_IMAGES.setRateLimit(100);
+        
         StringTokenizer st = new StringTokenizer(users, ", \t\r\n");
         int nuser = 0;
 
@@ -80,12 +88,14 @@ public class MainDownloadLinks
                 out("");
                 out("=====================================================================================");
                 out("");
-                Web.shutdown();
             }
 
             MainDownloadLinks self = new MainDownloadLinks();
             self.do_user(user);
         }
+        
+        Main.do_logout();
+        Web.shutdown();
     }
 
     private void do_user(String user) throws Exception
@@ -108,11 +118,6 @@ public class MainDownloadLinks
         pageFiles = Util.enumerateFiles(pagesDir);
         pageFilesTotalCount = pageFiles.size();
 
-        Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
-        Web.init();
-        ActivityCounters.reset();
-        RateLimiter.LJ_IMAGES.setRateLimit(100);
-
         // start worker threads
         List<Thread> vt = new ArrayList<Thread>();
         for (int nt = 0; nt < Math.min(NWorkThreads, pageFilesTotalCount); nt++)
@@ -134,8 +139,6 @@ public class MainDownloadLinks
                     out(">>> Wiating for active worker threads to complete ...");
             }
         }
-
-        Web.shutdown();
 
         if (Main.isAborting())
             err(">>> Aborted scanning the journal for user " + Config.User);
@@ -169,7 +172,7 @@ public class MainDownloadLinks
 
             if (Config.False)
             {
-                if (!parser.rurl.equals("592466.html"))
+                if (!parser.rurl.equals("253432.html"))
                     continue;
                 Util.noop();
             }

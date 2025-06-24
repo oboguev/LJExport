@@ -47,9 +47,11 @@ public class LinkDownloader
         {
             // avoid HTTPS certificate problem
             href = https2http(href, "l-stat.livejournal.net");
-            href = https2http(href, "ic.pics.livejournal.com");
-            href = https2http(href, "pics.livejournal.com");
             href = https2http(href, "l-userpic.livejournal.com");
+
+            // LJ responds with HTTP code 412 if picture is marked 18+ and request is not HTTPS
+            href = http2https(href, "pics.livejournal.com");
+            href = http2https(href, "ic.pics.livejournal.com");
             
             // map washingtonpost image resizer url
             href = map_washpost_imr(href);
@@ -95,6 +97,7 @@ public class LinkDownloader
                     host = host.toLowerCase();
 
                     Map<String, String> headers = new HashMap<>();
+                    headers.put("Accept", Config.UserAgentAccept_Download);
 
                     if (referer != null && referer.length() != 0)
                     {
@@ -107,7 +110,7 @@ public class LinkDownloader
                         }
                         else
                         {
-                            // do not use referer
+                            headers.put("Referer", referer);
                         }
                     }
 
@@ -197,17 +200,27 @@ public class LinkDownloader
             }
             else if (host != null & r == null)
             {
-                if (host.contains("imgprx.livejournal.net"))
-                {
-                    Util.noop();
-                }
-
                 if (host.contains("l-stat.livejournal.net"))
                 {
                     Util.noop();
                 }
 
+                if (host.contains("imgprx.livejournal.net"))
+                {
+                    Util.noop();
+                }
+
                 if (host.contains("ic.pics.livejournal.com"))
+                {
+                    Util.noop();
+                }
+
+                if (host.equals("pics.livejournal.com"))
+                {
+                    Util.noop();
+                }
+                
+                if (host.equals("l-userpic.livejournal.com"))
                 {
                     Util.noop();
                 }
@@ -273,6 +286,15 @@ public class LinkDownloader
     {
         final String key = "https://" + host + "/";
         final String key_change = "http://" + host + "/";
+        if (href.startsWith(key))
+            href = key_change + href.substring(key.length());
+        return href;
+    }
+
+    private static String http2https(String href, String host)
+    {
+        final String key = "http://" + host + "/";
+        final String key_change = "https://" + host + "/";
         if (href.startsWith(key))
             href = key_change + href.substring(key.length());
         return href;

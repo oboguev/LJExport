@@ -1,7 +1,9 @@
 package my.LJExport.readers.direct;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -196,6 +198,18 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
     private String load(String url) throws Exception
     {
+        return load(url, null);
+    }
+    
+    private String loadJson(String url) throws Exception
+    {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Accept", Config.UserAgentAccept_Json);
+        return load(url, headers);
+    }
+    
+    private String load(String url, Map<String, String> headers) throws Exception
+    {
         lastURL = url;
 
         boolean retry = true;
@@ -214,7 +228,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
                 pass = 0;
             }
 
-            Response r = Web.get(url);
+            Response r = Web.get(url, headers);
 
             if (r.code != 200)
             {
@@ -247,7 +261,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
                 parser.rid,
                 npage);
 
-        return load(url);
+        return loadJson(url);
     }
 
     private String loadCommentsThread(String thread) throws Exception
@@ -263,7 +277,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
                 parser.rid,
                 thread);
 
-        return load(url);
+        return loadJson(url);
     }
 
     @SuppressWarnings("unused")
@@ -283,7 +297,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
                 Config.User,
                 parser.rid,
                 npage);
-        json = load(url);
+        json = loadJson(url);
         json = Util.prettyJSON(json);
         Util.writeToFile(dir + "1-expand" + ".json", json);
 
@@ -294,7 +308,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
                 Config.User,
                 parser.rid,
                 npage);
-        json = load(url);
+        json = loadJson(url);
         json = Util.prettyJSON(json);
         Util.writeToFile(dir + "1-expand-flat" + ".json", json);
 
@@ -305,7 +319,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
                 Config.User,
                 parser.rid,
                 npage);
-        json = load(url);
+        json = loadJson(url);
         json = Util.prettyJSON(json);
         Util.writeToFile(dir + "1-noexpand" + ".json", json);
 
@@ -316,7 +330,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
                 Config.User,
                 parser.rid,
                 npage);
-        json = load(url);
+        json = loadJson(url);
         json = Util.prettyJSON(json);
         Util.writeToFile(dir + "1-noexpand-flat" + ".json", json);
     }

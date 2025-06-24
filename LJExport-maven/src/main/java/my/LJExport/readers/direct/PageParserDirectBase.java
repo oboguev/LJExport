@@ -160,7 +160,7 @@ public abstract class PageParserDirectBase
 
             if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
-                String referer = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
+                String referer = "https://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
                 String newref = LinkDownloader.download(linksDir, href, referer);
                 if (newref != null)
                 {

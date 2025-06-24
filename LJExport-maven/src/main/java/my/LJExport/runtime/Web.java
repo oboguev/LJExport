@@ -31,6 +31,7 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
 
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -120,7 +121,7 @@ public class Web
                 max(15, Config.MaxConnectionsPerRoute));
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("avatars.dzeninfra.ru", 443, "https")),
                 max(15, Config.MaxConnectionsPerRoute));
-        
+
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh3.googleusercontent.com", 443, "https")),
                 max(20, Config.MaxConnectionsPerRoute));
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh4.googleusercontent.com", 443, "https")),
@@ -161,7 +162,6 @@ public class Web
                 .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
                 .setSocketTimeout(Config.WebImageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
                 .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
-                .setRedirectsEnabled(false) // Prevent automatic redirect following
                 .build();
 
         HttpClientBuilder hcb = HttpClients.custom()
@@ -240,6 +240,12 @@ public class Web
         return get(url, 0, null, null);
     }
 
+    public static Response get(String url, Map<String, String> headers) throws Exception
+    {
+        return get(url, 0, headers, null);
+    }
+
+
     public static Response get(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody) throws Exception
     {
         final int maxpasses = 3;
@@ -270,7 +276,7 @@ public class Web
         String msg = ex.getLocalizedMessage();
         if (msg == null)
             msg = "";
-        
+
         if (ex instanceof RetryableException)
             return true;
 
@@ -323,7 +329,7 @@ public class Web
         Response r = new Response();
 
         HttpGet request = new HttpGet(url);
-        setCommon(request);
+        setCommon(request, headers);
         if (headers != null)
         {
             for (String key : headers.keySet())
@@ -399,7 +405,7 @@ public class Web
         Response r = new Response();
 
         HttpPost request = new HttpPost(url);
-        setCommon(request);
+        setCommon(request, null);
         request.setHeader("Content-Type", "application/x-www-form-urlencoded");
         request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
 
@@ -444,15 +450,29 @@ public class Web
         return r;
     }
 
-    private static void setCommon(HttpRequestBase request) throws Exception
+    private static void setCommon(HttpRequestBase request, Map<String, String> headers) throws Exception
     {
-        request.setHeader("User-Agent", Config.UserAgent);
-        request.setHeader("Accept", Config.UserAgentAccept);
-        request.setHeader("Accept-Encoding", Config.UserAgentAcceptEncoding);
-        request.setHeader("Cache-Control", "no-cache");
-        request.setHeader("Pragma", "no-cache");
+        setHeader(request, headers, "User-Agent", Config.UserAgent);
+        setHeader(request, headers, "Accept", Config.UserAgentAccept);
+        setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
+        setHeader(request, headers, "Cache-Control", "no-cache");
+        setHeader(request, headers, "Pragma", "no-cache");
     }
 
+    private static void setHeader(HttpRequestBase request, Map<String, String> headers, String key, String value) throws Exception
+    {
+        if (headers != null)
+        {
+            for (String k : headers.keySet())
+            {
+                if (k.equalsIgnoreCase(key))
+                    return;
+            }
+        }
+        
+        request.setHeader(key, value);
+    }
+    
     public static String getRedirectLocation(String url, Map<String, String> headers) throws Exception
     {
         final int maxpasses = 3;
@@ -501,7 +521,7 @@ public class Web
 
         HttpGet request = new HttpGet(url);
 
-        setCommon(request);
+        setCommon(request, headers);
         if (headers != null)
         {
             for (String key : headers.keySet())
@@ -509,9 +529,9 @@ public class Web
         }
 
         ActivityCounters.startedWebRequest();
-        
+
         String threadName = Thread.currentThread().getName();
-        
+
         try
         {
             Thread.currentThread().setName(threadName + " mapping " + url);
@@ -537,16 +557,16 @@ public class Web
                 case 426:
                     /* will transfer directly */
                     return null;
-                    
+
                 case 404:
                 case 410:
                     /* imgprx no longer has mapping */
                     return null;
-                    
+
                 case 403:
                     /* ??? */
                     return null;
-                    
+
                 case 303:
                 case 400:
                 case 406:
@@ -568,7 +588,7 @@ public class Web
                     if (lastPass)
                         return null;
                     throw new RetryableException("Not a redirect (status " + statusCode + ")");
-                    
+
                 default:
                     throw new RedirectLocationException("Not a redirect (status " + statusCode + ")");
                 }
@@ -577,6 +597,13 @@ public class Web
             {
                 response.close();
             }
+        }
+        catch (SocketTimeoutException ex)
+        {
+            if (lastPass)
+                return null;
+            else
+                throw new RetryableException("Socket timeout");
         }
         finally
         {
@@ -640,11 +667,11 @@ public class Web
 
         return false;
     }
-    
+
     public static boolean isLivejournalImgPrx(String url) throws Exception
     {
         String lc = url.toLowerCase();
-        
+
         if (lc.startsWith("http://imgprx.livejournal.net/") || lc.startsWith("https://imgprx.livejournal.net/"))
             return true;
 

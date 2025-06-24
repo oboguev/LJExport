@@ -346,7 +346,7 @@ public class Main
         ex.printStackTrace();
     }
 
-    public void do_login() throws Exception
+    public static void do_login() throws Exception
     {
         if (logged_in)
             throw new Exception("Already logged in");
@@ -385,7 +385,7 @@ public class Main
         out(">>> Logged in");
     }
 
-    public void do_logout() throws Exception
+    public static void do_logout() throws Exception
     {
         RateLimiter.LJ_PAGES.setRateLimit(100);
 
@@ -447,7 +447,7 @@ public class Main
         }
     }
 
-    private void emergency_logout()
+    public static void emergency_logout()
     {
         if (logged_in)
         {

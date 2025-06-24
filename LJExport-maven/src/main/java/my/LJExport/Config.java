@@ -28,7 +28,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "arkhip";
+    public static final String Users = "funt";
     // public static final String Users = "nikital2014,bash_m_ak,genby,olegnemen,eremei,afanarizm,jlm_taurus,corporatelie,wyradhe,nilsky_nikolay,von_hoffmann,a_samovarov,bantaputu,a_kaminsky,d_olshansky,rn_manifesto,ru_bezch,nep2,ego,hokma,laert,haritonov,1981dn,1981dn_dn,bantaputu,polit_ec,zhenziyou,a_bugaev,tor85,oboguev,morky,krylov,rms1,pioneer_lj,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
     // public static final String Users = "alex_vergin,sergeytsvetkov,blog_10101"; // new-style journals 
 
@@ -88,6 +88,7 @@ public class Config
     public static String MangledUser = null;
     public static String UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
     public static String UserAgentAccept = "text/html, application/xhtml+xml, */*";
+    public static String UserAgentAccept_Json = "application/json;q=1.0, text/plain;q=0.5";
     public static final String UserAgentAcceptEncoding = "gzip, deflate";
     public static final BrowserVersion HtmlUnitBrowserVersion = BrowserVersion.FIREFOX_38;
     public static final int Timeout = 150;     // Selenim page read timeout
@@ -111,7 +112,11 @@ public class Config
     /* Download linked files of the listed types locally, so they can be accessed offline */
     // public static List<String> DownloadFileTypes = null;
     public static final List<String> DownloadFileTypes = Util
-            .asList("jpg,jpeg,gif,png,webp,pdf,djvu,tif,tiff,doc,docx,rtf,zip,rar");
+            .asList("jpg,jpeg,gif,png,webp,pdf,djvu,tif,tiff,doc,docx,rtf,zip,rar,7z,7zip,tar");
+    public static String UserAgentAccept_Download = "image/*, application/pdf, application/x-djvu, application/msword, " + 
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document, " + 
+            "application/rtf, application/zip, application/x-rar-compressed, application/x-tar, " +
+            "application/x-7z-compressed, application/vnd.rar, application/octet-stream, */*";
 
     /*
      * Adding Fiddler certificate:
@@ -168,12 +173,7 @@ public class Config
             NWorkThreads = Math.min(NWorkThreads, MaxThreads);
         }
 
-        if (LoginPassword == null)
-        {
-            LoginPassword = ConfigUI.promptPassword("Enter password for [" + LoginUser + "] at " + Site);
-            if (LoginPassword == null)
-                throw new Exception("Unable to get password");
-        }
+        promptLoginPassword();
 
         if (UseFiddler && FiddlerTrustStore != null && FidlerTrustStorePassword == null)
         {
@@ -185,6 +185,16 @@ public class Config
 
         if (Proxy == null)
             ProxyBlockingMessage = null;
+    }
+    
+    public static void promptLoginPassword() throws Exception
+    {
+        if (LoginPassword == null)
+        {
+            LoginPassword = ConfigUI.promptPassword("Enter password for [" + LoginUser + "] at " + Site);
+            if (LoginPassword == null)
+                throw new Exception("Unable to get password");
+        }
     }
 
     public static void mangleUser() throws Exception

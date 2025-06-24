@@ -68,8 +68,11 @@ public class MainDownloadLinks
     {
         Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
         Web.init();
+        
+        /* login may be required for pictures marked 18+ */
         Config.promptLoginPassword();
         Main.do_login();
+
         ActivityCounters.reset();
         RateLimiter.LJ_IMAGES.setRateLimit(100);
         

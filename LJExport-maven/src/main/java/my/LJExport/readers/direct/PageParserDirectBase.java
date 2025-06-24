@@ -128,6 +128,9 @@ public abstract class PageParserDirectBase
         boolean downloaded = false;
         boolean unwrapped = false;
         
+        if (applyProtocolAndBaseDefaults(root))
+            unwrapped = true;
+        
         if (unwrapImgPrx(root, "img", "src"))
             unwrapped = true;
 
@@ -233,7 +236,59 @@ public abstract class PageParserDirectBase
 
         return remapped;
     }
+    
+    private boolean applyProtocolAndBaseDefaults(Node root) throws Exception
+    {
+        boolean applied = false;
+        
+        /* use of | rather than || prevents evaluation short-cut */
+        applied |= applyProtocolAndBaseDefaults(root, "link", "href");
+        applied |= applyProtocolAndBaseDefaults(root, "a", "href");
+        applied |= applyProtocolAndBaseDefaults(root, "iframe", "src");
+        applied |= applyProtocolAndBaseDefaults(root, "img", "src");
+        applied |= applyProtocolAndBaseDefaults(root, "video", "src");
+        applied |= applyProtocolAndBaseDefaults(root, "audio", "src");
+        applied |= applyProtocolAndBaseDefaults(root, "source", "src");
+        applied |= applyProtocolAndBaseDefaults(root, "embed", "src");
+        applied |= applyProtocolAndBaseDefaults(root, "track", "src");
+        applied |= applyProtocolAndBaseDefaults(root, "object", "data");        
 
+        return applied;
+    }
+
+    private boolean applyProtocolAndBaseDefaults(Node root, String tag, String attr) throws Exception
+    {
+        boolean applied = false;
+
+        for (Node n : JSOUP.findElements(root, tag))
+        {
+            String href = JSOUP.getAttribute(n, attr);
+            
+            if (href != null)
+            {
+                String newref = null;
+                
+                if (href.startsWith("//"))
+                {
+                    newref = "https:" + href;
+                    Util.noop();
+                }
+                else if (href.startsWith("/"))
+                {
+                    newref = String.format("https://%s.livejournal.com%s", Config.MangledUser, href);
+                }
+                
+                if (newref != null)
+                {
+                    JSOUP.updateAttribute(n, attr, newref);
+                    applied = true;
+                }
+            }
+        }
+
+        return applied;
+    }
+    
     /* ============================================================== */
 
     public String detectPageStyle() throws Exception

@@ -43,6 +43,7 @@ import static java.lang.Math.max;
 public class Web
 {
     private static CloseableHttpClient httpClient;
+    private static CloseableHttpClient httpImageClient;
     private static CloseableHttpClient httpRedirectClient;
     private static CookieStore cookieStore;
     private static ThreadLocal<String> lastURL;
@@ -143,14 +144,22 @@ public class Web
         RequestConfig requestConfig = RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
                 .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
-                .setSocketTimeout(Config.WebSocketTimeout) // Time waiting for data read on the socket after connection established
+                .setSocketTimeout(Config.WebPageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
                 .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
                 .build();
 
         RequestConfig requestConfigRedirect = RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
                 .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
-                .setSocketTimeout(Config.WebSocketTimeout) // Time waiting for data read on the socket after connection established
+                .setSocketTimeout(Config.WebImageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
+                .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
+                .setRedirectsEnabled(false) // Prevent automatic redirect following
+                .build();
+
+        RequestConfig requestConfigImage = RequestConfig.custom()
+                .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
+                .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
+                .setSocketTimeout(Config.WebImageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
                 .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
                 .setRedirectsEnabled(false) // Prevent automatic redirect following
                 .build();
@@ -167,14 +176,22 @@ public class Web
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
                 .setDefaultCookieStore(cookieStore);
 
+        HttpClientBuilder hcbImage = HttpClients.custom()
+                .setConnectionManager(connManager)
+                .setDefaultRequestConfig(requestConfigImage)
+                .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setDefaultCookieStore(cookieStore);
+
         if (routePlanner != null)
         {
             hcb = hcb.setRoutePlanner(routePlanner);
             hcbRedirect = hcb.setRoutePlanner(routePlanner);
+            hcbImage = hcb.setRoutePlanner(routePlanner);
         }
 
         httpClient = hcb.build();
         httpRedirectClient = hcbRedirect.build();
+        httpImageClient = hcbImage.build();
     }
 
     public static void shutdown() throws Exception
@@ -186,6 +203,14 @@ public class Web
         {
             httpClient.close();
             httpClient = null;
+            // let Apache HttpClient to settle
+            Thread.sleep(1500);
+        }
+
+        if (httpImageClient != null)
+        {
+            httpImageClient.close();
+            httpImageClient = null;
             // let Apache HttpClient to settle
             Thread.sleep(1500);
         }
@@ -276,14 +301,22 @@ public class Web
     {
         boolean binary = 0 != (flags & BINARY);
         boolean progress = 0 != (flags & PROGRESS);
+        
+        CloseableHttpClient client = null;
 
         if (isLivejournalPicture(url))
         {
             RateLimiter.LJ_IMAGES.limitRate();
+            client = httpImageClient;
         }
         else if (shouldLimitRate(url))
         {
             RateLimiter.LJ_PAGES.limitRate();
+            client = httpClient;
+        }
+        else
+        {
+            client = httpImageClient;
         }
 
         lastURL.set(url);
@@ -298,7 +331,7 @@ public class Web
         }
 
         ActivityCounters.startedWebRequest();
-        CloseableHttpResponse response = httpClient.execute(request);
+        CloseableHttpResponse response = client.execute(request);
 
         try
         {

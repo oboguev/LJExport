@@ -1,0 +1,6 @@
+#
+# List of pages for which LJExport will not try to load comments  
+#
+
+# на странице нет секции для комментариев
+https://lasido.livejournal.com/151040.html

@@ -35,15 +35,15 @@ public class MainDownloadLinks
     // private static String Users = "_devol_,1981dn,1981dn_dn,64vlad,a_bugaev,a_kaminsky,a_samovarov,a_sevastianov,abcdefgh,afanarizm,afrika_sl,aleksei";
     // private static String Users = "amfora,andrewmed,anya_anya_anya";
     // private static String Users = "archives_ru,arkhip,artemov_igor,asriyan,atorin";
-    private static String Users = "bantaputu,bash_m_ak,blog_10101,bohemicus,cherniaev,chukcheev,clen_lj,colonelcassad,corporatelie,d_olshansky.lj";
+    // private static String Users = "corporatelie,d_olshansky";
     // private static String Users = "dmitrij_sergeev,doppel_herz,ego,eremei,f_f,fat_yankey,fluffyduck2,funt";
-    // private static String Users = "galkovsky,genby,glaue2dk,guran_ussury,haritonov,harmfulgrumpy,hokma,holmogor,istoriograf,ivkonstant,jlm_taurus";
+    // private static String Users = "harmfulgrumpy,hokma,holmogor,istoriograf,ivkonstant,jlm_taurus";
     // private static String Users = "karaulov,knigipoistcccp,kordonsky,kornev,kot_begemott,kouzdra,krylov,krylov_arhiv,kushnirenko,laert,langobard";
     // private static String Users = "lesolub,limonov_eduard,lomonosov,lxe";
     // private static String Users = "m_yu_sokolov,man_with_dogs,maxim_sokolov2,michail,miguel_kud,morky,nep2,nikital2014,nilsky_nikolay,novy_chitatel";
     // private static String Users = "oboguev,olegnemen,olshansky,otrubon,pavell,philtrius,pioneer_lj,polit_ec,pyc_ivan";
     // private static String Users = "rf2,rigort,rms1,rn_manifesto,rod_ru,ru_bezch,ru_history,ruspartia";
-    // private static String Users = "salery,sanches,sergeytsvetkov,sm_sergeev,tbv,tor85,tutchev,tverdyi_znak,um_plus,unilevel";
+    private static String Users = "salery,sanches,sergeytsvetkov,sm_sergeev,tbv,tor85,tutchev,tverdyi_znak,um_plus,unilevel";
     // private static String Users = "vladimir_tor,von_hoffmann,wiradhe,wyradhe,ystrek,zhenziyou";
 
     private static final int NWorkThreads = 100;
@@ -76,7 +76,7 @@ public class MainDownloadLinks
         Web.init();
 
         /* login may be required for pictures marked 18+ */
-        Config.promptLoginPassword();
+        Config.acquireLoginPassword();
         Main.do_login();
 
         ActivityCounters.reset();

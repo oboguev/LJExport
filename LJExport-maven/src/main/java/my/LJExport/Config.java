@@ -16,6 +16,7 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 
 import my.LJExport.calendar.YYYY_MM;
 import my.LJExport.runtime.ConfigUI;
+import my.LJExport.runtime.PasswordStorage;
 import my.LJExport.runtime.Util;
 
 public class Config
@@ -173,7 +174,7 @@ public class Config
             NWorkThreads = Math.min(NWorkThreads, MaxThreads);
         }
 
-        promptLoginPassword();
+        acquireLoginPassword();
 
         if (UseFiddler && FiddlerTrustStore != null && FidlerTrustStorePassword == null)
         {
@@ -187,6 +188,16 @@ public class Config
             ProxyBlockingMessage = null;
     }
     
+    public static void acquireLoginPassword() throws Exception
+    {
+        if (LoginPassword == null)
+        {
+            LoginPassword = PasswordStorage.getPassword();
+            if (LoginPassword == null)
+                throw new Exception("Unable to get password");
+        }
+    }
+
     public static void promptLoginPassword() throws Exception
     {
         if (LoginPassword == null)
@@ -196,7 +207,7 @@ public class Config
                 throw new Exception("Unable to get password");
         }
     }
-
+    
     public static void mangleUser() throws Exception
     {
         int len = User.length();

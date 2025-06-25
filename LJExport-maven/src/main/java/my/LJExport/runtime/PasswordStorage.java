@@ -1,8 +1,12 @@
 package my.LJExport.runtime;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
 
 import my.LJExport.Config;
 
@@ -50,6 +54,13 @@ public class PasswordStorage
                 fpDir.mkdirs();
 
             Util.writeToFileSafe(fp.getCanonicalPath(), "pw=" + s);
+            
+            if (!Util.isWindowsOS())
+            {
+                Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rw-------");
+                Files.setPosixFilePermissions(fp.toPath(), perms);
+            }
+            
             return Config.LoginPassword;
         }
     }

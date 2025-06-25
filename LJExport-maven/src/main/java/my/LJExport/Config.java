@@ -29,7 +29,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "sanches";
+    public static final String Users = "shrek1";
     // public static final String Users = "nikital2014,bash_m_ak,genby,olegnemen,eremei,afanarizm,jlm_taurus,corporatelie,wyradhe,nilsky_nikolay,von_hoffmann,a_samovarov,bantaputu,a_kaminsky,d_olshansky,rn_manifesto,ru_bezch,nep2,ego,hokma,laert,haritonov,1981dn,1981dn_dn,bantaputu,polit_ec,zhenziyou,a_bugaev,tor85,oboguev,morky,krylov,rms1,pioneer_lj,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
     // public static final String Users = "alex_vergin,sergeytsvetkov,blog_10101"; // new-style journals 
 
@@ -42,16 +42,16 @@ public class Config
     /* Range of dates to download (inclusive) */
     public static final YYYY_MM LoadSince = null;
     public static final YYYY_MM LoadTo = null;
-    // public static final YYYY_MM LoadSince = new YYYY_MM(2009, 4);
-    // public static final YYYY_MM LoadTo = new YYYY_MM(2009, 4);
+    // public static final YYYY_MM LoadSince = new YYYY_MM(2013, 6);
+    // public static final YYYY_MM LoadTo = new YYYY_MM(2015, 6);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;
 
     /* Rate limits (ms between requests) */
-    public static final int RateLimitCalendar = 500;
-    public static final int RateLimitPageLoad = 1200;
-    public static final int RateLimitImages = 200;
+    public static final int RateLimitLivejournalCalendar = 500;
+    public static final int RateLimitLivejournalPageLoad = 1200;
+    public static final int RateLimitLivejournalImages = 200;
 
     /* Web timeouts */
     public static final int WebConnectTimeout = 1 * 60 * 1000;
@@ -92,7 +92,7 @@ public class Config
     public static String UserAgentAccept_Json = "application/json;q=1.0, text/plain;q=0.5";
     public static final String UserAgentAcceptEncoding = "gzip, deflate";
     public static final BrowserVersion HtmlUnitBrowserVersion = BrowserVersion.FIREFOX_38;
-    public static final int Timeout = 150;     // Selenim page read timeout
+    public static final int Timeout = 150; // Selenim page read timeout
     public static String TrustStore = null;
     public static String TrustStorePassword = null;
     public static final int ProxyThreadsPerThread = 10;
@@ -114,8 +114,8 @@ public class Config
     // public static List<String> DownloadFileTypes = null;
     public static final List<String> DownloadFileTypes = Util
             .asList("jpg,jpeg,gif,png,webp,pdf,djvu,tif,tiff,doc,docx,rtf,zip,rar,7z,7zip,tar");
-    public static String UserAgentAccept_Download = "image/*, application/pdf, application/x-djvu, application/msword, " + 
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document, " + 
+    public static String UserAgentAccept_Download = "image/*, application/pdf, application/x-djvu, application/msword, " +
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document, " +
             "application/rtf, application/zip, application/x-rar-compressed, application/x-tar, " +
             "application/x-7z-compressed, application/vnd.rar, application/octet-stream, */*";
 
@@ -187,7 +187,7 @@ public class Config
         if (Proxy == null)
             ProxyBlockingMessage = null;
     }
-    
+
     public static void acquireLoginPassword() throws Exception
     {
         if (LoginPassword == null)
@@ -207,7 +207,7 @@ public class Config
                 throw new Exception("Unable to get password");
         }
     }
-    
+
     public static void mangleUser() throws Exception
     {
         int len = User.length();

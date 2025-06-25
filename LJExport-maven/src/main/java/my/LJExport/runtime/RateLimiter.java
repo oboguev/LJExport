@@ -6,8 +6,8 @@ import my.LJExport.Config;
 
 public class RateLimiter
 {
-    public static final RateLimiter LJ_PAGES = new RateLimiter(Config.RateLimitPageLoad);  
-    public static final RateLimiter LJ_IMAGES = new RateLimiter(Config.RateLimitImages);  
+    public static final RateLimiter LJ_PAGES = new RateLimiter(Config.RateLimitLivejournalPageLoad);  
+    public static final RateLimiter LJ_IMAGES = new RateLimiter(Config.RateLimitLivejournalImages);  
     
     private final ReentrantLock lock = new ReentrantLock();
     private volatile long lastReturnTime = System.currentTimeMillis();

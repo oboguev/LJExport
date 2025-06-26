@@ -49,9 +49,9 @@ public class Config
     public static final boolean ReloadExistingFiles = false;
 
     /* Rate limits (ms between requests) */
-    public static final int RateLimitLivejournalCalendar = 500;
-    public static final int RateLimitLivejournalPageLoad = 1200;
-    public static final int RateLimitLivejournalImages = 200;
+    public static final int RateLimit_Livejournal_Calendar = 500;
+    public static final int RateLimit_Livejournal_PageLoad = 1200;
+    public static final int RateLimit_Livejournal_Images = 200;
 
     /* Web timeouts */
     public static final int WebConnectTimeout = 1 * 60 * 1000;
@@ -84,6 +84,7 @@ public class Config
     public static final WebMethod Method = Config.WebMethod.DIRECT;
     public static final String Site = "livejournal.com";
     public static final String AllowedUrlSites[] = { "livejournal.com", "livejournal.net" };
+    public static boolean StoreLoginPassword = true;
     public static String LoginPassword = null;
     public static String User = null;
     public static String MangledUser = null;
@@ -192,7 +193,15 @@ public class Config
     {
         if (LoginPassword == null)
         {
-            LoginPassword = PasswordStorage.getPassword();
+            if (StoreLoginPassword)
+            {
+                LoginPassword = PasswordStorage.getPassword();
+            }
+            else
+            {
+                promptLoginPassword();
+            }
+
             if (LoginPassword == null)
                 throw new Exception("Unable to get password");
         }

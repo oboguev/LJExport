@@ -195,9 +195,9 @@ public class Main
             RateLimiter.LJ_PAGES.setRateLimit(100);
             Web.init();
             do_login();
-            RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimitLivejournalCalendar);
+            RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimit_Livejournal_Calendar);
             Calendar.index();
-            RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimitLivejournalPageLoad);
+            RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimit_Livejournal_PageLoad);
 
             Util.mkdir(Config.DownloadRoot + File.separator + Config.User);
             pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "pages";

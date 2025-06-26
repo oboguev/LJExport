@@ -9,6 +9,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
 import my.LJExport.Config;
+import my.LJExport.Main;
 
 public class PasswordStorage
 {
@@ -33,6 +34,7 @@ public class PasswordStorage
 
         if (fp.exists())
         {
+            Main.out(">>> Reading login password from file " + fp.getCanonicalPath());
             String s = Util.readFileAsString(fp.getCanonicalPath());
             s = s.trim();
             if (!s.startsWith("pw="))
@@ -54,6 +56,7 @@ public class PasswordStorage
                 fpDir.mkdirs();
 
             Util.writeToFileSafe(fp.getCanonicalPath(), "pw=" + s);
+            Main.out(">>> Saved scrambled login password to file " + fp.getCanonicalPath());
             
             if (!Util.isWindowsOS())
             {

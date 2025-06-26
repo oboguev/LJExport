@@ -149,7 +149,7 @@ public class LinkDownloader
                         }
                         catch (UnableCreateDirectoryException dex)
                         {
-                            actual_filename = linksDir + File.separator + "@@@" + File.separator +  "x-" + Util.uuid();
+                            actual_filename = linksDir + File.separator + "@@@" + File.separator +  "x-" + Util.uuid2();
                             
                             String ext = getFileExtension(f.getName());
                             if (ext != null && ext.length() != 0 && ext.length() <= 4)

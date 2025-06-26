@@ -18,6 +18,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.conn.HttpHostConnectException;
 
 import my.LJExport.Config;
+import my.LJExport.runtime.Util.UnableCreateDirectoryException;
 
 public class LinkDownloader
 {
@@ -81,7 +82,8 @@ public class LinkDownloader
                 if (afn != null)
                     actual_filename = afn;
 
-                File f = new File(actual_filename);
+                File f = new File(actual_filename).getCanonicalFile();
+
                 if (f.exists())
                 {
                     filename.set(actual_filename);
@@ -141,7 +143,23 @@ public class LinkDownloader
 
                     try
                     {
-                        Util.mkdir(f.getAbsoluteFile().getParent());
+                        try
+                        {
+                            Util.mkdir(f.getAbsoluteFile().getParent());
+                        }
+                        catch (UnableCreateDirectoryException dex)
+                        {
+                            actual_filename = linksDir + File.separator + "@@@" + File.separator +  "x-" + Util.uuid();
+                            
+                            String ext = getFileExtension(f.getName());
+                            if (ext != null && ext.length() != 0 && ext.length() <= 4)
+                                actual_filename += "." + ext;
+
+                            filename.set(actual_filename);
+                            f = new File(actual_filename).getCanonicalFile();
+                            Util.mkdir(f.getAbsoluteFile().getParent());
+                        }
+
                         Util.writeToFileSafe(actual_filename, r.binaryBody);
                         synchronized (href2file)
                         {

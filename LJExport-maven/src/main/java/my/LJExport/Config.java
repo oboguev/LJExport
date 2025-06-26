@@ -55,7 +55,7 @@ public class Config
 
     /* Web timeouts */
     public static final int WebConnectTimeout = 1 * 60 * 1000;
-    public static final int WebImageReadingSocketTimeout = 2 * 60 * 1000;
+    public static final int WebImageReadingSocketTimeout = 1 * 60 * 1000;
     public static final int WebPageReadingSocketTimeout = 7 * 60 * 1000;
 
     /* Number of threads to use */

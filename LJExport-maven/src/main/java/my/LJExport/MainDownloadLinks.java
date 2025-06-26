@@ -45,7 +45,7 @@ public class MainDownloadLinks
     // private static final String Users = "rf2,rigort,rms1,rn_manifesto,rod_ru,ru_bezch,ru_history,ruspartia";
     // private static final String Users = "tutchev,tverdyi_znak,um_plus,unilevel";
     // private static final String Users = "vladimir_tor,von_hoffmann,wiradhe,wyradhe,ystrek,zhenziyou";
-    private static final String Users = "colonelcassad";
+    private static final String Users = "shrek1";
 
     private static final int NWorkThreads = 100;
     private static final int MaxConnectionsPerRoute = 10;

@@ -661,4 +661,18 @@ public class Util
 
         return false;
     }
+
+    public static String flipProtocol(String s) throws Exception
+    {
+        if (s.startsWith("http://"))
+            return "https://" + Util.stripStart(s, "http://");
+        else if (s.startsWith("https://"))
+            return "http://" + Util.stripStart(s, "https://");
+        else if (s.startsWith("HTTP://"))
+            return "HTTPS://" + Util.stripStart(s, "HTTP://");
+        else if (s.startsWith("HTTPS://"))
+            return "HTTP://" + Util.stripStart(s, "HTTPS://");
+        else
+            return s;
+    }
 }

@@ -52,7 +52,7 @@ public class LinkDownloader
             // LJ responds with HTTP code 412 if picture is marked 18+ and request is not HTTPS
             href = http2https(href, "pics.livejournal.com");
             href = http2https(href, "ic.pics.livejournal.com");
-            
+
             // map washingtonpost image resizer url
             href = map_washpost_imr(href);
 
@@ -77,7 +77,7 @@ public class LinkDownloader
                 Thread.currentThread().setName(final_threadName + " downloading " + final_href + " prepare");
 
                 String actual_filename = filename.get();
-                String afn = href2file.get(final_href_noanchor);
+                String afn = href2file.getAnyUrlProtocol(final_href_noanchor);
                 if (afn != null)
                     actual_filename = afn;
 
@@ -87,7 +87,7 @@ public class LinkDownloader
                     filename.set(actual_filename);
                     synchronized (href2file)
                     {
-                        if (null == href2file.get(final_href_noanchor))
+                        if (null == href2file.getAnyUrlProtocol(final_href_noanchor))
                             href2file.put(final_href_noanchor, actual_filename);
                     }
                 }
@@ -145,7 +145,7 @@ public class LinkDownloader
                         Util.writeToFileSafe(actual_filename, r.binaryBody);
                         synchronized (href2file)
                         {
-                            if (null == href2file.get(final_href_noanchor))
+                            if (null == href2file.getAnyUrlProtocol(final_href_noanchor))
                                 href2file.put(final_href_noanchor, actual_filename);
                         }
                         filename.set(actual_filename);
@@ -188,9 +188,28 @@ public class LinkDownloader
                     Util.noop();
                 }
 
-                if (host.contains("ic.pics.livejournal.com") && r.code != 403 && r.code != 412)
+                if (host.contains("ic.pics.livejournal.com") && r.code != 403 && r.code != 412 && r.code != 415)
                 {
-                    Util.noop();
+                    if (r.code == 504)
+                    {
+                        Util.noop();
+                    }
+                    else
+                    {
+                        Util.noop();
+                    }
+                }
+
+                if (host.equals("pics.livejournal.com"))
+                {
+                    if (r.code == 504)
+                    {
+                        Util.noop();
+                    }
+                    else
+                    {
+                        Util.noop();
+                    }
                 }
 
                 if (host.contains("archive.org"))
@@ -212,14 +231,28 @@ public class LinkDownloader
 
                 if (host.contains("ic.pics.livejournal.com"))
                 {
-                    Util.noop();
+                    if (isCircularRedirect(ex))
+                    {
+                        Util.noop();
+                    }
+                    else
+                    {
+                        Util.noop();
+                    }
                 }
 
                 if (host.equals("pics.livejournal.com"))
                 {
-                    Util.noop();
+                    if (isCircularRedirect(ex))
+                    {
+                        Util.noop();
+                    }
+                    else
+                    {
+                        Util.noop();
+                    }
                 }
-                
+
                 if (host.equals("l-userpic.livejournal.com"))
                 {
                     Util.noop();
@@ -241,7 +274,7 @@ public class LinkDownloader
                 {
                     Util.noop();
                 }
-                else if (ex instanceof ClientProtocolException && ex.getCause() instanceof CircularRedirectException)
+                else if (isCircularRedirect(ex))
                 {
                     Util.noop();
                 }
@@ -263,6 +296,11 @@ public class LinkDownloader
         {
             Thread.currentThread().setName(threadName);
         }
+    }
+
+    private static boolean isCircularRedirect(Exception ex)
+    {
+        return ex instanceof ClientProtocolException && ex.getCause() instanceof CircularRedirectException;
     }
 
     private static String encodePathCopmonents(String ref)
@@ -327,7 +365,8 @@ public class LinkDownloader
                 return false;
             href = Util.stripAnchor(href);
 
-            if (dontDownload.contains(href))
+            String flip = Util.flipProtocol(href);
+            if (dontDownload.contains(href) || dontDownload.contains(flip))
                 return false;
 
             for (String dont : dontDownload)
@@ -335,7 +374,7 @@ public class LinkDownloader
                 if (dont.endsWith("/*"))
                 {
                     dont = Util.stripTail(dont, "*");
-                    if (href.startsWith(dont))
+                    if (href.startsWith(dont) || flip.startsWith(dont))
                         return false;
                 }
             }

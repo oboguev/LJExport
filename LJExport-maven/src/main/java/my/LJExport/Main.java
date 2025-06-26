@@ -67,7 +67,7 @@ public class Main
         }
     }
 
-    private static boolean aborting;
+    private static volatile boolean aborting;
     private static boolean logoutFailed = false;
     public static Object Lock = new String();
     private static String pagesDir;

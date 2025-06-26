@@ -53,6 +53,14 @@ public class FileBackedMap
         return map.get(key);
     }
 
+    public synchronized String getAnyUrlProtocol(String key) throws Exception
+    {
+        String value = map.get(key);
+        if (value == null)
+            value = map.get(Util.flipProtocol(key));
+        return value;
+    }
+
     public synchronized String put(String key, String value) throws IOException
     {
         if (map.containsKey(key))

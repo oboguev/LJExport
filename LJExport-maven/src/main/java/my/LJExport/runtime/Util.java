@@ -289,7 +289,17 @@ public class Util
         // re-check again in case directory may have been created concurrently
         if (file.exists() && file.isDirectory())
             return;
-        throw new Exception("Unable to create directory " + path);
+        throw new UnableCreateDirectoryException("Unable to create directory " + path);
+    }
+    
+    public static class UnableCreateDirectoryException extends Exception
+    {
+        private static final long serialVersionUID = 1L;
+
+        public UnableCreateDirectoryException(String msg)
+        {
+            super(msg);
+        }
     }
 
     public static void writeToFile(String path, String content) throws Exception

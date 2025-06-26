@@ -200,7 +200,7 @@ public class LinkDownloader
                     }
                 }
 
-                if (host.equals("pics.livejournal.com"))
+                if (host.equals("pics.livejournal.com") && r.code != 415)
                 {
                     if (r.code == 504)
                     {

@@ -82,8 +82,9 @@ public class Config
     };
 
     public static final WebMethod Method = Config.WebMethod.DIRECT;
-    public static String Site = "livejournal.com";
     public static final String DefaultSite = "livejournal.com";
+    public static String Site = DefaultSite;
+    public static String LoginSite = DefaultSite;
     public static boolean StandaloneSite = false;
     public static final String AllowedUrlSites[] = { "livejournal.com", "livejournal.net", "olegmakarenko.ru" };
     public static boolean StoreLoginPassword = true;

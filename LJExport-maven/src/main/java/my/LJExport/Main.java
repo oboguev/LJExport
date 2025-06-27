@@ -172,10 +172,10 @@ public class Main
             out("");
             out("*** Warning: LJExport may not have closed all login sessions it created.");
             out("");
-            out("             Please check http://www." + Config.Site + "/manage/logins.bml");
+            out("             Please check http://www." + Config.LoginSite + "/manage/logins.bml");
             out("             for any leftover sessions and close them manually.");
             out("");
-            out("             Alternatively use http://www." + Config.Site + "/logout.bml.");
+            out("             Alternatively use http://www." + Config.LoginSite + "/logout.bml.");
             out("");
         }
 
@@ -192,11 +192,13 @@ public class Main
             if (user.equals("fritzmorgen"))
             {
                 Config.Site = "olegmakarenko.ru";
+                Config.LoginSite = Config.DefaultSite;
                 Config.StandaloneSite = true;
             }
             else
             {
                 Config.Site = Config.DefaultSite;
+                Config.LoginSite = Config.DefaultSite;
                 Config.StandaloneSite = false;
             }
 
@@ -366,7 +368,7 @@ public class Main
 
         RateLimiter.LJ_PAGES.setRateLimit(100);
 
-        out(">>> Logging into " + Config.Site + " as user " + Config.LoginUser);
+        out(">>> Logging into " + Config.LoginSite + " as user " + Config.LoginUser);
 
         StringBuilder sb = new StringBuilder();
         sb.append(Web.escape("ret") + "=" + "1" + "&");
@@ -374,13 +376,13 @@ public class Main
         sb.append(Web.escape("password") + "=" + Web.escape(Config.LoginPassword) + "&");
         sb.append("action:login");
 
-        Web.Response r = Web.post("https://www." + Config.Site + "/login.bml?ret=1", sb.toString());
+        Web.Response r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", sb.toString());
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));
 
         for (Cookie cookie : Web.getCookieStore().getCookies())
         {
-            if (!Util.is_in_domain(Config.Site, cookie.getDomain()))
+            if (!Util.is_in_domain(Config.LoginSite, cookie.getDomain()))
                 continue;
 
             if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
@@ -404,7 +406,7 @@ public class Main
 
         for (Cookie cookie : Web.getCookieStore().getCookies())
         {
-            if (!Util.is_in_domain(Config.Site, cookie.getDomain()))
+            if (!Util.is_in_domain(Config.LoginSite, cookie.getDomain()))
                 continue;
 
             if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
@@ -434,9 +436,9 @@ public class Main
             return;
         }
 
-        out(">>> Logging off " + Config.Site);
+        out(">>> Logging off " + Config.LoginSite);
         StringBuilder sb = new StringBuilder();
-        sb.append("http://www." + Config.Site + "/logout.bml?ret=1&user=" + Config.LoginUser + "&sessid=" + sessid);
+        sb.append("http://www." + Config.LoginSite + "/logout.bml?ret=1&user=" + Config.LoginUser + "&sessid=" + sessid);
         Web.Response r = null;
         try
         {

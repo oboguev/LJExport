@@ -1,8 +1,5 @@
 package my.LJExport.calendar;
 
-// import org.w3c.dom.*;
-
-// import java.io.*;
 import java.util.*;
 
 import org.apache.http.HttpStatus;
@@ -42,11 +39,11 @@ public class Calendar
         Web.Response r;
         try
         {
-            r = Web.get("http://" + Config.MangledUser + "." + Config.Site + "/calendar");
+            r = Web.get(LJUtil.userBase() + "/calendar");
         }
         catch (Exception ex)
         {
-            r = Web.get("http://" + Config.MangledUser + "." + Config.Site + "/calendar");
+            r = Web.get(LJUtil.userBase() + "/calendar");
         }
 
         if (r.code != HttpStatus.SC_OK)
@@ -187,7 +184,7 @@ public class Calendar
         if (Config.User.charAt(0) == '_' && Util.lastChar(Config.User) == '_')
             return "http://users." + Config.Site + "/" + Config.User + "/" + yyyy + "/";
         else
-            return "http://" + Config.MangledUser + "." + Config.Site + "/calendar/" + yyyy;
+            return LJUtil.userBase()  + "/calendar/" + yyyy;
     }
 
     private static String url_yyyy_mm(String yyyy_mm) throws Exception
@@ -199,7 +196,7 @@ public class Calendar
         if (Config.User.charAt(0) == '_' && Util.lastChar(Config.User) == '_')
             return "http://users." + Config.Site + "/" + Config.User + "/" + yyyy_mm + "/";
         else
-            return "http://" + Config.MangledUser + "." + Config.Site + "/calendar/" + yyyy_mm;
+            return LJUtil.userBase() + "/calendar/" + yyyy_mm;
     }
 
     public static void out(String s) throws Exception

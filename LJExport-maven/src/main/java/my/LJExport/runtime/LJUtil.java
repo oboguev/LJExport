@@ -293,4 +293,27 @@ public class LJUtil
 
         return url;
     }
+    
+    /*
+     * User base HTTP
+     * 
+     *     http://pioneer-lj.livejorunal.com
+     *     http://users.livejorunal.com/_devol_
+     *     http://olegmakarenko.ru
+     */
+    public static String userBase() throws Exception
+    {
+        if (Config.StandaloneSite)
+        {
+            return "http://" + Config.Site;
+        }
+        else if (Config.User.charAt(0) == '_' && Util.lastChar(Config.User) == '_')
+        {
+            return "http://users." + Config.Site + "/" + Config.User;
+        }
+        else
+        {
+            return "http://" + Config.MangledUser + "." + Config.Site;
+        }
+    }
 }

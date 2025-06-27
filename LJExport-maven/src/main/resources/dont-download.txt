@@ -18,6 +18,8 @@ http://binaryanimal.spb.ru/tmp/moonlight_pushkin/*
 # counters
 http://xc3.services.livejournal.com/*
 https://xc3.services.livejournal.com/*
+http://olegmakarenko.ru/ljcounter/*
+https://olegmakarenko.ru/ljcounter/*
 http://2.s05.flagcounter.com/count/MECnk/*
 
 # permanently stuck sites

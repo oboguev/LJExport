@@ -22,6 +22,7 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
@@ -192,14 +193,14 @@ public class PageReaderSelenium extends PageParser implements PageReader
         {
             String url = driver.getCurrentUrl();
 
-            if (Util.isValidPostLoginUrl(url))
+            if (LJUtil.isValidPostLoginUrl(url))
                 return LoginStatus.LOGGED_IN;
 
             String pageHtml = driver.getPageSource();
             if (pageHtml.contains("You're logged in as"))
                 return LoginStatus.LOGGED_IN;
 
-            if (!Util.isLoginPageURL(url))
+            if (!LJUtil.isLoginPageURL(url))
             {
                 dt = System.currentTimeMillis() - currentLoginTime;
                 Main.err("Login failure (URL: " + url + "), after " + dt + " ms (current attempt)");
@@ -849,7 +850,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
         boolean found = false;
         for (String url : JSOUP.extractHrefs(root))
         {
-            if (Util.isLogoutURL(url, sb))
+            if (LJUtil.isLogoutURL(url, sb))
             {
                 found = true;
                 break;

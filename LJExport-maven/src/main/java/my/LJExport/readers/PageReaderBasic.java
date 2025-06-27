@@ -13,6 +13,7 @@ import java.util.Set;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.xml.DOM;
@@ -232,7 +233,7 @@ public class PageReaderBasic implements PageReader
             if (href == null)
                 continue;
             href = Util.stripAnchor(href);
-            if (!Util.isJournalUrl(href, sb))
+            if (!LJUtil.isJournalUrl(href, sb))
                 continue;
             if (!Util.beginsWith(sb.toString(), this.rurl + "?", sb))
                 continue;
@@ -255,7 +256,7 @@ public class PageReaderBasic implements PageReader
             if (href == null)
                 continue;
             href = Util.stripAnchor(href);
-            if (!Util.isJournalUrl(href, sb))
+            if (!LJUtil.isJournalUrl(href, sb))
                 continue;
             if (!Util.beginsWith(sb.toString(), this.rurl + "?", sb))
                 continue;

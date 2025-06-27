@@ -690,6 +690,8 @@ public class Web
             return true;
         if (host.equals("livejournal.com") || host.endsWith(".livejournal.com"))
             return true;
+        if (host.equals("olegmakarenko.ru") || host.endsWith(".olegmakarenko.ru"))
+            return true;
 
         return false;
     }

@@ -150,7 +150,7 @@ public class ProxyServer
         boolean accepted = false;
         try
         {
-            accepted = Util.isServerUrl(url);
+            accepted = LJUtil.isServerUrl(url);
         }
         catch (Exception ex)
         {

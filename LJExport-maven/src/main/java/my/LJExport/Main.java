@@ -188,6 +188,17 @@ public class Main
         try
         {
             out(">>> Processing journal for user " + user);
+            
+            if (user.equals("fritzmorgen"))
+            {
+                Config.Site = "olegmakarenko.ru";
+                Config.StandaloneSite = true;
+            }
+            else
+            {
+                Config.Site = Config.DefaultSite;
+                Config.StandaloneSite = false;
+            }
 
             reinit();
             Config.init(user);

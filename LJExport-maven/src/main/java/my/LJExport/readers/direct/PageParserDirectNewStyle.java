@@ -17,6 +17,7 @@ import my.LJExport.Config;
 import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
+import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
@@ -301,7 +302,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
         vars.put("thread_url", c.thread_url);
         vars.put("subject", c.subject);
 
-        String record_url = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
+        String record_url = LJUtil.recordPageURL(rurl);
         vars.put("record_url", record_url);
 
         final String tdir = "templates/direct-new-style/";

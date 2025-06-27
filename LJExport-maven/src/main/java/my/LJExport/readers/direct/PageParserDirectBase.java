@@ -15,6 +15,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
+import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
@@ -163,7 +164,7 @@ public abstract class PageParserDirectBase
 
             if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
-                String referer = "https://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
+                String referer = LJUtil.recordPageURL(rurl);
                 String newref = LinkDownloader.download(linksDir, href, referer);
                 if (newref != null)
                 {

@@ -13,6 +13,7 @@ import org.jsoup.nodes.TextNode;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
@@ -198,7 +199,7 @@ abstract public class PageParser
             if (href == null)
                 continue;
             href = Util.stripAnchor(href);
-            if (!Util.isJournalUrl(href, sb))
+            if (!LJUtil.isJournalUrl(href, sb))
                 continue;
             if (!Util.beginsWith(sb.toString(), this.rurl + "?", sb))
                 continue;
@@ -730,7 +731,7 @@ abstract public class PageParser
 
             if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
-                String referer = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
+                String referer = LJUtil.recordPageURL(rurl);
                 String newref = LinkDownloader.download(linksDir, href, referer);
                 if (newref != null)
                 {

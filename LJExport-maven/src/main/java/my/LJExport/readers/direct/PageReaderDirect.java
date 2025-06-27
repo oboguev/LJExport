@@ -14,6 +14,7 @@ import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.readers.PageReader;
+import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
@@ -181,7 +182,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
          * Perform actual page load
          */
         StringBuilder sb = new StringBuilder();
-        sb.append("http://" + Config.MangledUser + "." + Config.Site + "/" + parser.rurl + "?format=light");
+        sb.append(LJUtil.recordPageURL(parser.rurl) + "?format=light");
         if (npage != 1)
             sb.append("&page=" + npage);
 
@@ -253,14 +254,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
     private String loadPageComments(int npage) throws Exception
     {
-        String url = String.format("http://%s.%s/%s/__rpc_get_thread?journal=%s&itemid=%s&skip=&media=&page=%d&expand_all=1",
-                Config.MangledUser,
-                Config.Site,
-                Config.MangledUser,
-                Config.User,
-                parser.rid,
-                npage);
-
+        String url = LJUtil.rpcCommentsForPage(parser.rid, npage);
         return loadJson(url);
     }
 
@@ -268,15 +262,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
     {
         if (thread == null || thread.equals(""))
             throw new Exception("Missing comment thread id");
-
-        String url = String.format("http://%s.%s/%s/__rpc_get_thread?journal=%s&itemid=%s&skip=&media=&thread=%s&expand_all=1",
-                Config.MangledUser,
-                Config.Site,
-                Config.MangledUser,
-                Config.User,
-                parser.rid,
-                thread);
-
+        
+        String url = LJUtil.rpcCommentsForThread(parser.rid, thread);
         return loadJson(url);
     }
 

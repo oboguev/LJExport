@@ -9,6 +9,7 @@ import org.apache.http.HttpStatus;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.xml.DOM;
@@ -54,7 +55,7 @@ public class Calendar
         List<String> hrefs = DOM.extractHrefs(r.body);
         for (String href : hrefs)
         {
-            if (Util.isJournalUrl(href, sb))
+            if (LJUtil.isJournalUrl(href, sb))
             {
                 String url = Util.stripParametersAndAnchor(sb.toString());
                 url = Util.stripLastChar(url, '/');
@@ -77,7 +78,7 @@ public class Calendar
             hrefs = DOM.extractHrefs(r.body);
             for (String href : hrefs)
             {
-                if (Util.isJournalUrl(href, sb))
+                if (LJUtil.isJournalUrl(href, sb))
                 {
                     String url = Util.stripParametersAndAnchor(sb.toString());
                     url = Util.stripLastChar(url, '/');
@@ -99,7 +100,7 @@ public class Calendar
             hrefs = DOM.extractHrefs(r.body);
             for (String href : hrefs)
             {
-                if (Util.isJournalRecordUrl(href, sb))
+                if (LJUtil.isJournalRecordUrl(href, sb))
                 {
                     String rurl = sb.toString();
                     set_records.add(rurl);

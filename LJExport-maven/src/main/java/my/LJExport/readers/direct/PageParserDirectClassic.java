@@ -17,6 +17,7 @@ import my.LJExport.Main;
 import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
+import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
@@ -176,7 +177,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
             if (href == null)
                 continue;
             href = Util.stripAnchor(href);
-            if (!Util.isJournalUrl(href, sb))
+            if (!LJUtil.isJournalUrl(href, sb))
                 continue;
             if (!Util.beginsWith(sb.toString(), this.rurl + "?", sb))
                 continue;
@@ -710,7 +711,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
         vars.put("thread_url", c.thread_url);
         vars.put("subject", c.subject);
 
-        String record_url = "http://" + Config.MangledUser + "." + Config.Site + "/" + rurl;
+        String record_url = LJUtil.recordPageURL(rurl);
         vars.put("record_url", record_url);
 
         final String tdir = "templates/direct-classic/";

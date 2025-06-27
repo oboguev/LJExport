@@ -572,6 +572,7 @@ public class Web
                 case 402:
                 case 406:
                 case 409:
+                case 415:
                 case 422:
                 case 423:
                 case 429:

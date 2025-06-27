@@ -31,6 +31,7 @@ import my.LJExport.runtime.UrlDurationHistory;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.audio.PlaySound;
+import my.LJExport.runtime.synch.ThreadsControl;
 
 import java.io.File;
 
@@ -275,23 +276,30 @@ public class Main
             
             ActivityCounters.reset();
 
-            Vector<Thread> vt = new Vector<Thread>();
             // start worker threads
+            ThreadsControl.workerThreadGoEventFlag.clear();
+            ThreadsControl.activeWorkerThreadCount.set(0);
+
+            Vector<Thread> vt = new Vector<Thread>();
             for (int nt = 0; nt < Math.min(Config.NWorkThreads, Calendar.Records.size()); nt++)
             {
                 Thread t = new Thread(new MainRunnable());
                 vt.add(t);
                 t.start();
+                ThreadsControl.activeWorkerThreadCount.incrementAndGet();
             }
             
+            ThreadsControl.workerThreadGoEventFlag.set();
+
             // wait for worker threads to complete
-            boolean firstCompleted = false;
+            boolean firstHasCompleted = false;
             for (int nt = 0; nt < vt.size(); nt++)
             {
                 vt.get(nt).join();
-                if (!firstCompleted)
+                ThreadsControl.activeWorkerThreadCount.decrementAndGet();
+                if (!firstHasCompleted)
                 {
-                    firstCompleted = true;
+                    firstHasCompleted = true;
                     if (!isAborting())
                         out(">>> Wiating for active worker threads to complete ...");
                 }
@@ -364,7 +372,8 @@ public class Main
         if (logged_in)
             throw new Exception("Already logged in");
         
-        logged_in = false;
+        // logged_in = false;
+        Config.acquireLoginPassword();
 
         RateLimiter.LJ_PAGES.setRateLimit(100);
 
@@ -484,7 +493,8 @@ public class Main
         try
         {
             Thread.currentThread().setName("page-loader: idle");
-
+            ThreadsControl.workerThreadGoEventFlag.waitFlag();
+            
             switch (Config.Method)
             {
             case HTML_UNIT:

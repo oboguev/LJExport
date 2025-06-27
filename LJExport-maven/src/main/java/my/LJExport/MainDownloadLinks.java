@@ -17,6 +17,7 @@ import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
+import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.xml.JSOUP;
 
 /*
@@ -46,7 +47,8 @@ public class MainDownloadLinks
     // private static final String Users = "tutchev,tverdyi_znak,um_plus,unilevel";
     // private static final String Users = "vladimir_tor,von_hoffmann,wiradhe,wyradhe,ystrek,zhenziyou";
     // private static final String Users = "pikitan,schloenski,pravoe_org,piligrim,trufanov";
-    private static final String Users = "zhu_s";
+    private static final String Users = "colonelcassad";
+    // private static final String Users = "zhu_s";
 
     private static final int NWorkThreads = 100;
     private static final int MaxConnectionsPerRoute = 10;
@@ -78,7 +80,6 @@ public class MainDownloadLinks
         Web.init();
 
         /* login may be required for pictures marked 18+ */
-        Config.acquireLoginPassword();
         Main.do_login();
 
         ActivityCounters.reset();
@@ -130,22 +131,29 @@ public class MainDownloadLinks
         pageFilesTotalCount = pageFiles.size();
 
         // start worker threads
+        ThreadsControl.workerThreadGoEventFlag.clear();
+        ThreadsControl.activeWorkerThreadCount.set(0);
+        
         List<Thread> vt = new ArrayList<Thread>();
         for (int nt = 0; nt < Math.min(NWorkThreads, pageFilesTotalCount); nt++)
         {
             Thread t = new Thread(new MainDownloadLinksRunnable(this));
             vt.add(t);
             t.start();
+            ThreadsControl.activeWorkerThreadCount.incrementAndGet();
         }
+        
+        ThreadsControl.workerThreadGoEventFlag.set();
 
         // wait for worker threads to complete
-        boolean firstCompleted = false;
+        boolean firstHasCompleted = false;
         for (int nt = 0; nt < vt.size(); nt++)
         {
             vt.get(nt).join();
-            if (!firstCompleted)
+            ThreadsControl.activeWorkerThreadCount.decrementAndGet();
+            if (!firstHasCompleted)
             {
-                firstCompleted = true;
+                firstHasCompleted = true;
                 if (!Main.isAborting())
                     out(">>> Wiating for active worker threads to complete ...");
             }
@@ -159,6 +167,8 @@ public class MainDownloadLinks
 
     void do_work() throws Exception
     {
+        ThreadsControl.workerThreadGoEventFlag.waitFlag();
+
         for (;;)
         {
             String pageFile = null;

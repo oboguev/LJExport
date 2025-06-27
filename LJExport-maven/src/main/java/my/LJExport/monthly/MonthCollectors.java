@@ -12,6 +12,7 @@ import org.jsoup.nodes.Element;
 
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBase;
+import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
@@ -146,7 +147,7 @@ public class MonthCollectors
             if (!fp.exists())
                 fp.mkdirs();
             
-            mc.parser.remapLocalRelativeLinks("../../../links/", "../../links/");
+            mc.parser.remapLocalRelativeLinks(LinkDownloader.LINK_REFERENCE_PREFIX_PAGES, LinkDownloader.LINK_REFERENCE_PREFIX_MONTHLY_PAGES);
             String monthlyPageSource = JSOUP.emitHtml(mc.parser.pageRoot);
             
             Util.writeToFileSafe(monthlyFilePath, monthlyPageSource);

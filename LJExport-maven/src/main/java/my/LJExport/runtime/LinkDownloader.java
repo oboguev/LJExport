@@ -22,6 +22,14 @@ import my.LJExport.runtime.Util.UnableCreateDirectoryException;
 
 public class LinkDownloader
 {
+    /*
+     * References to linked files from
+     *    - post pages
+     *    - monthly pages
+     */
+    public static final String LINK_REFERENCE_PREFIX_PAGES = "../../../links/";
+    public static final String LINK_REFERENCE_PREFIX_MONTHLY_PAGES ="../../links/";
+    
     private static Set<String> dontDownload;
 
     private static FileBackedMap href2file = new FileBackedMap();
@@ -34,7 +42,7 @@ public class LinkDownloader
         failedSet.clear();
     }
 
-    public static String download(String linksDir, String href, String referer)
+    public static String download(String linksDir, String href, String referer, String linkReferencePrefix)
     {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);
         AtomicReference<String> filename = new AtomicReference<>(null);
@@ -182,7 +190,7 @@ public class LinkDownloader
 
             String newref = filename.get().substring((linksDir + File.separator).length());
             newref = newref.replace(File.separator, "/");
-            newref = "../../../links/" + encodePathCopmonents(newref);
+            newref = linkReferencePrefix + encodePathCopmonents(newref);
             return newref;
         }
         catch (Exception ex)

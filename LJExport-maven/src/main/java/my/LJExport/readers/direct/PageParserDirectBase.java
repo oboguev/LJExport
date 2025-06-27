@@ -161,6 +161,28 @@ public abstract class PageParserDirectBase
         return downloaded || unwrapped;
     }
 
+    private boolean unwrapImgPrx(Node root, String tag, String attr) throws Exception
+    {
+        boolean unwrapped = false;
+
+        for (Node n : JSOUP.findElements(root, tag))
+        {
+            String href = JSOUP.getAttribute(n, attr);
+            
+            if (href != null && Web.isLivejournalImgPrx(href))
+            {
+                String newref = Web.getRedirectLocation(href, null);
+                if (newref != null)
+                {
+                    JSOUP.updateAttribute(n, attr, newref);
+                    unwrapped = true;
+                }
+            }
+        }
+
+        return unwrapped;
+    }
+
     /*static*/ private boolean downloadExternalLinks(Node root, String linksDir, String tag, String attr,
             boolean filterDownloadFileTypes) throws Exception
     {
@@ -186,28 +208,6 @@ public abstract class PageParserDirectBase
         return downloaded;
     }
     
-    private boolean unwrapImgPrx(Node root, String tag, String attr) throws Exception
-    {
-        boolean unwrapped = false;
-
-        for (Node n : JSOUP.findElements(root, tag))
-        {
-            String href = JSOUP.getAttribute(n, attr);
-            
-            if (href != null && Web.isLivejournalImgPrx(href))
-            {
-                String newref = Web.getRedirectLocation(href, null);
-                if (newref != null)
-                {
-                    JSOUP.updateAttribute(n, attr, newref);
-                    unwrapped = true;
-                }
-            }
-        }
-
-        return unwrapped;
-    }
-
     public boolean remapLocalRelativeLinks(String oldPrefix, String newPrefix) throws Exception
     {
         boolean remapped = false;

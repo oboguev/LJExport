@@ -102,7 +102,7 @@ public class Util
     /*
      * Check if URL belongs to the site's server
      */
-    static boolean isServerUrl(String url) throws Exception
+    public static boolean isServerUrl(String url) throws Exception
     {
         if (isServerUrl(url, Config.Site))
             return true;
@@ -116,7 +116,7 @@ public class Util
         return false;
     }
 
-    static boolean isServerUrl(String url, String site) throws Exception
+    private static boolean isServerUrl(String url, String site) throws Exception
     {
         int k;
 

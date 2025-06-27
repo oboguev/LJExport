@@ -94,6 +94,14 @@ public class DOM
 
         xml = removeDoctype(xml);
 
+        /*
+         * Replace XML-invalid Unicode characters with spaces
+         * For example: https://abcdefgh.livejournal.com/2001/12
+         * contains invalid XML character (Unicode: 0x1) 
+         * в строке "Выбор, которого не было или обсуждения отс" после "отс".
+         */
+        xml = sanitizeXmlUnicode(xml);
+
         try
         {
             doc = db.parse(new InputSource(new StringReader(xml)));
@@ -117,7 +125,7 @@ public class DOM
 
         @SuppressWarnings("unused")
         final int prelen = pre.length();
-        
+
         final String newdoctype = "<!DOCTYPE html>";
 
         int k1 = xml.toLowerCase().indexOf(pre);
@@ -131,6 +139,33 @@ public class DOM
         xml = xml.substring(0, k1) + newdoctype + xml.substring(k2 + 1);
 
         return xml;
+    }
+
+    public static String sanitizeXmlUnicode(String xml)
+    {
+        StringBuilder sb = new StringBuilder(xml.length());
+
+        for (int i = 0; i < xml.length(); i++)
+        {
+            char c = xml.charAt(i);
+            if (isValidXmlChar(c))
+            {
+                sb.append(c);
+            }
+            else
+            {
+                sb.append(' ');
+            }
+        }
+        
+        return sb.toString();
+    }
+
+    private static boolean isValidXmlChar(char c)
+    {
+        return c == 0x9 || c == 0xA || c == 0xD ||
+                (c >= 0x20 && c <= 0xD7FF) ||
+                (c >= 0xE000 && c <= 0xFFFD);
     }
 
     public static List<String> extractHrefs(String html) throws Exception

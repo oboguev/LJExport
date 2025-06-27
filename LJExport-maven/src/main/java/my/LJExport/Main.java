@@ -24,13 +24,13 @@ import my.LJExport.readers.PageReaderSelenium;
 import my.LJExport.readers.direct.PageReaderDirect;
 import my.LJExport.runtime.ActivityCounters;
 import my.LJExport.runtime.LimitProcessorUsage;
-import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.ProxyServer;
 import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.UrlDurationHistory;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.audio.PlaySound;
+import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 import java.io.File;
@@ -341,6 +341,10 @@ public class Main
             System.err.println("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
             emergency_logout();
+        }
+        finally
+        {
+            ThreadsControl.shutdownAfterUser();
         }
     }
 

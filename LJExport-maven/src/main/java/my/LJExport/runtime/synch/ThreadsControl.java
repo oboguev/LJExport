@@ -13,4 +13,9 @@ public class ThreadsControl
     {
         return activeWorkerThreadCount.get() <= SpawnLinkDownloadThreshold;
     }
+    
+    public static void shutdownAfterUser()
+    {
+        // ###
+    }
 }

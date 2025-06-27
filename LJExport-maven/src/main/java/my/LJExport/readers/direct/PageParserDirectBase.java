@@ -16,9 +16,9 @@ import my.LJExport.Main;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.LJUtil;
-import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
+import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.xml.JSOUP;
 
 public abstract class PageParserDirectBase
@@ -132,6 +132,8 @@ public abstract class PageParserDirectBase
         if (applyProtocolAndBaseDefaults(root))
             unwrapped = true;
         
+        // ### create processor
+        
         if (unwrapImgPrx(root, "img", "src"))
             unwrapped = true;
 
@@ -144,12 +146,18 @@ public abstract class PageParserDirectBase
         if (unwrapImgPrx(root, "a", "original-href"))
             unwrapped = true;
 
+        // ### execute processor
+        
+        // ### create processor
+
         if (downloadExternalLinks(root, linksDir, "a", "href", true))
             downloaded = true;
         
         if (downloadExternalLinks(root, linksDir, "img", "src", false))
             downloaded = true;
         
+        // ### execute processor
+
         return downloaded || unwrapped;
     }
 

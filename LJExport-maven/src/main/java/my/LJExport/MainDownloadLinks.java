@@ -13,10 +13,10 @@ import my.LJExport.readers.PageContentSource;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.runtime.ActivityCounters;
 import my.LJExport.runtime.LimitProcessorUsage;
-import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
+import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.xml.JSOUP;
 
@@ -112,57 +112,64 @@ public class MainDownloadLinks
 
     private void do_user(String user) throws Exception
     {
-        Config.User = user;
-        Config.mangleUser();
-
-        final String userRoot = Config.DownloadRoot + File.separator + Config.User;
-
-        pagesDir = userRoot + File.separator + "pages";
-        // pagesDir = userRoot + File.separator + "reposts";
-        linksDir = userRoot + File.separator + "links";
-        // offline = true;
-
-        out(">>> Processing download links for user " + Config.User);
-
-        Util.mkdir(linksDir);
-        LinkDownloader.init(linksDir);
-
-        pageFiles = Util.enumerateFiles(pagesDir);
-        pageFilesTotalCount = pageFiles.size();
-
-        // start worker threads
-        ThreadsControl.workerThreadGoEventFlag.clear();
-        ThreadsControl.activeWorkerThreadCount.set(0);
-        
-        List<Thread> vt = new ArrayList<Thread>();
-        for (int nt = 0; nt < Math.min(NWorkThreads, pageFilesTotalCount); nt++)
+        try
         {
-            Thread t = new Thread(new MainDownloadLinksRunnable(this));
-            vt.add(t);
-            t.start();
-            ThreadsControl.activeWorkerThreadCount.incrementAndGet();
-        }
-        
-        ThreadsControl.workerThreadGoEventFlag.set();
+            Config.User = user;
+            Config.mangleUser();
 
-        // wait for worker threads to complete
-        boolean firstHasCompleted = false;
-        for (int nt = 0; nt < vt.size(); nt++)
-        {
-            vt.get(nt).join();
-            ThreadsControl.activeWorkerThreadCount.decrementAndGet();
-            if (!firstHasCompleted)
+            final String userRoot = Config.DownloadRoot + File.separator + Config.User;
+
+            pagesDir = userRoot + File.separator + "pages";
+            // pagesDir = userRoot + File.separator + "reposts";
+            linksDir = userRoot + File.separator + "links";
+            // offline = true;
+
+            out(">>> Processing download links for user " + Config.User);
+
+            Util.mkdir(linksDir);
+            LinkDownloader.init(linksDir);
+
+            pageFiles = Util.enumerateFiles(pagesDir);
+            pageFilesTotalCount = pageFiles.size();
+
+            // start worker threads
+            ThreadsControl.workerThreadGoEventFlag.clear();
+            ThreadsControl.activeWorkerThreadCount.set(0);
+
+            List<Thread> vt = new ArrayList<Thread>();
+            for (int nt = 0; nt < Math.min(NWorkThreads, pageFilesTotalCount); nt++)
             {
-                firstHasCompleted = true;
-                if (!Main.isAborting())
-                    out(">>> Wiating for active worker threads to complete ...");
+                Thread t = new Thread(new MainDownloadLinksRunnable(this));
+                vt.add(t);
+                t.start();
+                ThreadsControl.activeWorkerThreadCount.incrementAndGet();
             }
-        }
 
-        if (Main.isAborting())
-            err(">>> Aborted scanning the journal for user " + Config.User);
-        else
-            out(">>> Completed scanning the journal for user " + Config.User);
+            ThreadsControl.workerThreadGoEventFlag.set();
+
+            // wait for worker threads to complete
+            boolean firstHasCompleted = false;
+            for (int nt = 0; nt < vt.size(); nt++)
+            {
+                vt.get(nt).join();
+                ThreadsControl.activeWorkerThreadCount.decrementAndGet();
+                if (!firstHasCompleted)
+                {
+                    firstHasCompleted = true;
+                    if (!Main.isAborting())
+                        out(">>> Wiating for active worker threads to complete ...");
+                }
+            }
+
+            if (Main.isAborting())
+                err(">>> Aborted scanning the journal for user " + Config.User);
+            else
+                out(">>> Completed scanning the journal for user " + Config.User);
+        }
+        finally
+        {
+            ThreadsControl.shutdownAfterUser();
+        }
     }
 
     void do_work() throws Exception

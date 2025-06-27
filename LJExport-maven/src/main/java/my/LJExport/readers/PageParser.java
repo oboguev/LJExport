@@ -14,12 +14,12 @@ import org.jsoup.nodes.TextNode;
 import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.LJUtil;
-import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
+import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.xml.JSOUP;
 
-abstract public class PageParser
+public abstract class PageParser
 {
     public static class MissingCommentsTreeRootException extends Exception
     {

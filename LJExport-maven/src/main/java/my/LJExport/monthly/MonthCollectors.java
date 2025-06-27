@@ -12,8 +12,8 @@ import org.jsoup.nodes.Element;
 
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBase;
-import my.LJExport.runtime.LinkDownloader;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.xml.JSOUP;
 
 /*

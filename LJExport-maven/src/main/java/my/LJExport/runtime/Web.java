@@ -305,8 +305,10 @@ public class Web
     private static Response get_retry(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody)
             throws Exception
     {
-        boolean binary = 0 != (flags & BINARY);
-        boolean progress = 0 != (flags & PROGRESS);
+        final boolean binary = 0 != (flags & BINARY);
+        final boolean progress = 0 != (flags & PROGRESS);
+        
+        boolean isRequest_LJPage = false; 
         
         CloseableHttpClient client = null;
 
@@ -319,6 +321,7 @@ public class Web
         {
             RateLimiter.LJ_PAGES.limitRate();
             client = httpClient;
+            isRequest_LJPage = true;
         }
         else
         {
@@ -337,6 +340,9 @@ public class Web
         }
 
         ActivityCounters.startedWebRequest();
+        if (isRequest_LJPage)
+            ActivityCounters.startedLJPageWebRequest();
+        
         CloseableHttpResponse response = client.execute(request);
 
         try

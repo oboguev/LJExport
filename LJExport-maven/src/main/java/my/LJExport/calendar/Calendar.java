@@ -10,6 +10,7 @@ import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.xml.DOM;
+import my.LJExport.xml.JSOUP;
 
 public class Calendar
 {
@@ -72,7 +73,7 @@ public class Calendar
             if (r.code != HttpStatus.SC_OK)
                 throw new Exception("Unable to read user records calendar: " + Web.describe(r.code));
 
-            hrefs = DOM.extractHrefs(r.body);
+            hrefs = JSOUP.extractHrefs(r.body);
             for (String href : hrefs)
             {
                 if (LJUtil.isJournalUrl(href, sb))
@@ -94,7 +95,7 @@ public class Calendar
             if (r.code != HttpStatus.SC_OK)
                 throw new Exception("Unable to read user records calendar: " + Web.describe(r.code));
 
-            hrefs = DOM.extractHrefs(r.body);
+            hrefs = JSOUP.extractHrefs(r.body);
             for (String href : hrefs)
             {
                 if (LJUtil.isJournalRecordUrl(href, sb))

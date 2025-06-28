@@ -24,7 +24,6 @@ import my.LJExport.runtime.URLCodec;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Util.UnableCreateDirectoryException;
-import my.LJExport.runtime.Web.Response;
 
 public class LinkDownloader
 {

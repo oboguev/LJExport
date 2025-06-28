@@ -1,7 +1,9 @@
 package my.LJExport.runtime.synch;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.*;
 
 /**
@@ -13,7 +15,6 @@ import java.util.concurrent.*;
  */
 public class FutureProcessor<T>
 {
-    private final ThreadPoolExecutor executor;
     private final List<Callable<T>> pendingTasks = new ArrayList<>();
     private final List<FutureTask<T>> submittedTasks = new ArrayList<>();
 
@@ -23,9 +24,8 @@ public class FutureProcessor<T>
      * @param executor
      *            the executor used for task execution
      */
-    public FutureProcessor(ThreadPoolExecutor executor)
+    public FutureProcessor()
     {
-        this.executor = executor;
     }
 
     /**
@@ -46,7 +46,7 @@ public class FutureProcessor<T>
         {
             FutureTask<T> futureTask = new FutureTask<>(task);
             submittedTasks.add(futureTask);
-            executor.execute(futureTask);
+            ThreadsControl.getExecutor(true).execute(futureTask);
         }
 
         pendingTasks.clear();
@@ -60,34 +60,37 @@ public class FutureProcessor<T>
     {
         for (FutureTask<T> task : submittedTasks)
         {
-            executor.remove(task); // no effect if already running
+            ThreadsControl.getExecutor(true).remove(task); // no effect if already running
             task.cancel(false); // cancel if not started, do not interrupt
         }
         submittedTasks.clear();
         pendingTasks.clear();
-        // Do NOT shut down the executor (may be shared)
+        // do NOT shut down the executor (it may be shared)
     }
 
     /**
      * Wait (blocking) until at least one submitted task completes, then return it. Uses polling with 0.1-second sleep interval.
      *
-     * @return the first completed Future<T>
+     * @return the first completed T, until it returns null
      * @throws InterruptedException
      *             if the thread is interrupted while waiting
      */
-    public Future<T> nextExpectedResult() throws InterruptedException
+    public T nextExpectedResult() throws Exception
     {
-        while (true)
+        for (;;)
         {
             synchronized (this)
             {
+                if (submittedTasks.isEmpty())
+                    return null;
+
                 for (int i = 0; i < submittedTasks.size(); i++)
                 {
                     FutureTask<T> task = submittedTasks.get(i);
                     if (task.isDone())
                     {
                         submittedTasks.remove(i);
-                        return task;
+                        return task.get();
                     }
                 }
             }
@@ -96,8 +99,48 @@ public class FutureProcessor<T>
         }
     }
 
-    public static ThreadPoolExecutor createExecutor(int threadsPoolSize)
+    // Wrapper to make it usable in enhanced for-loop
+    public Iterable<T> expectedResults()
     {
-        return new ThreadPoolExecutor(threadsPoolSize, threadsPoolSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        return () -> new Iterator<T>()
+        {
+            private T next;
+            private boolean finished = false;
+            private boolean fetched = false;
+
+            private void fetchNext()
+            {
+                if (fetched || finished)
+                    return;
+                
+                try
+                {
+                    next = nextExpectedResult();
+                    if (next == null)
+                        finished = true;
+                }
+                catch (Exception e)
+                {
+                    throw new RuntimeException("Error fetching next result", e);
+                }
+                fetched = true;
+            }
+
+            @Override
+            public boolean hasNext()
+            {
+                fetchNext();
+                return !finished;
+            }
+
+            @Override
+            public T next()
+            {
+                if (!hasNext())
+                    throw new NoSuchElementException();
+                fetched = false;
+                return next;
+            }
+        };
     }
 }

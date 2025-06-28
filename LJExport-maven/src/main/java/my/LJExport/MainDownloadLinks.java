@@ -47,7 +47,7 @@ public class MainDownloadLinks
     // private static final String Users = "tutchev,tverdyi_znak,um_plus,unilevel";
     // private static final String Users = "vladimir_tor,von_hoffmann,wiradhe,wyradhe,ystrek,zhenziyou";
     // private static final String Users = "pikitan,schloenski,pravoe_org,piligrim,trufanov";
-    private static final String Users = "colonelcassad";
+    private static final String Users = "oldadmiral";
     // private static final String Users = "zhu_s";
 
     private static final int NWorkThreads = 100;
@@ -152,7 +152,6 @@ public class MainDownloadLinks
             for (int nt = 0; nt < vt.size(); nt++)
             {
                 vt.get(nt).join();
-                ThreadsControl.activeWorkerThreadCount.decrementAndGet();
                 if (!firstHasCompleted)
                 {
                     firstHasCompleted = true;
@@ -284,22 +283,16 @@ public class MainDownloadLinks
         {
             try
             {
-                int priority = (Thread.NORM_PRIORITY + Thread.MIN_PRIORITY) / 2;
-                if (priority == Thread.NORM_PRIORITY)
-                    priority = Thread.MIN_PRIORITY;
-                Thread.currentThread().setPriority(priority);
-
+                ThreadsControl.backgroundStarting();
                 main.do_work();
             }
             catch (Exception ex)
             {
-                boolean wasAborting = Main.isAborting();
-                Main.setAborting();
-                if (!wasAborting)
-                {
-                    System.err.println("*** Exception: " + ex.getMessage());
-                    ex.printStackTrace();
-                }
+                ThreadsControl.backgroundException(ex);
+            }
+            finally
+            {
+                ThreadsControl.backgroundFinally();
             }
         }
     }

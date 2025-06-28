@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -19,6 +20,9 @@ import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.synch.AppendToThreadName;
+import my.LJExport.runtime.synch.FutureProcessor;
+import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.xml.JSOUP;
 
 public abstract class PageParserDirectBase
@@ -128,54 +132,74 @@ public abstract class PageParserDirectBase
 
         boolean downloaded = false;
         boolean unwrapped = false;
-        
+
         if (applyProtocolAndBaseDefaults(root))
             unwrapped = true;
-        
-        // ### create processor
-        
-        if (unwrapImgPrx(root, "img", "src"))
-            unwrapped = true;
 
-        if (unwrapImgPrx(root, "img", "original-src"))
-            unwrapped = true;
+        FutureProcessor<AsyncUnwrapImgPrx> fpUnwrap = new FutureProcessor<>();
+        FutureProcessor<AsyncDownloadExternalLinks> fpDownload = new FutureProcessor<>();
 
-        if (unwrapImgPrx(root, "a", "href"))
-            unwrapped = true;
+        try
+        {
+            unwrapped |= unwrapImgPrx(root, "img", "src", fpUnwrap);
+            unwrapped |= unwrapImgPrx(root, "img", "original-src", fpUnwrap);
+            unwrapped |= unwrapImgPrx(root, "a", "href", fpUnwrap);
+            unwrapped |= unwrapImgPrx(root, "a", "original-href", fpUnwrap);
 
-        if (unwrapImgPrx(root, "a", "original-href"))
-            unwrapped = true;
+            fpUnwrap.start();
 
-        // ### execute processor
-        
-        // ### create processor
+            try (AppendToThreadName a = new AppendToThreadName(" mapping imgprx links"))
+            {
+                for (AsyncUnwrapImgPrx async : fpUnwrap.expectedResults())
+                    unwrapped |= async.apply();
+            }
 
-        if (downloadExternalLinks(root, linksDir, "a", "href", true))
-            downloaded = true;
-        
-        if (downloadExternalLinks(root, linksDir, "img", "src", false))
-            downloaded = true;
-        
-        // ### execute processor
+            /* ----------------------------------------------------------------- */
+
+            downloaded |= downloadExternalLinks(root, linksDir, "a", "href", true, fpDownload);
+            downloaded |= downloadExternalLinks(root, linksDir, "img", "src", false, fpDownload);
+
+            fpDownload.start();
+
+            try (AppendToThreadName a = new AppendToThreadName(" downloading links"))
+            {
+                for (AsyncDownloadExternalLinks async : fpDownload.expectedResults())
+                    downloaded |= async.apply();
+            }
+        }
+        catch (Exception ex)
+        {
+            fpUnwrap.shutdown();
+            fpDownload.shutdown();
+        }
 
         return downloaded || unwrapped;
     }
+    
+    /* ==================================================================================================================== */
 
-    private boolean unwrapImgPrx(Node root, String tag, String attr) throws Exception
+    private boolean unwrapImgPrx(Node root, String tag, String attr, FutureProcessor<AsyncUnwrapImgPrx> fpUnwrap) throws Exception
     {
         boolean unwrapped = false;
 
         for (Node n : JSOUP.findElements(root, tag))
         {
             String href = JSOUP.getAttribute(n, attr);
-            
+
             if (href != null && Web.isLivejournalImgPrx(href))
             {
-                String newref = Web.getRedirectLocation(href, null);
-                if (newref != null)
+                if (ThreadsControl.useLinkDownloadThreads())
                 {
-                    JSOUP.updateAttribute(n, attr, newref);
-                    unwrapped = true;
+                    fpUnwrap.add(new AsyncUnwrapImgPrx(n, attr, href));
+                }
+                else
+                {
+                    String newref = Web.getRedirectLocation(href, null);
+                    if (newref != null)
+                    {
+                        JSOUP.updateAttribute(n, attr, newref);
+                        unwrapped = true;
+                    }
                 }
             }
         }
@@ -183,8 +207,67 @@ public abstract class PageParserDirectBase
         return unwrapped;
     }
 
+    public static class AsyncUnwrapImgPrx implements Callable<AsyncUnwrapImgPrx>
+    {
+        // in
+        private final Node n;
+        private final String attr;
+        private final String href;
+
+        // out
+        private String newref;
+        private Exception ex;
+
+        public AsyncUnwrapImgPrx(Node n, String attr, String href)
+        {
+            this.n = n;
+            this.attr = attr;
+            this.href = href;
+        }
+
+        @Override
+        public AsyncUnwrapImgPrx call() throws Exception
+        {
+            String threadName = Thread.currentThread().getName();
+
+            try
+            {
+                Thread.currentThread().setName("webload");
+                newref = Web.getRedirectLocation(href, null);
+            }
+            catch (Exception ex)
+            {
+                this.ex = ex;
+            }
+            finally
+            {
+                Thread.currentThread().setName(threadName);
+            }
+
+            return this;
+        }
+
+        public boolean apply() throws Exception
+        {
+            if (ex != null)
+                throw ex;
+
+            if (newref != null)
+            {
+                JSOUP.updateAttribute(n, attr, newref);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    /* ==================================================================================================================== */
+
     /*static*/ private boolean downloadExternalLinks(Node root, String linksDir, String tag, String attr,
-            boolean filterDownloadFileTypes) throws Exception
+            boolean filterDownloadFileTypes, FutureProcessor<AsyncDownloadExternalLinks> fpDownload) throws Exception
     {
         boolean downloaded = false;
 
@@ -195,26 +278,98 @@ public abstract class PageParserDirectBase
             if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
                 String referer = LJUtil.recordPageURL(rurl);
-                String newref = LinkDownloader.download(linksDir, href, referer, LinkDownloader.LINK_REFERENCE_PREFIX_PAGES);
-                if (newref != null)
+
+                if (ThreadsControl.useLinkDownloadThreads())
                 {
-                    JSOUP.updateAttribute(n, attr, newref);
-                    JSOUP.setAttribute(n, "original-" + attr, href);
-                    downloaded = true;
+                    fpDownload.add(new AsyncDownloadExternalLinks(n, attr, href, referer, linksDir));
+                }
+                else
+                {
+                    String newref = LinkDownloader.download(linksDir, href, referer, LinkDownloader.LINK_REFERENCE_PREFIX_PAGES);
+                    if (newref != null)
+                    {
+                        JSOUP.updateAttribute(n, attr, newref);
+                        JSOUP.setAttribute(n, "original-" + attr, href);
+                        downloaded = true;
+                    }
                 }
             }
         }
 
         return downloaded;
     }
-    
+
+    public static class AsyncDownloadExternalLinks implements Callable<AsyncDownloadExternalLinks>
+    {
+        // in
+        private final Node n;
+        private final String attr;
+        private final String href;
+        private final String referer;
+        private final String linksDir;
+
+        // out
+        private String newref;
+        private Exception ex;
+
+        public AsyncDownloadExternalLinks(Node n, String attr, String href, String referer, String linksDir)
+        {
+            this.n = n;
+            this.attr = attr;
+            this.href = href;
+            this.referer = referer;
+            this.linksDir = linksDir;
+        }
+
+        @Override
+        public AsyncDownloadExternalLinks call() throws Exception
+        {
+            String threadName = Thread.currentThread().getName();
+
+            try
+            {
+                Thread.currentThread().setName("webload");
+                newref = LinkDownloader.download(linksDir, href, referer, LinkDownloader.LINK_REFERENCE_PREFIX_PAGES);
+            }
+            catch (Exception ex)
+            {
+                this.ex = ex;
+            }
+            finally
+            {
+                Thread.currentThread().setName(threadName);
+            }
+
+            return this;
+        }
+
+        public boolean apply() throws Exception
+        {
+            if (ex != null)
+                throw ex;
+
+            if (newref != null)
+            {
+                JSOUP.updateAttribute(n, attr, newref);
+                JSOUP.setAttribute(n, "original-" + attr, href);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    /* ==================================================================================================================== */
+
     public boolean remapLocalRelativeLinks(String oldPrefix, String newPrefix) throws Exception
     {
         boolean remapped = false;
 
         if (remapLocalRelativeLinks(oldPrefix, newPrefix, "a", "href"))
             remapped = true;
-        
+
         if (remapLocalRelativeLinks(oldPrefix, newPrefix, "img", "src"))
             remapped = true;
 
@@ -245,11 +400,13 @@ public abstract class PageParserDirectBase
 
         return remapped;
     }
-    
+
+    /* ==================================================================================================================== */
+
     private boolean applyProtocolAndBaseDefaults(Node root) throws Exception
     {
         boolean applied = false;
-        
+
         /* use of | rather than || prevents evaluation short-cut */
         applied |= applyProtocolAndBaseDefaults(root, "link", "href");
         applied |= applyProtocolAndBaseDefaults(root, "a", "href");
@@ -260,7 +417,7 @@ public abstract class PageParserDirectBase
         applied |= applyProtocolAndBaseDefaults(root, "source", "src");
         applied |= applyProtocolAndBaseDefaults(root, "embed", "src");
         applied |= applyProtocolAndBaseDefaults(root, "track", "src");
-        applied |= applyProtocolAndBaseDefaults(root, "object", "data");        
+        applied |= applyProtocolAndBaseDefaults(root, "object", "data");
 
         return applied;
     }
@@ -272,11 +429,11 @@ public abstract class PageParserDirectBase
         for (Node n : JSOUP.findElements(root, tag))
         {
             String href = JSOUP.getAttribute(n, attr);
-            
+
             if (href != null)
             {
                 String newref = null;
-                
+
                 if (href.startsWith("//"))
                 {
                     newref = "https:" + href;
@@ -286,7 +443,7 @@ public abstract class PageParserDirectBase
                 {
                     newref = String.format("https://%s.livejournal.com%s", Config.MangledUser, href);
                 }
-                
+
                 if (newref != null)
                 {
                     JSOUP.updateAttribute(n, attr, newref);
@@ -297,8 +454,8 @@ public abstract class PageParserDirectBase
 
         return applied;
     }
-    
-    /* ============================================================== */
+
+    /* ==================================================================================================================== */
 
     public String detectPageStyle() throws Exception
     {
@@ -597,7 +754,7 @@ public abstract class PageParserDirectBase
     public void deleteDivThreeposts() throws Exception
     {
         List<Node> delvec = new ArrayList<>();
-        
+
         // div class=" threeposts threeposts--count-9 "
         List<Node> divs = JSOUP.findElementsWithAllClasses(pageRoot, "div", Util.setOf("threeposts"));
         for (Node div : divs)
@@ -608,11 +765,11 @@ public abstract class PageParserDirectBase
                 if (n instanceof Element && n != div)
                     hasElementChild = true;
             }
-            
+
             if (!hasElementChild)
                 delvec.add(div);
         }
-        
+
         JSOUP.removeNodes(delvec);
     }
 }

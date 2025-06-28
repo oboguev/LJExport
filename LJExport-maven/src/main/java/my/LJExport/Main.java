@@ -48,22 +48,16 @@ public class Main
         {
             try
             {
-                int priority = (Thread.NORM_PRIORITY + Thread.MIN_PRIORITY) / 2;
-                if (priority == Thread.NORM_PRIORITY)
-                    priority = Thread.MIN_PRIORITY;
-                Thread.currentThread().setPriority(priority);
-
+                ThreadsControl.backgroundStarting();
                 Main.do_work();
             }
             catch (Exception ex)
             {
-                boolean wasAborting = Main.isAborting();
-                Main.setAborting();
-                if (!wasAborting)
-                {
-                    System.err.println("*** Exception: " + ex.getMessage());
-                    ex.printStackTrace();
-                }
+                ThreadsControl.backgroundException(ex);
+            }
+            finally
+            {
+                ThreadsControl.backgroundFinally();
             }
         }
     }
@@ -296,7 +290,6 @@ public class Main
             for (int nt = 0; nt < vt.size(); nt++)
             {
                 vt.get(nt).join();
-                ThreadsControl.activeWorkerThreadCount.decrementAndGet();
                 if (!firstHasCompleted)
                 {
                     firstHasCompleted = true;
@@ -319,6 +312,8 @@ public class Main
                 err("WARNING: " + failedPages.size() + " record(s) failed to load.");
                 err("         You may retry loading.");
             }
+            
+            ThreadsControl.shutdownAfterUser();
 
             switch (Config.Method)
             {

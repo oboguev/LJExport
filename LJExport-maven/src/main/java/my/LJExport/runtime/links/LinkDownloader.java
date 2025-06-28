@@ -35,8 +35,6 @@ public class LinkDownloader
     public static final String LINK_REFERENCE_PREFIX_PAGES = "../../../links/";
     public static final String LINK_REFERENCE_PREFIX_MONTHLY_PAGES ="../../links/";
     
-    private static Set<String> dontDownload;
-
     private static FileBackedMap href2file = new FileBackedMap();
     private static Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -384,31 +382,14 @@ public class LinkDownloader
 
     public static boolean shouldDownload(String href, boolean filterDownloadFileTypes) throws Exception
     {
-        synchronized (LinkDownloader.class)
-        {
-            if (dontDownload == null)
-                dontDownload = Util.read_set("dont-download.txt");
-        }
-
         try
         {
             if (href == null || href.length() == 0)
                 return false;
             href = Util.stripAnchor(href);
-
-            String flip = Util.flipProtocol(href);
-            if (dontDownload.contains(href) || dontDownload.contains(flip))
+            
+            if (DontDownload.dontDownload(href))
                 return false;
-
-            for (String dont : dontDownload)
-            {
-                if (dont.endsWith("/*"))
-                {
-                    dont = Util.stripTail(dont, "*");
-                    if (href.startsWith(dont) || flip.startsWith(dont))
-                        return false;
-                }
-            }
 
             URL url = new URL(href);
 

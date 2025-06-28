@@ -17,6 +17,7 @@ import my.LJExport.Config;
 import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
+import my.LJExport.runtime.HasNoComments;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
@@ -171,6 +172,9 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
 
     protected boolean hasComments() throws Exception
     {
+        if (HasNoComments.rurlHasNoComments(rurl))
+            return false;
+        
         Boolean has = null;
 
         Element commentsSection = findCommentsSection(pageRoot, true);

@@ -254,6 +254,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
             }
             else if (r.code == 404 || r.code == 410 || r.code == 451)
             {
+                // 404 may mean a suspended journal
                 return null;
             }
             else if (r.code != 200)

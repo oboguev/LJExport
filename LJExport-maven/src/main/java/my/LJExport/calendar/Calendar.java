@@ -50,7 +50,7 @@ public class Calendar
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to read user records calendar: " + Web.describe(r.code));
 
-        List<String> hrefs = DOM.extractHrefs(r.body);
+        List<String> hrefs = JSOUP.extractHrefs(r.body);
         for (String href : hrefs)
         {
             if (LJUtil.isJournalUrl(href, sb))

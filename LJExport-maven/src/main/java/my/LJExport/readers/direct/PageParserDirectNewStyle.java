@@ -63,6 +63,21 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
             hasComments = hasComments();
         }
 
+        if (0 != (flags & EXTRACT_COMMENTS_JSON))
+        {
+            if (0 == (flags & CHECK_HAS_COMMENTS))
+                throw new Exception("EXTRACT_COMMENTS_JSON requires CHECK_HAS_COMMENTS");
+
+            if (hasComments)
+            {
+                commentsJson = extractCommentsJson();
+            }
+            else
+            {
+                commentsJson = null;
+            }
+        }
+        
         /*
          * Empty out the comments section
          */

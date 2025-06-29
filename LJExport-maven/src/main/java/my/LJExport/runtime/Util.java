@@ -62,7 +62,7 @@ public class Util
             throw new Exception("stripTail: [" + s + "] does not start with [" + start + "]");
         return s.substring(start.length());
     }
-    
+
     public static List<String> sort(Set<String> set) throws Exception
     {
         List<String> vs = new ArrayList<>();
@@ -96,7 +96,6 @@ public class Util
 
         return is_in_domain("www." + site, domain);
     }
-
 
     /*
      * Check if @url begins with @prefix.
@@ -145,7 +144,7 @@ public class Util
             return;
         throw new UnableCreateDirectoryException("Unable to create directory " + path);
     }
-    
+
     public static class UnableCreateDirectoryException extends Exception
     {
         private static final long serialVersionUID = 1L;
@@ -451,7 +450,7 @@ public class Util
             "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
             "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
     };
-    
+
     // Illegal characters in Windows file names
     @SuppressWarnings("unused")
     private static final char[] WINDOWS_ILLEGAL_CHARS = {
@@ -463,7 +462,7 @@ public class Util
     private static final char[] LINUX_DISCOURAGED_CHARS = {
             '*', '?', '|', '>', '<', ':', '"', '\\'
     };
-    
+
     public static boolean isWindowsOS()
     {
         return File.separatorChar == '\\';
@@ -498,5 +497,41 @@ public class Util
             return "HTTP://" + Util.stripStart(s, "HTTPS://");
         else
             return s;
+    }
+
+    /*
+     * count number of times @ss occurs within @s
+     */
+    public static int countOccurrences(String s, String ss)
+    {
+        if (ss.isEmpty())
+            return 0; // Avoid infinite loop on empty substring
+
+        int count = 0;
+        int index = 0;
+        while ((index = s.indexOf(ss, index)) != -1)
+        {
+            count++;
+            index += ss.length();
+        }
+
+        return count;
+    }
+
+    /*
+     * extract substring located between two delimiters
+     */
+   public static String extractBetween(String s, String delimiter1, String delimiter2)
+    {
+        int start = s.indexOf(delimiter1);
+        if (start == -1)
+            return null; // delimiter1 not found
+        start += delimiter1.length();
+
+        int end = s.indexOf(delimiter2, start);
+        if (end == -1)
+            return null; // delimiter2 not found after delimiter1
+
+        return s.substring(start, end);
     }
 }

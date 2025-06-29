@@ -44,6 +44,7 @@ public abstract class PageParserDirectBase
         this.pageSource = other.pageSource;
         this.rurl = other.rurl;
         this.rid = other.rid;
+        this.commentsJson = other.commentsJson;
     }
 
     protected String getPageSource() throws Exception
@@ -57,12 +58,14 @@ public abstract class PageParserDirectBase
     public final static int CHECK_HAS_COMMENTS = (1 << 1);
     public final static int REMOVE_MAIN_TEXT = (1 << 2);
     public final static int REMOVE_SCRIPTS = (1 << 3);
+    public final static int EXTRACT_COMMENTS_JSON = (1 << 4);
 
     public int npages = -1;
     public Boolean hasComments = null;
 
     public Node pageRoot;
     public String pageSource;
+    public String commentsJson;
 
     public String rurl;
     public String rid;
@@ -175,7 +178,7 @@ public abstract class PageParserDirectBase
 
         return downloaded || unwrapped;
     }
-    
+
     /* ==================================================================================================================== */
 
     private boolean unwrapImgPrx(Node root, String tag, String attr, FutureProcessor<AsyncUnwrapImgPrx> fpUnwrap) throws Exception
@@ -630,12 +633,8 @@ public abstract class PageParserDirectBase
 
     public String extractCleanedHead() throws Exception
     {
-        List<Node> heads = JSOUP.findElements(pageRoot, "head");
-        if (heads.size() != 1)
-            throw new Exception("Unable to locate the HEAD tag");
-
         // perform deep clone
-        Node head = heads.get(0).clone();
+        Node head = findHead().clone();
 
         // remove individual entries
         JSOUP.removeElements(head, JSOUP.findElements(head, "title"));
@@ -652,12 +651,7 @@ public abstract class PageParserDirectBase
 
     public void cleanHead(String titleText) throws Exception
     {
-        List<Node> heads = JSOUP.findElements(pageRoot, "head");
-        if (heads.size() != 1)
-            throw new Exception("Unable to locate the HEAD tag");
-
-        // perform deep clone
-        Element head = (Element) heads.get(0);
+        Element head = findHead();
 
         // remove individual entries
         JSOUP.removeElements(head, JSOUP.findElements(head, "title"));
@@ -771,5 +765,56 @@ public abstract class PageParserDirectBase
         }
 
         JSOUP.removeNodes(delvec);
+    }
+
+    /* ============================================================== */
+
+    public String extractCommentsJson() throws Exception
+    {
+        Element head = findHead();
+        
+        final String DELIMITER_1 = " Site.page = {";
+        final String DELIMITER_2 = " Site.page.template = {";
+
+        String commentsScript = null;
+
+        for (Node scriptNode : JSOUP.findElements(head, "script", "type", "text/javascript"))
+        {
+            String script = JSOUP.asElement(scriptNode).data();
+
+            if (Util.countOccurrences(script, DELIMITER_1) == 1 && Util.countOccurrences(script, DELIMITER_2) == 1)
+            {
+                if (commentsScript != null)
+                    throw new Exception("Unexpected multiple comment scripts");
+                commentsScript = script;
+            }
+        }
+        
+        if (commentsScript == null)
+            throw new Exception("Unexpected missing comment script");
+        
+        String s = Util.extractBetween(commentsScript, DELIMITER_1, DELIMITER_2);
+        if (s == null)
+            throw new Exception("Unexpected missing comment script");
+        s = "{" + s;
+        
+        /* remove trailing spaces, tabs and newlines */
+        s = s.replaceAll("[ \\t\\n\\r]+$", "");
+        
+        if (!s.endsWith("};"))
+            throw new Exception("Unexpected missing comment script");
+        
+        s = Util.stripTail(s, ";");
+        
+        return s;
+    }
+
+    private Element findHead() throws Exception
+    {
+        List<Node> heads = JSOUP.findElements(pageRoot, "head");
+        if (heads.size() != 1)
+            throw new Exception("Unable to locate the HEAD tag");
+        Element head = (Element) heads.get(0);
+        return head;
     }
 }

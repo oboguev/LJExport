@@ -768,4 +768,12 @@ public class JSOUP
             result.add(n.clone());
         return result;
     }
+    
+    public static Element asElement(Node n) throws Exception
+    {
+        if (n instanceof Element)
+            return (Element) n;
+        else
+            throw new Exception("Node is not an Element");
+    }
 }

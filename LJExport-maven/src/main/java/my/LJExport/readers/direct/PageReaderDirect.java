@@ -26,6 +26,19 @@ public class PageReaderDirect implements PageReader, PageContentSource
     private final String linksDir;
 
     private PageParserDirectBase parser;
+    
+    /*
+     * For 1st page, use comment data embedded in page response, and do not do RPC.
+     * This could have potential benefit, since RPC may be unneeded for 1s page then. 
+     * However many of embedded comments are collapsed, so in practice more requests will be required
+     * to expand them.
+     * 
+     * In addition, the following comment elements differ in the embedded case:
+     *     type 
+     *     level (there is also added deepLevel)
+     *     leafclass can be "collapsed"
+     */
+    private static final boolean UseEmbeddedComments = false;
 
     public PageReaderDirect(String rurl, String fileDir, String linksDir)
     {
@@ -33,6 +46,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         if (Config.False)
         {
+            // rurl = "19518.html";   // test: roineroyce
             // rurl = "88279.html";   // test: nilsky_nikolay
             // rurl = "1076886.html"; // test: genby
             // rurl = "7430586.html"; // test: oboguev (with snipboard image)
@@ -79,10 +93,21 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         // List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
         // CommentsTree commentTree = new CommentsTree(commentList);
+        
+        if (UseEmbeddedComments)
+        {
+            parser.removeJunk(PageParserDirectBase.COUNT_PAGES |
+                    PageParserDirectBase.CHECK_HAS_COMMENTS |
+                    PageParserDirectBase.REMOVE_SCRIPTS |
+                    PageParserDirectBase.EXTRACT_COMMENTS_JSON);
+        }
+        else
+        {
+            parser.removeJunk(PageParserDirectBase.COUNT_PAGES |
+                    PageParserDirectBase.CHECK_HAS_COMMENTS |
+                    PageParserDirectBase.REMOVE_SCRIPTS);
+        }
 
-        parser.removeJunk(PageParserDirectBase.COUNT_PAGES |
-                PageParserDirectBase.CHECK_HAS_COMMENTS |
-                PageParserDirectBase.REMOVE_SCRIPTS);
         Node firstPageRoot = parser.pageRoot;
 
         // devCapturePageComments();

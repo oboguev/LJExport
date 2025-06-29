@@ -30,7 +30,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
     public PageReaderDirect(String rurl, String fileDir, String linksDir)
     {
         parser = new PageParserDirectClassic(this);
-        
+
         if (Config.False)
         {
             // rurl = "88279.html";   // test: nilsky_nikolay
@@ -66,7 +66,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         if (parser.pageRoot == null)
             parser.parseHtml();
-        
+
         switch (parser.detectPageStyle())
         {
         case "classic":
@@ -86,9 +86,9 @@ public class PageReaderDirect implements PageReader, PageContentSource
         Node firstPageRoot = parser.pageRoot;
 
         // devCapturePageComments();
-        
+
         String threadName = Thread.currentThread().getName();
-        
+
         if (parser.hasComments)
         {
             // load comments for each of the pages
@@ -96,10 +96,20 @@ public class PageReaderDirect implements PageReader, PageContentSource
             {
                 Thread.currentThread().setName(threadName + " comments page " + npage);
                 String cjson = loadPageComments(npage);
+                if (cjson == null)
+                {
+                    Main.markFailedPage(parser.rurl);
+                    return;
+                }
                 // devSaveJson(cjson, "x-" + parser.rid);
+
                 List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson);
                 CommentsTree commentTree = new CommentsTree(commentList);
-                expandCommentTree(npage, commentTree);
+                if (!expandCommentTree(npage, commentTree))
+                {
+                    Main.markFailedPage(parser.rurl);
+                    return;
+                }
 
                 // insert comments from commentTree into commentsSection 
                 // i.e. to under <article> find <div id="comments"> and append inside it
@@ -120,14 +130,15 @@ public class PageReaderDirect implements PageReader, PageContentSource
         // out(">>> done " + rurl);
     }
 
-    private void expandCommentTree(int npage, CommentsTree commentTree) throws Exception
+    private boolean expandCommentTree(int npage, CommentsTree commentTree) throws Exception
     {
         String threadNameBase = Thread.currentThread().getName();
-        
+
         try
         {
             Comment cload = null;
             int nload = 1;
+
             while (null != (cload = commentTree.findFirstUnloadedOrToExpandComment()))
             {
                 if (Config.False)
@@ -139,20 +150,26 @@ public class PageReaderDirect implements PageReader, PageContentSource
                             commentTree.countUnloadedOrUnexpandedComments(),
                             commentTree.totalComments()));
                 }
+
                 Thread.currentThread().setName(threadNameBase + " expansion #" + nload);
                 String cjson = loadCommentsThread(cload.thread);
+                if (cjson == null)
+                    return false;
                 // devSaveJson(cjson, "x-" + parser.rid + "-" + nload + "-" + cload.thread);
+
                 List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(cjson, cload);
                 commentTree.merge(cload, commentList);
                 nload++;
             }
+
+            commentTree.checkHaveAllComments();
+
+            return true;
         }
         finally
         {
             Thread.currentThread().setName(threadNameBase);
         }
-
-        commentTree.checkHaveAllComments();
     }
 
     private String lastReadPageSource = null;
@@ -201,14 +218,14 @@ public class PageReaderDirect implements PageReader, PageContentSource
     {
         return load(url, null);
     }
-    
+
     private String loadJson(String url) throws Exception
     {
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", Config.UserAgentAccept_Json);
         return load(url, headers);
     }
-    
+
     private String load(String url, Map<String, String> headers) throws Exception
     {
         lastURL = url;
@@ -231,7 +248,15 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
             Response r = Web.get(url, headers);
 
-            if (r.code != 200)
+            if (r.code == 204)
+            {
+                return null;
+            }
+            else if (r.code == 404 || r.code == 410 || r.code == 451)
+            {
+                return null;
+            }
+            else if (r.code != 200)
             {
                 if (retries > 5)
                     return null;
@@ -262,7 +287,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
     {
         if (thread == null || thread.equals(""))
             throw new Exception("Missing comment thread id");
-        
+
         String url = LJUtil.rpcCommentsForThread(parser.rid, thread);
         return loadJson(url);
     }

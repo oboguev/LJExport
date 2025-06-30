@@ -61,7 +61,7 @@ public class Comment
     public Boolean shown;
     public Boolean collapsed;
 
-    // can be "deleted", "screened", "suspended"
+    // can be "deleted", "screened", "suspended", "spammed"
     public String leafclass;
 
     public Comment cParent;
@@ -152,7 +152,7 @@ public class Comment
         if (c.level == 1 && c.parent != null)
             throwRuntimeException("Top-level comment has a parent");
 
-        if (c.level == 1 && !c.loaded && !c.isDeleted() && !c.isScreened())
+        if (c.level == 1 && !c.loaded && !c.isDeleted() && !c.isScreened() && !c.isSpammed())
             throwRuntimeException("Top-level comment is not loaded");
 
         return c;
@@ -176,6 +176,11 @@ public class Comment
     public boolean isSuspended()
     {
         return leafclass != null && leafclass.equals("suspended");
+    }
+
+    public boolean isSpammed()
+    {
+        return leafclass != null && leafclass.equals("spammed");
     }
 
     public boolean isEmptyPlaceholder()
@@ -479,7 +484,7 @@ public class Comment
 
     public void checkHasData()
     {
-        if (isDeleted())
+        if (isDeleted() || isSpammed())
             return;
 
         if (attemptedToLoad)

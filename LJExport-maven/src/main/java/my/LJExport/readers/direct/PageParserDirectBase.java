@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -197,7 +199,7 @@ public abstract class PageParserDirectBase
                 }
                 else
                 {
-                    String newref = Web.getRedirectLocation(href, null);
+                    String newref = resolveImgPrxRedirect(href);
                     if (newref != null)
                     {
                         JSOUP.updateAttribute(n, attr, newref);
@@ -236,7 +238,7 @@ public abstract class PageParserDirectBase
             try
             {
                 Thread.currentThread().setName("webload");
-                newref = Web.getRedirectLocation(href, null);
+                newref = resolveImgPrxRedirect(href);
             }
             catch (Exception ex)
             {
@@ -265,6 +267,46 @@ public abstract class PageParserDirectBase
                 return false;
             }
         }
+    }
+
+    private static final ConcurrentHashMap<String, Optional<String>> resolvedImgPrxLinks = new ConcurrentHashMap<>();
+
+    private static String resolveImgPrxRedirect(String href) throws Exception
+    {
+        String href_noprotocol = Util.stripProtocol(href);
+        
+        Optional<String> opt_newref = resolvedImgPrxLinks.get(href_noprotocol);
+        
+        if (opt_newref != null)
+        {
+            if (opt_newref.isPresent())
+            {
+                return opt_newref.get();
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        String newref = Web.getRedirectLocation(href, null);
+        if (newref != null)
+        {
+            String newref_noprotocol = Util.stripProtocol(newref);
+            if (newref_noprotocol.equals(href_noprotocol))
+                newref = null;
+        }
+
+        if (newref != null)
+        {
+            resolvedImgPrxLinks.put(href_noprotocol, Optional.of(newref));
+        }
+        else
+        {
+            resolvedImgPrxLinks.put(href_noprotocol, Optional.empty());
+        }
+
+        return newref;
     }
 
     /* ==================================================================================================================== */
@@ -772,7 +814,7 @@ public abstract class PageParserDirectBase
     public String extractCommentsJson() throws Exception
     {
         Element head = findHead();
-        
+
         final String DELIMITER_1 = " Site.page = {";
         final String DELIMITER_2 = " Site.page.template = {";
 
@@ -789,23 +831,23 @@ public abstract class PageParserDirectBase
                 commentsScript = script;
             }
         }
-        
+
         if (commentsScript == null)
             throw new Exception("Unexpected missing comment script");
-        
+
         String s = Util.extractBetween(commentsScript, DELIMITER_1, DELIMITER_2);
         if (s == null)
             throw new Exception("Unexpected missing comment script");
         s = "{" + s;
-        
+
         /* remove trailing spaces, tabs and newlines */
         s = s.replaceAll("[ \\t\\n\\r]+$", "");
-        
+
         if (!s.endsWith("};"))
             throw new Exception("Unexpected missing comment script");
-        
+
         s = Util.stripTail(s, ";");
-        
+
         return s;
     }
 

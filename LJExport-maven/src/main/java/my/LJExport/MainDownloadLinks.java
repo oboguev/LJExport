@@ -156,7 +156,7 @@ public class MainDownloadLinks
                 {
                     firstHasCompleted = true;
                     if (!Main.isAborting())
-                        out(">>> Wiating for active worker threads to complete ...");
+                        out(">>> Waiting for active worker threads to complete ...");
                 }
             }
 

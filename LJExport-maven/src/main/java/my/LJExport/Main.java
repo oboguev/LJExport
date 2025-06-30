@@ -294,7 +294,7 @@ public class Main
                 {
                     firstHasCompleted = true;
                     if (!isAborting())
-                        out(">>> Wiating for active worker threads to complete ...");
+                        out(">>> Waiting for active worker threads to complete ...");
                 }
             }
 
@@ -570,7 +570,7 @@ public class Main
                 int nc = nCurrent.incrementAndGet();
                 double fpct = 100.0 * ((double) nc / nTotal);
                 out(">>> " + "[" + Config.User + "] " + rurl + " (" + nc + "/" + nTotal + ", " + String.format("%.2f", fpct)
-                        + "%) " + ActivityCounters.summary());
+                        + "%) " + ActivityCounters.summary(nTotal - nc));
 
                 Thread.currentThread().setName("page-loader: loading " + rurl);
 

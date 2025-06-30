@@ -514,6 +514,9 @@ public abstract class PageParserDirectBase
             if (classes.contains("aentry") && classes.contains("aentry--post2017"))
                 style = detectPageStyle(style, "new-style");
 
+            if (classes.contains("aentry") && classes.contains("ng-scope"))
+                style = detectPageStyle(style, "new-style");
+
             if (classes.contains("b-singlepost") && classes.contains("hentry"))
                 style = detectPageStyle(style, "classic");
 

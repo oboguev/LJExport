@@ -50,6 +50,7 @@ public class EnumUsers
         users.remove("d_olshansky.ljsearch");
         users.remove("krylov.comments");
         users.remove("oboguev.comments");
+        users.remove("olshansky");
         users.remove("udod99.comments");
         users.remove("udod99.journal");
         users.remove("udod99-epub");
@@ -65,15 +66,18 @@ public class EnumUsers
     {
         List<String> users = allUsers(options);
 
-        // Find the index of the target user
-        int index = users.indexOf(fromUser);
+        if (fromUser != null)
+        {
+            // Find the index of the target user
+            int index = users.indexOf(fromUser);
 
-        // Throw exception if not found
-        if (index == -1)
-            throw new IllegalArgumentException("User '" + fromUser + "' not found");
+            // Throw exception if not found
+            if (index == -1)
+                throw new IllegalArgumentException("User '" + fromUser + "' not found");
 
-        // Remove all elements before the found user
-        users.subList(0, index).clear();
+            // Remove all elements before the found user
+            users.subList(0, index).clear();
+        }
 
         return users;
     }

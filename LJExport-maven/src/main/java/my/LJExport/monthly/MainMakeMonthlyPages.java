@@ -7,6 +7,7 @@ import java.util.List;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.Util;
 
 /*
@@ -14,19 +15,49 @@ import my.LJExport.runtime.Util;
  */
 public class MainMakeMonthlyPages
 {
+    private static final String ALL_USERS = "<all>";
+    private static final String AllUsersFromUser = null;
+    // private static final String AllUsersFromUser = "olegnemen";
+
     // private static String Users = "alex_vergin,asriyan,blog_10101,hokma,sergeytsvetkov";
-    private static String Users = "alex_vergin";
+    // private static String Users = "alex_vergin";
+    // private static final String Users = ALL_USERS;
+    private static String Users = "krylov";
 
     public static void main(String[] args)
     {
         try
         {
-            for (String user : Users.split(","))
+            String users = Users;
+
+            if (users.equals(ALL_USERS))
+            {
+                List<String> list = EnumUsers.allUsers(AllUsersFromUser, EnumUsers.Options.DEFAULT);
+                users = String.join(",", list);
+            }
+
+            boolean divider = false;
+
+            for (String user : users.split(","))
             {
                 user = user.trim();
                 if (user.length() != 0)
                 {
-                    new MainMakeMonthlyPages().processUser(user);
+                    if (Config.False)
+                    {
+                        Main.out(user);
+                    }
+                    else
+                    {
+                        if (divider)
+                        {
+                            Main.out("");
+                            Main.out("===========================================================================");
+                            Main.out("");
+                        }
+                        new MainMakeMonthlyPages().processUser(user);
+                        divider = true;
+                    }
                 }
             }
         }
@@ -51,13 +82,16 @@ public class MainMakeMonthlyPages
     {
         String pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + whichDir;
         String monthlyPagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "monthly-" + whichDir;
-
+        
         File fp = new File(pagesDir).getCanonicalFile();
         if (!fp.exists() || !fp.isDirectory())
             return;
-        
+
         Main.out("");
-        Main.out(String.format(">>> Processing %s for user %s", whichDir, Config.User));
+        Main.out(String.format(">>> Processing monthly %s for user %s", whichDir, Config.User));
+
+        if (!Util.deleteDirectoryTree(monthlyPagesDir))
+            throw new Exception("Was unable to delete " + monthlyPagesDir);
 
         List<String> years = listNumericFolders(pagesDir);
         for (String year : years)
@@ -71,17 +105,17 @@ public class MainMakeMonthlyPages
                 if (pageFileNames.size() != 0)
                 {
                     Main.out(String.format("Processing [%s] %s-%s", Config.User, year, month));
-                    MonthProcessor mp = new MonthProcessor(pagesMonthDir, 
-                            pageFileNames, 
-                            String.format("%s%s%s-%s", monthlyPagesDir + File.separator, year + File.separator, year, month), 
-                            year, 
+                    MonthProcessor mp = new MonthProcessor(pagesMonthDir,
+                            pageFileNames,
+                            String.format("%s%s%s-%s", monthlyPagesDir + File.separator, year + File.separator, year, month),
+                            year,
                             month);
                     mp.process();
                 }
             }
         }
 
-        Main.out(String.format(">>> Completed processing %s for user %s", whichDir, Config.User));
+        Main.out(String.format(">>> Completed processing monthly %s for user %s", whichDir, Config.User));
     }
 
     /* ===================================================================== */

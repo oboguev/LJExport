@@ -20,6 +20,9 @@ import java.util.UUID;
 import java.util.Vector;
 
 import org.json.JSONObject;
+
+import my.LJExport.Config;
+
 import org.json.JSONArray;
 
 public class Util
@@ -521,7 +524,7 @@ public class Util
     /*
      * extract substring located between two delimiters
      */
-   public static String extractBetween(String s, String delimiter1, String delimiter2)
+    public static String extractBetween(String s, String delimiter1, String delimiter2)
     {
         int start = s.indexOf(delimiter1);
         if (start == -1)
@@ -533,5 +536,66 @@ public class Util
             return null; // delimiter2 not found after delimiter1
 
         return s.substring(start, end);
+    }
+    
+    public static void out(String s)
+    {
+        System.out.println(s);
+        System.out.flush();
+    }
+
+    public static void err(String s)
+    {
+        System.out.flush();
+        System.err.println(s);
+        System.err.flush();
+    }
+
+    public static boolean deleteDirectoryTree(String root) throws Exception
+    {
+        return deleteDirectoryTree(new File(root).getCanonicalFile());
+    }
+
+    public static boolean deleteDirectoryTree(File root) throws Exception
+    {
+        return deleteDirectoryTree(root, true);
+    }
+
+    private static boolean deleteDirectoryTree(File root, boolean istop) throws Exception
+    {
+        if (root != null)
+            root = root.getCanonicalFile();
+
+        if (root == null || !root.exists())
+            return true; // Nothing to delete
+
+        if (istop && !root.isDirectory())
+            return false;
+
+        if (root.isDirectory())
+        {
+            File[] files = root.listFiles();
+
+            if (files != null)
+            {
+                for (File f : files)
+                {
+                    // Abort if any delete fails
+                    if (!deleteDirectoryTree(f, false))
+                        return false;
+                }
+            }
+        }
+        
+        if (Config.False)
+        {
+            out("Pseudo-deleting " + root.getCanonicalPath());
+            return true;
+        }
+        else
+        {
+            // Delete file or empty directory
+            return root.delete();
+        }
     }
 }

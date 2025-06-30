@@ -109,7 +109,8 @@ public class MainMakeMonthlyPages
                             pageFileNames,
                             String.format("%s%s%s-%s", monthlyPagesDir + File.separator, year + File.separator, year, month),
                             year,
-                            month);
+                            month,
+                            whichDir);
                     mp.process();
                 }
             }

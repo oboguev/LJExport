@@ -18,14 +18,16 @@ public class MonthProcessor
     private final String monthlyFilePrefix;
     private final String year;
     private final String month;
+    private final String whichDir;
 
-    public MonthProcessor(String pagesMonthDir, List<String> pageFileNames, String monthlyFilePrefix, String year, String month)
+    public MonthProcessor(String pagesMonthDir, List<String> pageFileNames, String monthlyFilePrefix, String year, String month, String whichDir)
     {
         this.pagesMonthDir = pagesMonthDir;
         this.pageFileNames = pageFileNames;
         this.monthlyFilePrefix = monthlyFilePrefix;
         this.year = year;
         this.month = month;
+        this.whichDir = whichDir;
     }
     
     public void process() throws Exception
@@ -67,7 +69,7 @@ public class MonthProcessor
                 }
                 
                 parser.deleteDivThreeposts();
-                mcs.addPage(parser, rid_numeric);
+                mcs.addPage(parser, rid_numeric, whichDir);
             }
             catch (Exception ex)
             {

@@ -32,9 +32,9 @@ public class MonthCollectors
         this.month = month;
     }
 
-    public void addPage(PageParserDirectBase parser, int rid) throws Exception
+    public void addPage(PageParserDirectBase parser, int rid, String whichDir) throws Exception
     {
-        final String local_href = String.format("../../pages/%s/%s/%s.html", year, month, rid);
+        final String local_href = String.format("../../%s/%s/%s/%s.html", whichDir, year, month, rid);
         final String visible_href = rid + ".html";
         final String hr = "<hr style=\"height: 7px;border: 1;box-shadow: inset 0 9px 9px -3px\r\n"
                 + "      rgba(11, 99, 184, 0.8);-webkit-border-radius:\r\n"

@@ -749,6 +749,19 @@ public abstract class PageParserDirectBase
         }
 
         JSOUP.removeElements(pageRoot, vel);
+        
+        /*
+         * Older pages have comments under 
+         * <form id="multiform" name="multiform" method="post" action="https://www.livejournal.com/talkmulti.bml" class="ng-pristine ng-valid">
+         */
+        vel.clear();
+        for (Node n : JSOUP.findElements(pageRoot, "form"))
+        {
+            String action = JSOUP.getAttribute(n, "action");
+            if (action != null && action.contains("livejournal.com/talkmulti.bml"))
+                vel.add(n);
+        }
+        JSOUP.removeElements(pageRoot, vel);
     }
 
     public Element getBodyTag() throws Exception

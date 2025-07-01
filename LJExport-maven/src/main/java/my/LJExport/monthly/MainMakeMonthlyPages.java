@@ -22,7 +22,7 @@ public class MainMakeMonthlyPages
     // private static String Users = "alex_vergin,asriyan,blog_10101,hokma,sergeytsvetkov";
     // private static String Users = "alex_vergin";
     // private static final String Users = ALL_USERS;
-    private static String Users = "krylov";
+    private static String Users = "amfora,colonelcassad,fluffyduck2,genby,kot_begemott,lasido,sergeytsvetkov,von_hoffmann";
 
     public static void main(String[] args)
     {

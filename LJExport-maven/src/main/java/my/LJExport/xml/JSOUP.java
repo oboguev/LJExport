@@ -786,4 +786,15 @@ public class JSOUP
         else
             return vn.get(0);
     }
+    
+    public static Element locateUpwardElement(Node n, String tag) throws Exception
+    {
+        for (Node p = n.parentNode();;)
+        {
+            if (p == null)
+                return null;
+            if (p instanceof Element && asElement(p).tagName().equalsIgnoreCase(tag))
+                return asElement(p);
+        }
+    }
 }

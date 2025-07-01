@@ -76,10 +76,9 @@ public class ReadProfile
         parser.parseHtml();
         
         // ### standalone -- different 
-        // ### clean scripts/noscripts, meta, links etc. here and others
         
         Node el = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile"));
-        parser.removeProfilePageJunk(el);
+        parser.removeProfilePageJunk(Config.User + " - Profile", el);
         
         JSOUP.removeElements(parser.pageRoot, JSOUP.findElementsWithClass(parser.pageRoot, "ul", "b-profile-actions"));
         
@@ -104,7 +103,8 @@ public class ReadProfile
         
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Userpics</font>
         Node el = findRequiredPivotElement("font", "Userpics");
-        parser.removeProfilePageJunk(el);
+        parser.removeProfilePageJunk(Config.User + " - Userpics", el);
+        // ### bug: deletes even cells containing @el
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir);
@@ -114,6 +114,7 @@ public class ReadProfile
             fpProfileDir.mkdirs();
 
         Util.writeToFileSafe(new File(fpProfileDir, "userpics.html").getCanonicalPath(), html);
+        Util.noop();
     }
     
     private void readMemories() throws Exception
@@ -126,7 +127,7 @@ public class ReadProfile
         
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Memorable Entries</font>
         Node el = findRequiredPivotElement("font", "Memorable Entries");
-        parser.removeProfilePageJunk(el);
+        parser.removeProfilePageJunk(Config.User + " - Memories", el);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir);
@@ -142,7 +143,7 @@ public class ReadProfile
         parser.parseHtml();
         
         Node el = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics"));
-        parser.removeProfilePageJunk(el);
+        parser.removeProfilePageJunk(Config.User + " - Pictures", el);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir);

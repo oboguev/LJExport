@@ -14,6 +14,8 @@ public class FileBackedMap
     private String filePathPrefix;
 
     public static final String SEPARATOR = "----";
+    
+    // ### TODO : locking
 
     public synchronized void init(String path) throws IOException
     {

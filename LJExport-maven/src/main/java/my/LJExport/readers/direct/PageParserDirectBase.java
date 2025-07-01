@@ -874,12 +874,18 @@ public abstract class PageParserDirectBase
 
     /* ============================================================== */
 
-    public void removeProfilePageJunk(Node n) throws Exception
+    public void removeProfilePageJunk(String titleText, Node n) throws Exception
     {
+        cleanHead(titleText);
+
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(JSOUP.flatten(pageRoot), "script"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(JSOUP.flatten(pageRoot), "noscript"));
+        
         /*
          * Delete all table rows/cells and tables except directly containing @n
+         * and also contained within the the same "td" cell as @n 
          */
-        Set<Node> preserve = new HashSet<>();
+        List<Node> preserve = new ArrayList<>();
 
         for (Node p = n;; p = p.parentNode())
         {
@@ -887,19 +893,31 @@ public abstract class PageParserDirectBase
             if (p instanceof Element && JSOUP.asElement(p).tagName().equalsIgnoreCase("body"))
                 break;
         }
+        
+        Element td = JSOUP.locateUpwardElement(n, "td");
+        preserve.addAll(JSOUP.findElements(td, "td"));
+        preserve.addAll(JSOUP.findElements(td, "tr"));
+        preserve.addAll(JSOUP.findElements(td, "table"));
 
         deleteExcept("td", preserve);
         deleteExcept("tr", preserve);
         deleteExcept("table", preserve);
+        Util.noop();
     }
-
-    private void deleteExcept(String tag, Set<Node> preserve) throws Exception
+    
+    private void deleteExcept(String tag, List<Node> preserve) throws Exception
     {
         List<Node> vn = JSOUP.findElements(pageRoot, tag);
         for (Node n : vn)
         {
             if (!preserve.contains(n))
+            {
+                if (n.toString().contains("kluven"))
+                {
+                    Util.noop();
+                }
                 n.remove();
+            }
         }
     }
 }

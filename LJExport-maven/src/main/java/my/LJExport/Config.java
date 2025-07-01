@@ -17,6 +17,7 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 import my.LJExport.calendar.YYYY_MM;
 import my.LJExport.runtime.ConfigUI;
 import my.LJExport.runtime.PasswordStorage;
+import my.LJExport.runtime.TrustAnySSL;
 import my.LJExport.runtime.Util;
 
 public class Config
@@ -29,15 +30,15 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "roineroyce";
+    public static final String Users = "kouzdra";
     // public static final String Users = "nikital2014,bash_m_ak,genby,olegnemen,eremei,afanarizm,jlm_taurus,corporatelie,wyradhe,nilsky_nikolay,von_hoffmann,a_samovarov,bantaputu,a_kaminsky,d_olshansky,rn_manifesto,ru_bezch,nep2,ego,hokma,laert,haritonov,1981dn,1981dn_dn,bantaputu,polit_ec,zhenziyou,a_bugaev,tor85,oboguev,morky,krylov,rms1,pioneer_lj,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
     // public static final String Users = "alex_vergin,sergeytsvetkov,blog_10101"; // new-style journals 
 
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    // public static final String DownloadRoot = "C:\\LJExport-journals";
-    public static final String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    public static final String DownloadRoot = "C:\\LJExport-journals";
+    // public static final String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
     public static final YYYY_MM LoadSince = null;
@@ -114,7 +115,7 @@ public class Config
     public static final String FiddlerTrustStore = null;
     public static String FidlerTrustStorePassword = null;
 
-    public static final boolean TrustAnySSL = true;
+    public static final boolean TrustAnySSLCertificate = true;
 
     public static String NullFile = null;
 
@@ -159,16 +160,8 @@ public class Config
             }
         }
 
-        if (TrustAnySSL)
-        {
-            SSLContext sslContext = SSLContext.getInstance("SSL");
-
-            // set up a TrustManager that trusts everything
-            TrustManager[] trustManagers = new TrustManager[1];
-            trustManagers[0] = new LooseTrustManager();
-            sslContext.init(null, trustManagers, new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-        }
+        if (TrustAnySSLCertificate)
+            TrustAnySSL.trustAnySSL();
 
         if (Method == Config.WebMethod.HTML_UNIT)
         {
@@ -243,23 +236,4 @@ public class Config
     /* development aids */
     public static boolean True = true;
     public static boolean False = false;
-
-    public static class LooseTrustManager implements X509TrustManager
-    {
-        public X509Certificate[] getAcceptedIssuers()
-        {
-            // System.err.println("getAcceptedIssuers =============");
-            return new X509Certificate[0];
-        }
-
-        public void checkClientTrusted(X509Certificate[] certs, String authType)
-        {
-            // System.err.println("checkClientTrusted =============");
-        }
-
-        public void checkServerTrusted(X509Certificate[] certs, String authType)
-        {
-            // System.err.println("checkServerTrusted =============");
-        }
-    }
 }

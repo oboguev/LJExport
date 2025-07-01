@@ -47,7 +47,9 @@ public class ExclusiveFileAccess
                 channel = FileChannel.open(filePath,
                         StandardOpenOption.CREATE_NEW, // fails if file exists
                         StandardOpenOption.WRITE,
-                        StandardOpenOption.APPEND);
+                        StandardOpenOption.READ,
+                        // StandardOpenOption.APPEND, // incompatible with READ
+                        StandardOpenOption.DSYNC);
                 fileCreated = true;
             }
             catch (FileAlreadyExistsException e)
@@ -55,17 +57,15 @@ public class ExclusiveFileAccess
                 // File already exists — open normally
                 channel = FileChannel.open(filePath,
                         StandardOpenOption.WRITE,
-                        StandardOpenOption.APPEND);
+                        StandardOpenOption.READ,
+                        // StandardOpenOption.APPEND,  // incompatible with READ
+                        StandardOpenOption.DSYNC);
             }
 
             // Acquire exclusive lock on the file
             lock = channel.tryLock();
             if (lock == null)
                 throw new IOException("File is locked by another process: " + filePath);
-
-            // Use the same channel for writing
-            OutputStream outputStream = Channels.newOutputStream(channel);
-            writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
         }
         catch (IOException | RuntimeException e)
         {
@@ -74,8 +74,11 @@ public class ExclusiveFileAccess
         }
     }
 
-    public String readExistingContent() throws IOException
+    public synchronized String readExistingContent() throws IOException
     {
+        if (writer != null)
+            throw new IOException("Already started appending");
+
         // Read through the locked channel
         long fileSize = channel.size();
         if (fileSize == 0)
@@ -91,7 +94,7 @@ public class ExclusiveFileAccess
         return StandardCharsets.UTF_8.decode(buffer).toString();
     }
 
-    public List<String> readExistingLines() throws IOException
+    public synchronized List<String> readExistingLines() throws IOException
     {
         String content = readExistingContent();
         List<String> lines = new ArrayList<>();
@@ -105,17 +108,29 @@ public class ExclusiveFileAccess
         return lines;
     }
 
-    public void appendContent(String content) throws IOException
+    public synchronized void appendContent(String content) throws IOException
     {
+        beginAppend();
         writer.write(content);
     }
 
-    public void flush() throws IOException
+    private void beginAppend() throws IOException
     {
-        writer.flush();
+        if (writer == null)
+        {
+            channel.position(channel.size()); // Seek to end for append
+            OutputStream outputStream = Channels.newOutputStream(channel);
+            writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
+        }
     }
 
-    public void close()
+    public synchronized void flush() throws IOException
+    {
+        if (writer != null)
+            writer.flush();
+    }
+
+    public synchronized void close()
     {
         closeResources();
     }
@@ -160,7 +175,7 @@ public class ExclusiveFileAccess
         channel = null;
         filePath = null;
         fileCreated = false;
-   }
+    }
 
     /* ====================================================================================== */
 

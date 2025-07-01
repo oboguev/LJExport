@@ -12,6 +12,8 @@ import my.LJExport.runtime.Util;
 
 /*
  * Создать помесячные страницы с записями
+ * 
+ * Use stack size: -Xss16m
  */
 public class MainMakeMonthlyPages
 {

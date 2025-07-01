@@ -40,6 +40,11 @@ import java.io.File;
 // http://www.livejournal.com/manage/logins.bml
 // http://www.livejournal.com/logout.bml
 
+/*
+ * Загрузить страницы дневника.
+ * 
+ * Use stack size: -Xss2m
+ */
 public class Main
 {
     public class MainRunnable implements Runnable

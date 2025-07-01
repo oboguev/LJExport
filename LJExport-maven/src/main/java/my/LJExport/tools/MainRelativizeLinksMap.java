@@ -12,6 +12,8 @@ import my.LJExport.runtime.Util;
  * Преобразовать файл map-href-file.txt 
  * из старого формата с абсолютными путями файлов
  * в новый формат с относительными путями. 
+ * 
+ * Use stack size: -Xss2m
  */
 public class MainRelativizeLinksMap
 {

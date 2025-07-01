@@ -22,7 +22,7 @@ public class DontDownload
 
         for (String dont : dontDownload)
         {
-            if (dont.endsWith("/*"))
+            if (dont.endsWith("/*") || dont.endsWith("?*"))
             {
                 dont = Util.stripTail(dont, "*");
                 if (href.startsWith(dont) || flip.startsWith(dont))

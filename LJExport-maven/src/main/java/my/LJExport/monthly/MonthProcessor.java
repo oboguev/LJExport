@@ -5,8 +5,8 @@ import java.util.List;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
-import my.LJExport.MainDownloadLinks.PageParserDirectBasePassive;
 import my.LJExport.readers.direct.PageParserDirectBase;
+import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.readers.direct.PageParserDirectClassic;
 import my.LJExport.readers.direct.PageParserDirectNewStyle;
 import my.LJExport.runtime.Util;

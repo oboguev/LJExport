@@ -776,4 +776,14 @@ public class JSOUP
         else
             throw new Exception("Node is not an Element");
     }
+    
+    public static Node exactlyOne(List<Node> vn) throws Exception
+    {
+        if (vn.size() == 0)
+            throw new Exception("Missing required element");
+        else if (vn.size() != 1)
+            throw new Exception("Unexpected Multiple elements");
+        else
+            return vn.get(0);
+    }
 }

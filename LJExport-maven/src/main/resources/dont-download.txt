@@ -21,6 +21,12 @@ https://xc3.services.livejournal.com/*
 http://olegmakarenko.ru/ljcounter/*
 https://olegmakarenko.ru/ljcounter/*
 http://2.s05.flagcounter.com/count/MECnk/*
+http://www.tns-counter.ru/*
+https://www.tns-counter.ru/*
+http://mc.yandex.ru/watch/*
+https://mc.yandex.ru/watch/*
+http://vk.com/rtrg?*
+https://vk.com/rtrg?*
 
 # permanently stuck sites
 http://im-tub.yandex.ru/*

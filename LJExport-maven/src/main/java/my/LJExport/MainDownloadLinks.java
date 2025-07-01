@@ -5,12 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
-
-import my.LJExport.readers.CommentsTree;
-import my.LJExport.readers.PageContentSource;
 import my.LJExport.readers.direct.PageParserDirectBase;
+import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.ActivityCounters;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.RateLimiter;
@@ -223,49 +219,6 @@ public class MainDownloadLinks
     private static void err(String s)
     {
         Main.err(s);
-    }
-
-    /* =============================================================== */
-
-    public static class PageParserDirectBasePassive extends PageParserDirectBase
-    {
-        public PageParserDirectBasePassive()
-        {
-            super(new NoPageSource());
-        }
-
-        @Override
-        public void removeJunk(int flags) throws Exception
-        {
-            throw new Exception("Not implemented");
-        }
-
-        @Override
-        public Element findCommentsSection(Node pageRootCurrent, boolean required) throws Exception
-        {
-            throw new Exception("Not implemented");
-        }
-
-        @Override
-        public void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception
-        {
-            throw new Exception("Not implemented");
-        }
-
-        @Override
-        public Element findMainArticle() throws Exception
-        {
-            throw new Exception("Not implemented");
-        }
-    }
-
-    public static class NoPageSource implements PageContentSource
-    {
-        @Override
-        public String getPageSource() throws Exception
-        {
-            throw new Exception("Not implemented");
-        }
     }
 
     /* =============================================================== */

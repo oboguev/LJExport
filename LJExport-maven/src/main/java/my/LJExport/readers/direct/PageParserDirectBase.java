@@ -83,6 +83,13 @@ public abstract class PageParserDirectBase
         rurl = null;
         rid = null;
     }
+    
+    private String linkReferencePrefix = LinkDownloader.LINK_REFERENCE_PREFIX_PAGES;
+    
+    public void setLinkReferencePrefix(String linkReferencePrefix)
+    {
+        this.linkReferencePrefix = linkReferencePrefix;
+    }
 
     /* ============================================================== */
 
@@ -107,7 +114,7 @@ public abstract class PageParserDirectBase
         parseHtml(this.pageSource);
     }
 
-    protected boolean isBadGatewayPage(String html) throws Exception
+    public boolean isBadGatewayPage(String html) throws Exception
     {
         if (html.contains("Bad Gateway:") || html.contains("Gateway Timeout"))
         {
@@ -274,9 +281,9 @@ public abstract class PageParserDirectBase
     private static String resolveImgPrxRedirect(String href) throws Exception
     {
         String href_noprotocol = Util.stripProtocol(href);
-        
+
         Optional<String> opt_newref = resolvedImgPrxLinks.get(href_noprotocol);
-        
+
         if (opt_newref != null)
         {
             if (opt_newref.isPresent())
@@ -322,15 +329,15 @@ public abstract class PageParserDirectBase
 
             if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
-                String referer = LJUtil.recordPageURL(rurl);
+                String referer = (rurl == null) ? null : LJUtil.recordPageURL(rurl);
 
                 if (ThreadsControl.useLinkDownloadThreads())
                 {
-                    fpDownload.add(new AsyncDownloadExternalLinks(n, attr, href, referer, linksDir));
+                    fpDownload.add(new AsyncDownloadExternalLinks(n, attr, href, referer, linksDir, linkReferencePrefix));
                 }
                 else
                 {
-                    String newref = LinkDownloader.download(linksDir, href, referer, LinkDownloader.LINK_REFERENCE_PREFIX_PAGES);
+                    String newref = LinkDownloader.download(linksDir, href, referer, linkReferencePrefix);
                     if (newref != null)
                     {
                         JSOUP.updateAttribute(n, attr, newref);
@@ -352,18 +359,20 @@ public abstract class PageParserDirectBase
         private final String href;
         private final String referer;
         private final String linksDir;
+        private final String linkReferencePrefix;
 
         // out
         private String newref;
         private Exception ex;
 
-        public AsyncDownloadExternalLinks(Node n, String attr, String href, String referer, String linksDir)
+        public AsyncDownloadExternalLinks(Node n, String attr, String href, String referer, String linksDir, String linkReferencePrefix)
         {
             this.n = n;
             this.attr = attr;
             this.href = href;
             this.referer = referer;
             this.linksDir = linksDir;
+            this.linkReferencePrefix = linkReferencePrefix;
         }
 
         @Override
@@ -374,7 +383,7 @@ public abstract class PageParserDirectBase
             try
             {
                 Thread.currentThread().setName("webload");
-                newref = LinkDownloader.download(linksDir, href, referer, LinkDownloader.LINK_REFERENCE_PREFIX_PAGES);
+                newref = LinkDownloader.download(linksDir, href, referer, linkReferencePrefix);
             }
             catch (Exception ex)
             {
@@ -861,5 +870,36 @@ public abstract class PageParserDirectBase
             throw new Exception("Unable to locate the HEAD tag");
         Element head = (Element) heads.get(0);
         return head;
+    }
+
+    /* ============================================================== */
+
+    public void removeProfilePageJunk(Node n) throws Exception
+    {
+        /*
+         * Delete all table rows/cells and tables except directly containing @n
+         */
+        Set<Node> preserve = new HashSet<>();
+
+        for (Node p = n;; p = p.parentNode())
+        {
+            preserve.add(p);
+            if (p instanceof Element && JSOUP.asElement(p).tagName().equalsIgnoreCase("body"))
+                break;
+        }
+
+        deleteExcept("td", preserve);
+        deleteExcept("tr", preserve);
+        deleteExcept("table", preserve);
+    }
+
+    private void deleteExcept(String tag, Set<Node> preserve) throws Exception
+    {
+        List<Node> vn = JSOUP.findElements(pageRoot, tag);
+        for (Node n : vn)
+        {
+            if (!preserve.contains(n))
+                n.remove();
+        }
     }
 }

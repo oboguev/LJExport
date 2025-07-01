@@ -57,7 +57,7 @@ public class MainMakeMonthlyPages
                             Main.out("===========================================================================");
                             Main.out("");
                         }
-                        new MainMakeMonthlyPages().processUser(user);
+                        new MainMakeMonthlyPages().processUser(user, false);
                         divider = true;
                     }
                 }
@@ -72,15 +72,15 @@ public class MainMakeMonthlyPages
         Main.playCompletionSound();
     }
 
-    private void processUser(String user) throws Exception
+    protected void processUser(String user, boolean ljsearch) throws Exception
     {
         Config.User = user;
         Config.mangleUser();
-        processUserSection("pages", true);
-        processUserSection("reposts", false);
+        processUserSection("pages", ljsearch, true);
+        processUserSection("reposts", ljsearch, false);
     }
 
-    private void processUserSection(String whichDir, boolean required) throws Exception
+    private void processUserSection(String whichDir, boolean ljsearch, boolean required) throws Exception
     {
         String pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + whichDir;
         String monthlyPagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "monthly-" + whichDir;
@@ -112,7 +112,8 @@ public class MainMakeMonthlyPages
                             String.format("%s%s%s-%s", monthlyPagesDir + File.separator, year + File.separator, year, month),
                             year,
                             month,
-                            whichDir);
+                            whichDir,
+                            ljsearch);
                     mp.process();
                 }
             }

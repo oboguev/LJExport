@@ -933,4 +933,42 @@ public abstract class PageParserDirectBase
             }
         }
     }
+
+    /* ============================================================== */
+    
+    
+    public String extractCleanedHeadLJSearch() throws Exception
+    {
+        // perform deep clone
+        Node head = findHead().clone();
+
+        // remove individual entries
+        JSOUP.removeElements(head, JSOUP.findElements(head, "title"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "meta"));
+        JSOUP.removeElements(head, JSOUP.findComments(head));
+        JSOUP.removeWhitespaceNodes(head);
+
+        String outerHtml = head.outerHtml();
+        return outerHtml;
+    }
+
+    public void cleanHeadLJSearch(String titleText) throws Exception
+    {
+        Element head = findHead();
+
+        // remove individual entries
+        JSOUP.removeElements(head, JSOUP.findElements(head, "title"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "meta"));
+
+        // Create and append <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        Element meta = new Element(Tag.valueOf("meta"), "");
+        meta.attr("http-equiv", "Content-Type");
+        meta.attr("content", "text/html; charset=utf-8");
+        head.appendChild(meta);
+
+        // Create and append <title>....</title>
+        Element title = new Element(Tag.valueOf("title"), "");
+        title.text(titleText);
+        head.appendChild(title);
+    }
 }

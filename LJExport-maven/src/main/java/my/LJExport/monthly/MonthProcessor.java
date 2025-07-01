@@ -19,8 +19,9 @@ public class MonthProcessor
     private final String year;
     private final String month;
     private final String whichDir;
+    private final boolean ljsearch;
 
-    public MonthProcessor(String pagesMonthDir, List<String> pageFileNames, String monthlyFilePrefix, String year, String month, String whichDir)
+    public MonthProcessor(String pagesMonthDir, List<String> pageFileNames, String monthlyFilePrefix, String year, String month, String whichDir, boolean ljsearch)
     {
         this.pagesMonthDir = pagesMonthDir;
         this.pageFileNames = pageFileNames;
@@ -28,11 +29,12 @@ public class MonthProcessor
         this.year = year;
         this.month = month;
         this.whichDir = whichDir;
+        this.ljsearch = ljsearch;
     }
     
     public void process() throws Exception
     {
-        MonthCollectors mcs = new MonthCollectors(year, month);
+        MonthCollectors mcs = new MonthCollectors(year, month, ljsearch);
         
         for (String fn : pageFileNames)
         {
@@ -40,7 +42,7 @@ public class MonthProcessor
             
             try
             {
-                if (Config.True && pageFileFullPath.equals("F:\\WINAPPS\\LJExport\\journals\\harmfulgrumpy\\pages\\2016\\01\\288850.html"))
+                if (Config.False && pageFileFullPath.equals("F:\\WINAPPS\\LJExport\\journals\\harmfulgrumpy\\pages\\2016\\01\\288850.html"))
                 {
                     Main.out("HIT!");
                     Util.noop();
@@ -57,18 +59,26 @@ public class MonthProcessor
                 parser.pageSource = Util.readFileAsString(pageFileFullPath);
                 parser.parseHtml(parser.pageSource);
                 
-                switch (parser.detectPageStyle())
+                if (ljsearch)
                 {
-                case "classic":
-                    parser = new PageParserDirectClassic(parser);
-                    break;
-
-                case "new-style":
-                    parser = new PageParserDirectNewStyle(parser);
-                    break;
+                    // do nothing
                 }
-                
-                parser.deleteDivThreeposts();
+                else
+                {
+                    switch (parser.detectPageStyle())
+                    {
+                    case "classic":
+                        parser = new PageParserDirectClassic(parser);
+                        break;
+
+                    case "new-style":
+                        parser = new PageParserDirectNewStyle(parser);
+                        break;
+                    }
+                    
+                    parser.deleteDivThreeposts();
+                }
+
                 mcs.addPage(parser, rid_numeric, whichDir);
             }
             catch (Exception ex)

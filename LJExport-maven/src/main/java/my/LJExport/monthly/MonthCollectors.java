@@ -25,15 +25,23 @@ public class MonthCollectors
     private List<MonthCollector> collectors = new ArrayList<>();
     private final String year;
     private final String month;
+    private final boolean ljsearch;
 
-    public MonthCollectors(String year, String month)
+    public MonthCollectors(String year, String month, boolean ljsearch)
     {
         this.year = year;
         this.month = month;
+        this.ljsearch = ljsearch;
     }
 
     public void addPage(PageParserDirectBase parser, int rid, String whichDir) throws Exception
     {
+        if (ljsearch)
+        {
+            addPage_ljsearch(parser, rid, whichDir);
+            return;
+        }
+        
         final String local_href = String.format("../../%s/%s/%s/%s.html", whichDir, year, month, rid);
         final String visible_href = rid + ".html";
         final String hr = "<hr style=\"height: 7px;border: 1;box-shadow: inset 0 9px 9px -3px\r\n"
@@ -127,6 +135,58 @@ public class MonthCollectors
                 targetBody.appendChild(child.clone());
         }
     }
+    
+    /* ====================================================================================================== */
+
+    private void addPage_ljsearch(PageParserDirectBase parser, int rid, String whichDir) throws Exception
+    {
+        final String hr = "<hr style=\"height: 7px;border: 1;box-shadow: inset 0 9px 9px -3px\r\n"
+                + "      rgba(11, 99, 184, 0.8);-webkit-border-radius:\r\n"
+                + "      5px;-moz-border-radius: 5px;-ms-border-radius:\r\n"
+                + "      5px;-o-border-radius: 5px;border-radius: 5px;\">";
+
+        String cleanedHead = parser.extractCleanedHeadLJSearch();
+        MonthCollector mc = forCleanedHead(cleanedHead);
+        if (mc == null)
+        {
+            /*
+             * First record for the monthly page
+             */
+            mc = new MonthCollector();
+            mc.cleanedHead = cleanedHead;
+            mc.first_rid = rid;
+            parser.cleanHeadLJSearch(String.format("%s %s-%s", Config.User, year, month));
+            mc.parser = parser;
+            collectors.add(mc);
+        }
+        else
+        {
+            /*
+             * Subsequent records
+             */
+            Element sourceBody = parser.getBodyTag();
+            Element targetBody = mc.parser.getBodyTag();
+
+            // add divider to mc.parser inner body
+            // add link to mc.parser inner body
+            String htmlToAppend = "<br>{$hr}<br><br>";
+            htmlToAppend = htmlToAppend.replace("{$hr}", hr);
+
+            // Parse the fragment into a list of nodes and append to targetBody
+            List<Node> newNodes = JSOUP.parseBodyFragment(htmlToAppend);
+            for (Node node : newNodes)
+                targetBody.appendChild(node.clone());
+
+            // add parser inner body to mc.parser inner body  
+            // append each child of the cloned <body> to the targetBody
+            // use clone to ensure full independence
+            Element sourceBodyClone = (Element) sourceBody.clone();
+            for (Node child : sourceBodyClone.childNodes())
+                targetBody.appendChild(child.clone());
+        }
+    }
+
+    /* ====================================================================================================== */
 
     public void complete(String monthlyFilePrefix) throws Exception
     {
@@ -146,10 +206,15 @@ public class MonthCollectors
             fp = fp.getParentFile();
             if (!fp.exists())
                 fp.mkdirs();
-            
-            mc.parser.remapLocalRelativeLinks(LinkDownloader.LINK_REFERENCE_PREFIX_PAGES, LinkDownloader.LINK_REFERENCE_PREFIX_MONTHLY_PAGES);
+
+            if (!ljsearch)
+            {
+                mc.parser.remapLocalRelativeLinks(
+                        LinkDownloader.LINK_REFERENCE_PREFIX_PAGES,
+                        LinkDownloader.LINK_REFERENCE_PREFIX_MONTHLY_PAGES);
+            }
             String monthlyPageSource = JSOUP.emitHtml(mc.parser.pageRoot);
-            
+
             Util.writeToFileSafe(monthlyFilePath, monthlyPageSource);
         }
     }

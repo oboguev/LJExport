@@ -8,10 +8,10 @@ import java.util.Map;
 public class FileBackedMap
 {
     private final Map<String, String> map = new HashMap<>();
-    private BufferedWriter writer;
     private boolean initialized = false;
-    private File file;
     private String filePathPrefix;
+    private File file;
+    private BufferedWriter writer;
 
     public static final String SEPARATOR = "----";
     private final String nl = Util.isWindowsOS() ? "\r\n" : "\n";
@@ -23,7 +23,7 @@ public class FileBackedMap
         if (initialized)
             return;
 
-        file = new File(path);
+        file = new File(path).getCanonicalFile();
         if (!file.exists())
             file.createNewFile();
 

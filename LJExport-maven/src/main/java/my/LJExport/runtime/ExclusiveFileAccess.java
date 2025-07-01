@@ -1,17 +1,19 @@
 package my.LJExport.runtime;
 
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardOpenOption;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ExclusiveFileAccess
 {
-    private FileOutputStream fileOutputStream;
+    // private FileOutputStream fileOutputStream;
     private FileChannel channel;
     private FileLock lock;
     private BufferedWriter writer;
@@ -19,29 +21,57 @@ public class ExclusiveFileAccess
     @SuppressWarnings("unused")
     private Path filePath;
 
+    @SuppressWarnings("unused")
+    private boolean fileCreated;
+
     public ExclusiveFileAccess(String filePath) throws IOException
     {
         this(new File(filePath).getCanonicalFile().toPath());
     }
 
-    public ExclusiveFileAccess(Path filePath) throws IOException
+    private ExclusiveFileAccess(Path filePath) throws IOException
     {
         this.filePath = filePath;
+        this.fileCreated = false;
 
-        // Open the file channel with append mode
-        fileOutputStream = new FileOutputStream(filePath.toFile().getCanonicalFile(), true);
-        channel = fileOutputStream.getChannel();
+        // Ensure parent directory exists
+        Path parent = filePath.getParent();
+        if (parent != null)
+            Files.createDirectories(parent);
 
-        // Try to acquire an exclusive lock immediately (non-blocking)
-        lock = channel.tryLock();
-        if (lock == null)
+        try
         {
-            closeResources();
-            throw new IOException(String.format("File is locked by another process: %s", filePath.toString()));
-        }
+            // Try to atomically create the file — only one process will succeed
+            try
+            {
+                channel = FileChannel.open(filePath,
+                        StandardOpenOption.CREATE_NEW, // fails if file exists
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.APPEND);
+                fileCreated = true;
+            }
+            catch (FileAlreadyExistsException e)
+            {
+                // File already exists — open normally
+                channel = FileChannel.open(filePath,
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.APPEND);
+            }
 
-        // Create writer with UTF-8 encoding
-        writer = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
+            // Acquire exclusive lock on the file
+            lock = channel.tryLock();
+            if (lock == null)
+                throw new IOException("File is locked by another process: " + filePath);
+
+            // Use the same channel for writing
+            OutputStream outputStream = Channels.newOutputStream(channel);
+            writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
+        }
+        catch (IOException | RuntimeException e)
+        {
+            closeResources(); // cleanup on failure
+            throw e;
+        }
     }
 
     public String readExistingContent() throws IOException
@@ -49,9 +79,7 @@ public class ExclusiveFileAccess
         // Read through the locked channel
         long fileSize = channel.size();
         if (fileSize == 0)
-        {
             return "";
-        }
 
         // Position to beginning of file
         channel.position(0);
@@ -68,9 +96,7 @@ public class ExclusiveFileAccess
         String content = readExistingContent();
         List<String> lines = new ArrayList<>();
         if (content.isEmpty())
-        {
             return lines;
-        }
 
         // Split by line endings while preserving empty lines
         String[] lineArray = content.split("\\r?\\n|\\r", -1);
@@ -120,7 +146,7 @@ public class ExclusiveFileAccess
 
         try
         {
-            if (channel != null)
+            if (channel != null && channel.isOpen())
                 channel.close();
         }
         catch (IOException e)
@@ -129,23 +155,12 @@ public class ExclusiveFileAccess
             e.printStackTrace();
         }
 
-        try
-        {
-            if (fileOutputStream != null)
-                fileOutputStream.close();
-        }
-        catch (IOException e)
-        {
-            System.err.println("Error closing file output stream: " + e.getLocalizedMessage());
-            e.printStackTrace();
-        }
-        
         writer = null;
         lock = null;
         channel = null;
-        fileOutputStream = null;
         filePath = null;
-    }
+        fileCreated = false;
+   }
 
     /* ====================================================================================== */
 

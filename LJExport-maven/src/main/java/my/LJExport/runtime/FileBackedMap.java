@@ -14,8 +14,9 @@ public class FileBackedMap
     private String filePathPrefix;
 
     public static final String SEPARATOR = "----";
-    
-    // ### TODO : locking
+    private final String nl = Util.isWindowsOS() ? "\r\n" : "\n";
+
+    // ### TODO : file locking
 
     public synchronized void init(String path) throws IOException
     {
@@ -70,12 +71,16 @@ public class FileBackedMap
 
         map.put(key, value);
 
-        writer.write(key);
-        writer.newLine();
-        writer.write(toRelativeUnixPath(value));
-        writer.newLine();
-        writer.write(SEPARATOR);
-        writer.newLine();
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(key)
+                .append(nl)
+                .append(toRelativeUnixPath(value))
+                .append(nl)
+                .append(SEPARATOR)
+                .append(nl);
+
+        writer.write(sb.toString());
         writer.flush();
 
         return value;

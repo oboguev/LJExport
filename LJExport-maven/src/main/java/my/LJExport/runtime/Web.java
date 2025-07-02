@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -18,12 +19,15 @@ import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 import my.LJExport.Config;
+import my.LJExport.Main;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.routing.HttpRoute;
@@ -33,6 +37,7 @@ import org.apache.http.client.config.CookieSpecs;
 
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -60,6 +65,23 @@ public class Web
         public String reason;
         public String body = new String("");
         public byte[] binaryBody;
+        /* final URL after redirects */
+        public String finalUrl;
+
+        private void setFinalUrl(HttpClientContext context, String url)
+        {
+            HttpRequest finalRequest = context.getRequest();
+            if (finalRequest instanceof HttpUriRequest)
+            {
+                URI finalUrl = ((HttpUriRequest) finalRequest).getURI();
+                this.finalUrl = finalUrl.toString();
+            }
+            else
+            {
+                Main.err("Cannot determine final URI from request type: " + finalRequest.getClass());
+                this.finalUrl = url;
+            }
+        }
     }
 
     public static void init() throws Exception
@@ -370,12 +392,14 @@ public class Web
         if (isRequest_LJPage)
             ActivityCounters.startedLJPageWebRequest();
 
-        CloseableHttpResponse response = client.execute(request);
+        HttpClientContext context = HttpClientContext.create();
+        CloseableHttpResponse response = client.execute(request, context);
 
         try
         {
             r.code = response.getStatusLine().getStatusCode();
             r.reason = response.getStatusLine().getReasonPhrase();
+            r.setFinalUrl(context, url);
 
             if (shouldLoadBody == null || shouldLoadBody.test(r.code))
             {
@@ -443,12 +467,15 @@ public class Web
         request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
 
         ActivityCounters.startedWebRequest();
-        CloseableHttpResponse response = httpClient.execute(request);
+        HttpClientContext context = HttpClientContext.create();
+        CloseableHttpResponse response = httpClient.execute(request, context);
 
         try
         {
             r.code = response.getStatusLine().getStatusCode();
             r.reason = response.getStatusLine().getReasonPhrase();
+            r.setFinalUrl(context, url);
+
             HttpEntity entity = response.getEntity();
 
             if (entity != null)

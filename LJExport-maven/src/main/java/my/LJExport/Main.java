@@ -167,6 +167,8 @@ public class Main
             ex.printStackTrace();
         }
 
+        out(">>> Time: " + Util.timeNow());
+
         if (isAborting() || isLogoutFailed())
         {
             out("");
@@ -188,6 +190,7 @@ public class Main
         try
         {
             out(">>> Processing journal for user " + user);
+            out(">>> Time: " + Util.timeNow());
             
             if (user.equals("fritzmorgen"))
             {

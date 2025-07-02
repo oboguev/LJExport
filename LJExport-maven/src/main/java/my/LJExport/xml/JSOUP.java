@@ -789,7 +789,7 @@ public class JSOUP
     
     public static Element locateUpwardElement(Node n, String tag) throws Exception
     {
-        for (Node p = n.parentNode();;)
+        for (Node p = n.parentNode();;p = p.parentNode())
         {
             if (p == null)
                 return null;

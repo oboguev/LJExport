@@ -47,12 +47,12 @@ public class ReadProfile
 
     public void readAll() throws Exception
     {
-        if (Config.ReloadExistingFiles || !new File(fpProfileDir, "userpics.html").exists())
-            readUserpics();
-
         if (Config.ReloadExistingFiles || !new File(fpProfileDir, "profile.html").exists())
             readProfile();
         
+        if (Config.ReloadExistingFiles || !new File(fpProfileDir, "userpics.html").exists())
+            readUserpics();
+
         // ### memories
         // ### photos
     }

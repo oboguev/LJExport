@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import my.LJExport.readers.direct.PageParserDirectBase;
+import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.ActivityCounters;
 import my.LJExport.runtime.LimitProcessorUsage;
@@ -205,7 +206,7 @@ public class MainDownloadLinks
             parser.pageSource = Util.readFileAsString(pageFileFullPath);
             parser.parseHtml(parser.pageSource);
 
-            if (parser.downloadExternalLinks(parser.pageRoot, linksDir))
+            if (parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User))
             {
                 String newPageSource = JSOUP.emitHtml(parser.pageRoot);
                 Util.writeToFileSafe(pageFileFullPath, newPageSource);

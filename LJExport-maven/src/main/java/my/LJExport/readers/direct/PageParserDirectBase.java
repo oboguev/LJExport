@@ -31,6 +31,11 @@ import my.LJExport.xml.JSOUP;
 
 public abstract class PageParserDirectBase
 {
+    public static enum AbsoluteLinkBase
+    {
+        User, WWW_Livejournal, None
+    };
+    
     private final PageContentSource pageContentSource;
 
     public PageParserDirectBase(PageContentSource pageContentSource)
@@ -49,6 +54,7 @@ public abstract class PageParserDirectBase
         this.rurl = other.rurl;
         this.rid = other.rid;
         this.commentsJson = other.commentsJson;
+        this.url = other.url;
     }
 
     protected String getPageSource() throws Exception
@@ -70,6 +76,7 @@ public abstract class PageParserDirectBase
     public Node pageRoot;
     public String pageSource;
     public String commentsJson;
+    public String url;
 
     public String rurl;
     public String rid;
@@ -116,15 +123,26 @@ public abstract class PageParserDirectBase
         parseHtml(this.pageSource);
     }
 
+    public void parseHtmlWithBaseUrl(String baseUrl) throws Exception
+    {
+        this.pageRoot = JSOUP.parseHtml(this.pageSource, baseUrl);
+    }
+    
+    public void parseHtmlWithBaseUrl(String html, String baseUrl) throws Exception
+    {
+        this.pageSource = html;
+        this.pageRoot = JSOUP.parseHtml(html, baseUrl);
+    }
+
     public boolean isBadGatewayPage(String html) throws Exception
     {
         if (html.contains("Bad Gateway:") || html.contains("Gateway Timeout"))
         {
-            if (pageRoot == null)
-                pageRoot = JSOUP.parseHtml(html);
-            List<Node> vel = JSOUP.findElements(JSOUP.flatten(pageRoot), "body");
+            Node pageRoot = JSOUP.parseHtml(html);
+            List<Node> vel = JSOUP.findElements(pageRoot, "body");
             if (vel.size() != 1)
                 throw new Exception("Unable to find BODY element in the html page");
+
             for (Node n : JSOUP.getChildren(vel.get(0)))
             {
                 if (n instanceof TextNode)
@@ -139,7 +157,7 @@ public abstract class PageParserDirectBase
         return false;
     }
 
-    /*static*/ public boolean downloadExternalLinks(Node root, String linksDir) throws Exception
+    /*static*/ public boolean downloadExternalLinks(Node root, String linksDir, AbsoluteLinkBase absoluteLinkBase) throws Exception
     {
         if (linksDir == null || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
             return false;
@@ -147,7 +165,7 @@ public abstract class PageParserDirectBase
         boolean downloaded = false;
         boolean unwrapped = false;
 
-        if (applyProtocolAndBaseDefaults(root))
+        if (applyProtocolAndBaseDefaults(root, absoluteLinkBase))
             unwrapped = true;
 
         FutureProcessor<AsyncUnwrapImgPrx> fpUnwrap = new FutureProcessor<>();
@@ -460,26 +478,26 @@ public abstract class PageParserDirectBase
 
     /* ==================================================================================================================== */
 
-    private boolean applyProtocolAndBaseDefaults(Node root) throws Exception
+    private boolean applyProtocolAndBaseDefaults(Node root, AbsoluteLinkBase absoluteLinkBase) throws Exception
     {
         boolean applied = false;
 
         /* use of | rather than || prevents evaluation short-cut */
-        applied |= applyProtocolAndBaseDefaults(root, "link", "href");
-        applied |= applyProtocolAndBaseDefaults(root, "a", "href");
-        applied |= applyProtocolAndBaseDefaults(root, "iframe", "src");
-        applied |= applyProtocolAndBaseDefaults(root, "img", "src");
-        applied |= applyProtocolAndBaseDefaults(root, "video", "src");
-        applied |= applyProtocolAndBaseDefaults(root, "audio", "src");
-        applied |= applyProtocolAndBaseDefaults(root, "source", "src");
-        applied |= applyProtocolAndBaseDefaults(root, "embed", "src");
-        applied |= applyProtocolAndBaseDefaults(root, "track", "src");
-        applied |= applyProtocolAndBaseDefaults(root, "object", "data");
+        applied |= applyProtocolAndBaseDefaults(root, absoluteLinkBase, "link", "href");
+        applied |= applyProtocolAndBaseDefaults(root, absoluteLinkBase, "a", "href");
+        applied |= applyProtocolAndBaseDefaults(root, absoluteLinkBase, "iframe", "src");
+        applied |= applyProtocolAndBaseDefaults(root, absoluteLinkBase, "img", "src");
+        applied |= applyProtocolAndBaseDefaults(root, absoluteLinkBase, "video", "src");
+        applied |= applyProtocolAndBaseDefaults(root, absoluteLinkBase, "audio", "src");
+        applied |= applyProtocolAndBaseDefaults(root, absoluteLinkBase, "source", "src");
+        applied |= applyProtocolAndBaseDefaults(root, absoluteLinkBase, "embed", "src");
+        applied |= applyProtocolAndBaseDefaults(root, absoluteLinkBase, "track", "src");
+        applied |= applyProtocolAndBaseDefaults(root, absoluteLinkBase, "object", "data");
 
         return applied;
     }
 
-    private boolean applyProtocolAndBaseDefaults(Node root, String tag, String attr) throws Exception
+    private boolean applyProtocolAndBaseDefaults(Node root, AbsoluteLinkBase absoluteLinkBase, String tag, String attr) throws Exception
     {
         boolean applied = false;
 
@@ -494,11 +512,21 @@ public abstract class PageParserDirectBase
                 if (href.startsWith("//"))
                 {
                     newref = "https:" + href;
-                    Util.noop();
                 }
                 else if (href.startsWith("/"))
                 {
-                    newref = String.format("https://%s.livejournal.com%s", Config.MangledUser, href);
+                    switch (absoluteLinkBase)
+                    {
+                    case User:
+                        newref = String.format("https://%s.livejournal.com%s", Config.MangledUser, href);
+                        break;
+                    case WWW_Livejournal:
+                        newref = String.format("https://www.livejournal.com%s", href);
+                        break;
+                    case None:
+                        newref = null;
+                        break;
+                    }
                 }
 
                 if (newref != null)

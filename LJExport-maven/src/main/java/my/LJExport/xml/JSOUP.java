@@ -605,6 +605,12 @@ public class JSOUP
         return doc;
     }
 
+    public static Node parseHtml(String html, String baseUrl) throws Exception
+    {
+        Document doc = Jsoup.parse(html, baseUrl);
+        return doc;
+    }
+
     public static String emitHtml(Node pageRoot) throws Exception
     {
         try

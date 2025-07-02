@@ -35,6 +35,7 @@ public class LinkDownloader
     public static final String LINK_REFERENCE_PREFIX_PAGES = "../../../links/";
     public static final String LINK_REFERENCE_PREFIX_MONTHLY_PAGES ="../../links/";
     public static final String LINK_REFERENCE_PREFIX_PROFILE = "../links/";
+    public static final String LINK_REFERENCE_PREFIX_PROFILE_DOWN_1 = "../../links/";
     
     private static FileBackedMap href2file = new FileBackedMap();
     private static Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());

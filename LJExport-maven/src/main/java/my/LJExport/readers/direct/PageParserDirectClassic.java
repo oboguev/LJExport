@@ -221,7 +221,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
     {
         if (HasNoComments.rurlHasNoComments(rurl))
             return false;
-        
+
         Boolean has = null;
 
         Element commentsSection = findCommentsSection(pageRoot, true);
@@ -350,12 +350,14 @@ public class PageParserDirectClassic extends PageParserDirectBase
 
     protected boolean pageHasNoComments(String html) throws Exception
     {
+        Node pageRoot = null;
+
         // check if comments are disabled
         if (html.contains("b-xylem-nocomment"))
         {
             if (pageRoot == null)
                 pageRoot = JSOUP.parseHtml(html);
-            List<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-xylem-nocomment");
+            List<Node> vel = JSOUP.findElementsWithClass(pageRoot, "div", "b-xylem-nocomment");
             if (vel.size() != 0)
                 return true;
         }
@@ -365,7 +367,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
         {
             if (pageRoot == null)
                 pageRoot = JSOUP.parseHtml(html);
-            List<Node> vel = JSOUP.findElementsWithClass(JSOUP.flatten(pageRoot), "div", "b-tree-root");
+            List<Node> vel = JSOUP.findElementsWithClass(pageRoot, "div", "b-tree-root");
             if (vel.size() != 1)
             {
                 Main.saveDebugPage("badpage-unable-find-root-node-for-comments.html", html);
@@ -762,7 +764,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
                 tname = tdir + "anon-comment-with-subject.txt";
             else
                 tname = tdir + "anon-comment-without-subject.txt";
-            
+
             if (Config.True || vars.get("userpic") == null || vars.get("userpic").trim().length() == 0)
                 vars.put("userpic", Comment.ANONYMOUS_USER_USERPIC);
         }

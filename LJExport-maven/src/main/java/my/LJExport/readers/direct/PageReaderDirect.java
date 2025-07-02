@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -14,6 +15,7 @@ import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.readers.PageReader;
+import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
@@ -71,7 +73,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
     public void readPage() throws Exception
     {
         // process page 1 completely but without comments yet
-        parser.pageSource = loadPage(1);
+        AtomicReference<String> page_url = new AtomicReference<>(); 
+        parser.pageSource = loadPage(1, page_url);
         if (parser.pageSource == null)
         {
             Main.markFailedPage(parser.rurl);
@@ -79,7 +82,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
         }
 
         if (parser.pageRoot == null)
-            parser.parseHtml();
+            parser.parseHtmlWithBaseUrl(page_url.get());
 
         switch (parser.detectPageStyle())
         {
@@ -148,7 +151,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         Thread.currentThread().setName(threadName);
 
-        parser.downloadExternalLinks(firstPageRoot, linksDir);
+        parser.downloadExternalLinks(firstPageRoot, linksDir, AbsoluteLinkBase.User);
         parser.pageSource = JSOUP.emitHtml(firstPageRoot);
         Util.writeToFileSafe(fileDir + parser.rid + ".html", parser.pageSource);
 
@@ -205,10 +208,11 @@ public class PageReaderDirect implements PageReader, PageContentSource
         return lastReadPageSource;
     }
 
-    private String loadPage(int npage) throws Exception
+    private String loadPage(int npage, AtomicReference<String> xurl) throws Exception
     {
         parser.pageSource = null;
         parser.pageRoot = null;
+        parser.url = null;
 
         /*
          * Try to load from manual-save override location.
@@ -232,6 +236,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
         lastReadPageSource = null;
 
         parser.pageSource = lastReadPageSource = load(sb.toString());
+        parser.url = sb.toString();
+        xurl.set(parser.url);
 
         return lastReadPageSource;
     }

@@ -1,7 +1,6 @@
 package my.LJExport.profile;
 
 import java.io.File;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +11,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.SafeFileName;
 import my.LJExport.runtime.Util;
@@ -51,10 +51,10 @@ public class ReadProfile
     {
         if (Config.ReloadExistingFiles || !new File(fpProfileDir, "profile.html").exists())
             readProfile();
-        
+
         if (Config.ReloadExistingFiles || !new File(fpProfileDir, "userpics.html").exists())
             readUserpics();
-        
+
         if (!Config.StandaloneSite)
         {
             if (Config.ReloadExistingFiles || !new File(fpProfileDir, "memories.html").exists())
@@ -77,24 +77,25 @@ public class ReadProfile
         }
         else
         {
-            url = String.format("%s/profile?socconns=friends&mode_full_socconns=1&comms=cfriends&admins=subscribersof", LJUtil.userBase());
+            url = String.format("%s/profile?socconns=friends&mode_full_socconns=1&comms=cfriends&admins=subscribersof",
+                    LJUtil.userBase());
         }
-        
+
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders());
-        parser.parseHtml();
-        
+        parser.parseHtmlWithBaseUrl(url);
+
         Node el_1 = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile"));
         Node el_2 = JSOUP.optionalOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-myuserpic"));
         Node el_3 = JSOUP.optionalOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile-userpic"));
         parser.removeProfilePageJunk(Config.User + " - Profile", el_1, el_2, el_3);
         parser.rectifyProfileUserpic();
-        
+
         JSOUP.removeElements(parser.pageRoot, JSOUP.findElementsWithClass(parser.pageRoot, "ul", "b-profile-actions"));
-        
+
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir);
+        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
 
         String html = JSOUP.emitHtml(parser.pageRoot);
         if (!fpProfileDir.exists())
@@ -112,14 +113,14 @@ public class ReadProfile
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders());
-        parser.parseHtml();
-        
+        parser.parseHtmlWithBaseUrl(url);
+
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Userpics</font>
         Node el = findRequiredPivotElement("font", "Userpics");
         parser.removeProfilePageJunk(Config.User + " - Userpics", el);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir);
+        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.WWW_Livejournal);
 
         String html = JSOUP.emitHtml(parser.pageRoot);
         if (!fpProfileDir.exists())
@@ -127,7 +128,7 @@ public class ReadProfile
 
         Util.writeToFileSafe(new File(fpProfileDir, "userpics.html").getCanonicalPath(), html);
     }
-    
+
     /* ================================================================================================== */
 
     private void readMemories() throws Exception
@@ -136,19 +137,21 @@ public class ReadProfile
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders());
-        parser.parseHtml();
-        
+        parser.parseHtmlWithBaseUrl(url);
+
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Memorable Entries</font>
         Node el = findRequiredPivotElement("font", "Memorable Entries");
         parser.removeProfilePageJunk(Config.User + " - Memories", el);
-        
+
         Node pageRoot = parser.pageRoot;
         JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "form"));
-        
-        parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir);
 
-        // ### delete memories subdir 
+        parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
+        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.WWW_Livejournal);
+
+        File fpMemoriesDir = new File(fpProfileDir, "memories").getCanonicalFile();
+        if (fpMemoriesDir.exists())
+            Util.deleteDirectoryTree(fpMemoriesDir.getCanonicalPath());
 
         for (Node an : JSOUP.findElements(pageRoot, "a"))
         {
@@ -157,28 +160,62 @@ public class ReadProfile
             {
                 String title = JSOUP.asElement(an).text();
                 title = Util.despace(title);
-                Util.noop();
                 String fn = SafeFileName.composeFileName(title, ".html");
-                // ### if memories/fn already exists, use SafeFileName.guidFileName(".html")
-                // ### load page from href
-                // ### clean it
-                // ### save in memories/fn
-                // ### adjust pointer in a to memories/fn
+
+                File fp = new File(fpMemoriesDir, fn);
+                if (fp.exists())
+                {
+                    fn = SafeFileName.guidFileName(".html");
+                    fp = new File(fpProfileDir, "memories");
+                    fp = new File(fp, fn);
+                }
+                loadMemoriesPage(href, fp.getCanonicalFile(), title);
+
+                JSOUP.updateAttribute(an, "href", "memories/" + fn);
             }
         }
-        
+
         String html = JSOUP.emitHtml(parser.pageRoot);
         if (!fpProfileDir.exists())
             fpProfileDir.mkdirs();
 
         Util.writeToFileSafe(new File(fpProfileDir, "memories.html").getCanonicalPath(), html);
     }
-    
+
     private boolean isMemory(String href) throws Exception
     {
         return href != null && href.contains(".livejournal.com/tools/memories.bml?");
     }
-    
+
+    private void loadMemoriesPage(String href, File fp, String title) throws Exception
+    {
+        PageParserDirectBase parser = null;
+
+        parser = new PageParserDirectBasePassive();
+        parser.rid = parser.rurl = null;
+        parser.pageSource = load(href, standardHeaders());
+        parser.parseHtmlWithBaseUrl(href);
+
+        Node el = findRequiredPivotElement("font", "Memorable Entries");
+        parser.removeProfilePageJunk(Config.User + " - Memories - " + title, el);
+        
+        // ### deletes excess, leaves empty page
+
+        Node pageRoot = parser.pageRoot;
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "form"));
+
+        parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
+        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.WWW_Livejournal); // ###???
+
+        // ### change "a" links to own journal to local 
+
+        String html = JSOUP.emitHtml(parser.pageRoot);
+        if (!fp.getParentFile().exists())
+            fp.getParentFile().mkdirs();
+
+        Util.writeToFileSafe(fp.getCanonicalPath(), html);
+    }
+
     /* ================================================================================================== */
 
     private void readImages() throws Exception
@@ -187,16 +224,16 @@ public class ReadProfile
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders());
-        parser.parseHtml();
-        
+        parser.parseHtmlWithBaseUrl(url);
+
         Node el = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics"));
         parser.removeProfilePageJunk(Config.User + " - Pictures", el);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir);
+        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
 
         // ###
-        
+
         String html = JSOUP.emitHtml(parser.pageRoot);
         if (!fpProfileDir.exists())
             fpProfileDir.mkdirs();
@@ -205,22 +242,22 @@ public class ReadProfile
     }
 
     /* ============================================================================ */
-    
+
     public Element findRequiredPivotElement(String tag, String text) throws Exception
     {
         for (Node n : JSOUP.findElements(parser.pageRoot, tag))
         {
             Element el = JSOUP.asElement(n);
-            
+
             if (el.ownText().equals(text) || el.text().equals(text))
                 return el;
         }
-        
+
         throw new Exception("Unable to locate requested element " + tag + " [" + text + "]");
     }
-    
+
     /* ============================================================================ */
-    
+
     private Map<String, String> standardHeaders()
     {
         Map<String, String> headers = new HashMap<>();
@@ -229,7 +266,7 @@ public class ReadProfile
         headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/14");
         return headers;
     }
-    
+
     @SuppressWarnings("unused")
     private String lastURL = null;
 

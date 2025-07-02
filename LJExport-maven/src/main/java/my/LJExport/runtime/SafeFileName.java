@@ -1,7 +1,6 @@
 package my.LJExport.runtime;
 
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
 /*
  * Generate safe file name
@@ -50,7 +49,7 @@ public class SafeFileName
 
     public static String guidFileName(String suffix)
     {
-        return "x-" + UUID.randomUUID().toString().replace("-", "") + suffix;
+        return "x-" + Util.uuid() + suffix;
     }
     
     // usage example 

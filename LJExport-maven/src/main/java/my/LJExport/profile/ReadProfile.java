@@ -1,6 +1,7 @@
 package my.LJExport.profile;
 
 import java.io.File;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +13,7 @@ import my.LJExport.Main;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.LJUtil;
+import my.LJExport.runtime.SafeFileName;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
@@ -52,11 +54,18 @@ public class ReadProfile
         
         if (Config.ReloadExistingFiles || !new File(fpProfileDir, "userpics.html").exists())
             readUserpics();
+        
+        if (!Config.StandaloneSite)
+        {
+            if (Config.ReloadExistingFiles || !new File(fpProfileDir, "memories.html").exists())
+                readMemories();
 
-        // ### memories
-        // ### photos
-        Util.noop();
+            if (Config.ReloadExistingFiles || !new File(fpProfileDir, "images.html").exists())
+                readImages();
+        }
     }
+
+    /* ================================================================================================== */
 
     private void readProfile() throws Exception
     {
@@ -95,6 +104,7 @@ public class ReadProfile
         Util.noop();
     }
 
+    /* ================================================================================================== */
 
     private void readUserpics() throws Exception
     {
@@ -118,6 +128,8 @@ public class ReadProfile
         Util.writeToFileSafe(new File(fpProfileDir, "userpics.html").getCanonicalPath(), html);
     }
     
+    /* ================================================================================================== */
+
     private void readMemories() throws Exception
     {
         String url = String.format("https://www.livejournal.com/tools/memories.bml?user=%s", Config.User);
@@ -129,11 +141,45 @@ public class ReadProfile
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Memorable Entries</font>
         Node el = findRequiredPivotElement("font", "Memorable Entries");
         parser.removeProfilePageJunk(Config.User + " - Memories", el);
-
+        
+        Node pageRoot = parser.pageRoot;
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "form"));
+        
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir);
-        // ###
+
+        // ### delete memories subdir 
+
+        for (Node an : JSOUP.findElements(pageRoot, "a"))
+        {
+            String href = JSOUP.getAttribute(an, "href");
+            if (isMemory(href))
+            {
+                String title = JSOUP.asElement(an).text();
+                title = Util.despace(title);
+                Util.noop();
+                String fn = SafeFileName.composeFileName(title, ".html");
+                // ### if memories/fn already exists, use SafeFileName.guidFileName(".html")
+                // ### load page from href
+                // ### clean it
+                // ### save in memories/fn
+                // ### adjust pointer in a to memories/fn
+            }
+        }
+        
+        String html = JSOUP.emitHtml(parser.pageRoot);
+        if (!fpProfileDir.exists())
+            fpProfileDir.mkdirs();
+
+        Util.writeToFileSafe(new File(fpProfileDir, "memories.html").getCanonicalPath(), html);
     }
+    
+    private boolean isMemory(String href) throws Exception
+    {
+        return href != null && href.contains(".livejournal.com/tools/memories.bml?");
+    }
+    
+    /* ================================================================================================== */
 
     private void readImages() throws Exception
     {
@@ -148,7 +194,14 @@ public class ReadProfile
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir);
+
         // ###
+        
+        String html = JSOUP.emitHtml(parser.pageRoot);
+        if (!fpProfileDir.exists())
+            fpProfileDir.mkdirs();
+
+        Util.writeToFileSafe(new File(fpProfileDir, "images.html").getCanonicalPath(), html);
     }
 
     /* ============================================================================ */
@@ -180,6 +233,7 @@ public class ReadProfile
     @SuppressWarnings("unused")
     private String lastURL = null;
 
+    @SuppressWarnings("unused")
     private String load(String url) throws Exception
     {
         return load(url, null);

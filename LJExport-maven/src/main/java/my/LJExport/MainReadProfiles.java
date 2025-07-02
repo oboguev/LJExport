@@ -14,8 +14,8 @@ import my.LJExport.runtime.synch.ThreadsControl;
 
 public class MainReadProfiles
 {
-    // private static final String Users = "oboguev";
-    private static final String Users = "fritzmorgen,oboguev";
+    private static final String Users = "oboguev";
+    // private static final String Users = "fritzmorgen,oboguev";
 
     public static void main(String[] args)
     {
@@ -76,6 +76,19 @@ public class MainReadProfiles
         {
             Config.User = user;
             Config.mangleUser();
+            
+            if (user.equals("fritzmorgen"))
+            {
+                Config.Site = "olegmakarenko.ru";
+                Config.LoginSite = Config.DefaultSite;
+                Config.StandaloneSite = true;
+            }
+            else
+            {
+                Config.Site = Config.DefaultSite;
+                Config.LoginSite = Config.DefaultSite;
+                Config.StandaloneSite = false;
+            }
 
             final String userRoot = Config.DownloadRoot + File.separator + Config.User;
             // final String pagesDir = userRoot + File.separator + "pages";

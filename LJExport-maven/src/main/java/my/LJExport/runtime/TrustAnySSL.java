@@ -1,6 +1,14 @@
 package my.LJExport.runtime;
 
 import javax.net.ssl.*;
+
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
@@ -9,6 +17,8 @@ import java.security.cert.X509Certificate;
  */
 public class TrustAnySSL
 {
+    private static SSLContext sslContext;
+
     /**
      * Globally disable SSL certificate and hostname verification.
      */
@@ -17,10 +27,10 @@ public class TrustAnySSL
         try
         {
             // Create a trust manager that does not validate certificate chains
-            TrustManager[] trustAllCerts = new TrustManager[] { new LooseTrustManager() };
+            final TrustManager[] trustAllCerts = new TrustManager[] { new LooseTrustManager() };
 
             // Install the all-trusting trust manager
-            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, trustAllCerts, new SecureRandom());
             SSLContext.setDefault(sslContext);
 
@@ -32,6 +42,21 @@ public class TrustAnySSL
         {
             throw new RuntimeException("Failed to disable SSL certificate checking globally", e);
         }
+    }
+
+    public static SSLConnectionSocketFactory trustAnySSLConnectionSocketFactory()
+    {
+        return new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+    }
+
+    public static Registry<ConnectionSocketFactory> trustAnySSLSocketFactoryRegistry()
+    {
+        SSLConnectionSocketFactory sslSocketFactory = trustAnySSLConnectionSocketFactory();
+        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create()
+                .register("https", sslSocketFactory)
+                .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                .build();
+        return socketFactoryRegistry;
     }
 
     public static class LooseTrustManager implements X509TrustManager

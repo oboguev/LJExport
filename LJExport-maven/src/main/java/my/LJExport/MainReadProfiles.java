@@ -36,6 +36,7 @@ public class MainReadProfiles
 
     private static void do_users(String users) throws Exception
     {
+        Config.init("");
         Web.init();
 
         /* login may be required for pictures marked 18+ */

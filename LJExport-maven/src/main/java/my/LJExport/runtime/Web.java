@@ -27,6 +27,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
 
@@ -93,11 +94,19 @@ public class Web
             // System.setProperty("https.proxyPort", "" + port);
             // System.setProperty("https.proxySet", "true");
 
-            HttpHost proxy = new HttpHost(host, port);
+            HttpHost proxy = new HttpHost(host, port, "http");
             routePlanner = new DefaultProxyRoutePlanner(proxy);
         }
 
-        connManager = new PoolingHttpClientConnectionManager();
+        if (Config.TrustAnySSLCertificate)
+        {
+            connManager = new PoolingHttpClientConnectionManager(TrustAnySSL.trustAnySSLSocketFactoryRegistry());
+        }
+        else
+        {
+            connManager = new PoolingHttpClientConnectionManager();
+        }
+
         // Set max total connections
         connManager.setMaxTotal(200);
         // Set max connections per route (i.e., per host)
@@ -147,6 +156,13 @@ public class Web
                 .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
                 .setSocketTimeout(Config.WebPageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
                 .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
+                /* 
+                 * Some LJ URLs such as 
+                 * https://<user>.livejournal.com/profile/?socconns=friends&mode_full_socconns=1&comms=cfriends&admins=subscribersof 
+                 * do redirects that appear circular, but for a limited number
+                 */
+                .setCircularRedirectsAllowed(true)
+                .setMaxRedirects(20)
                 .build();
 
         RequestConfig requestConfigRedirect = RequestConfig.custom()
@@ -155,6 +171,8 @@ public class Web
                 .setSocketTimeout(Config.WebImageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
                 .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
                 .setRedirectsEnabled(false) // Prevent automatic redirect following
+                .setCircularRedirectsAllowed(true)
+                .setMaxRedirects(20)
                 .build();
 
         RequestConfig requestConfigImage = RequestConfig.custom()
@@ -162,6 +180,8 @@ public class Web
                 .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
                 .setSocketTimeout(Config.WebImageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
                 .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
+                .setCircularRedirectsAllowed(true)
+                .setMaxRedirects(20)
                 .build();
 
         HttpClientBuilder hcb = HttpClients.custom()
@@ -185,8 +205,16 @@ public class Web
         if (routePlanner != null)
         {
             hcb = hcb.setRoutePlanner(routePlanner);
-            hcbRedirect = hcb.setRoutePlanner(routePlanner);
-            hcbImage = hcb.setRoutePlanner(routePlanner);
+            hcbRedirect = hcbRedirect.setRoutePlanner(routePlanner);
+            hcbImage = hcbImage.setRoutePlanner(routePlanner);
+        }
+
+        if (Config.TrustAnySSLCertificate)
+        {
+            SSLConnectionSocketFactory sslSocketFactory = TrustAnySSL.trustAnySSLConnectionSocketFactory();
+            hcb = hcb.setSSLSocketFactory(sslSocketFactory);
+            hcbRedirect = hcbRedirect.setSSLSocketFactory(sslSocketFactory);
+            hcbImage = hcbImage.setSSLSocketFactory(sslSocketFactory);
         }
 
         httpClient = hcb.build();
@@ -244,7 +272,6 @@ public class Web
     {
         return get(url, 0, headers, null);
     }
-
 
     public static Response get(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody) throws Exception
     {
@@ -307,9 +334,9 @@ public class Web
     {
         final boolean binary = 0 != (flags & BINARY);
         final boolean progress = 0 != (flags & PROGRESS);
-        
-        boolean isRequest_LJPage = false; 
-        
+
+        boolean isRequest_LJPage = false;
+
         CloseableHttpClient client = null;
 
         if (isLivejournalPicture(url))
@@ -342,7 +369,7 @@ public class Web
         ActivityCounters.startedWebRequest();
         if (isRequest_LJPage)
             ActivityCounters.startedLJPageWebRequest();
-        
+
         CloseableHttpResponse response = client.execute(request);
 
         try
@@ -475,10 +502,10 @@ public class Web
                     return;
             }
         }
-        
+
         request.setHeader(key, value);
     }
-    
+
     public static String getRedirectLocation(String url, Map<String, String> headers) throws Exception
     {
         final int maxpasses = 3;

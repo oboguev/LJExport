@@ -55,6 +55,7 @@ public class ReadProfile
 
         // ### memories
         // ### photos
+        Util.noop();
     }
 
     private void readProfile() throws Exception
@@ -75,10 +76,11 @@ public class ReadProfile
         parser.pageSource = load(url, standardHeaders());
         parser.parseHtml();
         
-        // ### standalone -- different 
-        
-        Node el = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile"));
-        parser.removeProfilePageJunk(Config.User + " - Profile", el);
+        Node el_1 = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile"));
+        Node el_2 = JSOUP.optionalOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-myuserpic"));
+        Node el_3 = JSOUP.optionalOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile-userpic"));
+        parser.removeProfilePageJunk(Config.User + " - Profile", el_1, el_2, el_3);
+        parser.rectifyProfileUserpic();
         
         JSOUP.removeElements(parser.pageRoot, JSOUP.findElementsWithClass(parser.pageRoot, "ul", "b-profile-actions"));
         
@@ -90,6 +92,7 @@ public class ReadProfile
             fpProfileDir.mkdirs();
 
         Util.writeToFileSafe(new File(fpProfileDir, "profile.html").getCanonicalPath(), html);
+        Util.noop();
     }
 
 
@@ -104,7 +107,6 @@ public class ReadProfile
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Userpics</font>
         Node el = findRequiredPivotElement("font", "Userpics");
         parser.removeProfilePageJunk(Config.User + " - Userpics", el);
-        // ### bug: deletes even cells containing @el
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir);
@@ -114,7 +116,6 @@ public class ReadProfile
             fpProfileDir.mkdirs();
 
         Util.writeToFileSafe(new File(fpProfileDir, "userpics.html").getCanonicalPath(), html);
-        Util.noop();
     }
     
     private void readMemories() throws Exception

@@ -782,11 +782,21 @@ public class JSOUP
         if (vn.size() == 0)
             throw new Exception("Missing required element");
         else if (vn.size() != 1)
-            throw new Exception("Unexpected Multiple elements");
+            throw new Exception("Unexpected multiple elements");
         else
             return vn.get(0);
     }
     
+    public static Node optionalOne(List<Node> vn) throws Exception
+    {
+        if (vn.size() == 0)
+            return null;
+        else if (vn.size() != 1)
+            throw new Exception("Unexpected multiple elements");
+        else
+            return vn.get(0);
+    }
+
     public static Element locateUpwardElement(Node n, String tag) throws Exception
     {
         for (Node p = n.parentNode();;p = p.parentNode())

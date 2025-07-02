@@ -14,7 +14,8 @@ import my.LJExport.runtime.synch.ThreadsControl;
 
 public class MainReadProfiles
 {
-    private static final String Users = "oboguev";
+    // private static final String Users = "oboguev";
+    private static final String Users = "fritzmorgen,oboguev";
 
     public static void main(String[] args)
     {

@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -83,9 +85,9 @@ public abstract class PageParserDirectBase
         rurl = null;
         rid = null;
     }
-    
+
     private String linkReferencePrefix = LinkDownloader.LINK_REFERENCE_PREFIX_PAGES;
-    
+
     public void setLinkReferencePrefix(String linkReferencePrefix)
     {
         this.linkReferencePrefix = linkReferencePrefix;
@@ -365,7 +367,8 @@ public abstract class PageParserDirectBase
         private String newref;
         private Exception ex;
 
-        public AsyncDownloadExternalLinks(Node n, String attr, String href, String referer, String linksDir, String linkReferencePrefix)
+        public AsyncDownloadExternalLinks(Node n, String attr, String href, String referer, String linksDir,
+                String linkReferencePrefix)
         {
             this.n = n;
             this.attr = attr;
@@ -749,7 +752,7 @@ public abstract class PageParserDirectBase
         }
 
         JSOUP.removeElements(pageRoot, vel);
-        
+
         /*
          * Older pages have comments under 
          * <form id="multiform" name="multiform" method="post" action="https://www.livejournal.com/talkmulti.bml" class="ng-pristine ng-valid">
@@ -887,37 +890,46 @@ public abstract class PageParserDirectBase
 
     /* ============================================================== */
 
-    public void removeProfilePageJunk(String titleText, Node n) throws Exception
+    public void removeProfilePageJunk(String titleText, Node... nn) throws Exception
     {
         cleanHead(titleText);
 
-        JSOUP.removeElements(pageRoot, JSOUP.findElements(JSOUP.flatten(pageRoot), "script"));
-        JSOUP.removeElements(pageRoot, JSOUP.findElements(JSOUP.flatten(pageRoot), "noscript"));
-        
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "script"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "noscript"));
+        JSOUP.removeElementsWithClass(pageRoot, "ul", "b-profile-actions");
+        JSOUP.removeElementsWithClass(pageRoot, "div", "s-switchv3");
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "header", "role", "banner"));
+
         /*
          * Delete all table rows/cells and tables except directly containing @n
          * and also contained within the the same "td" cell as @n 
          */
         List<Node> preserve = new ArrayList<>();
-
-        for (Node p = n;; p = p.parentNode())
-        {
-            preserve.add(p);
-            if (p instanceof Element && JSOUP.asElement(p).tagName().equalsIgnoreCase("body"))
-                break;
-        }
         
-        Element td = JSOUP.locateUpwardElement(n, "td");
-        preserve.addAll(JSOUP.findElements(td, "td"));
-        preserve.addAll(JSOUP.findElements(td, "tr"));
-        preserve.addAll(JSOUP.findElements(td, "table"));
+        for (Node n : nn)
+        {
+            if (n != null)
+            {
+                for (Node p = n;; p = p.parentNode())
+                {
+                    preserve.add(p);
+                    if (p instanceof Element && JSOUP.asElement(p).tagName().equalsIgnoreCase("body"))
+                        break;
+                }
+
+                Element td = JSOUP.locateUpwardElement(n, "td");
+                preserve.addAll(JSOUP.findElements(td, "td"));
+                preserve.addAll(JSOUP.findElements(td, "tr"));
+                preserve.addAll(JSOUP.findElements(td, "table"));
+            }
+        }
 
         deleteExcept("td", preserve);
         deleteExcept("tr", preserve);
         deleteExcept("table", preserve);
         Util.noop();
     }
-    
+
     private void deleteExcept(String tag, List<Node> preserve) throws Exception
     {
         List<Node> vn = JSOUP.findElements(pageRoot, tag);
@@ -934,9 +946,59 @@ public abstract class PageParserDirectBase
         }
     }
 
+    public void rectifyProfileUserpic() throws Exception
+    {
+        for (Node n : JSOUP.findElementsWithClass(pageRoot, "a", "b-myuserpic-current"))
+        {
+            String style = JSOUP.getAttribute(n, "style");
+            if (style != null)
+            {
+                style = Util.despace(style);
+                String url = extractBackgroundImageUrl(style);
+                if (url != null)
+                {
+                    url = Util.despace(url);
+                    Element img = new Element(Tag.valueOf("img"), "");
+                    img.attr("src", url);
+                    JSOUP.asElement(n).prependChild(img);
+                }
+            }
+        }
+        
+        Node frame = JSOUP.optionalOne(JSOUP.findElementsWithClass(pageRoot, "div", "b-ljuserpic"));
+        if (frame != null)
+        {
+            JSOUP.removeElements(pageRoot, JSOUP.findElementsWithClass(frame, "span", "b-ljuserpic-default"));
+            JSOUP.removeElements(pageRoot, JSOUP.findElementsWithClass(frame, "div", "b-myuserpic-options"));
+            JSOUP.removeElements(pageRoot, JSOUP.findElementsWithClass(frame, "select", "b-ljuserpic-selector"));
+        }
+    }
+
+    /**
+     * Extracts the background-image URL from the style attribute value.
+     *
+     * @param style
+     *            The value of the style attribute, e.g., "background-image: url( https://example.com/image.jpg );"
+     * @return The extracted URL, or null if not found.
+     */
+    private String extractBackgroundImageUrl(String style)
+    {
+        if (style != null)
+        {
+            // Regex to find background-image: url(...) with optional whitespace
+            Pattern pattern = Pattern.compile("background-image\\s*:\\s*url\\s*\\(\\s*(['\"]?)([^'\")\\s]+)\\1\\s*\\)",
+                    Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(style);
+
+            if (matcher.find())
+                return matcher.group(2); // The actual URL
+        }
+
+        return null;
+    }
+
     /* ============================================================== */
-    
-    
+
     public String extractCleanedHeadLJSearch() throws Exception
     {
         // perform deep clone

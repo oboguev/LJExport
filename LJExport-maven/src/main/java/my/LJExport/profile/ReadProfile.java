@@ -175,7 +175,7 @@ public class ReadProfile
                     fp = new File(fpProfileDir, "memories");
                     fp = new File(fp, fn);
                 }
-                loadMemoriesPage(href, fp.getCanonicalFile(), title);
+                loadMemoriesEntryPage(href, fp.getCanonicalFile(), title);
 
                 JSOUP.updateAttribute(an, "href", "memories/" + fn);
             }
@@ -193,7 +193,7 @@ public class ReadProfile
         return href != null && href.contains(".livejournal.com/tools/memories.bml?");
     }
 
-    private void loadMemoriesPage(String href, File fp, String title) throws Exception
+    private void loadMemoriesEntryPage(String href, File fp, String title) throws Exception
     {
         PageParserDirectBase parser = null;
 
@@ -212,7 +212,7 @@ public class ReadProfile
         JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "form"));
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.WWW_Livejournal); // ###???
+        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.from(finalUrl.get()));
 
         // ### change "a" links to own journal to local 
 

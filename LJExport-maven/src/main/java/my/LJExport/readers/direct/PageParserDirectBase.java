@@ -33,7 +33,17 @@ public abstract class PageParserDirectBase
 {
     public static enum AbsoluteLinkBase
     {
-        User, WWW_Livejournal, None
+        User, WWW_Livejournal, None;
+        
+        public static AbsoluteLinkBase from(String url) throws Exception
+        {
+            String host = Util.urlHost(url).toLowerCase();
+            if (host.equals("livejournal.com") || host.equals("www.livejournal.com"))
+                return WWW_Livejournal;
+            if (host.endsWith(".livejournal.com"))
+                return User;
+            throw new Exception("Unable to determine link basis for URL " + url);
+        }
     };
     
     private final PageContentSource pageContentSource;
@@ -649,7 +659,7 @@ public abstract class PageParserDirectBase
         if (n == null)
             return;
 
-        if (stopSet.contains(n))
+        if (Util.containsIdentity(stopSet, n))
         {
             // JSOUP.dumpNodeOffset(n, "STOP *** ");
             return;
@@ -661,7 +671,7 @@ public abstract class PageParserDirectBase
             String name = JSOUP.nodeName(el);
             if (name.equalsIgnoreCase("table") || name.equalsIgnoreCase("tr") || name.equalsIgnoreCase("td"))
             {
-                if (!keepSet.contains(n))
+                if (!Util.containsIdentity(keepSet, n))
                 {
                     delvec.add(n);
                     // JSOUP.dumpNodeOffset(n, "DELETE *** ");
@@ -961,9 +971,9 @@ public abstract class PageParserDirectBase
         List<Node> vn = JSOUP.findElements(pageRoot, tag);
         for (Node n : vn)
         {
-            if (!preserve.contains(n))
+            if (!Util.containsIdentity(preserve, n))
             {
-                if (n.toString().contains("kluven"))
+                if (n.toString().contains("Dura Lex"))
                 {
                     Util.noop();
                 }

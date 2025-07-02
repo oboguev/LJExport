@@ -126,13 +126,15 @@ public class JSOUP
 
             for (Node xn1 : v1)
             {
-                if (!v2.contains(xn1))
+                if (!Util.containsIdentity(v2, xn1))
+                // if (!v2.contains(xn1))
                     throw new Exception("Bug in flatten #1");
             }
 
             for (Node xn2 : v2)
             {
-                if (!v1.contains(xn2))
+                if (!Util.containsIdentity(v1, xn2))
+                // if (!v1.contains(xn2))
                     throw new Exception("Bug in flatten #2");
             }
 
@@ -727,13 +729,15 @@ public class JSOUP
 
         for (Node n : c1)
         {
-            if (!vn.contains(n))
+            if (!Util.containsIdentity(vn, n))
+            // if (!vn.contains(n))
                 vn.add(n);
         }
 
         for (Node n : c2)
         {
-            if (!vn.contains(n))
+            if (!Util.containsIdentity(vn, n))
+            // if (!vn.contains(n))
                 vn.add(n);
         }
 

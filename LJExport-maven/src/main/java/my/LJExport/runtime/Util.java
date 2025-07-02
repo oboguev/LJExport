@@ -2,6 +2,7 @@ package my.LJExport.runtime;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -608,5 +610,22 @@ public class Util
         String formatted = now.format(formatter);
         return formatted;
         
+    }
+    
+    public static String urlHost(String url) throws Exception
+    {
+        URL x = new URL(url);
+        return x.getHost();
+    }
+    
+    public static <T> boolean containsIdentity(Collection<T> coll, T object)
+    {
+        for (T x : coll)
+        {
+            if (x == object)
+                return true;
+        }
+ 
+        return false;
     }
 }

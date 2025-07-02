@@ -49,7 +49,7 @@ public class Calendar
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to read user records calendar: " + Web.describe(r.code));
 
-        List<String> hrefs = JSOUP.extractHrefs(r.body);
+        List<String> hrefs = JSOUP.extractHrefs(r.body, r.finalUrl);
         for (String href : hrefs)
         {
             if (LJUtil.isJournalUrl(href, sb))
@@ -72,7 +72,7 @@ public class Calendar
             if (r.code != HttpStatus.SC_OK)
                 throw new Exception("Unable to read user records calendar: " + Web.describe(r.code));
 
-            hrefs = JSOUP.extractHrefs(r.body);
+            hrefs = JSOUP.extractHrefs(r.body, r.finalUrl);
             for (String href : hrefs)
             {
                 if (LJUtil.isJournalUrl(href, sb))
@@ -94,7 +94,7 @@ public class Calendar
             if (r.code != HttpStatus.SC_OK)
                 throw new Exception("Unable to read user records calendar: " + Web.describe(r.code));
 
-            hrefs = JSOUP.extractHrefs(r.body);
+            hrefs = JSOUP.extractHrefs(r.body, r.finalUrl);
             for (String href : hrefs)
             {
                 if (LJUtil.isJournalRecordUrl(href, sb))

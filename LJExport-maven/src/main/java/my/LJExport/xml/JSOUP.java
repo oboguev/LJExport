@@ -573,9 +573,9 @@ public class JSOUP
         dumpNode(n, sb.toString());
     }
 
-    public static List<String> extractHrefs(String html) throws Exception
+    public static List<String> extractHrefs(String html, String baseUrl) throws Exception
     {
-        Node rootNode = parseHtml(html);
+        Node rootNode = parseHtml(html, baseUrl);
         return extractHrefs(rootNode);
     }
 
@@ -607,7 +607,7 @@ public class JSOUP
 
     public static Node parseHtml(String html, String baseUrl) throws Exception
     {
-        Document doc = Jsoup.parse(html, baseUrl);
+        Document doc = (baseUrl == null) ? Jsoup.parse(html) : Jsoup.parse(html, baseUrl);
         return doc;
     }
 
@@ -774,7 +774,7 @@ public class JSOUP
             result.add(n.clone());
         return result;
     }
-    
+
     public static Element asElement(Node n) throws Exception
     {
         if (n instanceof Element)
@@ -782,7 +782,7 @@ public class JSOUP
         else
             throw new Exception("Node is not an Element");
     }
-    
+
     public static Node exactlyOne(List<Node> vn) throws Exception
     {
         if (vn.size() == 0)
@@ -792,7 +792,7 @@ public class JSOUP
         else
             return vn.get(0);
     }
-    
+
     public static Node optionalOne(List<Node> vn) throws Exception
     {
         if (vn.size() == 0)
@@ -805,7 +805,7 @@ public class JSOUP
 
     public static Element locateUpwardElement(Node n, String tag) throws Exception
     {
-        for (Node p = n.parentNode();;p = p.parentNode())
+        for (Node p = n.parentNode();; p = p.parentNode())
         {
             if (p == null)
                 return null;

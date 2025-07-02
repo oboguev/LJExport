@@ -54,7 +54,6 @@ public abstract class PageParserDirectBase
         this.rurl = other.rurl;
         this.rid = other.rid;
         this.commentsJson = other.commentsJson;
-        this.url = other.url;
     }
 
     protected String getPageSource() throws Exception
@@ -76,7 +75,6 @@ public abstract class PageParserDirectBase
     public Node pageRoot;
     public String pageSource;
     public String commentsJson;
-    public String url;
 
     public String rurl;
     public String rid;

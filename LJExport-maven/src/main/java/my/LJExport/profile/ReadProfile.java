@@ -3,6 +3,7 @@ package my.LJExport.profile;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -81,10 +82,11 @@ public class ReadProfile
                     LJUtil.userBase());
         }
 
+        AtomicReference<String> finalUrl = new AtomicReference<>(); 
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
-        parser.pageSource = load(url, standardHeaders());
-        parser.parseHtmlWithBaseUrl(url);
+        parser.pageSource = load(url, standardHeaders(), finalUrl);
+        parser.parseHtmlWithBaseUrl(finalUrl.get());
 
         Node el_1 = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile"));
         Node el_2 = JSOUP.optionalOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-myuserpic"));
@@ -110,10 +112,12 @@ public class ReadProfile
     private void readUserpics() throws Exception
     {
         String url = String.format("https://www.livejournal.com/allpics.bml?user=%s", Config.User);
+        
+        AtomicReference<String> finalUrl = new AtomicReference<>(); 
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
-        parser.pageSource = load(url, standardHeaders());
-        parser.parseHtmlWithBaseUrl(url);
+        parser.pageSource = load(url, standardHeaders(), finalUrl);
+        parser.parseHtmlWithBaseUrl(finalUrl.get());
 
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Userpics</font>
         Node el = findRequiredPivotElement("font", "Userpics");
@@ -134,10 +138,12 @@ public class ReadProfile
     private void readMemories() throws Exception
     {
         String url = String.format("https://www.livejournal.com/tools/memories.bml?user=%s", Config.User);
+
+        AtomicReference<String> finalUrl = new AtomicReference<>(); 
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
-        parser.pageSource = load(url, standardHeaders());
-        parser.parseHtmlWithBaseUrl(url);
+        parser.pageSource = load(url, standardHeaders(), finalUrl);
+        parser.parseHtmlWithBaseUrl(finalUrl.get());
 
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Memorable Entries</font>
         Node el = findRequiredPivotElement("font", "Memorable Entries");
@@ -191,10 +197,11 @@ public class ReadProfile
     {
         PageParserDirectBase parser = null;
 
+        AtomicReference<String> finalUrl = new AtomicReference<>(); 
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
-        parser.pageSource = load(href, standardHeaders());
-        parser.parseHtmlWithBaseUrl(href);
+        parser.pageSource = load(href, standardHeaders(), finalUrl);
+        parser.parseHtmlWithBaseUrl(finalUrl.get());
 
         Node el = findRequiredPivotElement("font", "Memorable Entries");
         parser.removeProfilePageJunk(Config.User + " - Memories - " + title, el);
@@ -221,10 +228,12 @@ public class ReadProfile
     private void readImages() throws Exception
     {
         String url = String.format("%s/pics/catalog", LJUtil.userBase());
+        
+        AtomicReference<String> finalUrl = new AtomicReference<>(); 
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
-        parser.pageSource = load(url, standardHeaders());
-        parser.parseHtmlWithBaseUrl(url);
+        parser.pageSource = load(url, standardHeaders(), finalUrl);
+        parser.parseHtmlWithBaseUrl(finalUrl.get());
 
         Node el = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics"));
         parser.removeProfilePageJunk(Config.User + " - Pictures", el);
@@ -271,12 +280,12 @@ public class ReadProfile
     private String lastURL = null;
 
     @SuppressWarnings("unused")
-    private String load(String url) throws Exception
+    private String load(String url, AtomicReference<String> finalUrl) throws Exception
     {
-        return load(url, null);
+        return load(url, null, finalUrl);
     }
 
-    private String load(String url, Map<String, String> headers) throws Exception
+    private String load(String url, Map<String, String> headers, AtomicReference<String> finalUrl) throws Exception
     {
         lastURL = url;
 
@@ -297,6 +306,8 @@ public class ReadProfile
             }
 
             Response r = Web.get(url, headers);
+            if (finalUrl != null)
+                finalUrl.set(r.finalUrl);
 
             if (r.code == 204)
             {

@@ -28,7 +28,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
     private final String linksDir;
 
     private PageParserDirectBase parser;
-    
+
     /*
      * For 1st page, use comment data embedded in page response, and do not do RPC.
      * This could have potential benefit, since RPC may be unneeded for 1s page then. 
@@ -73,8 +73,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
     public void readPage() throws Exception
     {
         // process page 1 completely but without comments yet
-        AtomicReference<String> page_url = new AtomicReference<>(); 
-        parser.pageSource = loadPage(1, page_url);
+        AtomicReference<String> page_final_url = new AtomicReference<>();
+        parser.pageSource = loadPage(1, page_final_url);
         if (parser.pageSource == null)
         {
             Main.markFailedPage(parser.rurl);
@@ -82,7 +82,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
         }
 
         if (parser.pageRoot == null)
-            parser.parseHtmlWithBaseUrl(page_url.get());
+            parser.parseHtmlWithBaseUrl(page_final_url.get());
 
         switch (parser.detectPageStyle())
         {
@@ -96,7 +96,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         // List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
         // CommentsTree commentTree = new CommentsTree(commentList);
-        
+
         if (UseEmbeddedComments)
         {
             parser.removeJunk(PageParserDirectBase.COUNT_PAGES |
@@ -208,11 +208,10 @@ public class PageReaderDirect implements PageReader, PageContentSource
         return lastReadPageSource;
     }
 
-    private String loadPage(int npage, AtomicReference<String> xurl) throws Exception
+    private String loadPage(int npage, AtomicReference<String> finalUrl) throws Exception
     {
         parser.pageSource = null;
         parser.pageRoot = null;
-        parser.url = null;
 
         /*
          * Try to load from manual-save override location.
@@ -235,9 +234,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
         parser.pageRoot = null;
         lastReadPageSource = null;
 
-        parser.pageSource = lastReadPageSource = load(sb.toString());
-        parser.url = sb.toString();
-        xurl.set(parser.url);
+        parser.pageSource = lastReadPageSource = load(sb.toString(), finalUrl);
 
         return lastReadPageSource;
     }
@@ -245,19 +242,19 @@ public class PageReaderDirect implements PageReader, PageContentSource
     @SuppressWarnings("unused")
     private String lastURL = null;
 
-    private String load(String url) throws Exception
+    private String load(String url, AtomicReference<String> finalUrl) throws Exception
     {
-        return load(url, null);
+        return load(url, null, finalUrl);
     }
 
     private String loadJson(String url) throws Exception
     {
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", Config.UserAgentAccept_Json);
-        return load(url, headers);
+        return load(url, headers, null);
     }
 
-    private String load(String url, Map<String, String> headers) throws Exception
+    private String load(String url, Map<String, String> headers, AtomicReference<String> finalUrl) throws Exception
     {
         lastURL = url;
 
@@ -278,6 +275,8 @@ public class PageReaderDirect implements PageReader, PageContentSource
             }
 
             Response r = Web.get(url, headers);
+            if (finalUrl != null)
+                finalUrl.set(r.finalUrl);
 
             if (r.code == 204)
             {

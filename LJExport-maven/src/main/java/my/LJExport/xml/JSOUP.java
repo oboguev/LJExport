@@ -784,6 +784,14 @@ public class JSOUP
             throw new Exception("Node is not an Element");
     }
 
+    public static Document asDocument(Node n) throws Exception
+    {
+        if (n instanceof Document)
+            return (Document) n;
+        else
+            throw new Exception("Node is not a Document");
+    }
+
     public static Node exactlyOne(List<Node> vn) throws Exception
     {
         if (vn.size() == 0)

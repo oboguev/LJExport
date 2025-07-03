@@ -180,6 +180,11 @@ public class ReadProfile
             {
                 String title = JSOUP.asElement(an).text();
                 title = Util.despace(title);
+                
+                /* self-reference */
+                if (title.equals("Uncategorized") && containsKeyword(href, ""))
+                    continue;
+                
                 String fn = SafeFileName.composeFileName(title, ".html");
 
                 File fp = new File(fpMemoriesDir, fn);
@@ -218,7 +223,7 @@ public class ReadProfile
         parser.parseHtmlWithBaseUrl(finalUrl.get());
 
         String pivot_title;
-        if (title.equals("Uncategorized") && containsKeywordWildcard(href))
+        if (title.equals("Uncategorized") && containsKeyword(href, "*"))
         {
             pivot_title = "Memorable Entries";
         }
@@ -265,7 +270,7 @@ public class ReadProfile
         Util.writeToFileSafe(fp.getCanonicalPath(), html);
     }
 
-    private boolean containsKeywordWildcard(String urlString) throws Exception
+    private boolean containsKeyword(String urlString, String keywordValue) throws Exception
     {
         URI uri = new URI(urlString);
         String query = uri.getRawQuery(); // get encoded query
@@ -280,9 +285,7 @@ public class ReadProfile
             {
                 String key = URLDecoder.decode(pair.substring(0, idx), "UTF-8");
                 String value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
-                if (key.equals("keyword") && value.equals("*"))
-                    return true;
-                if (key.equals("keyword") && value.equals(""))
+                if (key.equals("keyword") && value.equals(keywordValue))
                     return true;
             }
         }

@@ -28,7 +28,7 @@ public class MainReadProfiles
     // private static final String Users = "fritzmorgen,oboguev";
     // private static final String Users = "oboguev";
     private static final String Users = ALL_USERS;
-    
+
     public static void main(String[] args)
     {
         try
@@ -78,7 +78,7 @@ public class MainReadProfiles
                 Main.out(user);
                 continue;
             }
-            
+
             if (nuser++ != 0)
             {
                 Util.out("");
@@ -86,8 +86,15 @@ public class MainReadProfiles
                 Util.out("");
             }
 
-            MainReadProfiles self = new MainReadProfiles();
-            self.do_user(user);
+            try
+            {
+                MainReadProfiles self = new MainReadProfiles();
+                self.do_user(user);
+            }
+            finally
+            {
+                ThreadsControl.shutdownAfterUser();
+            }
         }
 
         Main.do_logout();
@@ -100,7 +107,7 @@ public class MainReadProfiles
         {
             Config.User = user;
             Config.mangleUser();
-            
+
             if (user.equals("fritzmorgen"))
             {
                 Config.Site = "olegmakarenko.ru";
@@ -122,7 +129,7 @@ public class MainReadProfiles
 
             Util.mkdir(linksDir);
             LinkDownloader.init(linksDir);
-            
+
             new ReadProfile().readAll();
 
             if (Main.isAborting())

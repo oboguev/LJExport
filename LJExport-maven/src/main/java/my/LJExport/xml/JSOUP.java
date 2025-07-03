@@ -95,7 +95,6 @@ public class JSOUP
     {
         if (n instanceof Element)
         {
-
             Element el = (Element) n;
             for (Attribute attr : el.attributes().asList())
             {
@@ -127,14 +126,12 @@ public class JSOUP
             for (Node xn1 : v1)
             {
                 if (!Util.containsIdentity(v2, xn1))
-                // if (!v2.contains(xn1))
                     throw new Exception("Bug in flatten #1");
             }
 
             for (Node xn2 : v2)
             {
                 if (!Util.containsIdentity(v1, xn2))
-                // if (!v1.contains(xn2))
                     throw new Exception("Bug in flatten #2");
             }
 
@@ -730,14 +727,14 @@ public class JSOUP
         for (Node n : c1)
         {
             if (!Util.containsIdentity(vn, n))
-            // if (!vn.contains(n))
+                // if (!vn.contains(n))
                 vn.add(n);
         }
 
         for (Node n : c2)
         {
             if (!Util.containsIdentity(vn, n))
-            // if (!vn.contains(n))
+                // if (!vn.contains(n))
                 vn.add(n);
         }
 
@@ -816,5 +813,102 @@ public class JSOUP
             if (p instanceof Element && asElement(p).tagName().equalsIgnoreCase(tag))
                 return asElement(p);
         }
+    }
+
+    public static boolean isInTree(Node parent, Node child)
+    {
+        for (Node p = child.parentNode();; p = p.parentNode())
+        {
+            if (p == null)
+                return false;
+            if (parent == p)
+                return true;
+        }
+    }
+
+    /* ========================================================================================= */
+
+    private static String customMarker()
+    {
+        return "x-" + Util.uuid();
+    }
+
+    public static String addCustomMarker(Element el)
+    {
+        return addCustomMarker(el, customMarker());
+    }
+
+    public static String addCustomMarker(Collection<Element> vel)
+    {
+        return addCustomMarker(vel, customMarker());
+    }
+
+    public static String addCustomMarker(Element el, String marker)
+    {
+        el.attr(marker, "set");
+        return marker;
+    }
+
+    public static void removeCustomMarker(Element el, String marker)
+    {
+        boolean has = false;
+
+        for (Attribute attr : el.attributes().asList())
+        {
+            if (attr.getKey().equals(marker))
+                has = true;
+        }
+
+        if (has)
+        {
+            el.removeAttr(marker);
+        }
+    }
+
+    public static String addCustomMarker(Collection<Element> vel, String marker)
+    {
+        for (Element el : vel)
+            addCustomMarker(el, marker);
+        return marker;
+    }
+
+    public static void removeCustomMarker(Collection<Element> vel, String marker)
+    {
+        for (Element el : vel)
+            removeCustomMarker(el, marker);
+    }
+
+    public static void removeCustomMarkerInTree(Element el, String marker) throws Exception
+    {
+        removeCustomMarker(el, marker);
+
+        for (Node n : flatten(el))
+        {
+            if (n instanceof Element)
+                removeCustomMarker(asElement(n), marker);
+        }
+    }
+
+    public static Collection<Element> selectElements(Collection<Node> vn) throws Exception
+    {
+        List<Element> vel = new ArrayList<>();
+        for (Node n : vn)
+        {
+            if (n instanceof Element)
+                vel.add(asElement(n));
+        }
+        return vel;
+    }
+
+    public static void checkInTree(Node root, List<Node> vn)
+    {
+        for (Node n : vn)
+            checkInTree(root, n);
+    }
+
+    public static void checkInTree(Node root, Node n)
+    {
+        if (!JSOUP.isInTree(root, n))
+            throw new RuntimeException("Node is not in tree");
     }
 }

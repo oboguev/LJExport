@@ -34,7 +34,7 @@ public abstract class PageParserDirectBase
     public static enum AbsoluteLinkBase
     {
         User, WWW_Livejournal, None;
-        
+
         public static AbsoluteLinkBase from(String url) throws Exception
         {
             String host = Util.urlHost(url).toLowerCase();
@@ -45,7 +45,7 @@ public abstract class PageParserDirectBase
             throw new Exception("Unable to determine link basis for URL " + url);
         }
     };
-    
+
     private final PageContentSource pageContentSource;
 
     public PageParserDirectBase(PageContentSource pageContentSource)
@@ -135,7 +135,7 @@ public abstract class PageParserDirectBase
     {
         this.pageRoot = JSOUP.parseHtml(this.pageSource, baseUrl);
     }
-    
+
     public void parseHtmlWithBaseUrl(String html, String baseUrl) throws Exception
     {
         this.pageSource = html;
@@ -505,7 +505,8 @@ public abstract class PageParserDirectBase
         return applied;
     }
 
-    private boolean applyProtocolAndBaseDefaults(Node root, AbsoluteLinkBase absoluteLinkBase, String tag, String attr) throws Exception
+    private boolean applyProtocolAndBaseDefaults(Node root, AbsoluteLinkBase absoluteLinkBase, String tag, String attr)
+            throws Exception
     {
         boolean applied = false;
 
@@ -941,13 +942,15 @@ public abstract class PageParserDirectBase
          * and also contained within the the same "td" cell as @n 
          */
         List<Node> preserve = new ArrayList<>();
-        
+
         for (Node n : nn)
         {
             if (n != null)
             {
                 for (Node p = n;; p = p.parentNode())
                 {
+                    if (p == null)
+                        throw new Exception("missing BODY element");
                     preserve.add(p);
                     if (p instanceof Element && JSOUP.asElement(p).tagName().equalsIgnoreCase("body"))
                         break;
@@ -963,9 +966,8 @@ public abstract class PageParserDirectBase
         deleteExcept("td", preserve);
         deleteExcept("tr", preserve);
         deleteExcept("table", preserve);
-        Util.noop();
     }
-
+    
     private void deleteExcept(String tag, List<Node> preserve) throws Exception
     {
         List<Node> vn = JSOUP.findElements(pageRoot, tag);
@@ -973,10 +975,6 @@ public abstract class PageParserDirectBase
         {
             if (!Util.containsIdentity(preserve, n))
             {
-                if (n.toString().contains("Dura Lex"))
-                {
-                    Util.noop();
-                }
                 n.remove();
             }
         }
@@ -1000,7 +998,7 @@ public abstract class PageParserDirectBase
                 }
             }
         }
-        
+
         Node frame = JSOUP.optionalOne(JSOUP.findElementsWithClass(pageRoot, "div", "b-ljuserpic"));
         if (frame != null)
         {

@@ -120,7 +120,7 @@ public class ReadProfile
         parser.parseHtmlWithBaseUrl(finalUrl.get());
 
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Userpics</font>
-        Node el = findRequiredPivotElement("font", "Userpics");
+        Node el = findRequiredPivotElement(parser.pageRoot, "font", "Userpics");
         parser.removeProfilePageJunk(Config.User + " - Userpics", el);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
@@ -146,7 +146,7 @@ public class ReadProfile
         parser.parseHtmlWithBaseUrl(finalUrl.get());
 
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Memorable Entries</font>
-        Node el = findRequiredPivotElement("font", "Memorable Entries");
+        Node el = findRequiredPivotElement(parser.pageRoot, "font", "Memorable Entries");
         parser.removeProfilePageJunk(Config.User + " - Memories", el);
 
         Node pageRoot = parser.pageRoot;
@@ -203,13 +203,12 @@ public class ReadProfile
         parser.pageSource = load(href, standardHeaders(), finalUrl);
         parser.parseHtmlWithBaseUrl(finalUrl.get());
 
-        Node el = findRequiredPivotElement("font", "Memorable Entries");
+        Node el = findRequiredPivotElement(parser.pageRoot, "font", "Memorable Entries");
         parser.removeProfilePageJunk(Config.User + " - Memories - " + title, el);
         
         // ### deletes excess, leaves empty page
 
-        Node pageRoot = parser.pageRoot;
-        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "form"));
+        JSOUP.removeElements(parser.pageRoot, JSOUP.findElements(parser.pageRoot, "form"));
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.from(finalUrl.get()));
@@ -252,14 +251,16 @@ public class ReadProfile
 
     /* ============================================================================ */
 
-    public Element findRequiredPivotElement(String tag, String text) throws Exception
+    private Element findRequiredPivotElement(Node root, String tag, String text) throws Exception
     {
-        for (Node n : JSOUP.findElements(parser.pageRoot, tag))
+        for (Node n : JSOUP.findElements(root, tag))
         {
             Element el = JSOUP.asElement(n);
 
             if (el.ownText().equals(text) || el.text().equals(text))
+            {
                 return el;
+            }
         }
 
         throw new Exception("Unable to locate requested element " + tag + " [" + text + "]");

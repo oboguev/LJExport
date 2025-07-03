@@ -17,6 +17,7 @@ import org.apache.http.cookie.Cookie;
 
 import my.LJExport.Config.WebMethod;
 import my.LJExport.calendar.Calendar;
+import my.LJExport.profile.ReadProfile;
 import my.LJExport.readers.PageReader;
 import my.LJExport.readers.PageReaderBasic;
 import my.LJExport.readers.PageReaderHtmlUnit;
@@ -191,7 +192,7 @@ public class Main
         {
             out(">>> Processing journal for user " + user);
             out(">>> Time: " + Util.timeNow());
-            
+
             if (user.equals("fritzmorgen"))
             {
                 Config.Site = "olegmakarenko.ru";
@@ -275,7 +276,7 @@ public class Main
             case HTML_UNIT:
                 break;
             }
-            
+
             ActivityCounters.reset();
 
             // start worker threads
@@ -290,7 +291,7 @@ public class Main
                 t.start();
                 ThreadsControl.activeWorkerThreadCount.incrementAndGet();
             }
-            
+
             ThreadsControl.workerThreadGoEventFlag.set();
 
             // wait for worker threads to complete
@@ -320,7 +321,12 @@ public class Main
                 err("WARNING: " + failedPages.size() + " record(s) failed to load.");
                 err("         You may retry loading.");
             }
-            
+
+            if (!isAborting())
+            {
+                new ReadProfile().readAll();
+            }
+
             ThreadsControl.shutdownAfterUser();
 
             switch (Config.Method)
@@ -379,7 +385,7 @@ public class Main
     {
         if (logged_in)
             throw new Exception("Already logged in");
-        
+
         // logged_in = false;
         Config.acquireLoginPassword();
 
@@ -491,7 +497,7 @@ public class Main
             }
         }
     }
-    
+
     public static void do_work() throws Exception
     {
         PageReaderHtmlUnit.Context htmlUnitContext = null;
@@ -502,7 +508,7 @@ public class Main
         {
             Thread.currentThread().setName("page-loader: idle");
             ThreadsControl.workerThreadGoEventFlag.waitFlag();
-            
+
             switch (Config.Method)
             {
             case HTML_UNIT:
@@ -584,7 +590,7 @@ public class Main
 
                 reader.readPage();
                 ActivityCounters.loadedPage();
-                
+
                 Thread.currentThread().setName("page-loader: idle");
             }
         }
@@ -747,7 +753,7 @@ public class Main
     {
         return deadLinks.contains(url);
     }
-    
+
     public static void playCompletionSound()
     {
         PlaySound.play("audio/flute-alert.wav");

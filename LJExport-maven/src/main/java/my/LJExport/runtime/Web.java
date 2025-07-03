@@ -80,7 +80,6 @@ public class Web
                     URI finalUrl = ((HttpUriRequest) finalRequest).getURI();
                     this.finalUrl = finalUrl.toString();
                     /* URI only without host */
-                    Util.noop();
                 }
                 else
                 {
@@ -103,7 +102,6 @@ public class Web
                     finalUrl = request.getURI();
                 }
                 this.finalUrl = finalUrl.toString();
-                Util.noop();
             }
         }
     }

@@ -1,9 +1,11 @@
 package my.LJExport;
 
 import java.io.File;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import my.LJExport.profile.ReadProfile;
+import my.LJExport.runtime.EnumUsers;
 // import my.LJExport.runtime.HttpWireTracing;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.RateLimiter;
@@ -12,12 +14,21 @@ import my.LJExport.runtime.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.ThreadsControl;
 
+/*
+ * Загрузить профили
+ * 
+ * Use stack size: -Xss2m
+ */
 public class MainReadProfiles
 {
+    private static final String ALL_USERS = "<all>";
+    private static final String AllUsersFromUser = null;
+
     // private static final String Users = "oboguev";
     // private static final String Users = "fritzmorgen,oboguev";
-    private static final String Users = "abcdefgh";
-
+    // private static final String Users = "oboguev";
+    private static final String Users = ALL_USERS;
+    
     public static void main(String[] args)
     {
         try
@@ -38,6 +49,12 @@ public class MainReadProfiles
 
     private static void do_users(String users) throws Exception
     {
+        if (users.equals(ALL_USERS))
+        {
+            List<String> list = EnumUsers.allUsers(AllUsersFromUser, EnumUsers.Options.DEFAULT);
+            users = String.join(",", list);
+        }
+
         Config.init("");
         Web.init();
 
@@ -56,6 +73,12 @@ public class MainReadProfiles
             if (user.equals(""))
                 continue;
 
+            if (Config.False)
+            {
+                Main.out(user);
+                continue;
+            }
+            
             if (nuser++ != 0)
             {
                 Util.out("");
@@ -95,7 +118,7 @@ public class MainReadProfiles
             // final String pagesDir = userRoot + File.separator + "pages";
             final String linksDir = userRoot + File.separator + "links";
 
-            Util.out(">>> Downloading profile for user " + Config.User);
+            Util.out(">>> Preparing to download profile for user " + Config.User);
 
             Util.mkdir(linksDir);
             LinkDownloader.init(linksDir);

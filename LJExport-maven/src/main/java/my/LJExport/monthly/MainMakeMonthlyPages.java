@@ -24,8 +24,9 @@ public class MainMakeMonthlyPages
     // private static String Users = "alex_vergin,asriyan,blog_10101,hokma,sergeytsvetkov";
     // private static String Users = "alex_vergin";
     // private static final String Users = ALL_USERS;
-    //private static String Users = "amfora,colonelcassad,fluffyduck2,genby,kot_begemott,lasido,sergeytsvetkov,von_hoffmann";
-    private static String Users = "hurtmann,maxim_sokolov,obsrvr,ru_nationalism,schegloff";
+    // private static String Users = "amfora,colonelcassad,fluffyduck2,genby,kot_begemott,lasido,sergeytsvetkov,von_hoffmann";
+    // private static String Users = "hurtmann,maxim_sokolov,obsrvr,ru_nationalism,schegloff";
+    private static String Users = "elcour,meast_ru";
 
     public static void main(String[] args)
     {
@@ -85,7 +86,7 @@ public class MainMakeMonthlyPages
     {
         String pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + whichDir;
         String monthlyPagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "monthly-" + whichDir;
-        
+
         File fp = new File(pagesDir).getCanonicalFile();
         if (!fp.exists() || !fp.isDirectory())
             return;

@@ -64,6 +64,8 @@ public class ReadProfile
 
     public void readAll() throws Exception
     {
+        Util.out(">>> Downloading profile for user " + Config.User);
+
         if (Config.ReloadExistingFiles || !new File(fpProfileDir, "profile.html").exists())
             readProfile();
 
@@ -356,22 +358,20 @@ public class ReadProfile
         {
             if (pageFileExists(pagesDir, pagesMap, fn))
             {
-                remapPageLinkToLocalFile(n, "pages/" + pagesMap.get(fn));
+                remapPageLinkToLocalFile(n, "pages/" + pagesMap.get(fn), href);
             }
             else if (repostsMap != null && pageFileExists(repostsDir, repostsMap, fn))
             {
-                remapPageLinkToLocalFile(n, "reposts/" + repostsMap.get(fn));
+                remapPageLinkToLocalFile(n, "reposts/" + repostsMap.get(fn), href);
             }
-            Util.noop();
         }
     }
 
-    private void remapPageLinkToLocalFile(Node n, String relPath) throws Exception
+    private void remapPageLinkToLocalFile(Node n, String relPath, String original_href) throws Exception
     {
-        relPath = "../../../" + relPath;
+        relPath = "../../" + relPath;
         JSOUP.updateAttribute(n, "href", relPath);
-        // ### JSOUP.setAttribute(n, "original-href", href);
-        // ###
+        JSOUP.setAttribute(n, "original-href", original_href);
     }
 
     private String extractUserPageFilenameIfMatches(String href, Set<String> userBases)
@@ -466,6 +466,9 @@ public class ReadProfile
     private void readImages() throws Exception
     {
         String url = String.format("%s/pics/catalog", LJUtil.userBase());
+        
+        if (Config.True) // ###
+            return;
 
         // ### 403 hokma.livejournal.com/pics/catalog
         // ### 403 ru-nationalism.livejournal.com/pics/catalog

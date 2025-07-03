@@ -3,7 +3,8 @@ package my.LJExport.profile;
 import java.io.File;
 import java.net.URI;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +46,8 @@ public class ReadProfile
 {
     private final String userRoot;
     private final String linksDir;
+    private final String pagesDir;
+    private final String repostsDir;
     private final String profileDir;
     private final File fpProfileDir;
     private PageParserDirectBase parser;
@@ -53,6 +56,8 @@ public class ReadProfile
     {
         userRoot = Config.DownloadRoot + File.separator + Config.User;
         linksDir = userRoot + File.separator + "links";
+        pagesDir = userRoot + File.separator + "pages";
+        repostsDir = userRoot + File.separator + "reposts";
         profileDir = userRoot + File.separator + "profile";
         fpProfileDir = new File(profileDir).getCanonicalFile();
     }
@@ -253,8 +258,6 @@ public class ReadProfile
 
         remapPageLinksToLocalFiles(parser.pageRoot);
 
-        // ### change "a" links to own journal to local 
-
         String html = JSOUP.emitHtml(parser.pageRoot);
         if (!fp.getParentFile().exists())
             fp.getParentFile().mkdirs();
@@ -278,6 +281,8 @@ public class ReadProfile
                 String key = URLDecoder.decode(pair.substring(0, idx), "UTF-8");
                 String value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
                 if (key.equals("keyword") && value.equals("*"))
+                    return true;
+                if (key.equals("keyword") && value.equals(""))
                     return true;
             }
         }
@@ -316,22 +321,47 @@ public class ReadProfile
         userBases.add(String.format("%s.%s/", Config.User, Config.Site));
         userBases.add(String.format("%s.%s/", Config.MangledUser, Config.Site));
 
+        Map<String, String> pagesMap = makePagesMap(pagesDir);
+
+        Map<String, String> repostsMap = null;
+        File fpReposts = new File(repostsDir).getCanonicalFile();
+        if (fpReposts.exists() && fpReposts.isDirectory())
+            repostsMap = makePagesMap(repostsDir);
+
         for (Node n : JSOUP.findElements(root, "a"))
         {
             String href = JSOUP.getAttribute(n, "href");
             if (href != null)
-                remapPageLinkToLocalFile(n, href, userBases);
+                remapPageLinkToLocalFile(n, href, userBases, pagesMap, repostsMap);
         }
     }
 
-    private void remapPageLinkToLocalFile(Node n, String href, Set<String> userBases)
+    private void remapPageLinkToLocalFile(Node n,
+            String href,
+            Set<String> userBases,
+            Map<String, String> pagesMap,
+            Map<String, String> repostsMap) throws Exception
     {
         String fn = extractUserPageFilenameIfMatches(href, userBases);
         if (fn != null)
         {
-            // ###
+            if (pageFileExists(pagesDir, pagesMap, fn))
+            {
+                remapPageLinkToLocalFile(n, "pages/" + pagesMap.get(fn));
+            }
+            else if (repostsMap != null && pageFileExists(repostsDir, repostsMap, fn))
+            {
+                remapPageLinkToLocalFile(n, "reposts/" + repostsMap.get(fn));
+            }
             Util.noop();
         }
+    }
+
+    private void remapPageLinkToLocalFile(Node n, String relPath) throws Exception
+    {
+        relPath = "../../../" + relPath;
+        JSOUP.updateAttribute(n, "href", relPath);
+        // ###
     }
 
     public static String extractUserPageFilenameIfMatches(String href, Set<String> userBases)
@@ -374,6 +404,51 @@ public class ReadProfile
 
         // No match
         return null;
+    }
+
+    public static Map<String, String> makePagesMap(String rootDir)
+    {
+        Map<String, String> pagesMap = new HashMap<>();
+        Path rootPath = Paths.get(rootDir).toAbsolutePath().normalize();
+        File root = rootPath.toFile();
+
+        if (!root.exists() || !root.isDirectory())
+            return pagesMap;
+
+        makePagesMapTraverse(root, rootPath, pagesMap);
+        return pagesMap;
+    }
+
+    private static void makePagesMapTraverse(File file, Path rootPath, Map<String, String> map)
+    {
+        if (file.isFile())
+        {
+            String name = file.getName();
+            if (!map.containsKey(name))
+            {
+                Path relativePath = rootPath.relativize(file.toPath());
+                map.put(name, relativePath.toString().replace(File.separatorChar, '/'));
+            }
+        }
+        else if (file.isDirectory())
+        {
+            File[] children = file.listFiles();
+            if (children != null)
+            {
+                for (File child : children)
+                    makePagesMapTraverse(child, rootPath, map);
+            }
+        }
+    }
+
+    private boolean pageFileExists(String filesDir, Map<String, String> filesMap, String fn)
+    {
+        String path = filesMap.get(fn);
+        if (path == null)
+            return false;
+        File fp = new File(filesDir);
+        fp = new File(fp, path.replace("/", File.separator));
+        return fp.exists() && fp.isFile();
     }
 
     /* ================================================================================================== */

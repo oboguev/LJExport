@@ -1,12 +1,18 @@
 package my.LJExport.profile;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
@@ -82,7 +88,7 @@ public class ReadProfile
                     LJUtil.userBase());
         }
 
-        AtomicReference<String> finalUrl = new AtomicReference<>(); 
+        AtomicReference<String> finalUrl = new AtomicReference<>();
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders(), finalUrl);
@@ -112,8 +118,8 @@ public class ReadProfile
     private void readUserpics() throws Exception
     {
         String url = String.format("https://www.livejournal.com/allpics.bml?user=%s", Config.User);
-        
-        AtomicReference<String> finalUrl = new AtomicReference<>(); 
+
+        AtomicReference<String> finalUrl = new AtomicReference<>();
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders(), finalUrl);
@@ -139,7 +145,7 @@ public class ReadProfile
     {
         String url = String.format("https://www.livejournal.com/tools/memories.bml?user=%s", Config.User);
 
-        AtomicReference<String> finalUrl = new AtomicReference<>(); 
+        AtomicReference<String> finalUrl = new AtomicReference<>();
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders(), finalUrl);
@@ -197,18 +203,47 @@ public class ReadProfile
     {
         PageParserDirectBase parser = null;
 
-        AtomicReference<String> finalUrl = new AtomicReference<>(); 
+        AtomicReference<String> finalUrl = new AtomicReference<>();
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
         parser.pageSource = load(href, standardHeaders(), finalUrl);
         parser.parseHtmlWithBaseUrl(finalUrl.get());
 
-        Node el = findRequiredPivotElement(parser.pageRoot, "font", "Memorable Entries");
+        String pivot_title;
+        if (title.equals("Uncategorized") && containsKeywordWildcard(href))
+        {
+            pivot_title = "Memorable Entries";
+        }
+        else
+        {
+            pivot_title = String.format("Memorable %s Entries", title);
+        }
+
+        Node el = findRequiredPivotElement(parser.pageRoot, "font", pivot_title);
         parser.removeProfilePageJunk(Config.User + " - Memories - " + title, el);
-        
-        // ### deletes excess, leaves empty page
 
         JSOUP.removeElements(parser.pageRoot, JSOUP.findElements(parser.pageRoot, "form"));
+
+        List<Node> delvec = new ArrayList<>();
+        for (Node n : JSOUP.findElements(parser.pageRoot, "a"))
+        {
+            String aref = JSOUP.getAttribute(n, "href");
+            if (aref != null)
+            {
+                aref = Util.stripProtocol(aref).toLowerCase();
+                if (aref.startsWith("www."))
+                    aref = Util.stripStart(aref, "www.");
+                if (aref.startsWith("livejournal.com/tools/memories.bml?") ||
+                        aref.startsWith("livejournal.com/tools/memadd.bml?") ||
+                        aref.startsWith("/tools/memories.bml?") ||
+                        aref.startsWith("/tools/memadd.bml?"))
+                {
+                    delvec.add(n);
+                    stripBrackets(delvec, JSOUP.asElement(n));
+                }
+            }
+        }
+        JSOUP.removeElements(parser.pageRoot, delvec);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.from(finalUrl.get()));
@@ -222,13 +257,59 @@ public class ReadProfile
         Util.writeToFileSafe(fp.getCanonicalPath(), html);
     }
 
+    private boolean containsKeywordWildcard(String urlString) throws Exception
+    {
+        URI uri = new URI(urlString);
+        String query = uri.getRawQuery(); // get encoded query
+        if (query == null)
+            return false;
+
+        String[] pairs = query.split("&");
+        for (String pair : pairs)
+        {
+            int idx = pair.indexOf('=');
+            if (idx != -1)
+            {
+                String key = URLDecoder.decode(pair.substring(0, idx), "UTF-8");
+                String value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
+                if (key.equals("keyword") && value.equals("*"))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void stripBrackets(List<Node> delvec, Element ael)
+    {
+        List<Node> siblings = ael.parent().childNodes();
+        int idx = siblings.indexOf(ael);
+
+        if (idx > 0 && idx < siblings.size() - 1)
+        {
+            Node prev = siblings.get(idx - 1);
+            Node next = siblings.get(idx + 1);
+
+            if (prev instanceof TextNode && ((TextNode) prev).text().trim().equals("["))
+            {
+                if (next instanceof TextNode && ((TextNode) next).text().trim().equals("]"))
+                {
+                    // delvec.add(prev);
+                    // delvec.add(next);
+                    ((TextNode) prev).text(" ");
+                    ((TextNode) next).text(" ");
+                }
+            }
+        }
+    }
+
     /* ================================================================================================== */
 
     private void readImages() throws Exception
     {
         String url = String.format("%s/pics/catalog", LJUtil.userBase());
-        
-        AtomicReference<String> finalUrl = new AtomicReference<>(); 
+
+        AtomicReference<String> finalUrl = new AtomicReference<>();
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders(), finalUrl);

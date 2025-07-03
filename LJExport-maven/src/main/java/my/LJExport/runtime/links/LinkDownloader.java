@@ -2,6 +2,7 @@ package my.LJExport.runtime.links;
 
 import java.io.File;
 import java.net.SocketTimeoutException;
+import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -393,9 +394,9 @@ public class LinkDownloader
             if (DontDownload.dontDownload(href))
                 return false;
 
-            URL url = new URL(href);
+            URI url = new URI(href);
 
-            String protocol = url.getProtocol();
+            String protocol = url.getScheme();
             if (protocol == null)
                 return false;
             if (!(protocol.equalsIgnoreCase("http") || protocol.equalsIgnoreCase("https")))

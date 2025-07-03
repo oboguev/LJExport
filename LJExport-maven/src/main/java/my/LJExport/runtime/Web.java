@@ -28,6 +28,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.routing.HttpRoute;
@@ -41,6 +42,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.function.IntPredicate;
 import static java.lang.Math.max;
@@ -68,18 +70,40 @@ public class Web
         /* final URL after redirects */
         public String finalUrl;
 
-        private void setFinalUrl(HttpClientContext context, String url)
+        private void setFinalUrl(HttpUriRequest request, HttpClientContext context, String url) throws Exception
         {
-            HttpRequest finalRequest = context.getRequest();
-            if (finalRequest instanceof HttpUriRequest)
+            if (Config.False)
             {
-                URI finalUrl = ((HttpUriRequest) finalRequest).getURI();
-                this.finalUrl = finalUrl.toString();
+                HttpRequest finalRequest = context.getRequest();
+                if (finalRequest instanceof HttpUriRequest)
+                {
+                    URI finalUrl = ((HttpUriRequest) finalRequest).getURI();
+                    this.finalUrl = finalUrl.toString();
+                    /* URI only without host */
+                    Util.noop();
+                }
+                else
+                {
+                    Main.err("Cannot determine final URI from request type: " + finalRequest.getClass());
+                    this.finalUrl = url;
+                }
             }
             else
             {
-                Main.err("Cannot determine final URI from request type: " + finalRequest.getClass());
-                this.finalUrl = url;
+                HttpHost target = context.getTargetHost();
+                List<URI> redirects = context.getRedirectLocations();
+
+                URI finalUrl;
+                if (redirects != null && !redirects.isEmpty())
+                {
+                    finalUrl = URIUtils.resolve(request.getURI(), target, redirects);
+                }
+                else
+                {
+                    finalUrl = request.getURI();
+                }
+                this.finalUrl = finalUrl.toString();
+                Util.noop();
             }
         }
     }
@@ -399,7 +423,7 @@ public class Web
         {
             r.code = response.getStatusLine().getStatusCode();
             r.reason = response.getStatusLine().getReasonPhrase();
-            r.setFinalUrl(context, url);
+            r.setFinalUrl(request, context, url);
 
             if (shouldLoadBody == null || shouldLoadBody.test(r.code))
             {
@@ -474,7 +498,7 @@ public class Web
         {
             r.code = response.getStatusLine().getStatusCode();
             r.reason = response.getStatusLine().getReasonPhrase();
-            r.setFinalUrl(context, url);
+            r.setFinalUrl(request, context, url);
 
             HttpEntity entity = response.getEntity();
 

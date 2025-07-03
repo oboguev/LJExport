@@ -203,20 +203,20 @@ public class Util
 
     public static String stripProtocol(String url) throws Exception
     {
-        StringBuilder sb = new StringBuilder();
+        String lower = url.toLowerCase();
 
-        if (beginsWith(url, "http://", sb))
+        if (lower.startsWith("http://"))
         {
-            // stripped http prefix
-            url = sb.toString();
+            return url.substring("http://".length());
         }
-        else if (beginsWith(url, "https://", sb))
+        else if (lower.startsWith("https://"))
         {
-            // stripped https prefix
-            url = sb.toString();
+            return url.substring("https://".length());
         }
-
-        return url;
+        else
+        {
+            return url;
+        }
     }
 
     public static String stripAnchor(String href) throws Exception
@@ -494,16 +494,20 @@ public class Util
 
     public static String flipProtocol(String s) throws Exception
     {
-        if (s.startsWith("http://"))
-            return "https://" + Util.stripStart(s, "http://");
-        else if (s.startsWith("https://"))
-            return "http://" + Util.stripStart(s, "https://");
-        else if (s.startsWith("HTTP://"))
-            return "HTTPS://" + Util.stripStart(s, "HTTP://");
-        else if (s.startsWith("HTTPS://"))
-            return "HTTP://" + Util.stripStart(s, "HTTPS://");
+        String lower = s.toLowerCase();
+
+        if (lower.startsWith("http://"))
+        {
+            return "https://" + s.substring("http://".length());
+        }
+        else if (lower.startsWith("https://"))
+        {
+            return "http://" + s.substring("https://".length());
+        }
         else
+        {
             return s;
+        }
     }
 
     /*
@@ -541,7 +545,7 @@ public class Util
 
         return s.substring(start, end);
     }
-    
+
     public static void out(String s)
     {
         System.out.println(s);
@@ -590,7 +594,7 @@ public class Util
                 }
             }
         }
-        
+
         if (Config.False)
         {
             out("Pseudo-deleting " + root.getCanonicalPath());
@@ -602,22 +606,22 @@ public class Util
             return root.delete();
         }
     }
-    
+
     public static String timeNow()
     {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formatted = now.format(formatter);
         return formatted;
-        
+
     }
-    
+
     public static String urlHost(String url) throws Exception
     {
         URL x = new URL(url);
         return x.getHost();
     }
-    
+
     public static <T> boolean containsIdentity(Collection<T> coll, T object)
     {
         for (T x : coll)
@@ -625,7 +629,7 @@ public class Util
             if (x == object)
                 return true;
         }
- 
+
         return false;
     }
 }

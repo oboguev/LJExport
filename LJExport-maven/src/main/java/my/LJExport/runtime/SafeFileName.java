@@ -15,7 +15,7 @@ public class SafeFileName
     public static String composeFileName(String seed, String suffix)
     {
         // Edge case for "." and ".."
-        if (seed.equals(".") || seed.equals(".."))
+        if (seed.equals(".") || seed.equals("..") || seed.isEmpty())
             return guidFileName(suffix);
 
         StringBuilder sb = new StringBuilder();

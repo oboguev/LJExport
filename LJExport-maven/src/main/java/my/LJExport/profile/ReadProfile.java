@@ -180,23 +180,23 @@ public class ReadProfile
             {
                 String title = JSOUP.asElement(an).text();
                 title = Util.despace(title);
-                
+
                 /* self-reference */
                 if (title.equals("Uncategorized") && containsKeyword(href, ""))
                     continue;
-                
+
                 String fn = SafeFileName.composeFileName(title, ".html");
 
                 File fp = new File(fpMemoriesDir, fn);
-                if (fp.exists())
+                while (fp.exists())
                 {
                     fn = SafeFileName.guidFileName(".html");
-                    fp = new File(fpProfileDir, "memories");
-                    fp = new File(fp, fn);
+                    fp = new File(fpMemoriesDir, fn);
                 }
                 loadMemoriesEntryPage(href, fp.getCanonicalFile(), title);
 
                 JSOUP.updateAttribute(an, "href", "memories/" + fn);
+                JSOUP.setAttribute(an, "original-href", href);
             }
         }
 
@@ -316,13 +316,19 @@ public class ReadProfile
         }
     }
 
-    private void remapPageLinksToLocalFiles(Node root) throws Exception
+    private Set<String> userBases()
     {
         Set<String> userBases = new HashSet<>();
         userBases.add(String.format("users.%s/%s/", Config.Site, Config.User));
         userBases.add(String.format("users.%s/%s/", Config.Site, Config.MangledUser));
         userBases.add(String.format("%s.%s/", Config.User, Config.Site));
         userBases.add(String.format("%s.%s/", Config.MangledUser, Config.Site));
+        return userBases;
+    }
+
+    private void remapPageLinksToLocalFiles(Node root) throws Exception
+    {
+        Set<String> userBases = userBases();
 
         Map<String, String> pagesMap = makePagesMap(pagesDir);
 
@@ -364,10 +370,11 @@ public class ReadProfile
     {
         relPath = "../../../" + relPath;
         JSOUP.updateAttribute(n, "href", relPath);
+        // ### JSOUP.setAttribute(n, "original-href", href);
         // ###
     }
 
-    public static String extractUserPageFilenameIfMatches(String href, Set<String> userBases)
+    private String extractUserPageFilenameIfMatches(String href, Set<String> userBases)
     {
         if (href == null)
             return null;
@@ -472,13 +479,98 @@ public class ReadProfile
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
 
-        // ###
+        File fpImagesDir = new File(fpProfileDir, "images").getCanonicalFile();
+        if (fpImagesDir.exists())
+            Util.deleteDirectoryTree(fpImagesDir.getCanonicalPath());
+
+        Set<String> userBases = userBases();
+        for (Node an : JSOUP.findElements(parser.pageRoot, "a"))
+        {
+            if (JSOUP.findElements(an, "img").size() != 0)
+                continue;
+
+            String href = JSOUP.getAttribute(an, "href");
+
+            if (href != null && isAlbumUrl(href, userBases))
+            {
+                String title = JSOUP.asElement(an).text();
+                title = Util.despace(title);
+                if (title.isEmpty())
+                    continue;
+
+                String fn = SafeFileName.composeFileName(title, ".html");
+
+                File fp = new File(fpImagesDir, fn);
+                while (fp.exists())
+                {
+                    fn = SafeFileName.guidFileName(".html");
+                    fp = new File(fpImagesDir, fn);
+                }
+
+                loadImageAlbum(href, fp.getCanonicalFile(), title);
+
+                updateMatchingLinks(parser.pageRoot, "a", "href", href, "images/" + fn);
+            }
+        }
 
         String html = JSOUP.emitHtml(parser.pageRoot);
         if (!fpProfileDir.exists())
             fpProfileDir.mkdirs();
 
         Util.writeToFileSafe(new File(fpProfileDir, "images.html").getCanonicalPath(), html);
+    }
+
+    private void loadImageAlbum(String href, File fp, String title)
+    {
+        // ### album can have multiple pages
+        // ### https://abcdefgh.livejournal.com/pics/catalog/342
+    }
+
+    private void updateMatchingLinks(Node root, String tag, String attr, String original, String replacement) throws Exception
+    {
+        for (Node n : JSOUP.findElements(root, tag))
+        {
+            String href = JSOUP.getAttribute(n, attr);
+            if (href != null && href.equals(original))
+            {
+                JSOUP.updateAttribute(n, attr, replacement);
+                JSOUP.setAttribute(n, "original-" + attr, original);
+            }
+        }
+    }
+
+    private boolean isAlbumUrl(String href, Set<String> userBases)
+    {
+        if (href == null)
+            return false;
+
+        String lowerHref = href.toLowerCase(Locale.ROOT);
+        String workingHref = lowerHref;
+
+        // Strip protocol if present
+        if (workingHref.startsWith("http://"))
+        {
+            workingHref = workingHref.substring("http://".length());
+        }
+        else if (workingHref.startsWith("https://"))
+        {
+            workingHref = workingHref.substring("https://".length());
+        }
+
+        for (String base : userBases)
+        {
+            String lowerBase = base.toLowerCase(Locale.ROOT);
+
+            if (workingHref.startsWith(lowerBase))
+            {
+                String remainder = workingHref.substring(lowerBase.length());
+
+                if (remainder.startsWith("pics/catalog/"))
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     /* ============================================================================ */

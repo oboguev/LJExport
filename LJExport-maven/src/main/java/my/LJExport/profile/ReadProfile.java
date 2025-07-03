@@ -467,6 +467,9 @@ public class ReadProfile
     {
         String url = String.format("%s/pics/catalog", LJUtil.userBase());
 
+        // ### 403 hokma.livejournal.com/pics/catalog
+        // ### 403 ru-nationalism.livejournal.com/pics/catalog
+
         AtomicReference<String> finalUrl = new AtomicReference<>();
         parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;

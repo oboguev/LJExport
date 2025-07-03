@@ -6,8 +6,11 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.jsoup.nodes.Element;
@@ -248,6 +251,8 @@ public class ReadProfile
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.from(finalUrl.get()));
 
+        remapPageLinksToLocalFiles(parser.pageRoot);
+
         // ### change "a" links to own journal to local 
 
         String html = JSOUP.emitHtml(parser.pageRoot);
@@ -301,6 +306,74 @@ public class ReadProfile
                 }
             }
         }
+    }
+
+    private void remapPageLinksToLocalFiles(Node root) throws Exception
+    {
+        Set<String> userBases = new HashSet<>();
+        userBases.add(String.format("users.%s/%s/", Config.Site, Config.User));
+        userBases.add(String.format("users.%s/%s/", Config.Site, Config.MangledUser));
+        userBases.add(String.format("%s.%s/", Config.User, Config.Site));
+        userBases.add(String.format("%s.%s/", Config.MangledUser, Config.Site));
+
+        for (Node n : JSOUP.findElements(root, "a"))
+        {
+            String href = JSOUP.getAttribute(n, "href");
+            if (href != null)
+                remapPageLinkToLocalFile(n, href, userBases);
+        }
+    }
+
+    private void remapPageLinkToLocalFile(Node n, String href, Set<String> userBases)
+    {
+        String fn = extractUserPageFilenameIfMatches(href, userBases);
+        if (fn != null)
+        {
+            // ###
+            Util.noop();
+        }
+    }
+
+    public static String extractUserPageFilenameIfMatches(String href, Set<String> userBases)
+    {
+        if (href == null)
+            return null;
+
+        String lowerHref = href.toLowerCase(Locale.ROOT);
+        String workingHref = lowerHref;
+
+        // Strip protocol if present
+        if (workingHref.startsWith("http://"))
+        {
+            workingHref = workingHref.substring("http://".length());
+        }
+        else if (workingHref.startsWith("https://"))
+        {
+            workingHref = workingHref.substring("https://".length());
+        }
+
+        for (String base : userBases)
+        {
+            String lowerBase = base.toLowerCase(Locale.ROOT);
+
+            if (workingHref.startsWith(lowerBase))
+            {
+                String remainder = workingHref.substring(lowerBase.length());
+
+                // Check if remainder is purely digits + ".html"
+                if (remainder.endsWith(".html"))
+                {
+                    String numPart = remainder.substring(0, remainder.length() - ".html".length());
+                    if (!numPart.isEmpty() && numPart.chars().allMatch(Character::isDigit))
+                    {
+                        return numPart + ".html";
+                    }
+                }
+            }
+        }
+
+        // No match
+        return null;
     }
 
     /* ================================================================================================== */

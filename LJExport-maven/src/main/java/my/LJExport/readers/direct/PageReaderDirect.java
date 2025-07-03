@@ -251,7 +251,22 @@ public class PageReaderDirect implements PageReader, PageContentSource
     {
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", Config.UserAgentAccept_Json);
-        return load(url, headers, null);
+        String json = load(url, headers, null);
+        
+        if (json != null && isHtmlResponse(json))
+        {
+            // retry if received spurious HTML reply instead of JSON
+            Util.sleep(10 * 1000);
+            json = load(url, headers, null);
+        }
+        
+        return json;
+    }
+    
+    private boolean isHtmlResponse(String s)
+    {
+        String lc = s.toLowerCase();
+        return lc.startsWith("<html") || lc.startsWith("<!doctype");
     }
 
     private String load(String url, Map<String, String> headers, AtomicReference<String> finalUrl) throws Exception

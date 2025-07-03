@@ -632,4 +632,16 @@ public class Util
 
         return false;
     }
+
+    public static void sleep(long ms)
+    {
+        try
+        {
+            Thread.sleep(ms);
+        }
+        catch (InterruptedException ex)
+        {
+            noop();
+        }
+    }
 }

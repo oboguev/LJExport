@@ -1,11 +1,17 @@
 package my.LJExport.readers;
 
+import java.net.URI;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import my.LJExport.Config;
 import my.LJExport.xml.JSOUP;
 
 public class Comment
@@ -343,7 +349,7 @@ public class Comment
             checkMatch(dname, c.dname, "dname");
             checkMatch(profile_url, c.profile_url, "profile_url");
             checkMatch(journal_url, c.journal_url, "journal_url");
-            checkMatch(userhead_url, c.userhead_url, "userhead_url");
+            userhead_url = checkMatch_userhead_url(userhead_url, c.userhead_url, "userhead_url");
             checkMatch(commenter_journal_base, c.commenter_journal_base, "commenter_journal_base");
             checkMatch(ctime, c.ctime, "ctime");
             checkMatch(level, c.level, "level");
@@ -361,7 +367,7 @@ public class Comment
             dname = mergeValue(dname, c.dname, "dname");
             profile_url = mergeValue(profile_url, c.profile_url, "profile_url");
             journal_url = mergeValue(journal_url, c.journal_url, "journal_url");
-            userhead_url = mergeValue(userhead_url, c.userhead_url, "userhead_url");
+            userhead_url = mergeValue_userhead_url(userhead_url, c.userhead_url, "userhead_url");
             commenter_journal_base = mergeValue(commenter_journal_base, c.commenter_journal_base, "commenter_journal_base");
             ctime = mergeValue(ctime, c.ctime, "ctime");
             checkMatch(level, c.level, "level");
@@ -381,6 +387,96 @@ public class Comment
             return;
         if (f1 == null || f2 == null || !f1.equals(f2))
             throwRuntimeException("Comment data merge: diverging field " + fname);
+    }
+
+    private String checkMatch_userhead_url(String f1, String f2, String fname)
+    {
+        if (f1 == null && f2 == null)
+            return null;
+
+        if (Config.True)
+        {
+            if (f1 == null || f2 == null)
+                throwRuntimeException("Comment data merge: diverging field " + fname);
+        }
+        else
+        {
+            if (f2 == null)
+                return f1;
+
+            if (f1 == null)
+                return f2;
+        }
+
+        if (f1.equals(f2))
+            return f2;
+
+        if (differOnlyInV(f1, f2))
+            return f2;
+
+        throwRuntimeException("Comment data merge: diverging field " + fname);
+        return null;
+    }
+
+    private boolean differOnlyInV(String url1, String url2)
+    {
+        try
+        {
+            URI uri1 = new URI(url1);
+            URI uri2 = new URI(url2);
+
+            // If the URLs are exactly the same, return true
+            if (uri1.equals(uri2))
+                return true;
+
+            // Compare scheme, host, port, and path
+            if (!Objects.equals(uri1.getScheme(), uri2.getScheme()) ||
+                    !Objects.equals(uri1.getHost(), uri2.getHost()) ||
+                    uri1.getPort() != uri2.getPort() ||
+                    !Objects.equals(uri1.getPath(), uri2.getPath()) ||
+                    !Objects.equals(uri1.getFragment(), uri2.getFragment()))
+            {
+                return false;
+            }
+
+            // Compare all query parameters except 'v'
+            Map<String, List<String>> q1 = parseQueryParams(uri1.getRawQuery());
+            Map<String, List<String>> q2 = parseQueryParams(uri2.getRawQuery());
+
+            q1.remove("v");
+            q2.remove("v");
+
+            return q1.equals(q2);
+        }
+        catch (RuntimeException ex)
+        {
+            throw ex;
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException(ex.getLocalizedMessage(), ex);
+        }
+    }
+
+    private Map<String, List<String>> parseQueryParams(String query) throws Exception
+    {
+        Map<String, List<String>> map = new LinkedHashMap<>();
+        if (query == null || query.isEmpty())
+            return map;
+
+        for (String pair : query.split("&"))
+        {
+            int idx = pair.indexOf('=');
+            String key = idx > 0 ? url_decode(pair.substring(0, idx)) : url_decode(pair);
+            String value = idx > 0 && idx + 1 < pair.length() ? url_decode(pair.substring(idx + 1)) : "";
+            map.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+        }
+        return map;
+    }
+
+    private String url_decode(String s) throws Exception
+    {
+        return URLDecoder.decode(s, "UTF-8");
     }
 
     private void checkMatchArticle(Object f1, Object f2, String fname)
@@ -439,6 +535,17 @@ public class Comment
         checkMatch(v0, v2, fname);
 
         return v2;
+    }
+
+    private String mergeValue_userhead_url(String v0, String v2, String fname)
+    {
+        if (v0 == null)
+            return v2;
+
+        if (v0.length() == 0 && v2 != null)
+            return v2;
+
+        return checkMatch_userhead_url(v0, v2, fname);
     }
 
     private String mergeValueArticle(String v0, String v2, String fname)
@@ -548,7 +655,7 @@ public class Comment
         }
 
         if (leafclass == null &&
-                type == null && 
+                type == null &&
                 loaded == Boolean.TRUE &&
                 shown == Boolean.TRUE &&
                 level != null)

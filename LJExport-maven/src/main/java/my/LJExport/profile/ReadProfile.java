@@ -470,7 +470,7 @@ public class ReadProfile
         parser = prepareImagesPage(url, Config.User + " - Pictures", true);
         if (parser == null)
             return;
-        
+
         combinePagerPages(parser.pageRoot, "picture catalog");
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
@@ -478,7 +478,16 @@ public class ReadProfile
 
         File fpImagesDir = new File(fpProfileDir, "picture-albums").getCanonicalFile();
         if (fpImagesDir.exists())
-            Util.deleteDirectoryTree(fpImagesDir.getCanonicalPath());
+        {
+            if (Config.False)
+            {
+                Util.deleteDirectoryTree(fpImagesDir.getCanonicalPath());
+            }
+            else
+            {
+                Util.deleteFilesInDirectory(fpImagesDir.getCanonicalPath(), "*.html");
+            }
+        }
 
         /*
          * for all albums
@@ -522,9 +531,9 @@ public class ReadProfile
 
     private PageParserDirectBase prepareImagesPage(String url, String title) throws Exception
     {
-        return prepareImagesPage(url, title, false); 
+        return prepareImagesPage(url, title, false);
     }
-    
+
     private PageParserDirectBase prepareImagesPage(String url, String title, boolean checkNonExistent) throws Exception
     {
         AtomicReference<String> finalUrl = new AtomicReference<>();
@@ -532,7 +541,7 @@ public class ReadProfile
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders(), finalUrl);
         parser.parseHtmlWithBaseUrl(finalUrl.get());
-        
+
         if (checkNonExistent && JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics").size() == 0)
         {
             for (Node nt : JSOUP.findElements(parser.pageRoot, "table"))
@@ -583,10 +592,14 @@ public class ReadProfile
             AtomicReference<String> p2 = new AtomicReference<>();
             if (isAlbumImageLink(href, userBases, p1, p2))
             {
-                total++;
+                File fpImagesDir = new File(fpProfileDir, "picture-albums").getCanonicalFile();
+                File fp = new File(fpImagesDir, p1.get());
+                fp = new File(fp, p2.get() + ".html");
+                if (!fp.exists())
+                    total++;
             }
         }
-        
+
         int nimage = 1;
         for (Node an : JSOUP.findElements(albumPageRoot, "a"))
         {
@@ -596,28 +609,30 @@ public class ReadProfile
             AtomicReference<String> p2 = new AtomicReference<>();
             if (isAlbumImageLink(href, userBases, p1, p2))
             {
-                if (nimage >= 10)
-                    Main.out(String.format("    Loading album %s image %d of %d", albumTitle, nimage, total));
-                    
-                PageParserDirectBase parser = prepareImagesPage(href, Config.User + " - Pictures - " + albumTitle);
-                deletePagers(parser.pageRoot);
-                parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_2);
-                parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
-                String html = JSOUP.emitHtml(parser.pageRoot);
-
                 File fpImagesDir = new File(fpProfileDir, "picture-albums").getCanonicalFile();
                 File fp = new File(fpImagesDir, p1.get());
                 fp = new File(fp, p2.get() + ".html");
-                
-                if (!fp.getParentFile().exists())
-                    fp.getParentFile().mkdirs();
-                
-                Util.writeToFileSafe(fp.getCanonicalPath(), html);
-                
+                if (!fp.exists())
+                {
+                    if (nimage >= 10)
+                        Main.out(String.format("    Loading album %s image %d of %d", albumTitle, nimage, total));
+
+                    PageParserDirectBase parser = prepareImagesPage(href, Config.User + " - Pictures - " + albumTitle);
+                    deletePagers(parser.pageRoot);
+                    parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_2);
+                    parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
+                    String html = JSOUP.emitHtml(parser.pageRoot);
+
+                    if (!fp.getParentFile().exists())
+                        fp.getParentFile().mkdirs();
+
+                    Util.writeToFileSafe(fp.getCanonicalPath(), html);
+
+                    nimage++;
+                }
+
                 JSOUP.updateAttribute(an, "href", String.format("%s/%s.html", p1.get(), p2.get()));
                 JSOUP.setAttribute(an, "original-href", href);
-                
-                nimage++;
             }
         }
     }
@@ -681,7 +696,7 @@ public class ReadProfile
 
             if (npage >= 5)
                 Main.out(String.format("    Loading %s page %d of %d", what, npage, npages));
-            
+
             PageParserDirectBase parser = prepareImagesPage(nextPageUrl, "");
 
             if (npage != npages)

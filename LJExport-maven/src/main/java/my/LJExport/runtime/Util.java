@@ -2,11 +2,15 @@ package my.LJExport.runtime;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
@@ -562,6 +566,23 @@ public class Util
         System.err.flush();
     }
 
+    public static void deleteFilesInDirectory(String dirPath, String pattern) throws IOException
+    {
+        Path dir = Paths.get(dirPath);
+
+        if (!Files.isDirectory(dir))
+            throw new IllegalArgumentException("Provided path is not a directory: " + dirPath);
+
+        DirectoryStream.Filter<Path> filter = entry -> Files.isRegularFile(entry) &&
+                FileSystems.getDefault().getPathMatcher("glob:" + pattern).matches(entry.getFileName());
+
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, filter))
+        {
+            for (Path entry : stream)
+                Files.delete(entry);
+        }
+    }
+
     public static boolean deleteDirectoryTree(String root) throws Exception
     {
         return deleteDirectoryTree(new File(root).getCanonicalFile());
@@ -674,7 +695,7 @@ public class Util
             // Compare scheme and host case-insensitively
             if (!equalsIgnoreCase(uri1.getScheme(), uri2.getScheme()))
                 return false;
-            
+
             if (!equalsIgnoreCase(uri1.getHost(), uri2.getHost()))
                 return false;
 
@@ -685,10 +706,10 @@ public class Util
             // Compare path, query, and fragment case-sensitively
             if (!Objects.equals(uri1.getPath(), uri2.getPath()))
                 return false;
-            
+
             if (!Objects.equals(uri1.getQuery(), uri2.getQuery()))
                 return false;
-            
+
             if (!Objects.equals(uri1.getFragment(), uri2.getFragment()))
                 return false;
 

@@ -578,19 +578,22 @@ public class ReadProfile
                 nextPageUrl = null;
 
             deletePagers(parser.pageRoot);
-            JSOUP.removeNodes(JSOUP.findElementsWithClass(parser.pageRoot, "p", "b-pics-bar"));
+            JSOUP.removeNodes(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics-bar"));
             Node frame = getAlbumFrame(parser.pageRoot);
-
             frame = frame.clone();
+
             Element parent = JSOUP.asElement(combiningFrame).parent();
+            if (parent == null)
+                throw new IllegalStateException("missing node parent");
+            
+            // Use childNodes() to get full list (includes elements, text nodes, etc.)
+            List<Node> siblings = parent.childNodes();
+            int index = siblings.indexOf(combiningFrame);
+            if (index == -1) 
+                throw new IllegalStateException("combiningFrame not found among parent's child nodes");
 
-            // Find position of combiningFrame among siblings
-            int index = parent.children().indexOf(combiningFrame);
-            if (index == -1)
-                throw new IllegalStateException("combiningFrame is not a child of its parent");
-
-            // Insert cloned frame after combiningFrame
-            parent.insertChildren(index + 1, Collections.singletonList(frame));
+            // Insert after the exact node position
+            parent.insertChildren(index + 1, Collections.singletonList(frame));            
         }
     }
 
@@ -659,7 +662,7 @@ public class ReadProfile
 
     private void deletePagers(Node pageRoot) throws Exception
     {
-        JSOUP.removeNodes(JSOUP.findElementsWithClass(parser.pageRoot, "p", "b-pics-pager"));
+        JSOUP.removeNodes(JSOUP.findElementsWithClass(pageRoot, "p", "b-pics-pager"));
     }
 
     private void updateMatchingLinks(Node root, String tag, String attr, String original, String replacement) throws Exception

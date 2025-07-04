@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -468,13 +467,11 @@ public class ReadProfile
     {
         String url = String.format("%s/pics/catalog", LJUtil.userBase());
 
-        // ### abcdefgh.livejournal.com/pics/catalog
-
         parser = prepareImagesPage(url, Config.User + " - Pictures", true);
         if (parser == null)
             return;
         
-        combinePagerPages(parser.pageRoot);
+        combinePagerPages(parser.pageRoot, "picture catalog");
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
@@ -560,7 +557,7 @@ public class ReadProfile
     private void loadImageAlbum(String href, File fp, String title) throws Exception
     {
         PageParserDirectBase parser = prepareImagesPage(href, Config.User + " - Pictures - " + title);
-        combinePagerPages(parser.pageRoot);
+        combinePagerPages(parser.pageRoot, "picture album " + title);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
@@ -576,6 +573,7 @@ public class ReadProfile
     private void loadImageAlbumPictures(Node albumPageRoot, String linksDir, String albumTitle) throws Exception
     {
         Set<String> userBases = userBases();
+        int total = 0;
 
         for (Node an : JSOUP.findElements(albumPageRoot, "a"))
         {
@@ -585,6 +583,22 @@ public class ReadProfile
             AtomicReference<String> p2 = new AtomicReference<>();
             if (isAlbumImageLink(href, userBases, p1, p2))
             {
+                total++;
+            }
+        }
+        
+        int nimage = 1;
+        for (Node an : JSOUP.findElements(albumPageRoot, "a"))
+        {
+            // in album page find links: https://<user>.livejournal.com/pics/catalog/5671/82267
+            String href = JSOUP.getAttribute(an, "href");
+            AtomicReference<String> p1 = new AtomicReference<>();
+            AtomicReference<String> p2 = new AtomicReference<>();
+            if (isAlbumImageLink(href, userBases, p1, p2))
+            {
+                if (nimage >= 10)
+                    Main.out(String.format("    Loading album %s image %d of %d", albumTitle, nimage, total));
+                    
                 PageParserDirectBase parser = prepareImagesPage(href, Config.User + " - Pictures - " + albumTitle);
                 deletePagers(parser.pageRoot);
                 parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_2);
@@ -602,6 +616,8 @@ public class ReadProfile
                 
                 JSOUP.updateAttribute(an, "href", String.format("%s/%s.html", p1.get(), p2.get()));
                 JSOUP.setAttribute(an, "original-href", href);
+                
+                nimage++;
             }
         }
     }
@@ -647,22 +663,25 @@ public class ReadProfile
         return false;
     }
 
-    private void combinePagerPages(Node pageRoot) throws Exception
+    private void combinePagerPages(Node pageRoot, String what) throws Exception
     {
         int npages = getAlbumPageCount(pageRoot);
         String nextPageUrl = getAlbumNextPageLink(pageRoot);
         deletePagers(pageRoot);
         Node frame = getAlbumFrame(pageRoot);
-        combinePagerPages(frame, nextPageUrl, npages);
+        combinePagerPages(frame, nextPageUrl, npages, what);
     }
 
-    private void combinePagerPages(Node combiningFrame, String nextPageUrl, int npages) throws Exception
+    private void combinePagerPages(Node combiningFrame, String nextPageUrl, int npages, String what) throws Exception
     {
         for (int npage = 2; npage <= npages; npage++)
         {
             if (nextPageUrl == null)
                 throw new Exception("Unexpected pager format");
 
+            if (npage >= 5)
+                Main.out(String.format("    Loading %s page %d of %d", what, npage, npages));
+            
             PageParserDirectBase parser = prepareImagesPage(nextPageUrl, "");
 
             if (npage != npages)

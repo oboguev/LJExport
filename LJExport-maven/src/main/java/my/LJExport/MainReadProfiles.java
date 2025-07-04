@@ -27,7 +27,7 @@ public class MainReadProfiles
     // private static final String Users = "oboguev";
     // private static final String Users = "fritzmorgen,oboguev";
     // private static final String Users = "abcdefgh";
-    private static final String Users = "ru_nationalism";
+    private static final String Users = "abcdefgh";
     // private static final String Users = ALL_USERS;
 
     public static void main(String[] args)

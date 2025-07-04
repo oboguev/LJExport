@@ -23,7 +23,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.xml.JSOUP;
 
 /*
- * Склеить отдельные файлы комментариев в ленты
+ * Склеить отдельные файлы комментариев LJSearch (ljsear.ch) в ленты
  */
 public class MainCombineCommentsAsTape
 {

@@ -6,6 +6,7 @@ import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -77,7 +78,7 @@ public class ReadProfile
             if (Config.ReloadExistingFiles || !new File(fpProfileDir, "memories.html").exists())
                 readMemories();
 
-            if (Config.ReloadExistingFiles || !new File(fpProfileDir, "images.html").exists())
+            if (Config.ReloadExistingFiles || !new File(fpProfileDir, "pictures.html").exists())
                 readImages();
         }
     }
@@ -466,29 +467,25 @@ public class ReadProfile
     private void readImages() throws Exception
     {
         String url = String.format("%s/pics/catalog", LJUtil.userBase());
-        
-        if (Config.True) // ###
-            return;
 
+        // ### HTTP 200 but content is line "403"
         // ### 403 hokma.livejournal.com/pics/catalog
         // ### 403 ru-nationalism.livejournal.com/pics/catalog
+        // ### abcdefgh.livejournal.com/pics/catalog
 
-        AtomicReference<String> finalUrl = new AtomicReference<>();
-        parser = new PageParserDirectBasePassive();
-        parser.rid = parser.rurl = null;
-        parser.pageSource = load(url, standardHeaders(), finalUrl);
-        parser.parseHtmlWithBaseUrl(finalUrl.get());
-
-        Node el = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics"));
-        parser.removeProfilePageJunk(Config.User + " - Pictures", el);
+        parser = prepareImagesPage(url, Config.User + " - Pictures");
+        combinePagerPages(parser.pageRoot);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
 
-        File fpImagesDir = new File(fpProfileDir, "images").getCanonicalFile();
+        File fpImagesDir = new File(fpProfileDir, "picture-albums").getCanonicalFile();
         if (fpImagesDir.exists())
             Util.deleteDirectoryTree(fpImagesDir.getCanonicalPath());
 
+        /*
+         * for all albums
+         */
         Set<String> userBases = userBases();
         for (Node an : JSOUP.findElements(parser.pageRoot, "a"))
         {
@@ -515,7 +512,7 @@ public class ReadProfile
 
                 loadImageAlbum(href, fp.getCanonicalFile(), title);
 
-                updateMatchingLinks(parser.pageRoot, "a", "href", href, "images/" + fn);
+                updateMatchingLinks(parser.pageRoot, "a", "href", href, "picture-albums/" + fn);
             }
         }
 
@@ -523,13 +520,146 @@ public class ReadProfile
         if (!fpProfileDir.exists())
             fpProfileDir.mkdirs();
 
-        Util.writeToFileSafe(new File(fpProfileDir, "images.html").getCanonicalPath(), html);
+        Util.writeToFileSafe(new File(fpProfileDir, "pictures.html").getCanonicalPath(), html);
     }
 
-    private void loadImageAlbum(String href, File fp, String title)
+    private PageParserDirectBase prepareImagesPage(String url, String title) throws Exception
     {
-        // ### album can have multiple pages
-        // ### https://abcdefgh.livejournal.com/pics/catalog/342
+        AtomicReference<String> finalUrl = new AtomicReference<>();
+        PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
+        parser.rid = parser.rurl = null;
+        parser.pageSource = load(url, standardHeaders(), finalUrl);
+        parser.parseHtmlWithBaseUrl(finalUrl.get());
+
+        Node el1 = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics"));
+        Node el2 = JSOUP.exactlyOne(JSOUP.findElements(parser.pageRoot, "div", "id", "imageviewer"));
+        Node el3 = findRequiredPivotElement(parser.pageRoot, "h1", "Scrapbook");
+        parser.removeProfilePageJunk(title, el1, el2, el3);
+        JSOUP.removeElements(parser.pageRoot, JSOUP.findElementsWithClass(parser.pageRoot, "div", "l-sidebar"));
+
+        return parser;
+    }
+
+    private void loadImageAlbum(String href, File fp, String title) throws Exception
+    {
+        PageParserDirectBase parser = prepareImagesPage(href, Config.User + " - Pictures - " + title);
+        combinePagerPages(parser.pageRoot);
+
+        parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
+        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
+
+        if (!fp.getParentFile().exists())
+            fp.getParentFile().mkdirs();
+
+        Util.writeToFileSafe(fp.getCanonicalPath(), JSOUP.emitHtml(parser.pageRoot));
+    }
+
+    private void combinePagerPages(Node pageRoot) throws Exception
+    {
+        int npages = getAlbumPageCount(pageRoot);
+        String nextPageUrl = getAlbumNextPageLink(pageRoot);
+        deletePagers(pageRoot);
+        Node frame = getAlbumFrame(pageRoot);
+        combinePagerPages(frame, nextPageUrl, npages);
+    }
+
+    private void combinePagerPages(Node combiningFrame, String nextPageUrl, int npages) throws Exception
+    {
+        for (int npage = 2; npage <= npages; npage++)
+        {
+            if (nextPageUrl == null)
+                throw new Exception("Unexpected pager format");
+
+            PageParserDirectBase parser = prepareImagesPage(nextPageUrl, "");
+
+            if (npage != npages)
+                nextPageUrl = getAlbumNextPageLink(parser.pageRoot);
+            else
+                nextPageUrl = null;
+
+            deletePagers(parser.pageRoot);
+            JSOUP.removeNodes(JSOUP.findElementsWithClass(parser.pageRoot, "p", "b-pics-bar"));
+            Node frame = getAlbumFrame(parser.pageRoot);
+
+            frame = frame.clone();
+            Element parent = JSOUP.asElement(combiningFrame).parent();
+
+            // Find position of combiningFrame among siblings
+            int index = parent.children().indexOf(combiningFrame);
+            if (index == -1)
+                throw new IllegalStateException("combiningFrame is not a child of its parent");
+
+            // Insert cloned frame after combiningFrame
+            parent.insertChildren(index + 1, Collections.singletonList(frame));
+        }
+    }
+
+    private int getAlbumPageCount(Node pageRoot) throws Exception
+    {
+        Integer npages = null;
+
+        for (Node pager : JSOUP.findElementsWithClass(pageRoot, "p", "b-pics-pager"))
+        {
+            String text = Util.despace(JSOUP.asElement(pager).text());
+            if (!text.startsWith("1/"))
+                throw new Exception("Unexpected pager format");
+
+            int nps;
+            try
+            {
+                nps = Integer.parseInt(text.substring("1/".length()));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Unexpected pager format", ex);
+            }
+
+            if (nps <= 1)
+                throw new Exception("Unexpected pager format");
+
+            if (npages == null)
+                npages = nps;
+            else if (npages != nps)
+                throw new Exception("Unexpected pager format");
+        }
+
+        if (npages != null)
+            return npages;
+        else
+            return 1;
+    }
+
+    private String getAlbumNextPageLink(Node pageRoot) throws Exception
+    {
+        String next = null;
+
+        for (Node pager : JSOUP.findElementsWithClass(pageRoot, "a", "b-pics-pager-next"))
+        {
+            String href = JSOUP.getAttribute(pager, "href");
+            if (href == null)
+                throw new Exception("Unexpected pager format");
+            if (next != null && !href.equals(next))
+                throw new Exception("Unexpected pager format");
+            next = href;
+        }
+
+        if (next != null)
+        {
+            if (!next.toLowerCase().startsWith("http://") && !next.toLowerCase().startsWith("https://"))
+                throw new Exception("Unexpected pager format");
+        }
+
+        return next;
+    }
+
+    private Node getAlbumFrame(Node pageRoot) throws Exception
+    {
+        return JSOUP.exactlyOne(JSOUP.findElementsWithClass(pageRoot, "div", "b-pics-inner"));
+    }
+
+    private void deletePagers(Node pageRoot) throws Exception
+    {
+        JSOUP.removeNodes(JSOUP.findElementsWithClass(parser.pageRoot, "p", "b-pics-pager"));
     }
 
     private void updateMatchingLinks(Node root, String tag, String attr, String original, String replacement) throws Exception
@@ -586,11 +716,8 @@ public class ReadProfile
         for (Node n : JSOUP.findElements(root, tag))
         {
             Element el = JSOUP.asElement(n);
-
-            if (el.ownText().equals(text) || el.text().equals(text))
-            {
+            if (Util.despace(el.ownText()).equals(text) || Util.despace(el.text()).equals(text))
                 return el;
-            }
         }
 
         throw new Exception("Unable to locate requested element " + tag + " [" + text + "]");
@@ -656,7 +783,7 @@ public class ReadProfile
                 retry = true;
                 Thread.sleep(1000 * (1 + retries));
             }
-            else if (parser.isBadGatewayPage(r.body))
+            else if (newParser().isBadGatewayPage(r.body)) // ###
             {
                 if (retries > 5)
                     return null;
@@ -668,5 +795,10 @@ public class ReadProfile
                 return r.body;
             }
         }
+    }
+
+    private PageParserDirectBase newParser()
+    {
+        return new PageParserDirectBasePassive();
     }
 }

@@ -465,6 +465,9 @@ public class ReadProfile
 
     private void readImages() throws Exception
     {
+        if (Util.read_set("exclude-profile-photos.txt").contains(Config.User))
+            return;
+
         String url = String.format("%s/pics/catalog", LJUtil.userBase());
 
         parser = prepareImagesPage(url, Config.User + " - Pictures", true);
@@ -553,7 +556,7 @@ public class ReadProfile
                     return null;
             }
         }
-        
+
         if (checkNonExistent && JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics-promo").size() == 1)
         {
             return null;

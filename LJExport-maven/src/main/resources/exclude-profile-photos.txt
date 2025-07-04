@@ -1,0 +1,56 @@
+#
+# Don't download profile picture section for listed users,
+# either due to large number of photos or no interest in their photos overall
+# (images actually included in LJ posts will be downloaded anyway and visible from the posts): 
+#
+
+# 4800 aillarionov.livejournal.com/pics/catalog
+aillarionov
+
+#22000 colonelcassad.livejournal.com/profile/
+colonelcassad
+
+#11000 genby.livejournal.com/profile/
+genby
+
+#3500 guran_ussury.livejournal.com/profile/
+guran_ussury
+
+#4200 ivanov_petrov.livejournal.com/profile/
+ivanov_petrov
+
+#2900 labas.livejournal.com/profile/
+labas
+
+#1800 langobard.livejournal.com/profile/
+langobard
+
+#370 lxe.livejournal.com/profile/
+lxe
+
+#2500 miguel_kud.livejournal.com/profile/
+miguel_kud
+
+#1300 philtrius.livejournal.com/profile/
+philtrius
+
+#2400 sadalskij.livejournal.com/profile/
+sadalskij
+
+#8000 sergeytsvetkov.livejournal.com/profile/
+sergeytsvetkov
+
+#3000 shrek1.livejournal.com/profile/
+shrek1
+
+#3000 tbv.livejournal.com/profile/
+tbv
+
+#3000 tverdyi_znak.livejournal.com/profile/
+tverdyi_znak
+
+#1100 vad_nes.livejournal.com/profile/
+vad_nes
+
+#zhu_s.livejournal.com/profile/
+zhu_s

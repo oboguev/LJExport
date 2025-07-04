@@ -553,6 +553,11 @@ public class ReadProfile
                     return null;
             }
         }
+        
+        if (checkNonExistent && JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics-promo").size() == 1)
+        {
+            return null;
+        }
 
         Node el1 = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics"));
         Node el2 = JSOUP.exactlyOne(JSOUP.findElements(parser.pageRoot, "div", "id", "imageviewer"));

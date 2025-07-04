@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -121,7 +122,6 @@ public class ReadProfile
             fpProfileDir.mkdirs();
 
         Util.writeToFileSafe(new File(fpProfileDir, "profile.html").getCanonicalPath(), html);
-        Util.noop();
     }
 
     /* ================================================================================================== */
@@ -548,10 +548,86 @@ public class ReadProfile
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
 
+        loadImageAlbumPictures(parser.pageRoot, linksDir, title);
+
         if (!fp.getParentFile().exists())
             fp.getParentFile().mkdirs();
 
         Util.writeToFileSafe(fp.getCanonicalPath(), JSOUP.emitHtml(parser.pageRoot));
+    }
+
+    private void loadImageAlbumPictures(Node albumPageRoot, String linksDir, String albumTitle) throws Exception
+    {
+        Set<String> userBases = userBases();
+
+        for (Node an : JSOUP.findElements(albumPageRoot, "a"))
+        {
+            // in album page find links: https://<user>.livejournal.com/pics/catalog/5671/82267
+            String href = JSOUP.getAttribute(an, "href");
+            AtomicReference<String> p1 = new AtomicReference<>();
+            AtomicReference<String> p2 = new AtomicReference<>();
+            if (isAlbumImageLink(href, userBases, p1, p2))
+            {
+                PageParserDirectBase parser = prepareImagesPage(href, Config.User + " - Pictures - " + albumTitle);
+                deletePagers(parser.pageRoot);
+                parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_2);
+                parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
+                String html = JSOUP.emitHtml(parser.pageRoot);
+
+                File fpImagesDir = new File(fpProfileDir, "picture-albums").getCanonicalFile();
+                File fp = new File(fpImagesDir, p1.get());
+                fp = new File(fp, p2.get() + ".html");
+                
+                if (!fp.getParentFile().exists())
+                    fp.getParentFile().mkdirs();
+                
+                Util.writeToFileSafe(fp.getCanonicalPath(), html);
+                
+                JSOUP.updateAttribute(an, "href", String.format("%s/%s.html", p1.get(), p2.get()));
+                JSOUP.setAttribute(an, "original-href", href);
+            }
+        }
+    }
+
+    private boolean isAlbumImageLink(String href, Set<String> userBases, AtomicReference<String> p1, AtomicReference<String> p2)
+    {
+        if (href == null)
+            return false;
+
+        String lowerHref = href.toLowerCase(Locale.ROOT);
+        String workingHref = lowerHref;
+
+        // Strip protocol if present
+        if (workingHref.startsWith("http://"))
+        {
+            workingHref = workingHref.substring("http://".length());
+        }
+        else if (workingHref.startsWith("https://"))
+        {
+            workingHref = workingHref.substring("https://".length());
+        }
+
+        for (String base : userBases)
+        {
+            String lowerBase = base.toLowerCase(Locale.ROOT);
+
+            if (workingHref.startsWith(lowerBase + "pics/catalog/"))
+            {
+                String remainder = workingHref.substring(lowerBase.length() + "pics/catalog/".length());
+
+                if (remainder.matches("\\d+/\\d+"))
+                {
+                    String[] parts = remainder.split("/", 2);
+                    String sp1 = parts[0];
+                    String sp2 = parts[1];
+                    p1.set(sp1);
+                    p2.set(sp2);
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void combinePagerPages(Node pageRoot) throws Exception
@@ -585,15 +661,15 @@ public class ReadProfile
             Element parent = JSOUP.asElement(combiningFrame).parent();
             if (parent == null)
                 throw new IllegalStateException("missing node parent");
-            
+
             // Use childNodes() to get full list (includes elements, text nodes, etc.)
             List<Node> siblings = parent.childNodes();
             int index = siblings.indexOf(combiningFrame);
-            if (index == -1) 
+            if (index == -1)
                 throw new IllegalStateException("combiningFrame not found among parent's child nodes");
 
             // Insert after the exact node position
-            parent.insertChildren(index + 1, Collections.singletonList(frame));            
+            parent.insertChildren(index + 1, Collections.singletonList(frame));
         }
     }
 
@@ -786,7 +862,7 @@ public class ReadProfile
                 retry = true;
                 Thread.sleep(1000 * (1 + retries));
             }
-            else if (newParser().isBadGatewayPage(r.body)) // ###
+            else if (newParser().isBadGatewayPage(r.body))
             {
                 if (retries > 5)
                     return null;

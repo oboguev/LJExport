@@ -468,12 +468,12 @@ public class ReadProfile
     {
         String url = String.format("%s/pics/catalog", LJUtil.userBase());
 
-        // ### HTTP 200 but content is line "403"
-        // ### 403 hokma.livejournal.com/pics/catalog
-        // ### 403 ru-nationalism.livejournal.com/pics/catalog
         // ### abcdefgh.livejournal.com/pics/catalog
 
-        parser = prepareImagesPage(url, Config.User + " - Pictures");
+        parser = prepareImagesPage(url, Config.User + " - Pictures", true);
+        if (parser == null)
+            return;
+        
         combinePagerPages(parser.pageRoot);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
@@ -525,11 +525,28 @@ public class ReadProfile
 
     private PageParserDirectBase prepareImagesPage(String url, String title) throws Exception
     {
+        return prepareImagesPage(url, title, false); 
+    }
+    
+    private PageParserDirectBase prepareImagesPage(String url, String title, boolean checkNonExistent) throws Exception
+    {
         AtomicReference<String> finalUrl = new AtomicReference<>();
         PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders(), finalUrl);
         parser.parseHtmlWithBaseUrl(finalUrl.get());
+        
+        if (checkNonExistent && JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics").size() == 0)
+        {
+            for (Node nt : JSOUP.findElements(parser.pageRoot, "table"))
+            {
+                // ru-nationalism.livejournal.com/pics/catalog
+                // hokma.livejournal.com/pics/catalog
+                String text = Util.despace(JSOUP.asElement(nt).text());
+                if (text.equals("403"))
+                    return null;
+            }
+        }
 
         Node el1 = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics"));
         Node el2 = JSOUP.exactlyOne(JSOUP.findElements(parser.pageRoot, "div", "id", "imageviewer"));

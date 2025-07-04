@@ -2,6 +2,8 @@ package my.LJExport.runtime;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -643,5 +646,62 @@ public class Util
         {
             noop();
         }
+    }
+
+    public static String resolveURL(String baseURL, String relativeURL) throws URISyntaxException
+    {
+        if (baseURL != null)
+            baseURL = baseURL.trim();
+
+        if (relativeURL != null)
+            relativeURL = relativeURL.trim();
+
+        if (baseURL == null || baseURL.isEmpty())
+            return relativeURL;
+
+        URI base = new URI(baseURL);
+        URI resolved = base.resolve(relativeURL);
+        return resolved.toString();
+    }
+
+    public static boolean isSameURL(String url1, String url2)
+    {
+        try
+        {
+            URI uri1 = new URI(url1);
+            URI uri2 = new URI(url2);
+
+            // Compare scheme and host case-insensitively
+            if (!equalsIgnoreCase(uri1.getScheme(), uri2.getScheme()))
+                return false;
+            
+            if (!equalsIgnoreCase(uri1.getHost(), uri2.getHost()))
+                return false;
+
+            // Compare port (default ports need normalization if desired)
+            if (uri1.getPort() != uri2.getPort())
+                return false;
+
+            // Compare path, query, and fragment case-sensitively
+            if (!Objects.equals(uri1.getPath(), uri2.getPath()))
+                return false;
+            
+            if (!Objects.equals(uri1.getQuery(), uri2.getQuery()))
+                return false;
+            
+            if (!Objects.equals(uri1.getFragment(), uri2.getFragment()))
+                return false;
+
+            return true;
+        }
+        catch (URISyntaxException e)
+        {
+            return false;
+        }
+    }
+
+    private static boolean equalsIgnoreCase(String a, String b)
+    {
+        return (a == null && b == null) || (a != null && a.equalsIgnoreCase(b));
     }
 }

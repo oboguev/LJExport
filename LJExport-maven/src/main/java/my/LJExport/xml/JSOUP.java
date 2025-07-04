@@ -919,4 +919,34 @@ public class JSOUP
         if (!JSOUP.isInTree(root, n))
             throw new RuntimeException("Node is not in tree");
     }
+
+    public static boolean resolveURL(Node n, String attr, String baseURL) throws Exception
+    {
+        if (n instanceof Element)
+        {
+            String av = getAttribute(n, attr);
+
+            if (av != null && av.trim().length() != 0)
+            {
+                String newv = Util.resolveURL(baseURL, av);
+                if (!Util.isSameURL(av, newv))
+                {
+                    if (getAttribute(n, "original-" + attr) == null)
+                        JSOUP.setAttribute(n, "original-" + attr, av);
+                    JSOUP.updateAttribute(n, attr, newv);
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    
+    public static boolean resolveURLInTree(Node root, String tag, String attr, String baseURL) throws Exception
+    {
+        boolean updated = false;
+        for (Node n : JSOUP.findElements(root, tag))
+            updated |= resolveURL(n, attr, baseURL);
+        return updated;
+    }
 }

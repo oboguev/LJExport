@@ -230,7 +230,11 @@ public class LJUtil
      */
     public static String recordPageURL(String rurl)
     {
-        if (Config.StandaloneSite)
+        if (Config.isRossiaOrg())
+        {
+            return userBase() + "/" + rurl;
+        }
+        else if (Config.StandaloneSite)
         {
             return "https://" + Config.Site + "/" + rurl;
         }
@@ -301,9 +305,13 @@ public class LJUtil
      *     http://users.livejorunal.com/_devol_
      *     http://olegmakarenko.ru
      */
-    public static String userBase() throws Exception
+    public static String userBase()
     {
-        if (Config.StandaloneSite)
+        if (Config.isRossiaOrg())
+        {
+            return "https://lj.rossia.org/users/" + Config.User;
+        }
+        else if (Config.StandaloneSite)
         {
             return "http://" + Config.Site;
         }

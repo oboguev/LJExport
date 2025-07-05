@@ -38,7 +38,7 @@ public abstract class PageParserDirectBase
         public static AbsoluteLinkBase from(String url) throws Exception
         {
             String host = Util.urlHost(url).toLowerCase();
-            if (host.equals("livejournal.com") || host.equals("www.livejournal.com"))
+            if (host.equals("livejournal.com") || host.equals("www.livejournal.com")) // ###
                 return WWW_Livejournal;
             if (host.endsWith(".livejournal.com"))
                 return User;
@@ -522,6 +522,20 @@ public abstract class PageParserDirectBase
                 {
                     newref = "https:" + href;
                 }
+                else if (href.startsWith("/") && Config.isRossiaOrg())
+                {
+                    switch (absoluteLinkBase)
+                    {
+                    case WWW_Livejournal:
+                    case User:
+                        newref = String.format("https://lj.rossia.org%s", href);
+                        break;
+                    case None:
+                        newref = null;
+                        break;
+                    }
+                    
+                }
                 else if (href.startsWith("/"))
                 {
                     switch (absoluteLinkBase)
@@ -553,6 +567,9 @@ public abstract class PageParserDirectBase
 
     public String detectPageStyle() throws Exception
     {
+        if (Config.isRossiaOrg())
+            return "rossia.org";
+        
         List<Node> vnodes = JSOUP.findElements(pageRoot, "article");
         String style = null;
 

@@ -159,12 +159,15 @@ public class Web
         // higher limits for some routes
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("l-userpic.livejournal.com", 80, "http")),
                 max(15, Config.MaxConnectionsPerRoute));
+        
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("ic.pics.livejournal.com", 80, "http")),
                 max(10, Config.MaxConnectionsPerRoute));
+        
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 80, "http")),
                 max(10, Config.MaxConnectionsPerRoute));
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 443, "https")),
                 max(10, Config.MaxConnectionsPerRoute));
+        
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 80, "http")),
                 max(10, Config.MaxConnectionsPerRoute));
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 443, "https")),
@@ -774,6 +777,8 @@ public class Web
         if (host.equals("livejournal.com") || host.endsWith(".livejournal.com"))
             return true;
         if (host.equals("olegmakarenko.ru") || host.endsWith(".olegmakarenko.ru"))
+            return true;
+        if (host.equals("lj.rossia.org"))
             return true;
 
         return false;

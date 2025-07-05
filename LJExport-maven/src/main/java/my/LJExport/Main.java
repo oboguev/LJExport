@@ -113,12 +113,8 @@ public class Main
 
     public static void main(String[] args)
     {
-        // TestHtmlUnit.test();
-        // TestSelenium.test1();
-        // TestSelenium.test3();
         Main main = new Main();
-        main.do_main(args);
-        playCompletionSound();
+        main.do_main(null);
     }
 
     private void reinit() throws Exception
@@ -135,28 +131,36 @@ public class Main
         failedPages.add(rurl);
     }
 
-    private void do_main(String[] args)
+    public void do_main(String user)
     {
         try
         {
             LimitProcessorUsage.limit();
             deadLinks = Util.read_set("deadlinks.txt");
-            // TODO: parse args or display user interface
-            StringTokenizer st = new StringTokenizer(Config.Users, ", \t\r\n");
-            int nuser = 0;
-
-            while (st.hasMoreTokens() && !isAborting())
+            
+            if (user != null)
             {
-                String user = st.nextToken();
-                user = user.trim().replace("\t", "").replace(" ", "");
-                if (user.equals(""))
-                    continue;
-                if (nuser++ != 0)
-                {
-                    out("");
-                    Web.shutdown();
-                }
                 do_user(user);
+            }
+            else
+            {
+                // TODO: parse args or display user interface
+                StringTokenizer st = new StringTokenizer(Config.Users, ", \t\r\n");
+                int nuser = 0;
+
+                while (st.hasMoreTokens() && !isAborting())
+                {
+                    user = st.nextToken();
+                    user = user.trim().replace("\t", "").replace(" ", "");
+                    if (user.equals(""))
+                        continue;
+                    if (nuser++ != 0)
+                    {
+                        out("");
+                        Web.shutdown();
+                    }
+                    do_user(user);
+                }
             }
 
             if (proxyServer != null)
@@ -184,6 +188,8 @@ public class Main
 
         if (Config.Method == WebMethod.SELENIUM)
             UrlDurationHistory.display();
+
+        playCompletionSound();
     }
 
     private void do_user(String user)
@@ -235,7 +241,8 @@ public class Main
 
             if (Calendar.Records.size() == 0)
             {
-                out(">>> Nothing to load for user " + user);
+                out(">>> Nothing (no pages) to load for user " + user);
+                new ReadProfile().readAll();
                 do_logout();
                 Web.shutdown();
                 return;
@@ -383,6 +390,9 @@ public class Main
 
     public static void do_login() throws Exception
     {
+        if (!Config.UseLogin)
+            return;
+        
         if (logged_in)
             throw new Exception("Already logged in");
 
@@ -423,6 +433,9 @@ public class Main
 
     public static void do_logout() throws Exception
     {
+        if (!Config.UseLogin)
+            return;
+
         RateLimiter.LJ_PAGES.setRateLimit(100);
 
         String sessid = null;

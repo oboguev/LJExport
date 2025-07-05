@@ -29,14 +29,14 @@ public class Config
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    // public static final String DownloadRoot = "C:\\LJExport-journals";
-    public static final String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
+    // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
-    // public static final YYYY_MM LoadSince = null;
-    // public static final YYYY_MM LoadTo = null;
-    public static final YYYY_MM LoadSince = new YYYY_MM(2014, 1);
-    public static final YYYY_MM LoadTo = new YYYY_MM(2014, 12);
+    public static final YYYY_MM LoadSince = null;
+    public static final YYYY_MM LoadTo = null;
+    // public static final YYYY_MM LoadSince = new YYYY_MM(2001, 10);
+    // public static final YYYY_MM LoadTo = new YYYY_MM(2001, 10);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;
@@ -79,11 +79,12 @@ public class Config
     };
 
     public static final WebMethod Method = Config.WebMethod.DIRECT;
-    public static final String DefaultSite = "livejournal.com";
+    public static /*final*/ String DefaultSite = "livejournal.com";
     public static String Site = DefaultSite;
     public static String LoginSite = DefaultSite;
     public static boolean StandaloneSite = false;
-    public static final String AllowedUrlSites[] = { "livejournal.com", "livejournal.net", "olegmakarenko.ru" };
+    public static final String AllowedUrlSites[] = { "livejournal.com", "livejournal.net", "olegmakarenko.ru", "lj.rossia.org" };
+    public static boolean UseLogin = true;
     public static boolean StoreLoginPassword = true;
     public static String LoginPassword = null;
     public static String User = null;
@@ -183,7 +184,7 @@ public class Config
 
     public static void acquireLoginPassword() throws Exception
     {
-        if (LoginPassword == null)
+        if (UseLogin && LoginPassword == null)
         {
             if (StoreLoginPassword)
             {
@@ -201,7 +202,7 @@ public class Config
 
     public static void promptLoginPassword() throws Exception
     {
-        if (LoginPassword == null)
+        if (UseLogin && LoginPassword == null)
         {
             LoginPassword = ConfigUI.promptPassword("Enter password for [" + LoginUser + "] at " + Site);
             if (LoginPassword == null)
@@ -223,6 +224,11 @@ public class Config
         }
 
         MangledUser = sb.toString();
+    }
+
+    public static boolean isRossiaOrg()
+    {
+        return Config.Site.equals("lj.rossia.org");
     }
 
     /* development aids */

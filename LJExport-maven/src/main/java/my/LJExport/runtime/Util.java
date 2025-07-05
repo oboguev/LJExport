@@ -40,7 +40,7 @@ import org.json.JSONArray;
 
 public class Util
 {
-    public static char lastChar(String s) throws Exception
+    public static char lastChar(String s) 
     {
         int len = s.length();
         if (len == 0)

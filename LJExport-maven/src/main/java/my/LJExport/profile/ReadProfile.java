@@ -24,6 +24,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.readers.direct.PageParserDirectRossiaOrg;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.runtime.CaseCollisions;
 import my.LJExport.runtime.LJUtil;
@@ -71,6 +72,9 @@ public class ReadProfile
 
         if (Config.ReloadExistingFiles || !new File(fpProfileDir, "profile.html").exists())
             readProfile();
+        
+        if (Config.isRossiaOrg())
+            return;
 
         if (Config.ReloadExistingFiles || !new File(fpProfileDir, "userpics.html").exists())
             readUserpics();
@@ -91,7 +95,11 @@ public class ReadProfile
     {
         String url;
 
-        if (Config.StandaloneSite)
+        if (Config.isRossiaOrg())
+        {
+            url = String.format("https://lj.rossia.org/userinfo.bml?user=%s&mode=full", Config.User);
+        }
+        else if (Config.StandaloneSite)
         {
             url = String.format("%s/profile", LJUtil.userBase());
         }
@@ -101,19 +109,31 @@ public class ReadProfile
                     LJUtil.userBase());
         }
 
-        AtomicReference<String> finalUrl = new AtomicReference<>();
-        parser = new PageParserDirectBasePassive();
-        parser.rid = parser.rurl = null;
-        parser.pageSource = load(url, standardHeaders(), finalUrl);
-        parser.parseHtmlWithBaseUrl(finalUrl.get());
+        if (Config.isRossiaOrg())
+        {
+            AtomicReference<String> finalUrl = new AtomicReference<>();
+            parser = new PageParserDirectRossiaOrg(new PageParserDirectBasePassive.NoPageSource());
+            parser.rid = parser.rurl = null;
+            parser.pageSource = load(url, standardHeaders(), finalUrl);
+            parser.parseHtmlWithBaseUrl(finalUrl.get());
+            parser.removeJunk(PageParserDirectBase.REMOVE_SCRIPTS);
+        }
+        else
+        {
+            AtomicReference<String> finalUrl = new AtomicReference<>();
+            parser = new PageParserDirectBasePassive();
+            parser.rid = parser.rurl = null;
+            parser.pageSource = load(url, standardHeaders(), finalUrl);
+            parser.parseHtmlWithBaseUrl(finalUrl.get());
 
-        Node el_1 = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile"));
-        Node el_2 = JSOUP.optionalOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-myuserpic"));
-        Node el_3 = JSOUP.optionalOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile-userpic"));
-        parser.removeProfilePageJunk(Config.User + " - Profile", el_1, el_2, el_3);
-        parser.rectifyProfileUserpic();
+            Node el_1 = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile"));
+            Node el_2 = JSOUP.optionalOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-myuserpic"));
+            Node el_3 = JSOUP.optionalOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile-userpic"));
+            parser.removeProfilePageJunk(Config.User + " - Profile", el_1, el_2, el_3);
+            parser.rectifyProfileUserpic();
 
-        JSOUP.removeElements(parser.pageRoot, JSOUP.findElementsWithClass(parser.pageRoot, "ul", "b-profile-actions"));
+            JSOUP.removeElements(parser.pageRoot, JSOUP.findElementsWithClass(parser.pageRoot, "ul", "b-profile-actions"));
+        }
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);

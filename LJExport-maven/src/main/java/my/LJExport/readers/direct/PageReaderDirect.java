@@ -92,12 +92,20 @@ public class PageReaderDirect implements PageReader, PageContentSource
         case "new-style":
             parser = new PageParserDirectNewStyle(parser);
             break;
+            
+        case "rossia.org":    
+            parser = new PageParserDirectRossiaOrg(parser);
+            break;
         }
 
         // List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
         // CommentsTree commentTree = new CommentsTree(commentList);
 
-        if (UseEmbeddedComments)
+        if (Config.isRossiaOrg())
+        {
+            parser.removeJunk(PageParserDirectBase.REMOVE_SCRIPTS);
+        }
+        else if (UseEmbeddedComments)
         {
             parser.removeJunk(PageParserDirectBase.COUNT_PAGES |
                     PageParserDirectBase.CHECK_HAS_COMMENTS |
@@ -117,7 +125,11 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         String threadName = Thread.currentThread().getName();
 
-        if (parser.hasComments)
+        if (Config.isRossiaOrg())
+        {
+            // do nothing
+        }
+        else if (parser.hasComments)
         {
             // load comments for each of the pages
             for (int npage = 1; npage <= parser.npages; npage++)
@@ -227,7 +239,16 @@ public class PageReaderDirect implements PageReader, PageContentSource
          * Perform actual page load
          */
         StringBuilder sb = new StringBuilder();
-        sb.append(LJUtil.recordPageURL(parser.rurl) + "?format=light");
+        sb.append(LJUtil.recordPageURL(parser.rurl));
+        if (Config.isRossiaOrg())
+        {
+            // nothing
+        }
+        else
+        {
+            sb.append("?format=light");
+        }
+
         if (npage != 1)
             sb.append("&page=" + npage);
 
@@ -252,17 +273,17 @@ public class PageReaderDirect implements PageReader, PageContentSource
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", Config.UserAgentAccept_Json);
         String json = load(url, headers, null);
-        
+
         if (json != null && isHtmlResponse(json))
         {
             // retry if received spurious HTML reply instead of JSON
             Util.sleep(10 * 1000);
             json = load(url, headers, null);
         }
-        
+
         return json;
     }
-    
+
     private boolean isHtmlResponse(String s)
     {
         String lc = s.toLowerCase();

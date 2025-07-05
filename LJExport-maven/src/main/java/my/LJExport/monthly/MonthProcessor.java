@@ -4,11 +4,11 @@ import java.io.File;
 import java.util.List;
 
 import my.LJExport.Config;
-import my.LJExport.Main;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.readers.direct.PageParserDirectClassic;
 import my.LJExport.readers.direct.PageParserDirectNewStyle;
+import my.LJExport.readers.direct.PageParserDirectRossiaOrg;
 import my.LJExport.runtime.Util;
 
 public class MonthProcessor
@@ -44,7 +44,6 @@ public class MonthProcessor
             {
                 if (Config.False && pageFileFullPath.equals("F:\\WINAPPS\\LJExport\\journals\\harmfulgrumpy\\pages\\2016\\01\\288850.html"))
                 {
-                    Main.out("HIT!");
                     Util.noop();
                 }
                 
@@ -69,14 +68,18 @@ public class MonthProcessor
                     {
                     case "classic":
                         parser = new PageParserDirectClassic(parser);
+                        parser.deleteDivThreeposts();
                         break;
 
                     case "new-style":
                         parser = new PageParserDirectNewStyle(parser);
+                        parser.deleteDivThreeposts();
+                        break;
+                        
+                    case "rossia.org":
+                        parser = new PageParserDirectRossiaOrg(parser);                        
                         break;
                     }
-                    
-                    parser.deleteDivThreeposts();
                 }
 
                 mcs.addPage(parser, rid_numeric, whichDir);

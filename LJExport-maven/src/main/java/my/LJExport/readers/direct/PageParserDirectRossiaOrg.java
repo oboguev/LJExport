@@ -146,15 +146,6 @@ public class PageParserDirectRossiaOrg extends PageParserDirectBase
         JSOUP.removeElement(pageRoot, table);
     }
 
-    private Element findHead() throws Exception
-    {
-        List<Node> heads = JSOUP.findElements(pageRoot, "head");
-        if (heads.size() != 1)
-            throw new Exception("Unable to locate the HEAD tag");
-        Element head = (Element) heads.get(0);
-        return head;
-    }
-
     private void setEncoding() throws Exception
     {
         Element head = findHead();
@@ -185,6 +176,55 @@ public class PageParserDirectRossiaOrg extends PageParserDirectBase
         }
     }
 
+    @Override
+    public void unsizeArticleHeight() throws Exception
+    {
+        // nothing to do
+    }
+
+    @Override
+    public void removeNonArticleBodyContent() throws Exception
+    {
+        Node br_clear = null;
+        Node div = null;
+        Node hr = null;
+        Node prev = null;
+
+        for (Node n : JSOUP.findElements(pageRoot))
+        {
+            if (JSOUP.asElement(n).tagName().equalsIgnoreCase("br"))
+            {
+                String clear = JSOUP.getAttribute(n, "clear");
+                if (clear != null && clear.equalsIgnoreCase("all"))
+                    br_clear = n;
+            }
+            
+            if (br_clear != null && prev == br_clear && JSOUP.asElement(n).tagName().equalsIgnoreCase("hr"))
+            {
+                hr = n;
+            }
+            
+            if (JSOUP.asElement(n).tagName().equalsIgnoreCase("div"))
+            {
+                String id = JSOUP.getAttribute(n, "id");
+                if (id != null && id.equalsIgnoreCase("Comments"))
+                {
+                    if (div != null)
+                        throw new Exception("Duplicate section div id=comments");
+                    div = n;
+                }
+            }
+            
+            prev = n;
+        }
+
+        if (div != null)
+            JSOUP.removeElement(pageRoot, div);
+
+        if (hr != null)
+            JSOUP.removeElement(pageRoot, hr);
+    }
+
     /* ============================================================================= */
 
     @Override
@@ -202,6 +242,17 @@ public class PageParserDirectRossiaOrg extends PageParserDirectBase
     @Override
     public Element findMainArticle() throws Exception
     {
-        throw new Exception("Not implemented");
+        Element table = null;
+
+        for (Node n : JSOUP.findElements(pageRoot, "table"))
+        {
+            if (table == null)
+                table = JSOUP.asElement(n);
+        }
+
+        if (table == null)
+            throw new Exception("Unable to find article");
+
+        return table;
     }
 }

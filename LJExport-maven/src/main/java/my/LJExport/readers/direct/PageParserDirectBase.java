@@ -589,7 +589,23 @@ public abstract class PageParserDirectBase
             if (classes.contains("b-singlepost-body") && classes.contains("entry-content"))
                 style = detectPageStyle(style, "classic");
         }
-
+        
+        for (Node n : JSOUP.findElements(pageRoot, "link"))
+        {
+            String rel = JSOUP.getAttribute(n, "rel");
+            String href = JSOUP.getAttribute(n, "href");
+            
+            if (rel != null && href != null)
+            {
+                if  (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("previous"))
+                {
+                    String host = Util.urlHost(href);
+                    if (host.equals("lj.rossia.org"))
+                        style = detectPageStyle(style, "rossia.org");
+                }
+            }
+        }
+        
         if (style == null)
             throw new Exception("Unable to detect page style (missing indicators)");
 
@@ -603,7 +619,7 @@ public abstract class PageParserDirectBase
 
         throw new Exception("Unable to detect page style (conflicting indicators)");
     }
-
+    
     /* ============================================================== */
 
     public abstract void removeJunk(int flags) throws Exception;
@@ -752,6 +768,7 @@ public abstract class PageParserDirectBase
         JSOUP.removeElements(head, JSOUP.findElements(head, "meta"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "next"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "prev"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "Previous"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "noscript"));
         JSOUP.removeElements(head, JSOUP.findComments(head));
         JSOUP.removeWhitespaceNodes(head);
@@ -769,6 +786,7 @@ public abstract class PageParserDirectBase
         JSOUP.removeElements(head, JSOUP.findElements(head, "meta"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "next"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "prev"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "Previous"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "noscript"));
         // JSOUP.removeElements(head, JSOUP.findComments(head));
 
@@ -933,13 +951,18 @@ public abstract class PageParserDirectBase
         return s;
     }
 
-    private Element findHead() throws Exception
+    public Element findHead() throws Exception
     {
         List<Node> heads = JSOUP.findElements(pageRoot, "head");
         if (heads.size() != 1)
             throw new Exception("Unable to locate the HEAD tag");
         Element head = (Element) heads.get(0);
         return head;
+    }
+    
+    public Element findBody() throws Exception
+    {
+        return getBodyTag();
     }
 
     /* ============================================================== */

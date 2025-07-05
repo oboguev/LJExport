@@ -218,6 +218,26 @@ public class JSOUP
 
         return vel;
     }
+    
+    public static List<Node> findElements(Node root) throws Exception
+    {
+        return findElements(flatten(root));
+    }
+
+    public static List<Node> findElements(List<Node> pageFlat) throws Exception
+    {
+        List<Node> vel = new ArrayList<>();
+
+        for (Node n : pageFlat)
+        {
+            if (!(n instanceof Element))
+                continue;
+
+            vel.add(n);
+        }
+
+        return vel;
+    }
 
     public static List<Node> findElements(Node root, String tagname) throws Exception
     {

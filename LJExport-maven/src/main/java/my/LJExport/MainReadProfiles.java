@@ -22,7 +22,7 @@ import my.LJExport.runtime.synch.ThreadsControl;
 public class MainReadProfiles
 {
     private static final String ALL_USERS = "<all>";
-    private static final String AllUsersFromUser = "blog_10101";
+    private static final String AllUsersFromUser = "fat_yankey";
     // private static final String AllUsersFromUser = null;
 
     // private static final String Users = "oboguev";

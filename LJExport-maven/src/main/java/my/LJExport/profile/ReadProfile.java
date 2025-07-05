@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
@@ -24,6 +25,7 @@ import my.LJExport.Main;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
+import my.LJExport.runtime.CaseCollisions;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.SafeFileName;
 import my.LJExport.runtime.Util;
@@ -479,6 +481,8 @@ public class ReadProfile
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
 
+        Set<String> userBases = userBases();
+        CaseCollisions cc = new CaseCollisions();
         File fpImagesDir = new File(fpProfileDir, "picture-albums").getCanonicalFile();
         if (fpImagesDir.exists())
         {
@@ -486,16 +490,50 @@ public class ReadProfile
             {
                 Util.deleteDirectoryTree(fpImagesDir.getCanonicalPath());
             }
-            else
+            else if (Config.False)
             {
                 Util.deleteFilesInDirectory(fpImagesDir.getCanonicalPath(), "*.html");
+            }
+            else
+            {
+                // delete guid-named files
+                Util.deleteGuidFilesInDirectory(fpImagesDir.getCanonicalPath(), "x-<GUID>.html");
+
+                // detect album file name case conflicts
+                for (Node an : JSOUP.findElements(parser.pageRoot, "a"))
+                {
+                    if (JSOUP.findElements(an, "img").size() != 0)
+                        continue;
+
+                    String href = JSOUP.getAttribute(an, "href");
+
+                    if (href != null && isAlbumUrl(href, userBases))
+                    {
+                        String title = JSOUP.asElement(an).text();
+                        title = Util.despace(title);
+                        if (title.isEmpty())
+                            continue;
+
+                        MutableBoolean isGuid = new MutableBoolean(false);
+                        String fn = SafeFileName.composeFileName(title, ".html", isGuid);
+                        if (isGuid.isFalse())
+                            cc.add(fn);
+                    }
+                }
+
+                // delete case-conflicting ablum files
+                for (String fn : cc.conflicts())
+                {
+                    File fp = new File(fpImagesDir, fn);
+                    if (fp.exists())
+                        fp.delete();
+                }
             }
         }
 
         /*
          * for all albums
          */
-        Set<String> userBases = userBases();
         for (Node an : JSOUP.findElements(parser.pageRoot, "a"))
         {
             if (JSOUP.findElements(an, "img").size() != 0)
@@ -510,16 +548,34 @@ public class ReadProfile
                 if (title.isEmpty())
                     continue;
 
-                String fn = SafeFileName.composeFileName(title, ".html");
-
+                MutableBoolean isGuid = new MutableBoolean(false);
+                String fn = SafeFileName.composeFileName(title, ".html", isGuid);
                 File fp = new File(fpImagesDir, fn);
-                while (fp.exists())
+
+                boolean do_load = false;
+                
+                if (isGuid.getValue() || !fp.exists())
                 {
-                    fn = SafeFileName.guidFileName(".html");
-                    fp = new File(fpImagesDir, fn);
+                    do_load = true;
+                }
+                else if (/* fp.exists() && */cc.conflicts().contains(fn))
+                {
+                    while (fp.exists())
+                    {
+                        fn = SafeFileName.guidFileName(".html");
+                        fp = new File(fpImagesDir, fn);
+                    }
+
+                    do_load = true;
+                }
+                else // if (fp.exists() && !cc.conflicts().contains(fn))
+                {
+                    // album had been loaded previosly
+                    do_load = false;
                 }
 
-                loadImageAlbum(href, fp.getCanonicalFile(), title);
+                if (do_load)
+                    loadImageAlbum(href, fp.getCanonicalFile(), title);
 
                 updateMatchingLinks(parser.pageRoot, "a", "href", href, "picture-albums/" + fn);
             }
@@ -739,21 +795,30 @@ public class ReadProfile
         for (Node pager : JSOUP.findElementsWithClass(pageRoot, "p", "b-pics-pager"))
         {
             String text = Util.despace(JSOUP.asElement(pager).text());
-            if (!text.startsWith("1/"))
-                throw new Exception("Unexpected pager format");
 
             int nps;
-            try
+            
+            if (text.equals("1/1"))
             {
-                nps = Integer.parseInt(text.substring("1/".length()));
+                nps = 1;
             }
-            catch (Exception ex)
+            else
             {
-                throw new Exception("Unexpected pager format", ex);
-            }
+                if (!text.startsWith("1/"))
+                    throw new Exception("Unexpected pager format");
 
-            if (nps <= 1)
-                throw new Exception("Unexpected pager format");
+                try
+                {
+                    nps = Integer.parseInt(text.substring("1/".length()));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Unexpected pager format", ex);
+                }
+
+                if (nps <= 1)
+                    throw new Exception("Unexpected pager format");
+            }
 
             if (npages == null)
                 npages = nps;

@@ -29,6 +29,8 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONObject;
 
@@ -631,13 +633,42 @@ public class Util
         }
     }
 
+    public static void deleteGuidFilesInDirectory(String dirPath, String pattern) throws IOException
+    {
+        Path dir = Paths.get(dirPath);
+
+        if (!Files.isDirectory(dir))
+            throw new IllegalArgumentException("Provided path is not a directory: " + dirPath);
+
+        // Escape the literal parts and identify GUID placeholder
+        String regex = Pattern.quote(pattern)
+                .replace("<GUID>", "([A-Fa-f0-9]{32})")
+                .replace("<UCGUID>", "([A-F0-9]{32})")
+                .replace("<LCGUID>", "([a-f0-9]{32})");
+
+        Pattern compiledPattern = Pattern.compile(regex);
+
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir))
+        {
+            for (Path entry : stream)
+            {
+                if (Files.isRegularFile(entry))
+                {
+                    String fileName = entry.getFileName().toString();
+                    Matcher matcher = compiledPattern.matcher(fileName);
+                    if (matcher.matches())
+                        Files.delete(entry);
+                }
+            }
+        }
+    }
+
     public static String timeNow()
     {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formatted = now.format(formatter);
         return formatted;
-
     }
 
     public static String urlHost(String url) throws Exception

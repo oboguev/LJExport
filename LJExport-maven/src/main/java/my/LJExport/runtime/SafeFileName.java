@@ -2,6 +2,8 @@ package my.LJExport.runtime;
 
 import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
+
 /*
  * Generate safe file name
  */
@@ -14,9 +16,17 @@ public class SafeFileName
 
     public static String composeFileName(String seed, String suffix)
     {
+        return composeFileName(seed, suffix, null);
+    }
+    
+    public static String composeFileName(String seed, String suffix, MutableBoolean isGuid)
+    {
+        if (isGuid != null)
+            isGuid.setFalse();
+        
         // Edge case for "." and ".."
         if (seed.equals(".") || seed.equals("..") || seed.isEmpty())
-            return guidFileName(suffix);
+            return guidFileName(suffix, isGuid);
 
         StringBuilder sb = new StringBuilder();
 
@@ -42,9 +52,17 @@ public class SafeFileName
 
         // Check total length
         if ((result + suffix).length() > MAX_FILENAME_LENGTH)
-            return guidFileName(suffix);
+            return guidFileName(suffix, isGuid);
 
         return result + suffix;
+    }
+
+    private static String guidFileName(String suffix, MutableBoolean isGuid)
+    {
+        String v = guidFileName(suffix);
+        if (isGuid != null)
+            isGuid.setTrue();
+        return v;
     }
 
     public static String guidFileName(String suffix)

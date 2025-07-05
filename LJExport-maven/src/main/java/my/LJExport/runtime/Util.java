@@ -756,4 +756,29 @@ public class Util
     {
         return (a == null && b == null) || (a != null && a.equalsIgnoreCase(b));
     }
+    
+    public static List<String> eliminateDuplicates(List<String> list)
+    {
+        List<String> rlist = new ArrayList<>();
+        Set<String> rset = new HashSet<>();
+        boolean hasNull = false;
+        
+        for (String s : list)
+        {
+            if (s != null)
+            {
+                if (!rset.contains(s))
+                    rlist.add(s);
+                rset.add(s);
+            }
+            else
+            {
+                if (!hasNull)
+                    rlist.add(s);
+                hasNull = true;
+            }
+        }
+        
+        return rlist;
+    }
 }

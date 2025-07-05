@@ -1,9 +1,6 @@
-package my.LJExport.ljrossia;
+package my.LJExport;
 
-import my.LJExport.Config;
-import my.LJExport.Main;
-
-public class MainLJRossia
+public class MainLJRossiaOrg
 {
     private static final String User = "udod99";
     
@@ -11,7 +8,7 @@ public class MainLJRossia
     {
         Config.Site = Config.DefaultSite= "lj.rossia.org";
         Config.UseLogin = false;
-        Config.DownloadRoot += ".ljrossia";
+        Config.DownloadRoot += ".lj-rossia-org";
         
         Main main = new Main();
         main.do_main(User);

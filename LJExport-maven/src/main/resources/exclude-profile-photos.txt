@@ -52,5 +52,10 @@ tverdyi_znak
 #1100 vad_nes.livejournal.com/profile/
 vad_nes
 
-#zhu_s.livejournal.com/profile/
+#3100 zhu_s.livejournal.com/profile/
 zhu_s
+
+# too many photos
+kirovtanin
+tanya_mass
+avmalgin

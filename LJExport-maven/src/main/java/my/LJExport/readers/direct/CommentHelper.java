@@ -7,8 +7,8 @@ import org.jsoup.nodes.Node;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import my.LJExport.html.JSOUP;
 import my.LJExport.readers.Comment;
-import my.LJExport.xml.JSOUP;
 
 public class CommentHelper
 {

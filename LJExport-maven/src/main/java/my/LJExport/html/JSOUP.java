@@ -1,4 +1,4 @@
-package my.LJExport.xml;
+package my.LJExport.html;
 
 import java.util.ArrayList;
 import java.util.Collection;

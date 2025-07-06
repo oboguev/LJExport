@@ -22,9 +22,9 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.html.JSOUP;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
-import my.LJExport.xml.JSOUP;
 
 // import org.openqa.selenium.support.ui.ExpectedCondition;
 // import org.openqa.selenium.support.ui.WebDriverWait;

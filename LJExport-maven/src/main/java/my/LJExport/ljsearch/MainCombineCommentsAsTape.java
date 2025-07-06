@@ -16,11 +16,11 @@ import org.jsoup.parser.Tag;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.ConsoleProgress;
 import my.LJExport.runtime.Util;
-import my.LJExport.xml.JSOUP;
 
 /*
  * Склеить отдельные файлы комментариев LJSearch (ljsear.ch) в ленты

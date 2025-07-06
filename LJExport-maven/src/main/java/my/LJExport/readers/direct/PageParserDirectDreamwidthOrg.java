@@ -7,10 +7,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.parser.Tag;
 
+import my.LJExport.html.JSOUP;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.Util;
-import my.LJExport.xml.JSOUP;
 
 public class PageParserDirectDreamwidthOrg extends PageParserDirectBase
 {

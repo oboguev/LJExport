@@ -18,6 +18,7 @@ import org.jsoup.parser.Tag;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.html.JSOUP;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.LJUtil;
@@ -27,7 +28,6 @@ import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.AppendToThreadName;
 import my.LJExport.runtime.synch.FutureProcessor;
 import my.LJExport.runtime.synch.ThreadsControl;
-import my.LJExport.xml.JSOUP;
 
 public abstract class PageParserDirectBase
 {

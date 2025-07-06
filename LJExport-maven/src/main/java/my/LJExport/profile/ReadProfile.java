@@ -22,6 +22,7 @@ import org.jsoup.nodes.TextNode;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.readers.direct.PageParserDirectDreamwidthOrg;
@@ -34,7 +35,6 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.xml.JSOUP;
 
 /*
  * Загрузить страницы профиля пользователя.

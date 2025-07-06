@@ -4,9 +4,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.parser.Tag;
 
+import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Web;
-import my.LJExport.xml.JSOUP;
 
 public class ParserArchiveOrg extends PageParserDirectBasePassive
 {

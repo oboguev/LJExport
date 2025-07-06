@@ -13,10 +13,10 @@ import java.util.Set;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.html.DOM;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
-import my.LJExport.xml.DOM;
 
 public class PageReaderBasic implements PageReader
 {

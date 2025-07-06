@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
@@ -15,7 +16,6 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.ThreadsControl;
-import my.LJExport.xml.JSOUP;
 
 /*
  * Загрузить отсутствующие локальные копии сссылок в страницах пользователя.

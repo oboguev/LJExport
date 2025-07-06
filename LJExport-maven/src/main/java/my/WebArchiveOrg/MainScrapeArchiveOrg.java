@@ -8,12 +8,12 @@ import org.apache.http.HttpStatus;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.Main;
+import my.LJExport.html.JSOUP;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.xml.JSOUP;
 
 public class MainScrapeArchiveOrg
 {

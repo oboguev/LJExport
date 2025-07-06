@@ -11,6 +11,7 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.html.JSOUP;
 import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
@@ -20,7 +21,6 @@ import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
-import my.LJExport.xml.JSOUP;
 
 public class PageReaderDirect implements PageReader, PageContentSource
 {

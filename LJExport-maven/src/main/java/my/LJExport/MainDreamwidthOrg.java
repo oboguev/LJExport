@@ -8,7 +8,7 @@ public class MainDreamwidthOrg
     {
         Config.Site = Config.DefaultSite= "dreamwidth.org";
         Config.UseLogin = true;
-        Config.DownloadRoot += ".dreamwidth";
+        Config.DownloadRoot += ".dreamwidth-org";
         
         Main main = new Main();
         main.do_main(User);

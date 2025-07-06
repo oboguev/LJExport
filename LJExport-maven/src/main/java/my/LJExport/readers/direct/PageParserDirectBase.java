@@ -38,11 +38,11 @@ public abstract class PageParserDirectBase
         public static AbsoluteLinkBase from(String url) throws Exception
         {
             String host = Util.urlHost(url).toLowerCase();
-            if (host.equals("livejournal.com") || host.equals("www.livejournal.com")) // ###
+            if (host.equals("livejournal.com") || host.equals("www.livejournal.com"))
                 return WWW_Livejournal;
             if (host.endsWith(".livejournal.com"))
                 return User;
-            throw new Exception("Unable to determine link basis for URL " + url);
+            throw new Exception("Unable to determine link basis for URL " + url); // ###
         }
     };
 
@@ -567,14 +567,35 @@ public abstract class PageParserDirectBase
 
     public String detectPageStyle() throws Exception
     {
+        String style = null;
+
         if (Config.isRossiaOrg())
             return "rossia.org";
 
         if (Config.isDreamwidthOrg())
             return "dreamwidth.org";
 
+        for (Node n : JSOUP.findElements(pageRoot, "link"))
+        {
+            String rel = JSOUP.getAttribute(n, "rel");
+            String href = JSOUP.getAttribute(n, "href");
+
+            if (rel != null && href != null)
+            {
+                if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") ||
+                        rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
+                {
+                    String host = Util.urlHost(href).toLowerCase();
+                    if (host.endsWith(".dreamwidth.org") || host.equals("dreamwidth.org"))
+                        style = detectPageStyle(style, "dreamwidth.org");
+                }
+            }
+        }
+        
+        if (style != null)
+            return style;
+        
         List<Node> vnodes = JSOUP.findElements(pageRoot, "article");
-        String style = null;
 
         for (Node n : vnodes)
         {
@@ -780,6 +801,7 @@ public abstract class PageParserDirectBase
         JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "next"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "prev"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "Previous"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "canonical"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "noscript"));
         JSOUP.removeElements(head, JSOUP.findComments(head));
         JSOUP.removeWhitespaceNodes(head);
@@ -798,6 +820,7 @@ public abstract class PageParserDirectBase
         JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "next"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "prev"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "Previous"));
+        JSOUP.removeElements(head, JSOUP.findElements(head, "link", "rel", "canonical"));
         JSOUP.removeElements(head, JSOUP.findElements(head, "noscript"));
         // JSOUP.removeElements(head, JSOUP.findComments(head));
 

@@ -7,6 +7,7 @@ import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.readers.direct.PageParserDirectClassic;
+import my.LJExport.readers.direct.PageParserDirectDreamwidthOrg;
 import my.LJExport.readers.direct.PageParserDirectNewStyle;
 import my.LJExport.readers.direct.PageParserDirectRossiaOrg;
 import my.LJExport.runtime.Util;
@@ -80,7 +81,9 @@ public class MonthProcessor
                         parser = new PageParserDirectRossiaOrg(parser);                        
                         break;
                         
-                        // ###
+                    case "dreamwidth.org":
+                        parser = new PageParserDirectDreamwidthOrg(parser);                        
+                        break;
                     }
                 }
 

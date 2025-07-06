@@ -94,47 +94,7 @@ public class PageParserDirectDreamwidthOrg extends PageParserDirectBase
     @Override
     public void removeNonArticleBodyContent() throws Exception
     {
-        if (Config.True)
-            throw new Exception("Not implemented");
-
-        Node br_clear = null;
-        Node div = null;
-        Node hr = null;
-        Node prev = null;
-
-        for (Node n : JSOUP.findElements(pageRoot))
-        {
-            if (JSOUP.asElement(n).tagName().equalsIgnoreCase("br"))
-            {
-                String clear = JSOUP.getAttribute(n, "clear");
-                if (clear != null && clear.equalsIgnoreCase("all"))
-                    br_clear = n;
-            }
-
-            if (br_clear != null && prev == br_clear && JSOUP.asElement(n).tagName().equalsIgnoreCase("hr"))
-            {
-                hr = n;
-            }
-
-            if (JSOUP.asElement(n).tagName().equalsIgnoreCase("div"))
-            {
-                String id = JSOUP.getAttribute(n, "id");
-                if (id != null && id.equalsIgnoreCase("Comments"))
-                {
-                    if (div != null)
-                        throw new Exception("Duplicate section div id=comments");
-                    div = n;
-                }
-            }
-
-            prev = n;
-        }
-
-        if (div != null)
-            JSOUP.removeElement(pageRoot, div);
-
-        if (hr != null)
-            JSOUP.removeElement(pageRoot, hr);
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "comments"));
     }
 
     /* ============================================================================= */
@@ -154,21 +114,7 @@ public class PageParserDirectDreamwidthOrg extends PageParserDirectBase
     @Override
     public Element findMainArticle() throws Exception
     {
-        if (Config.True)
-            throw new Exception("Not implemented");
-
-        Element table = null;
-
-        for (Node n : JSOUP.findElements(pageRoot, "table"))
-        {
-            if (table == null)
-                table = JSOUP.asElement(n);
-        }
-
-        if (table == null)
-            throw new Exception("Unable to find article");
-
-        return table;
+        return JSOUP.asElement(JSOUP.exactlyOne(JSOUP.findElements(pageRoot, "div", "id", "canvas")));
     }
 
     private void mapProxiedImageURLs() throws Exception

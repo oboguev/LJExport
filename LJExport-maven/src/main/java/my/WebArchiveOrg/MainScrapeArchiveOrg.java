@@ -182,7 +182,7 @@ public class MainScrapeArchiveOrg
         parser.removeArchiveJunk();
         parser.resolveAbsoluteURLs(r.finalUrl);
 
-        // ### download linked img/pdf files and remap links, also TXT
+        // ### download linked img/pdf files and remap links
 
         String html = JSOUP.emitHtml(parser.pageRoot);
 

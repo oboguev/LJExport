@@ -46,7 +46,7 @@ public class MainDownloadLinks
     // private static final String Users = "tutchev,tverdyi_znak,um_plus,unilevel";
     // private static final String Users = "vladimir_tor,von_hoffmann,wiradhe,wyradhe,ystrek,zhenziyou";
     // private static final String Users = "pikitan,schloenski,pravoe_org,piligrim,trufanov";
-    private static final String Users = "oldadmiral";
+    private static final String Users = "oboguev";
     // private static final String Users = "zhu_s";
 
     private static final int NWorkThreads = 100;

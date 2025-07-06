@@ -18,25 +18,31 @@ import java.security.cert.X509Certificate;
 public class TrustAnySSL
 {
     private static SSLContext sslContext;
+    private static boolean initialized = false;
 
     /**
      * Globally disable SSL certificate and hostname verification.
      */
-    public static void trustAnySSL()
+    public static synchronized void trustAnySSL()
     {
         try
         {
-            // Create a trust manager that does not validate certificate chains
-            final TrustManager[] trustAllCerts = new TrustManager[] { new LooseTrustManager() };
+            if (!initialized)
+            {
+                // Create a trust manager that does not validate certificate chains
+                final TrustManager[] trustAllCerts = new TrustManager[] { new LooseTrustManager() };
 
-            // Install the all-trusting trust manager
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, trustAllCerts, new SecureRandom());
-            SSLContext.setDefault(sslContext);
+                // Install the all-trusting trust manager
+                sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(null, trustAllCerts, new SecureRandom());
+                SSLContext.setDefault(sslContext);
 
-            // Disable hostname verification globally
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-            HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+                // Disable hostname verification globally
+                HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+                HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+
+                initialized = true;
+            }
         }
         catch (Exception e)
         {

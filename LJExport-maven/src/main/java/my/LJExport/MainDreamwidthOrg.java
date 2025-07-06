@@ -13,5 +13,4 @@ public class MainDreamwidthOrg
         Main main = new Main();
         main.do_main(User);
     }
-
 }

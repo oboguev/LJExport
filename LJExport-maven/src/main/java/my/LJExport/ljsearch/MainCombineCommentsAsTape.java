@@ -210,7 +210,6 @@ public class MainCombineCommentsAsTape
             fp.getParentFile().mkdirs();
         String html = JSOUP.emitHtml(combinedPageRoot);
         Util.writeToFileSafe(fp.getCanonicalPath(), html);
-        Util.noop();
     }
 
     private void beautify(Node toPageRoot) throws Exception

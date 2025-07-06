@@ -41,10 +41,14 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.function.IntPredicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import static java.lang.Math.max;
 
 // GZIP: http://stackoverflow.com/questions/1063004/how-to-decompress-http-response
@@ -70,6 +74,8 @@ public class Web
         /* final URL after redirects */
         public String finalUrl;
         public String redirectLocation;
+        public String contentType;
+        public Charset charset;
 
         private void setFinalUrl(HttpUriRequest request, HttpClientContext context, String url) throws Exception
         {
@@ -109,6 +115,9 @@ public class Web
 
     public static void init() throws Exception
     {
+        if (Config.TrustAnySSLCertificate)
+            TrustAnySSL.trustAnySSL();
+        
         DefaultProxyRoutePlanner routePlanner = null;
 
         cookieStore = new BasicCookieStore();
@@ -428,6 +437,8 @@ public class Web
             r.setFinalUrl(request, context, url);
             if (response.containsHeader("Location"))
                 r.redirectLocation = response.getFirstHeader("Location").getValue();
+            if (response.containsHeader("Content-Type"))
+                r.contentType= response.getFirstHeader("Content-Type").getValue();
 
             if (shouldLoadBody == null || shouldLoadBody.test(r.code))
             {
@@ -454,10 +465,17 @@ public class Web
                             entityStream = entity.getContent();
                             r.binaryBody = toByteArray(entityStream);
                         }
+                        else if (Config.True)
+                        {
+                            entityStream = entity.getContent();
+                            r.binaryBody = toByteArray(entityStream);
+                            r.charset = extractCharset(r);
+                            r.body = new String(r.binaryBody, r.charset);
+                        }
                         else
                         {
                             entityStream = entity.getContent();
-                            brd = new BufferedReader(new InputStreamReader(entityStream, StandardCharsets.UTF_8));
+                            brd = new BufferedReader(new InputStreamReader(entityStream, extractCharset(r)));
                             while ((line = brd.readLine()) != null)
                                 sb.append(line + "\r\n");
                             r.body = sb.toString();
@@ -505,6 +523,8 @@ public class Web
             r.setFinalUrl(request, context, url);
             if (response.containsHeader("Location"))
                 r.redirectLocation = response.getFirstHeader("Location").getValue();
+            if (response.containsHeader("Content-Type"))
+                r.contentType= response.getFirstHeader("Content-Type").getValue();
 
             HttpEntity entity = response.getEntity();
 
@@ -517,11 +537,22 @@ public class Web
 
                 try
                 {
-                    entityStream = entity.getContent();
-                    brd = new BufferedReader(new InputStreamReader(entityStream, StandardCharsets.UTF_8));
-                    while ((line = brd.readLine()) != null)
-                        sb.append(line + "\r\n");
-                    r.body = sb.toString();
+                    if (Config.True)
+                    {
+                        entityStream = entity.getContent();
+                        r.binaryBody = toByteArray(entityStream);
+                        r.charset = extractCharset(r);
+                        r.body = new String(r.binaryBody, r.charset);
+                    }
+                    else
+                    {
+                        entityStream = entity.getContent();
+                        brd = new BufferedReader(new InputStreamReader(entityStream, extractCharset(r)));
+                        while ((line = brd.readLine()) != null)
+                            sb.append(line + "\r\n");
+                        r.body = sb.toString();
+                        
+                    }
                 }
                 finally
                 {
@@ -971,5 +1002,42 @@ public class Web
         {
             return wrappedEntity.getContentType();
         }
+    }
+
+    private static Charset extractCharset(Response r) throws Exception
+    {
+        if (r.contentType != null)
+        {
+            String cs = extractCharset(r.contentType);
+            if (cs != null)
+            {
+                if (!Charset.isSupported(cs))
+                    throw new Exception("Unsupported encoding " + r.contentType);
+                return Charset.forName(cs);
+            }
+        }
+        
+        return StandardCharsets.UTF_8;
+    }
+
+    /**
+     * Extracts character encoding from content attribute of meta tag.
+     *
+     * @param content
+     *            the content attribute, e.g. "text/html; charset=windows-1251"
+     * @return the charset (e.g. "windows-1251", "utf-8"), or null if not found
+     */
+    public static String extractCharset(String content)
+    {
+        if (content == null)
+            return null;
+
+        // Match charset=..., utf-8=..., or similar
+        Pattern pattern = Pattern.compile("(?i)(?:charset|utf-8)\\s*=\\s*([\\w\\-]+)");
+        Matcher matcher = pattern.matcher(content);
+        if (matcher.find())
+            return matcher.group(1).toLowerCase();
+ 
+        return null;
     }
 }

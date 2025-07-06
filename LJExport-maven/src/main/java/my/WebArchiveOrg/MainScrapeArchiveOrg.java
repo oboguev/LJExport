@@ -25,6 +25,8 @@ public class MainScrapeArchiveOrg
     private final String pagesDir;
     private final String linksDir;
 
+    private Set<String> prune = new HashSet<>();
+
     public static void main(String[] args)
     {
         try
@@ -65,7 +67,7 @@ public class MainScrapeArchiveOrg
         String url;
         String localFilePath;
 
-        if (isFile(relPath))
+        if (isPageFile(relPath))
         {
             url = archiveOrgWebRoot + "/" + relPath;
             localFilePath = fileRelPath2FullPath(relPath);
@@ -90,15 +92,24 @@ public class MainScrapeArchiveOrg
         if (fp.exists())
             follow(relPath, url, fp);
     }
-    
+
     private void follow(String relPath, String url, File fp) throws Exception
     {
+        /*
+         * Обрезать рекурсию циклических ссылок
+         */
+        if (prune.contains(relPath))
+            return;
+        prune.add(relPath);
+
+        Util.out("Scanning/traversing file " + fp.getCanonicalPath());
+
         ParserArchiveOrg parser = new ParserArchiveOrg();
         parser.pageSource = Util.readFileAsString(fp.getCanonicalPath());
         parser.parseHtmlWithBaseUrl(url);
-        
+
         Set<String> links = new HashSet<>();
-        
+
         for (Node an : JSOUP.findElements(parser.pageRoot, "a"))
         {
             String href = JSOUP.getAttribute(an, "href");
@@ -107,16 +118,37 @@ public class MainScrapeArchiveOrg
                 links.add(href);
             }
         }
-        
+
+        for (String xurl : links)
+        {
+            String xrelPath = xurl.substring(ArchiveOrgWebRoot.length());
+            Util.noop();
+        }
+
         Util.noop();
-        
+
         // ### extract links
     }
 
-    private boolean isFile(String relPath)
+    private boolean isPageFile(String relPath)
     {
         // file.xxx or file.xxxx
-        return relPath.matches(".*\\.[A-Za-z]{3,4}$");
+        // return relPath.matches(".*\\.[A-Za-z]{3,4}$");
+        String extension = Util.getFileExtension(relPath);
+        if (extension == null)
+            return true;
+
+        switch (extension.toLowerCase())
+        {
+        case "htm":
+        case "html":
+        case "shtm":
+        case "shtml":
+            return true;
+
+        default:
+            return false;
+        }
     }
 
     public String fileRelPath2FullPath(String relPath)
@@ -149,9 +181,9 @@ public class MainScrapeArchiveOrg
 
         parser.removeArchiveJunk();
         parser.resolveAbsoluteURLs(r.finalUrl);
-        
-        // ### download linked img/pdf files and remap links
-        
+
+        // ### download linked img/pdf files and remap links, also TXT
+
         String html = JSOUP.emitHtml(parser.pageRoot);
 
         if (!fp.getParentFile().exists())

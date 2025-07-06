@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -40,7 +41,7 @@ import org.json.JSONArray;
 
 public class Util
 {
-    public static char lastChar(String s) 
+    public static char lastChar(String s)
     {
         int len = s.length();
         if (len == 0)
@@ -711,6 +712,42 @@ public class Util
         if (baseURL == null || baseURL.isEmpty())
             return relativeURL;
 
+        // Handle protocol-relative URLs (e.g., //cdn.example.com/script.js)
+        if (relativeURL != null && relativeURL.startsWith("//"))
+        {
+            if (baseURL != null && !baseURL.isEmpty())
+            {
+                URI baseUri = new URI(baseURL);
+                String scheme = baseUri.getScheme();
+                if (scheme != null && !scheme.isEmpty())
+                    return scheme + ":" + relativeURL;
+            }
+
+            // If baseURL is missing or lacks scheme, fallback (e.g., assume "https:")
+            return "https:" + relativeURL;
+        }
+
+        // Handle archive.org URLs with embedded full URLs in the path
+        final String archive_org_https_web = "https://web.archive.org/web/";
+        if (baseURL.startsWith(archive_org_https_web))
+        {
+            int schemeIndex = baseURL.indexOf("http://", archive_org_https_web.length());
+            if (schemeIndex == -1)
+                schemeIndex = baseURL.indexOf("https://", archive_org_https_web.length());
+
+            if (schemeIndex != -1)
+            {
+                String archivePrefix = baseURL.substring(0, schemeIndex);
+                String archivedURL = baseURL.substring(schemeIndex);
+
+                URI archivedBase = new URI(archivedURL);
+                URI resolved = archivedBase.resolve(relativeURL);
+
+                return archivePrefix + resolved.toString();
+            }
+        }
+
+        // Default case
         URI base = new URI(baseURL);
         URI resolved = base.resolve(relativeURL);
         return resolved.toString();
@@ -756,13 +793,13 @@ public class Util
     {
         return (a == null && b == null) || (a != null && a.equalsIgnoreCase(b));
     }
-    
+
     public static List<String> eliminateDuplicates(List<String> list)
     {
         List<String> rlist = new ArrayList<>();
         Set<String> rset = new HashSet<>();
         boolean hasNull = false;
-        
+
         for (String s : list)
         {
             if (s != null)
@@ -778,7 +815,59 @@ public class Util
                 hasNull = true;
             }
         }
-        
+
         return rlist;
+    }
+
+    public static String getFileExtension(String path)
+    {
+        if (path == null || path.isEmpty())
+            return null;
+
+        // Normalize separators to make it OS-independent
+        path = path.replace('\\', '/');
+
+        // Extract the last path component
+        int lastSlash = path.lastIndexOf('/');
+        String fileName = (lastSlash >= 0) ? path.substring(lastSlash + 1) : path;
+
+        // Find the last dot in the file name (not in directories)
+        int lastDot = fileName.lastIndexOf('.');
+        if (lastDot <= 0 || lastDot == fileName.length() - 1)
+            return null;
+
+        return fileName.substring(lastDot + 1);
+    }
+
+    public static String getFileExtensionFromURL(String path)
+    {
+        if (path == null || path.isEmpty())
+            return null;
+
+        // Strip query string and fragment
+        int q = path.indexOf('?');
+        int h = path.indexOf('#');
+        int end = path.length();
+        if (q >= 0 && h >= 0)
+            end = Math.min(q, h);
+        else if (q >= 0)
+            end = q;
+        else if (h >= 0)
+            end = h;
+        path = path.substring(0, end);
+
+        // Normalize separators to make it OS-independent
+        path = path.replace('\\', '/');
+
+        // Extract the last path component
+        int lastSlash = path.lastIndexOf('/');
+        String fileName = (lastSlash >= 0) ? path.substring(lastSlash + 1) : path;
+
+        // Find the last dot in the file name (not in directories)
+        int lastDot = fileName.lastIndexOf('.');
+        if (lastDot <= 0 || lastDot == fileName.length() - 1)
+            return null;
+
+        return fileName.substring(lastDot + 1).toLowerCase(Locale.ROOT); // Optional normalization
     }
 }

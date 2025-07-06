@@ -68,6 +68,10 @@ public class ReadProfile
 
     public void readAll() throws Exception
     {
+        // ###
+        if (Config.isDreamwidthOrg())
+            return;
+        
         Util.out(">>> Downloading profile for user " + Config.User);
 
         if (Config.ReloadExistingFiles || !new File(fpProfileDir, "profile.html").exists())
@@ -95,6 +99,7 @@ public class ReadProfile
     {
         String url;
 
+        // ###
         if (Config.isRossiaOrg())
         {
             url = String.format("https://lj.rossia.org/userinfo.bml?user=%s&mode=full", Config.User);
@@ -109,6 +114,7 @@ public class ReadProfile
                     LJUtil.userBase());
         }
 
+        // ###
         if (Config.isRossiaOrg())
         {
             AtomicReference<String> finalUrl = new AtomicReference<>();

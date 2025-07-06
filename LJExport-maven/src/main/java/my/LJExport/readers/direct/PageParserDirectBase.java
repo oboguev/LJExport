@@ -534,17 +534,17 @@ public abstract class PageParserDirectBase
                         newref = null;
                         break;
                     }
-                    
+
                 }
                 else if (href.startsWith("/"))
                 {
                     switch (absoluteLinkBase)
                     {
                     case User:
-                        newref = String.format("https://%s.livejournal.com%s", Config.MangledUser, href);
+                        newref = String.format("https://%s.%s%s", Config.MangledUser, Config.Site, href);
                         break;
                     case WWW_Livejournal:
-                        newref = String.format("https://www.livejournal.com%s", href);
+                        newref = String.format("https://www.%s%s", Config.Site, href);
                         break;
                     case None:
                         newref = null;
@@ -569,7 +569,10 @@ public abstract class PageParserDirectBase
     {
         if (Config.isRossiaOrg())
             return "rossia.org";
-        
+
+        if (Config.isDreamwidthOrg())
+            return "dreamwidth.org";
+
         List<Node> vnodes = JSOUP.findElements(pageRoot, "article");
         String style = null;
 
@@ -589,23 +592,31 @@ public abstract class PageParserDirectBase
             if (classes.contains("b-singlepost-body") && classes.contains("entry-content"))
                 style = detectPageStyle(style, "classic");
         }
-        
+
         for (Node n : JSOUP.findElements(pageRoot, "link"))
         {
             String rel = JSOUP.getAttribute(n, "rel");
             String href = JSOUP.getAttribute(n, "href");
-            
+
             if (rel != null && href != null)
             {
-                if  (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("previous"))
+                if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") || rel.toLowerCase().equals("previous"))
                 {
-                    String host = Util.urlHost(href);
+                    String host = Util.urlHost(href).toLowerCase();
                     if (host.equals("lj.rossia.org"))
                         style = detectPageStyle(style, "rossia.org");
                 }
+
+                if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") ||
+                        rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
+                {
+                    String host = Util.urlHost(href).toLowerCase();
+                    if (host.endsWith(".dreamwidth.org") || host.equals("dreamwidth.org"))
+                        style = detectPageStyle(style, "dreamwidth.org");
+                }
             }
         }
-        
+
         if (style == null)
             throw new Exception("Unable to detect page style (missing indicators)");
 
@@ -619,7 +630,7 @@ public abstract class PageParserDirectBase
 
         throw new Exception("Unable to detect page style (conflicting indicators)");
     }
-    
+
     /* ============================================================== */
 
     public abstract void removeJunk(int flags) throws Exception;
@@ -959,7 +970,7 @@ public abstract class PageParserDirectBase
         Element head = (Element) heads.get(0);
         return head;
     }
-    
+
     public Element findBody() throws Exception
     {
         return getBodyTag();
@@ -1007,7 +1018,7 @@ public abstract class PageParserDirectBase
         deleteExcept("tr", preserve);
         deleteExcept("table", preserve);
     }
-    
+
     private void deleteExcept(String tag, List<Node> preserve) throws Exception
     {
         List<Node> vn = JSOUP.findElements(pageRoot, tag);

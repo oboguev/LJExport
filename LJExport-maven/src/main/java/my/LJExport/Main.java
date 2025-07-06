@@ -137,7 +137,7 @@ public class Main
         {
             LimitProcessorUsage.limit();
             deadLinks = Util.read_set("deadlinks.txt");
-            
+
             if (user != null)
             {
                 do_user(user);
@@ -320,7 +320,7 @@ public class Main
             if (isAborting())
                 err(">>> Aborted exporting journal for user " + Config.User);
             else
-                out(">>> Completed exporting journal for user " + Config.User);
+                out(">>> Completed exporting journal posts for user " + Config.User);
 
             if (failedPages.size() != 0)
             {
@@ -332,6 +332,7 @@ public class Main
             if (!isAborting())
             {
                 new ReadProfile().readAll();
+                out(">>> Completed exporting journal for user " + Config.User);
             }
 
             ThreadsControl.shutdownAfterUser();
@@ -392,7 +393,7 @@ public class Main
     {
         if (!Config.UseLogin)
             return;
-        
+
         if (logged_in)
             throw new Exception("Already logged in");
 
@@ -404,14 +405,39 @@ public class Main
         out(">>> Logging into " + Config.LoginSite + " as user " + Config.LoginUser);
 
         StringBuilder sb = new StringBuilder();
-        sb.append(Web.escape("ret") + "=" + "1" + "&");
-        sb.append(Web.escape("user") + "=" + Web.escape(Config.LoginUser) + "&");
-        sb.append(Web.escape("password") + "=" + Web.escape(Config.LoginPassword) + "&");
-        sb.append("action:login");
+        if (Config.isDreamwidthOrg())
+        {
+            postForm(sb, "returnto", "https://www.dreamwidth.org/");
+            postForm(sb, "chal", Config.DreamwidthCaptchaChallenge);
+            postForm(sb, "response", "");
+            postForm(sb, "user", Config.LoginUser);
+            postForm(sb, "password", Config.LoginPassword);
+            postForm(sb, "remember_me", "1");
+            postForm(sb, "login", "Log in");
+        }
+        else
+        {
+            sb.append(Web.escape("ret") + "=" + "1" + "&");
+            sb.append(Web.escape("user") + "=" + Web.escape(Config.LoginUser) + "&");
+            sb.append(Web.escape("password") + "=" + Web.escape(Config.LoginPassword) + "&");
+            sb.append("action:login");
+        }
 
         Web.Response r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", sb.toString());
-        if (r.code != HttpStatus.SC_OK)
-            throw new Exception("Unable to log into the server: " + Web.describe(r.code));
+        
+        if (Config.isDreamwidthOrg())
+        {
+            if (r.code != 302)
+                throw new Exception("Unable to log into the server: " + Web.describe(r.code));
+
+            if (r.redirectLocation == null || !r.redirectLocation.equals("https://www.dreamwidth.org/"))
+                throw new Exception("Unable to log into the server, unexpected post-login rediect URL");
+        }
+        else
+        {
+            if (r.code != HttpStatus.SC_OK)
+                throw new Exception("Unable to log into the server: " + Web.describe(r.code));
+        }
 
         for (Cookie cookie : Web.getCookieStore().getCookies())
         {
@@ -474,14 +500,33 @@ public class Main
 
         out(">>> Logging off " + Config.LoginSite);
         StringBuilder sb = new StringBuilder();
-        sb.append("http://www." + Config.LoginSite + "/logout.bml?ret=1&user=" + Config.LoginUser + "&sessid=" + sessid);
         Web.Response r = null;
-        try
+
+        if (Config.isDreamwidthOrg())
         {
-            r = Web.get(sb.toString());
+            // postForm(sb, "lj_form_auth", "c0:1751749200:98:86400:0vrUQLNDDF-3528051-7:81a4e8d76d221ba067aa15f83b26a0e7");
+            postForm(sb, "returnto", "https://www.dreamwidth.org/");
+            postForm(sb, "ret", "1");
+            postForm(sb, "logout_one", "Log out");
+            
+            try
+            {
+                r = Web.post("http://www." + Config.LoginSite + "/logout", sb.toString());
+            }
+            catch (Exception ex)
+            {
+            }
         }
-        catch (Exception ex)
+        else
         {
+            sb.append("http://www." + Config.LoginSite + "/logout.bml?ret=1&user=" + Config.LoginUser + "&sessid=" + sessid);
+            try
+            {
+                r = Web.get(sb.toString());
+            }
+            catch (Exception ex)
+            {
+            }
         }
 
         if (r != null && r.code == HttpStatus.SC_OK)
@@ -494,6 +539,13 @@ public class Main
             out(">>> Loggoff unsuccessful");
             setLogoutFailed();
         }
+    }
+    
+    private static void postForm(StringBuilder sb, String key, String value) throws Exception
+    {
+        if (sb.length() != 0)
+            sb.append("&");
+        sb.append(Web.escape(key) + "=" + Web.escape(value));
     }
 
     public static void emergency_logout()

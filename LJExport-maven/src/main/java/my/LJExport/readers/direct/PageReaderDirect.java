@@ -72,6 +72,9 @@ public class PageReaderDirect implements PageReader, PageContentSource
     @Override
     public void readPage() throws Exception
     {
+        if (Config.False && !parser.rurl.equals("938840.html"))
+            return;
+        
         // process page 1 completely but without comments yet
         AtomicReference<String> page_final_url = new AtomicReference<>();
         parser.pageSource = loadPage(1, page_final_url);
@@ -96,12 +99,16 @@ public class PageReaderDirect implements PageReader, PageContentSource
         case "rossia.org":    
             parser = new PageParserDirectRossiaOrg(parser);
             break;
+            
+        case "dreamwidth.org":    
+            parser = new PageParserDirectDreamwidthOrg(parser);
+            break;
         }
 
         // List<Comment> commentList = CommentHelper.extractCommentsBlockUnordered(parser.pageRoot);
         // CommentsTree commentTree = new CommentsTree(commentList);
 
-        if (Config.isRossiaOrg())
+        if (Config.isRossiaOrg() || Config.isDreamwidthOrg())
         {
             parser.removeJunk(PageParserDirectBase.REMOVE_SCRIPTS);
         }
@@ -125,7 +132,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         String threadName = Thread.currentThread().getName();
 
-        if (Config.isRossiaOrg())
+        if (Config.isRossiaOrg() || Config.isDreamwidthOrg())
         {
             // do nothing
         }
@@ -240,7 +247,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
          */
         StringBuilder sb = new StringBuilder();
         sb.append(LJUtil.recordPageURL(parser.rurl));
-        if (Config.isRossiaOrg())
+        if (Config.isRossiaOrg() || Config.isDreamwidthOrg())
         {
             // nothing
         }

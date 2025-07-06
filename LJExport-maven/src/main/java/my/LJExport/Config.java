@@ -35,8 +35,8 @@ public class Config
     /* Range of dates to download (inclusive) */
     public static final YYYY_MM LoadSince = null;
     public static final YYYY_MM LoadTo = null;
-    // public static final YYYY_MM LoadSince = new YYYY_MM(2001, 10);
-    // public static final YYYY_MM LoadTo = new YYYY_MM(2001, 10);
+    // public static final YYYY_MM LoadSince = new YYYY_MM(2017, 1);
+    // public static final YYYY_MM LoadTo = new YYYY_MM(2017, 1);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;
@@ -83,12 +83,14 @@ public class Config
     public static String Site = DefaultSite;
     public static String LoginSite = DefaultSite;
     public static boolean StandaloneSite = false;
-    public static final String AllowedUrlSites[] = { "livejournal.com", "livejournal.net", "olegmakarenko.ru", "lj.rossia.org" };
+    public static final String AllowedUrlSites[] = { "livejournal.com", "livejournal.net", "olegmakarenko.ru", "lj.rossia.org",
+            "dreamwidth.org" };
     public static boolean UseLogin = true;
     public static boolean StoreLoginPassword = true;
     public static String LoginPassword = null;
     public static String User = null;
     public static String MangledUser = null;
+    public static String DreamwidthCaptchaChallenge = "c0:1751749200:25:300:thLfeiOlXxxyf97RHExK:a83d33f6cee8b3b77fe45c4ca3856b0c";
     public static String UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
     public static String UserAgentAccept = "text/html, application/xhtml+xml, */*";
     public static String UserAgentAccept_Json = "application/json;q=1.0, text/plain;q=0.5";
@@ -229,6 +231,11 @@ public class Config
     public static boolean isRossiaOrg()
     {
         return Config.Site.equals("lj.rossia.org");
+    }
+
+    public static boolean isDreamwidthOrg()
+    {
+        return Config.Site.equals("dreamwidth.org");
     }
 
     /* development aids */

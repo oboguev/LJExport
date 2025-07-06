@@ -195,6 +195,8 @@ public class Calendar
          */
         if (Config.User.charAt(0) == '_' && Util.lastChar(Config.User) == '_')
             return "http://users." + Config.Site + "/" + Config.User + "/" + yyyy_mm + "/";
+        else if (Config.isDreamwidthOrg())
+            return LJUtil.userBase() + "/" + yyyy_mm + "/";
         else
             return LJUtil.userBase() + "/calendar/" + yyyy_mm;
     }

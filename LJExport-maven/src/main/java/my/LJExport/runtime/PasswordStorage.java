@@ -21,13 +21,23 @@ public class PasswordStorage
         String userHome = System.getProperty("user.home");
         Path passwordFilePath;
 
+        String settingsFllename = "LJExport.settings";
+        if (Config.isDreamwidthOrg())
+        {
+            settingsFllename = "LJExport-dreamwidth.settings";
+        }
+        else if (Config.isRossiaOrg())
+        {
+            settingsFllename = "LJExport-rossia-org.settings";
+        }
+
         if (Util.isWindowsOS())
         {
-            passwordFilePath = Paths.get(userHome, "AppData", "Local", "LJExport", "LJExport.settings");
+            passwordFilePath = Paths.get(userHome, "AppData", "Local", "LJExport", settingsFllename);
         }
         else
         {
-            passwordFilePath = Paths.get(userHome, ".config", "LJExport", "LJExport.settings");
+            passwordFilePath = Paths.get(userHome, ".config", "LJExport", settingsFllename);
         }
 
         File fp = passwordFilePath.toFile().getCanonicalFile();
@@ -57,13 +67,13 @@ public class PasswordStorage
 
             Util.writeToFileSafe(fp.getCanonicalPath(), "pw=" + s);
             Main.out(">>> Saved scrambled login password to file " + fp.getCanonicalPath());
-            
+
             if (!Util.isWindowsOS())
             {
                 Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rw-------");
                 Files.setPosixFilePermissions(fp.toPath(), perms);
             }
-            
+
             return Config.LoginPassword;
         }
     }

@@ -69,6 +69,7 @@ public class Web
         public byte[] binaryBody;
         /* final URL after redirects */
         public String finalUrl;
+        public String redirectLocation;
 
         private void setFinalUrl(HttpUriRequest request, HttpClientContext context, String url) throws Exception
         {
@@ -425,6 +426,8 @@ public class Web
             r.code = response.getStatusLine().getStatusCode();
             r.reason = response.getStatusLine().getReasonPhrase();
             r.setFinalUrl(request, context, url);
+            if (response.containsHeader("Location"))
+                r.redirectLocation = response.getFirstHeader("Location").getValue();
 
             if (shouldLoadBody == null || shouldLoadBody.test(r.code))
             {
@@ -500,6 +503,8 @@ public class Web
             r.code = response.getStatusLine().getStatusCode();
             r.reason = response.getStatusLine().getReasonPhrase();
             r.setFinalUrl(request, context, url);
+            if (response.containsHeader("Location"))
+                r.redirectLocation = response.getFirstHeader("Location").getValue();
 
             HttpEntity entity = response.getEntity();
 
@@ -771,6 +776,9 @@ public class Web
     {
         String host = (new URL(url)).getHost();
         host = host.toLowerCase();
+        
+        if (host.equals(Config.Site) || host.endsWith("." + Config.Site))
+            return true;
 
         if (host.equals("livejournal.net") || host.endsWith(".livejournal.net"))
             return true;
@@ -779,6 +787,8 @@ public class Web
         if (host.equals("olegmakarenko.ru") || host.endsWith(".olegmakarenko.ru"))
             return true;
         if (host.equals("lj.rossia.org"))
+            return true;
+        if (host.equals("dreamwidth.org") || host.endsWith(".dreamwidth.org"))
             return true;
 
         return false;

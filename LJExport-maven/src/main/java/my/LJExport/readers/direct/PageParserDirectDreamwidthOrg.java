@@ -1,0 +1,227 @@
+package my.LJExport.readers.direct;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.parser.Tag;
+
+import my.LJExport.Config;
+import my.LJExport.readers.CommentsTree;
+import my.LJExport.readers.PageContentSource;
+import my.LJExport.runtime.Util;
+import my.LJExport.xml.JSOUP;
+
+public class PageParserDirectDreamwidthOrg extends PageParserDirectBase
+{
+    public PageParserDirectDreamwidthOrg(PageContentSource pageContentSource)
+    {
+        super(pageContentSource);
+    }
+
+    public PageParserDirectDreamwidthOrg(PageParserDirectBase classic)
+    {
+        super(classic);
+    }
+
+    @Override
+    public void removeJunk(int flags) throws Exception
+    {
+        Node primary = JSOUP.exactlyOne(JSOUP.findElements(pageRoot, "div", "id", "primary"));
+
+        List<Node> delvec = new ArrayList<>();
+        for (Node n : JSOUP.findElements(pageRoot, "div"))
+        {
+            if (n == primary || JSOUP.isInTree(n, primary) || JSOUP.isInTree(primary, n))
+            {
+                // leave it
+            }
+            else
+            {
+                delvec.add(n);
+            }
+        }
+
+        JSOUP.removeElements(pageRoot, delvec);
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "header"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "footer"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "secondary"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "tertiary"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "lj_controlstrip"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElementsWithClass(pageRoot, "div", "footer"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElementsWithClass(pageRoot, "div", "bottomcomment"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElementsWithAllClasses(pageRoot, "div", Util.setOf("comment-pages", "toppages")));
+        JSOUP.removeElements(pageRoot,
+                JSOUP.findElementsWithAllClasses(pageRoot, "div", Util.setOf("comment-pages", "bottompages")));
+
+        if (0 != (flags & (REMOVE_MAIN_TEXT | COUNT_PAGES | CHECK_HAS_COMMENTS | EXTRACT_COMMENTS_JSON)))
+            throw new Exception("Not implemented");
+
+        if (0 != (flags & REMOVE_SCRIPTS))
+        {
+            List<Node> vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "script");
+            JSOUP.removeElements(pageRoot, vnodes);
+
+            vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "noscript");
+            JSOUP.removeElements(pageRoot, vnodes);
+        }
+
+        setEncoding();
+
+        mapProxiedImageURLs();
+    }
+
+    private void setEncoding() throws Exception
+    {
+        Element head = findHead();
+
+        JSOUP.removeElements(head, JSOUP.findElements(head, "meta"));
+
+        // Create and append <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        Element meta = new Element(Tag.valueOf("meta"), "");
+        meta.attr("http-equiv", "Content-Type");
+        meta.attr("content", "text/html; charset=utf-8");
+        head.appendChild(meta);
+    }
+
+    @Override
+    public void unsizeArticleHeight() throws Exception
+    {
+        // nothing to do
+    }
+
+    @Override
+    public void removeNonArticleBodyContent() throws Exception
+    {
+        if (Config.True)
+            throw new Exception("Not implemented");
+
+        Node br_clear = null;
+        Node div = null;
+        Node hr = null;
+        Node prev = null;
+
+        for (Node n : JSOUP.findElements(pageRoot))
+        {
+            if (JSOUP.asElement(n).tagName().equalsIgnoreCase("br"))
+            {
+                String clear = JSOUP.getAttribute(n, "clear");
+                if (clear != null && clear.equalsIgnoreCase("all"))
+                    br_clear = n;
+            }
+
+            if (br_clear != null && prev == br_clear && JSOUP.asElement(n).tagName().equalsIgnoreCase("hr"))
+            {
+                hr = n;
+            }
+
+            if (JSOUP.asElement(n).tagName().equalsIgnoreCase("div"))
+            {
+                String id = JSOUP.getAttribute(n, "id");
+                if (id != null && id.equalsIgnoreCase("Comments"))
+                {
+                    if (div != null)
+                        throw new Exception("Duplicate section div id=comments");
+                    div = n;
+                }
+            }
+
+            prev = n;
+        }
+
+        if (div != null)
+            JSOUP.removeElement(pageRoot, div);
+
+        if (hr != null)
+            JSOUP.removeElement(pageRoot, hr);
+    }
+
+    /* ============================================================================= */
+
+    @Override
+    public Element findCommentsSection(Node pageRootCurrent, boolean required) throws Exception
+    {
+        throw new Exception("Not implemented");
+    }
+
+    @Override
+    public void injectComments(Element commentsSection, CommentsTree commentTree) throws Exception
+    {
+        throw new Exception("Not implemented");
+    }
+
+    @Override
+    public Element findMainArticle() throws Exception
+    {
+        if (Config.True)
+            throw new Exception("Not implemented");
+
+        Element table = null;
+
+        for (Node n : JSOUP.findElements(pageRoot, "table"))
+        {
+            if (table == null)
+                table = JSOUP.asElement(n);
+        }
+
+        if (table == null)
+            throw new Exception("Unable to find article");
+
+        return table;
+    }
+
+    private void mapProxiedImageURLs() throws Exception
+    {
+        for (Node n : JSOUP.findElements(pageRoot, "img"))
+        {
+            String href = JSOUP.getAttribute(n, "src");
+            if (href != null && href.startsWith("https://p.dreamwidth.org/"))
+            {
+                String newref = mapProxiedImageURL(href);
+                JSOUP.updateAttribute(n, "src", newref);
+                JSOUP.setAttribute(n, "original-src", href);
+            }
+        }
+
+        for (Node n : JSOUP.findElements(pageRoot, "a"))
+        {
+            String href = JSOUP.getAttribute(n, "href");
+            if (href != null && href.startsWith("https://p.dreamwidth.org/"))
+            {
+                String newref = mapProxiedImageURL(href);
+                JSOUP.updateAttribute(n, "href", newref);
+                JSOUP.setAttribute(n, "original-href", href);
+            }
+        }
+    }
+
+    /**
+     * Converts a proxied Dreamwidth image URL to its original form. https://p.dreamwidth.org/AAA/BBB/REMAINDER -> http://REMAINDER
+     */
+    private String mapProxiedImageURL(String proxiedUrl)
+    {
+        final String prefix = "https://p.dreamwidth.org/";
+
+        if (!proxiedUrl.startsWith(prefix))
+            throw new IllegalArgumentException("Unexpected URL format: " + proxiedUrl);
+
+        // Trim the prefix
+        String remainder = proxiedUrl.substring(prefix.length());
+
+        // Skip first segment (AAA)
+        int firstSlash = remainder.indexOf('/');
+        if (firstSlash < 0)
+            throw new IllegalArgumentException("Malformed proxied URL (no AAA): " + proxiedUrl);
+
+        // Skip second segment (BBB)
+        int secondSlash = remainder.indexOf('/', firstSlash + 1);
+        if (secondSlash < 0)
+            throw new IllegalArgumentException("Malformed proxied URL (no BBB): " + proxiedUrl);
+
+        // What remains is the original URL path
+        String original = remainder.substring(secondSlash + 1);
+
+        return "http://" + original;
+    }
+}

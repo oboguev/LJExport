@@ -7,7 +7,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.parser.Tag;
 
-import my.LJExport.Config;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.Util;
@@ -59,13 +58,7 @@ public class PageParserDirectDreamwidthOrg extends PageParserDirectBase
             throw new Exception("Not implemented");
 
         if (0 != (flags & REMOVE_SCRIPTS))
-        {
-            List<Node> vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "script");
-            JSOUP.removeElements(pageRoot, vnodes);
-
-            vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "noscript");
-            JSOUP.removeElements(pageRoot, vnodes);
-        }
+            removeScripts();
 
         setEncoding();
 
@@ -83,6 +76,15 @@ public class PageParserDirectDreamwidthOrg extends PageParserDirectBase
         meta.attr("http-equiv", "Content-Type");
         meta.attr("content", "text/html; charset=utf-8");
         head.appendChild(meta);
+    }
+    
+    private void removeScripts() throws Exception
+    {
+        List<Node> vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "script");
+        JSOUP.removeElements(pageRoot, vnodes);
+
+        vnodes = JSOUP.findElements(JSOUP.flatten(pageRoot), "noscript");
+        JSOUP.removeElements(pageRoot, vnodes);
     }
 
     @Override
@@ -169,5 +171,20 @@ public class PageParserDirectDreamwidthOrg extends PageParserDirectBase
         String original = remainder.substring(secondSlash + 1);
 
         return "http://" + original;
+    }
+    
+    /* ======================================================================== */
+    
+    public void removeJunkProfile() throws Exception
+    {
+        removeScripts();
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "masthead"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "statistics"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "shim-alpha"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "id", "account-links"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "role", "banner"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "nav", "role", "navigation"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "class", "actions"));
+        JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "footer", "role", "contentInfo"));
     }
 }

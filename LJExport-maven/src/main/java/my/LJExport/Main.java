@@ -218,6 +218,7 @@ public class Main
             RateLimiter.LJ_PAGES.setRateLimit(100);
             Web.init();
             do_login();
+            
             RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimit_LiveJournal_Calendar);
             Calendar.index();
             RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimit_LiveJournal_PageLoad);

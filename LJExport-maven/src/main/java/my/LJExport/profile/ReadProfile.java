@@ -24,6 +24,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.readers.direct.PageParserDirectDreamwidthOrg;
 import my.LJExport.readers.direct.PageParserDirectRossiaOrg;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.runtime.CaseCollisions;
@@ -68,29 +69,19 @@ public class ReadProfile
 
     public void readAll() throws Exception
     {
-        // ###
-        if (Config.isDreamwidthOrg())
-            return;
-        
         Util.out(">>> Downloading profile for user " + Config.User);
 
         if (Config.ReloadExistingFiles || !new File(fpProfileDir, "profile.html").exists())
             readProfile();
-        
-        if (Config.isRossiaOrg())
-            return;
 
         if (Config.ReloadExistingFiles || !new File(fpProfileDir, "userpics.html").exists())
             readUserpics();
 
-        if (!Config.StandaloneSite)
-        {
-            if (Config.ReloadExistingFiles || !new File(fpProfileDir, "memories.html").exists())
-                readMemories();
+        if (Config.ReloadExistingFiles || !new File(fpProfileDir, "memories.html").exists())
+            readMemories();
 
-            if (Config.ReloadExistingFiles || !new File(fpProfileDir, "pictures.html").exists())
-                readImages();
-        }
+        if (Config.ReloadExistingFiles || !new File(fpProfileDir, "pictures.html").exists())
+            readImages();
     }
 
     /* ================================================================================================== */
@@ -99,7 +90,6 @@ public class ReadProfile
     {
         String url;
 
-        // ###
         if (Config.isRossiaOrg())
         {
             url = String.format("https://lj.rossia.org/userinfo.bml?user=%s&mode=full", Config.User);
@@ -114,7 +104,6 @@ public class ReadProfile
                     LJUtil.userBase());
         }
 
-        // ###
         if (Config.isRossiaOrg())
         {
             AtomicReference<String> finalUrl = new AtomicReference<>();
@@ -123,6 +112,15 @@ public class ReadProfile
             parser.pageSource = load(url, standardHeaders(), finalUrl);
             parser.parseHtmlWithBaseUrl(finalUrl.get());
             parser.removeJunk(PageParserDirectBase.REMOVE_SCRIPTS);
+        }
+        else if (Config.isDreamwidthOrg())
+        {
+            AtomicReference<String> finalUrl = new AtomicReference<>();
+            parser = new PageParserDirectDreamwidthOrg(new PageParserDirectBasePassive.NoPageSource());
+            parser.rid = parser.rurl = null;
+            parser.pageSource = load(url, standardHeaders(), finalUrl);
+            parser.parseHtmlWithBaseUrl(finalUrl.get());
+            ((PageParserDirectDreamwidthOrg) parser).removeJunkProfile();
         }
         else
         {
@@ -155,17 +153,33 @@ public class ReadProfile
 
     private void readUserpics() throws Exception
     {
-        String url = String.format("https://www.livejournal.com/allpics.bml?user=%s", Config.User);
+        if (Config.isRossiaOrg())
+            return;
+        
+        if (Config.isDreamwidthOrg())
+        {
+            String url = String.format("%s/icons", LJUtil.userBase());
+            AtomicReference<String> finalUrl = new AtomicReference<>();
+            parser = new PageParserDirectDreamwidthOrg(new PageParserDirectBasePassive.NoPageSource());
+            parser.rid = parser.rurl = null;
+            parser.pageSource = load(url, standardHeaders(), finalUrl);
+            parser.parseHtmlWithBaseUrl(finalUrl.get());
+            ((PageParserDirectDreamwidthOrg) parser).removeJunkProfile();
+        }
+        else
+        {
+            String url = String.format("https://www.livejournal.com/allpics.bml?user=%s", Config.User);
 
-        AtomicReference<String> finalUrl = new AtomicReference<>();
-        parser = new PageParserDirectBasePassive();
-        parser.rid = parser.rurl = null;
-        parser.pageSource = load(url, standardHeaders(), finalUrl);
-        parser.parseHtmlWithBaseUrl(finalUrl.get());
+            AtomicReference<String> finalUrl = new AtomicReference<>();
+            parser = new PageParserDirectBasePassive();
+            parser.rid = parser.rurl = null;
+            parser.pageSource = load(url, standardHeaders(), finalUrl);
+            parser.parseHtmlWithBaseUrl(finalUrl.get());
 
-        // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Userpics</font>
-        Node el = findRequiredPivotElement(parser.pageRoot, "font", "Userpics");
-        parser.removeProfilePageJunk(Config.User + " - Userpics", el);
+            // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Userpics</font>
+            Node el = findRequiredPivotElement(parser.pageRoot, "font", "Userpics");
+            parser.removeProfilePageJunk(Config.User + " - Userpics", el);
+        }
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
         parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.WWW_Livejournal);
@@ -181,6 +195,18 @@ public class ReadProfile
 
     private void readMemories() throws Exception
     {
+        if (Config.isRossiaOrg())
+            return;
+
+        if (Config.StandaloneSite)
+            return;
+        
+        if (Config.isDreamwidthOrg())
+        {
+            /* возможность есть, и при потребности может быть добавлена */
+            return;
+        }
+
         String url = String.format("https://www.livejournal.com/tools/memories.bml?user=%s", Config.User);
 
         AtomicReference<String> finalUrl = new AtomicReference<>();
@@ -493,6 +519,12 @@ public class ReadProfile
 
     private void readImages() throws Exception
     {
+        if (Config.isRossiaOrg() || Config.isDreamwidthOrg())
+            return;
+
+        if (Config.StandaloneSite)
+            return;
+
         if (Util.read_set("exclude-profile-photos.txt").contains(Config.User))
             return;
 
@@ -579,7 +611,7 @@ public class ReadProfile
                 File fp = new File(fpImagesDir, fn);
 
                 boolean do_load = false;
-                
+
                 if (isGuid.getValue() || !fp.exists())
                 {
                     do_load = true;
@@ -823,7 +855,7 @@ public class ReadProfile
             String text = Util.despace(JSOUP.asElement(pager).text());
 
             int nps;
-            
+
             if (text.equals("1/1"))
             {
                 nps = 1;

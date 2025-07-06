@@ -187,4 +187,12 @@ public class PageParserDirectDreamwidthOrg extends PageParserDirectBase
         JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "div", "class", "actions"));
         JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "footer", "role", "contentInfo"));
     }
+
+    @Override
+    public Element findContentWrapper() throws Exception
+    {
+        Node entry = JSOUP.requiredOuter(JSOUP.findElementsWithClass(pageRoot, "div", "entry"));
+        Node inner = JSOUP.exactlyOne(JSOUP.findElementsWithClass(JSOUP.directChildren(entry), "div", "inner"));
+        return JSOUP.asElement(inner);
+    }
 }

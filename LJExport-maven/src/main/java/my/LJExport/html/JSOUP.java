@@ -104,6 +104,12 @@ public class JSOUP
         }
     }
 
+    public static List<Node> directChildren(Node n) throws Exception
+    {
+        List<Node> children = n.childNodes();
+        return new ArrayList<>(children);
+    }
+
     public static List<Node> flattenChildren(Node el) throws Exception
     {
         List<Node> vec = flatten(el);
@@ -218,7 +224,7 @@ public class JSOUP
 
         return vel;
     }
-    
+
     public static List<Node> findElements(Node root) throws Exception
     {
         return findElements(flatten(root));
@@ -832,6 +838,13 @@ public class JSOUP
             return vn.get(0);
     }
 
+    public static Node requiredOuter(List<Node> vn) throws Exception
+    {
+        if (vn.size() == 0)
+            throw new Exception("Missing required element");
+        return vn.get(0);
+    }
+
     public static Element locateUpwardElement(Node n, String tag) throws Exception
     {
         for (Node p = n.parentNode();; p = p.parentNode())
@@ -961,7 +974,7 @@ public class JSOUP
 
         return false;
     }
-    
+
     public static boolean resolveURLInTree(Node root, String tag, String attr, String baseURL) throws Exception
     {
         boolean updated = false;

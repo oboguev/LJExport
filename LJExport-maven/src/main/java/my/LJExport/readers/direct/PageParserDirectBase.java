@@ -1141,4 +1141,9 @@ public abstract class PageParserDirectBase
         title.text(titleText);
         head.appendChild(title);
     }
+    
+    public Element findContentWrapper() throws Exception
+    {
+        return findBody();
+    }
 }

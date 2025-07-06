@@ -13,6 +13,7 @@ import org.jsoup.nodes.Element;
 import my.LJExport.Config;
 import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBase;
+import my.LJExport.readers.direct.PageParserDirectDreamwidthOrg;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
 
@@ -41,13 +42,10 @@ public class MonthCollectors
             addPage_ljsearch(parser, rid, whichDir);
             return;
         }
-        
+
         final String local_href = String.format("../../%s/%s/%s/%s.html", whichDir, year, month, rid);
         final String visible_href = rid + ".html";
-        final String hr = "<hr style=\"height: 7px;border: 1;box-shadow: inset 0 9px 9px -3px\r\n"
-                + "      rgba(11, 99, 184, 0.8);-webkit-border-radius:\r\n"
-                + "      5px;-moz-border-radius: 5px;-ms-border-radius:\r\n"
-                + "      5px;-o-border-radius: 5px;border-radius: 5px;\">";
+        final String hr = hr(parser);
 
         String cleanedHead = parser.extractCleanedHead();
 
@@ -82,23 +80,31 @@ public class MonthCollectors
             // Parse the fragment into a list of nodes and prepend before targetBody
             List<Node> newNodes = JSOUP.parseBodyFragment(htmlToPrepend);
 
-            Element article = parser.findMainArticle();
-
-            if (Config.True)
+            if (parser instanceof PageParserDirectDreamwidthOrg)
             {
-                Element parent = (Element) article.parent();
-
-                // Find the index of 'article' among parent's children
-                int index = parent.childNodes().indexOf(article);
-
-                // Insert all nodes from newNodes before 'article'
-                parent.insertChildren(index, newNodes);
+                Element contentBody = ((PageParserDirectDreamwidthOrg) parser).findContentWrapper();
+                contentBody.insertChildren(0, newNodes);
             }
             else
             {
-                Collections.reverse(newNodes);
-                for (Node node : newNodes)
-                    targetBody.insertChildren(0, Arrays.asList(node.clone()));
+                Element article = parser.findMainArticle();
+
+                if (Config.True)
+                {
+                    Element parent = (Element) article.parent();
+
+                    // Find the index of 'article' among parent's children
+                    int index = parent.childNodes().indexOf(article);
+
+                    // Insert all nodes from newNodes before 'article'
+                    parent.insertChildren(index, newNodes);
+                }
+                else
+                {
+                    Collections.reverse(newNodes);
+                    for (Node node : newNodes)
+                        targetBody.insertChildren(0, Arrays.asList(node.clone()));
+                }
             }
         }
         else
@@ -106,8 +112,8 @@ public class MonthCollectors
             /*
              * Subsequent records
              */
-            Element sourceBody = parser.getBodyTag();
-            Element targetBody = mc.parser.getBodyTag();
+            Element sourceBody = parser.findContentWrapper();
+            Element targetBody = mc.parser.findContentWrapper();
 
             // add divider to mc.parser inner body
             // add link to mc.parser inner body
@@ -135,15 +141,12 @@ public class MonthCollectors
                 targetBody.appendChild(child.clone());
         }
     }
-    
+
     /* ====================================================================================================== */
 
     private void addPage_ljsearch(PageParserDirectBase parser, int rid, String whichDir) throws Exception
     {
-        final String hr = "<hr style=\"height: 7px;border: 1;box-shadow: inset 0 9px 9px -3px\r\n"
-                + "      rgba(11, 99, 184, 0.8);-webkit-border-radius:\r\n"
-                + "      5px;-moz-border-radius: 5px;-ms-border-radius:\r\n"
-                + "      5px;-o-border-radius: 5px;border-radius: 5px;\">";
+        final String hr = hr(parser);
 
         String cleanedHead = parser.extractCleanedHeadLJSearch();
         MonthCollector mc = forCleanedHead(cleanedHead);
@@ -228,5 +231,32 @@ public class MonthCollectors
         }
 
         return null;
+    }
+
+    private String hr(PageParserDirectBase parser)
+    {
+        final String hr = "<hr style=\"height: 7px;border: 1;box-shadow: inset 0 9px 9px -3px\r\n"
+                + "      rgba(11, 99, 184, 0.8);-webkit-border-radius:\r\n"
+                + "      5px;-moz-border-radius: 5px;-ms-border-radius:\r\n"
+                + "      5px;-o-border-radius: 5px;border-radius: 5px;\">";
+
+        @SuppressWarnings("unused")
+        final String hr_dreamwidth = "<hr style=\"height: 7px; border: none; background-color: rgba(11, 99, 184, 0.4);\r\n"
+                + "box-shadow: inset 0 9px 9px -3px rgba(11, 99, 184, 0.8);\r\n"
+                + "border-radius: 5px;\">";
+
+        final String div_dreamwidth = "<div style=\"height: 10px; background-color: rgba(11, 99, 184, 0.4);"
+                + "margin: 2em 0; border-radius: 5px;"
+                + "box-shadow: inset 0 8px 8px -5px rgba(11, 99, 184, 0.6);\">"
+                + "</div>";
+
+        if (parser instanceof PageParserDirectDreamwidthOrg)
+        {
+            // return "<div style=\"border: 1px solid red; padding: 10px;\">" + hr_dreamwidth + "</div>";
+            // return hr_dreamwidth;
+            return div_dreamwidth;
+        }
+
+        return hr;
     }
 }

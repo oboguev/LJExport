@@ -48,7 +48,7 @@ public class ParserArchiveOrg extends PageParserDirectBasePassive
             String content = JSOUP.getAttribute(n, "content");
             if (heq != null && heq.equalsIgnoreCase("Content-Type") && content != null)
             {
-                String charset = Web.extractCharset(content);
+                String charset = Web.extractCharsetFromContentType(content);
                 if (charset != null)
                     return charset;
             }

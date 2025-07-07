@@ -334,7 +334,25 @@ public class Util
         return ws;
     }
 
-    public static void write_set(String path, Set<String> ws) throws Exception
+    public static Set<String> read_set_from_file(String path) throws Exception
+    {
+        Set<String> ws = new HashSet<String>();
+
+        String rs = readFileAsString(path) + "\n";
+        rs = rs.replace("\r", "");
+        for (String line : rs.split("\n"))
+        {
+            line = stripComment(line);
+            line = despace(line);
+            if (line.equals(" ") || line.length() == 0 || line.startsWith("#"))
+                continue;
+            ws.add(line);
+        }
+
+        return ws;
+    }
+
+    public static void write_set_to_file(String path, Set<String> ws) throws Exception
     {
         StringBuilder sb = new StringBuilder();
 

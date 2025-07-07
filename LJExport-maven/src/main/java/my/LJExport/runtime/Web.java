@@ -76,6 +76,7 @@ public class Web
         public String redirectLocation;
         public String contentType;
         public Charset charset;
+        public Header[] headers;
 
         private void setFinalUrl(HttpUriRequest request, HttpClientContext context, String url) throws Exception
         {
@@ -111,13 +112,57 @@ public class Web
                 this.finalUrl = finalUrl.toString();
             }
         }
+
+        public String getHeader(String name)
+        {
+            if (headers != null)
+            {
+                for (Header h : headers)
+                {
+                    if (h.getName().equalsIgnoreCase(name))
+                        return h.getValue();
+                }
+            }
+
+            return null;
+        }
+
+        public Charset extractCharset(boolean defaultToUTF8) throws Exception
+        {
+            String cs;
+
+            if (contentType != null)
+            {
+                cs = Web.extractCharsetFromContentType(contentType);
+                if (cs != null)
+                {
+                    if (!Charset.isSupported(cs))
+                        throw new Exception("Unsupported encoding " + contentType);
+                    return Charset.forName(cs);
+                }
+            }
+
+            cs = getHeader("x-archive-guessed-charset");
+            if (cs != null)
+            {
+                if (!Charset.isSupported(cs))
+                    throw new Exception("Unsupported encoding " + cs);
+                return Charset.forName(cs);
+            }
+
+            if (defaultToUTF8)
+                return StandardCharsets.UTF_8;
+            else
+                return null;
+        }
+
     }
 
     public static void init() throws Exception
     {
         if (Config.TrustAnySSLCertificate)
             TrustAnySSL.trustAnySSL();
-        
+
         DefaultProxyRoutePlanner routePlanner = null;
 
         cookieStore = new BasicCookieStore();
@@ -169,15 +214,15 @@ public class Web
         // higher limits for some routes
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("l-userpic.livejournal.com", 80, "http")),
                 max(15, Config.MaxConnectionsPerRoute));
-        
+
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("ic.pics.livejournal.com", 80, "http")),
                 max(10, Config.MaxConnectionsPerRoute));
-        
+
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 80, "http")),
                 max(10, Config.MaxConnectionsPerRoute));
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 443, "https")),
                 max(10, Config.MaxConnectionsPerRoute));
-        
+
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 80, "http")),
                 max(10, Config.MaxConnectionsPerRoute));
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 443, "https")),
@@ -438,7 +483,9 @@ public class Web
             if (response.containsHeader("Location"))
                 r.redirectLocation = response.getFirstHeader("Location").getValue();
             if (response.containsHeader("Content-Type"))
-                r.contentType= response.getFirstHeader("Content-Type").getValue();
+                r.contentType = response.getFirstHeader("Content-Type").getValue();
+            r.headers = response.getAllHeaders();
+            r.charset = r.extractCharset(false);
 
             if (shouldLoadBody == null || shouldLoadBody.test(r.code))
             {
@@ -469,13 +516,12 @@ public class Web
                         {
                             entityStream = entity.getContent();
                             r.binaryBody = toByteArray(entityStream);
-                            r.charset = extractCharset(r);
-                            r.body = new String(r.binaryBody, r.charset);
+                            r.body = new String(r.binaryBody, r.extractCharset(true));
                         }
                         else
                         {
                             entityStream = entity.getContent();
-                            brd = new BufferedReader(new InputStreamReader(entityStream, extractCharset(r)));
+                            brd = new BufferedReader(new InputStreamReader(entityStream, r.extractCharset(true)));
                             while ((line = brd.readLine()) != null)
                                 sb.append(line + "\r\n");
                             r.body = sb.toString();
@@ -524,7 +570,9 @@ public class Web
             if (response.containsHeader("Location"))
                 r.redirectLocation = response.getFirstHeader("Location").getValue();
             if (response.containsHeader("Content-Type"))
-                r.contentType= response.getFirstHeader("Content-Type").getValue();
+                r.contentType = response.getFirstHeader("Content-Type").getValue();
+            r.headers = response.getAllHeaders();
+            r.charset = r.extractCharset(false);
 
             HttpEntity entity = response.getEntity();
 
@@ -541,17 +589,16 @@ public class Web
                     {
                         entityStream = entity.getContent();
                         r.binaryBody = toByteArray(entityStream);
-                        r.charset = extractCharset(r);
-                        r.body = new String(r.binaryBody, r.charset);
+                        r.body = new String(r.binaryBody, r.extractCharset(true));
                     }
                     else
                     {
                         entityStream = entity.getContent();
-                        brd = new BufferedReader(new InputStreamReader(entityStream, extractCharset(r)));
+                        brd = new BufferedReader(new InputStreamReader(entityStream, r.extractCharset(true)));
                         while ((line = brd.readLine()) != null)
                             sb.append(line + "\r\n");
                         r.body = sb.toString();
-                        
+
                     }
                 }
                 finally
@@ -807,7 +854,7 @@ public class Web
     {
         String host = (new URL(url)).getHost();
         host = host.toLowerCase();
-        
+
         if (host.equals(Config.Site) || host.endsWith("." + Config.Site))
             return true;
 
@@ -1004,22 +1051,6 @@ public class Web
         }
     }
 
-    private static Charset extractCharset(Response r) throws Exception
-    {
-        if (r.contentType != null)
-        {
-            String cs = extractCharset(r.contentType);
-            if (cs != null)
-            {
-                if (!Charset.isSupported(cs))
-                    throw new Exception("Unsupported encoding " + r.contentType);
-                return Charset.forName(cs);
-            }
-        }
-        
-        return StandardCharsets.UTF_8;
-    }
-
     /**
      * Extracts character encoding from content attribute of meta tag.
      *
@@ -1027,7 +1058,7 @@ public class Web
      *            the content attribute, e.g. "text/html; charset=windows-1251"
      * @return the charset (e.g. "windows-1251", "utf-8"), or null if not found
      */
-    public static String extractCharset(String content)
+    public static String extractCharsetFromContentType(String content)
     {
         if (content == null)
             return null;
@@ -1037,7 +1068,7 @@ public class Web
         Matcher matcher = pattern.matcher(content);
         if (matcher.find())
             return matcher.group(1).toLowerCase();
- 
+
         return null;
     }
 }

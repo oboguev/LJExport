@@ -76,7 +76,7 @@ public class MainScrapeArchiveOrg
         Web.init();
 
         if (new File(set404filepath()).getCanonicalFile().exists())
-            url_set_404 = Util.read_set(set404filepath());
+            url_set_404 = Util.read_set_from_file(set404filepath());
         else
             url_set_404 = new HashSet<>();
     }
@@ -309,7 +309,7 @@ public class MainScrapeArchiveOrg
             if (r.code == 404)
             {
                 url_set_404.add(url);
-                Util.write_set(set404filepath(), url_set_404);
+                Util.write_set_to_file(set404filepath(), url_set_404);
             }
 
             return;
@@ -539,7 +539,7 @@ public class MainScrapeArchiveOrg
             fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator)));
             if (!fp.exists())
                 return false;
-        }
+        } // ### try index.htm index.shtml index.shtm
 
         String newref = RelativeLink.createRelativeLink(linkRelPath, loadedFileRelPath);
 

@@ -3,9 +3,11 @@ package my.LJExport.runtime;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
@@ -701,13 +703,16 @@ public class Util
         }
     }
 
-    public static String resolveURL(String baseURL, String relativeURL) throws URISyntaxException
+    public static String resolveURL(String baseURL, String relativeURL) throws Exception
     {
         if (baseURL != null)
             baseURL = baseURL.trim();
 
         if (relativeURL != null)
             relativeURL = relativeURL.trim();
+
+        if (relativeURL != null)
+            relativeURL = encodeFragment(relativeURL);
 
         if (baseURL == null || baseURL.isEmpty())
             return relativeURL;
@@ -751,6 +756,28 @@ public class Util
         URI base = new URI(baseURL);
         URI resolved = base.resolve(relativeURL);
         return resolved.toString();
+    }
+
+    private static String encodeFragment(String url) throws Exception
+    {
+        int hashIndex = url.indexOf('#');
+        if (hashIndex == -1)
+            return url;
+
+        String beforeFragment = url.substring(0, hashIndex);
+        String fragment = url.substring(hashIndex + 1);
+
+        // Encode using UTF-8 and percent-encode
+        try
+        {
+            String encodedFragment = URLEncoder.encode(fragment, StandardCharsets.UTF_8.toString())
+                    .replace("+", "%20"); // URLEncoder encodes spaces as +, but in URI they should be %20
+            return beforeFragment + "#" + encodedFragment;
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            throw new Exception("UTF-8 not supported", e);
+        }
     }
 
     public static boolean isSameURL(String url1, String url2)

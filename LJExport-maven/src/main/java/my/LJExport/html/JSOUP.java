@@ -961,6 +961,10 @@ public class JSOUP
 
             if (av != null && av.trim().length() != 0)
             {
+                // https://web.archive.org/web/20160323032912/mailto:"rusaction@front.ru"
+                if (av.contains("/mailto:"))
+                    return false;
+                
                 String newv = Util.resolveURL(baseURL, av);
                 if (!Util.isSameURL(av, newv))
                 {

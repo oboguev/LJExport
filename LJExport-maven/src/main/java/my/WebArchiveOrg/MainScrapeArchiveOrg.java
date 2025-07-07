@@ -31,7 +31,8 @@ public class MainScrapeArchiveOrg
     private static final String ArchiveOrgWebRoot = "https://web.archive.org/web/20080912012829/http://nationalism.org";
     // private static final String DownloadRoot = "C:\\LJExport-journals\\nationalism.org";
     private static final String DownloadRoot = Config.DownloadRoot + File.separator + "nationalism.org";
-    private static final Set<String> Excludes = Util.setOf("forum/", "rr/4/index.htm"); // ###
+    // private static final Set<String> Excludes = Util.setOf("forum/", "rr/4/index.htm");
+    private static final Set<String> Excludes = Util.setOf("rr/4/index.htm");
 
     private final String archiveOrgWebRoot;
     private final String downloadRoot;
@@ -237,7 +238,43 @@ public class MainScrapeArchiveOrg
 
     public String fileRelPath2FullPath(String relPath)
     {
-        return pagesDir + File.separator + relPath.replace("/", File.separator);
+        return pagesDir + File.separator + encodeUnsafeFileNameChars(relPath.replace("/", File.separator)); // ###
+    }
+
+    /**
+     * Replaces =, &, and ? in the input string with percent-encoded values.
+     * 
+     * @param input
+     *            the original string
+     * @return a string with =, &, ? replaced by %3D, %26, %3F
+     */
+    public static String encodeUnsafeFileNameChars(String input)
+    {
+        if (input == null)
+            return null;
+
+        StringBuilder sb = new StringBuilder();
+        
+        for (char ch : input.toCharArray())
+        {
+            switch (ch)
+            {
+            case '=':
+                sb.append("%3D");
+                break;
+            case '&':
+                sb.append("%26");
+                break;
+            case '?':
+                sb.append("%3F"); // ### also ":" 3A  etc and run traversal with two versions of the routine
+                break;
+            default:
+                sb.append(ch);
+                break;
+            }
+        }
+        
+        return sb.toString();
     }
 
     private void downloadFromArchive(String url, File fp) throws Exception
@@ -253,7 +290,7 @@ public class MainScrapeArchiveOrg
 
         if (r.code != HttpStatus.SC_OK)
         {
-            Util.err(String.format("Failed to load %s, error: ", url, Web.describe(r.code)));
+            Util.err(String.format("Failed to load %s, error: %s", url, Web.describe(r.code)));
             return;
         }
 
@@ -262,10 +299,10 @@ public class MainScrapeArchiveOrg
         parser.parseHtmlWithBaseUrl(r.finalUrl);
 
         String charset = parser.extractCharset();
-        
+
         if (charset != null && charset.equalsIgnoreCase("win-1251"))
             charset = "windows-1251";
-            
+
         if (charset != null && r.charset != null && !charset.equalsIgnoreCase(r.charset.name()))
         {
             parser = new ParserArchiveOrg();
@@ -467,7 +504,7 @@ public class MainScrapeArchiveOrg
             linkRelPath = Util.stripTail(linkRelPath, "/");
 
         /* link can be file or directory */
-        File fp = new File(pagesDir + File.separator + linkRelPath.replace("/", File.separator));
+        File fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator))); 
         if (!fp.exists())
             return false;
 
@@ -478,7 +515,7 @@ public class MainScrapeArchiveOrg
             else
                 linkRelPath += "/index.html";
 
-            fp = new File(pagesDir + File.separator + linkRelPath.replace("/", File.separator));
+            fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator))); 
             if (!fp.exists())
                 return false;
         }
@@ -638,14 +675,14 @@ public class MainScrapeArchiveOrg
             return false;
 
         String newref = LinkDownloader.download(linksDir, unwrapped_href, original_href, null, "");
-        
+
         if (newref == null)
         {
             Util.err("Failed to download " + original_href);
         }
         else
         {
-           Util.out("Downloaded " + original_href + " => " + newref); 
+            Util.out("Downloaded " + original_href + " => " + newref);
         }
 
         // ### try to download original_href 

@@ -960,4 +960,36 @@ public class Util
 
         return fileName.substring(lastDot + 1).toLowerCase(Locale.ROOT); // Optional normalization
     }
+
+    public static String trimWithNBSP(String s)
+    {
+        if (s == null || s.isEmpty())
+        {
+            return s;
+        }
+
+        int length = s.length();
+        int start = 0;
+        int end = length - 1;
+
+        // Trim leading whitespace and NBSP
+        while (start <= end && isWhitespaceOrNBSP(s.charAt(start)))
+        {
+            start++;
+        }
+
+        // Trim trailing whitespace and NBSP
+        while (end >= start && isWhitespaceOrNBSP(s.charAt(end)))
+        {
+            end--;
+        }
+
+        return start > end ? "" : s.substring(start, end + 1);
+    }
+
+    // Helper method to check if a character is a space, tab, NBSP, etc.
+    private static boolean isWhitespaceOrNBSP(char c)
+    {
+        return Character.isWhitespace(c) || c == '\u00A0';
+    }
 }

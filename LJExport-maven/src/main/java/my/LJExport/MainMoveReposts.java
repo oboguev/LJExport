@@ -75,7 +75,7 @@ public class MainMoveReposts extends PageParserPassive
         repostsDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "reposts";
 
         Set<String> createdDirs = new HashSet<String>();
-        List<String> pageFiles = Util.enumerateFiles(pagesDir);
+        List<String> pageFiles = Util.enumerateOnlyHtmlFiles(pagesDir);
 
         int nTotal = pageFiles.size();
         int nCurrent = 0;

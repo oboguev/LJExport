@@ -128,7 +128,7 @@ public class MainDownloadLinks
             Util.mkdir(linksDir);
             LinkDownloader.init(linksDir);
 
-            pageFiles = Util.enumerateFiles(pagesDir);
+            pageFiles = Util.enumerateOnlyHtmlFiles(pagesDir);
             pageFilesTotalCount = pageFiles.size();
 
             // start worker threads

@@ -1,55 +1,8 @@
 package my.WebArchiveOrg;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class ArchiveOrgUrl
 {
     private static final String ARCHIVE_PREFIX = "https://web.archive.org/web/";
-
-    private static final Pattern ARCHIVE_PATTERN = Pattern.compile(
-            "^https://web\\.archive\\.org/web/(\\d{14})/(https?://)(www\\.)?([^/]+)(/?.*)?$",
-            Pattern.CASE_INSENSITIVE);
-
-    public static String alternateArchiveOrgWebRoot(String href)
-    {
-        if (href == null)
-            return null;
-
-        Matcher matcher = ARCHIVE_PATTERN.matcher(href);
-        if (!matcher.matches())
-            return href;
-
-        String timestamp = matcher.group(1);
-        String scheme = matcher.group(2); // http:// or https://
-        String www = matcher.group(3); // www. (optional)
-        String domain = matcher.group(4); // nationalism.org
-        String rest = matcher.group(5); // /... (optional)
-
-        // Toggle "www." prefix
-        String newDomain = (www == null || www.isEmpty())
-                ? "www." + domain
-                : domain; // strip "www." already done by group(4)
-
-        if (www != null)
-        {
-            // remove "www." prefix
-            newDomain = domain;
-        }
-
-        StringBuilder altHref = new StringBuilder();
-        altHref.append("https://web.archive.org/web/")
-                .append(timestamp).append("/")
-                .append(scheme)
-                .append(newDomain);
-
-        if (rest != null)
-        {
-            altHref.append(rest);
-        }
-
-        return altHref.toString();
-    }
 
     /*
      * Check for matching except the timestamp, e.g.:
@@ -137,7 +90,8 @@ public class ArchiveOrgUrl
         int slash = remainder.indexOf('/');
         if (slash == -1)
             return null;
-        return remainder.substring(slash + 1);
+        String result = remainder.substring(slash + 1);
+        return result;
     }
 
     // Extract timestamp part between archive prefix and archived URL
@@ -155,13 +109,6 @@ public class ArchiveOrgUrl
     // Example usage
     public static void main(String[] args)
     {
-        {
-            String input1 = "https://web.archive.org/web/20160411084012/http://www.nationalism.org/";
-            String input2 = "https://web.archive.org/web/20160411084012/http://nationalism.org/";
-            System.out.println(alternateArchiveOrgWebRoot(input1));
-            System.out.println(alternateArchiveOrgWebRoot(input2));
-        }
-
         {
             String root = "https://web.archive.org/web/20160411084012/http://nationalism.org/";
             String url = "https://web.archive.org/web/20160404043545/http://nationalism.org/aziopa/berdyayev2.htm";

@@ -402,19 +402,29 @@ public class Util
 
     }
 
-    public static List<String> enumerateFiles(String root) throws Exception
+    public static List<String> enumerateOnlyHtmlFiles(String root) throws Exception
+    {
+        return enumerateFiles(root, Util.setOf(".html"));
+    }
+
+    public static List<String> enumerateAnyHtmlFiles(String root) throws Exception
+    {
+        return enumerateFiles(root, Util.setOf(".html", ".htm", ".shtml", ".shtm"));
+    }
+
+    public static List<String> enumerateFiles(String root, Set<String> extensions) throws Exception
     {
         Set<String> fset = new HashSet<String>();
         File f = new File(root);
         if (!f.exists() || !f.isDirectory())
             throw new Exception("Directory " + root + " does not exist");
-        enumerateFiles(fset, root, null);
+        enumerateFiles(fset, root, null, extensions);
         List<String> list = new ArrayList<>(fset);
         Collections.sort(list);
         return list;
     }
 
-    private static void enumerateFiles(Set<String> fset, String root, String subpath) throws Exception
+    private static void enumerateFiles(Set<String> fset, String root, String subpath, Set<String> extensions) throws Exception
     {
         String xroot = root;
         if (subpath != null)
@@ -428,11 +438,11 @@ public class Util
             if (xf.isDirectory())
             {
                 if (subpath == null)
-                    enumerateFiles(fset, root, xf.getName());
+                    enumerateFiles(fset, root, xf.getName(), extensions);
                 else
-                    enumerateFiles(fset, root, subpath + File.separator + xf.getName());
+                    enumerateFiles(fset, root, subpath + File.separator + xf.getName(), extensions);
             }
-            else if (xf.getName().toLowerCase().endsWith(".html"))
+            else if (enumerateFilesMatches(xf.getName(), extensions))
             {
                 if (subpath == null)
                     fset.add(xf.getName());
@@ -440,6 +450,17 @@ public class Util
                     fset.add(subpath + File.separator + xf.getName());
             }
         }
+    }
+    
+    private static boolean enumerateFilesMatches(String fn, Set<String> extensions)
+    {
+        for (String ext : extensions)
+        {
+            if (fn.toLowerCase().endsWith(ext.toLowerCase()))
+                return true;
+        }
+        
+        return false;
     }
 
     public static String getFileDirectory(String filepath) throws Exception

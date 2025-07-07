@@ -29,14 +29,14 @@ public class Config
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    // public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
-    public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
+    // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
     public static final YYYY_MM LoadSince = null;
     public static final YYYY_MM LoadTo = null;
-    // public static final YYYY_MM LoadSince = new YYYY_MM(2017, 1);
-    // public static final YYYY_MM LoadTo = new YYYY_MM(2017, 1);
+    // public static final YYYY_MM LoadSince = new YYYY_MM(2024, 1);
+    // public static final YYYY_MM LoadTo = new YYYY_MM(2025, 12);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;

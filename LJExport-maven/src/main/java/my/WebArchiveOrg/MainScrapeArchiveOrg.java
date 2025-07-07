@@ -19,6 +19,7 @@ import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
+import my.WebArchiveOrg.customize.Exclude;
 
 // https://web.archive.org/web/20080915105832/http://nationalism.org/forum/08/read.php-f=1&i=5603&t=5579.htm
 
@@ -206,6 +207,8 @@ public class MainScrapeArchiveOrg
 
         for (String xurl : links)
         {
+            xurl = degarbleTeleportPro(xurl);
+
             if (ArchiveOrgUrl.urlMatchesRoot(xurl, archiveOrgWebRoot, true))
             {
                 String webRoot = ArchiveOrgUrl.urlExtractRoot(xurl, archiveOrgWebRoot);
@@ -249,15 +252,15 @@ public class MainScrapeArchiveOrg
 
     public String fileRelPath2FullPath(String relPath)
     {
-        return pagesDir + File.separator + encodeUnsafeFileNameChars(relPath.replace("/", File.separator)); // ### make new and check no conflicts old-new
+        return pagesDir + File.separator + encodeUnsafeFileNameChars(relPath.replace("/", File.separator));
     }
 
     /**
-     * Replaces =, &, and ? in the input string with percent-encoded values.
+     * Encodes unsafe characters for filenames, but preserves valid existing %XX sequences. Encoded characters: = & ? % ' * : < >
      * 
      * @param input
-     *            the original string
-     * @return a string with =, &, ? replaced by %3D, %26, %3F
+     *            input string possibly containing already-encoded segments
+     * @return sanitized file name
      */
     public static String encodeUnsafeFileNameChars(String input)
     {
@@ -265,33 +268,80 @@ public class MainScrapeArchiveOrg
             return null;
 
         StringBuilder sb = new StringBuilder();
-
-        for (char ch : input.toCharArray())
+        int len = input.length();
+        for (int i = 0; i < len; i++)
         {
-            switch (ch)
+            char ch = input.charAt(i);
+
+            // Handle percent sign separately
+            if (ch == '%')
             {
-            case '=':
-                sb.append("%3D");
-                break;
-            case '&':
-                sb.append("%26");
-                break;
-            case '?':
-                sb.append("%3F"); // ### also ":" 3A  etc and run traversal with two versions of the routine
-                break;
-            default:
-                sb.append(ch);
-                break;
+                if (i + 2 < len && isHexDigit(input.charAt(i + 1)) && isHexDigit(input.charAt(i + 2)))
+                {
+                    // Valid %XX sequence, copy as is
+                    sb.append('%').append(input.charAt(i + 1)).append(input.charAt(i + 2));
+                    i += 2;
+                }
+                else
+                {
+                    // Not a valid encoding, encode the %
+                    sb.append("%25");
+                }
+            }
+            else
+            {
+                switch (ch)
+                {
+                case '=':
+                    sb.append("%3D");
+                    break;
+                case '&':
+                    sb.append("%26");
+                    break;
+                case '?':
+                    sb.append("%3F");
+                    break;
+                case '\'':
+                    sb.append("%27");
+                    break;
+                case '*':
+                    sb.append("%2A");
+                    break;
+                case ':':
+                    sb.append("%3A");
+                    break;
+                case '<':
+                    sb.append("%3C");
+                    break;
+                case '>':
+                    sb.append("%3E");
+                    break;
+                default:
+                    sb.append(ch);
+                    break;
+                }
             }
         }
-
         return sb.toString();
+    }
+
+    private static boolean isHexDigit(char c)
+    {
+        return (c >= '0' && c <= '9') ||
+                (c >= 'A' && c <= 'F') ||
+                (c >= 'a' && c <= 'f');
     }
 
     private void downloadFromArchive(String url, File fp) throws Exception
     {
         if (url_set_404.contains(url))
             return;
+
+        if (Exclude.isNationalismOrgForumControlURL(url))
+        {
+            // Util.err("Excluding " + url);
+            return;
+        }
 
         Util.out(String.format("Downloading %s => %s", url, fp.getCanonicalPath()));
 
@@ -305,7 +355,7 @@ public class MainScrapeArchiveOrg
         if (r.code != HttpStatus.SC_OK)
         {
             Util.err(String.format("Failed to load %s, error: %s", url, Web.describe(r.code)));
-            
+
             if (r.code == 404)
             {
                 url_set_404.add(url);
@@ -496,6 +546,8 @@ public class MainScrapeArchiveOrg
                 Util.noop();
             }
 
+            // ### degarbleTeleportPro
+
             if (href != null && ArchiveOrgUrl.urlMatchesRoot(href, archiveOrgWebRoot, true))
             {
                 boolean b = remapNodeA(an, href, fileRelPath);
@@ -684,6 +736,7 @@ public class MainScrapeArchiveOrg
 
     private boolean loadExternalResource(Node an, String tag, String original_href, String loadedFileRelPath) throws Exception
     {
+        // ### degarbleTeleportPro
         /*
          * Unwrapped_href is used for resource naming, it is original URL before archival.
          * Whereas original_href is used for actual resource downloading.
@@ -711,5 +764,43 @@ public class MainScrapeArchiveOrg
 
         // ###
         return false;
+    }
+
+    /* ====================================================================================== */
+
+    /*
+     * Recover URLs garled in a specific way by Teleport Pro.
+     * 
+     * https://web.archive.org/web/20030914114836/http://nationalism.org/library/publicism/holmogorov/holmogorov-specnaz-2002-01-1.htm%20%20%5Cn%5CnThis%20file%20was%20not%20retrieved%20by%20Teleport%20Pro,%20because%20it%20is%20addressed%20on%20a%20domain%20or%20path%20outside%20the%20boundaries%20set%20for%20its%20Starting%20Address.%20%20%5Cn%5CnDo%20you%20want%20to%20open%20it%20from%20the%20server?%27))window.location=%27http://nationalism.org/library/publicism/holmogorov/holmogorov-specnaz-2002-01-1.htm
+     * https://web.archive.org/web/20110102033831/http://nationalism.org/forum/06/1081.shtml%20%20%5Cn%5CnThis%20file%20was%20not%20retrieved%20by%20Teleport%20Pro,%20because%20it%20is%20addressed%20on%20a%20domain%20or%20path%20outside%20the%20boundaries%20set%20for%20its%20Starting%20Address.%20%20%5Cn%5CnDo%20you%20want%20to%20open%20it%20from%20the%20server?%27))window.location=%27http://nationalism.org/forum/06/1081.shtml
+     * https://web.archive.org/web/20031028005746/http://nationalism.org/pioneer/intellfenomen_1.htm%20%20%5Cn%5CnThis%20file%20was%20not%20retrieved%20by%20Teleport%20Pro,%20because%20it%20is%20addressed%20on%20a%20domain%20or%20path%20outside%20the%20boundaries%20set%20for%20its%20Starting%20Address.%20%20%5Cn%5CnDo%20you%20want%20to%20open%20it%20from%20the%20server?%27))window.location=%27http://nationalism.org/pioneer/intellfenomen_1.htm
+     */
+    public static String degarbleTeleportPro(String url)
+    {
+        if (url == null)
+            return null;
+
+        // Look for the first occurrence of "%20" followed by the Teleport Pro notice
+        int garbleIndex = url.indexOf("%20%20%5Cn%5CnThis%20file%20was%20not%20retrieved%20by%20Teleport%20Pro");
+        if (garbleIndex != -1)
+        {
+            // Cut off everything after the legitimate URL
+            return url.substring(0, garbleIndex);
+        }
+
+        // Fallback: look for the embedded JavaScript URL assignment
+        int redirectIndex = url.indexOf("window.location=%27http");
+        if (redirectIndex != -1)
+        {
+            int start = url.indexOf("http", redirectIndex);
+            int end = url.indexOf("'", start);
+            if (start != -1 && end != -1)
+            {
+                return url.substring(0, url.indexOf("http")) + url.substring(start, end);
+            }
+        }
+
+        // No garble pattern detected, return the original URL
+        return url;
     }
 }

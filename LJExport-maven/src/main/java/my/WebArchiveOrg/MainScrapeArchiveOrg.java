@@ -77,22 +77,31 @@ public class MainScrapeArchiveOrg
         LimitProcessorUsage.limit();
         Util.out(">>> Start time: " + Util.timeNow());
 
-        // donwload HTML files
         if (Config.False)
         {
+            // donwload HTML files from archive.org
             scrape("");
         }
 
-        lookupDoubleArchiveLinks("a", "href");
-        lookupDoubleArchiveLinks("img", "src");
+        if (Config.False)
+        {
+            // diagnostic
+            lookupDoubleArchiveLinks("a", "href");
+            lookupDoubleArchiveLinks("img", "src");
+        }
 
         if (Config.False)
         {
-            // rempap intra-page html links ("a") to local files
+            // remap intra-page html links ("a") to local files
             remapRelativePageLinks();
-
-            // ### download images and pdfs and remap links (a, img)
         }
+        
+        if (Config.True)
+        {
+            loadExternalResources();
+        }
+
+        // download images. pdfs etc. and remap links (a, img)
 
         Util.out(">>> Completed");
         Main.playCompletionSound();
@@ -417,6 +426,11 @@ public class MainScrapeArchiveOrg
         for (Node an : JSOUP.findElements(parser.pageRoot, "a"))
         {
             String href = JSOUP.getAttribute(an, "href");
+            if (href != null && href.equals("https://web.archive.org/web/20160622134130/http:/nationalism.org/library/publicism/holmogorov/holmogorov-specnaz-2002-01-1.htm"))
+            {
+                Util.noop();
+            }
+            
             if (href != null && ArchiveOrgUrl.urlMatchesRoot(href, archiveOrgWebRoot, true))
             {
                 boolean b = remapNodeA(an, href, fileRelPath);
@@ -516,6 +530,11 @@ public class MainScrapeArchiveOrg
                 String href = JSOUP.getAttribute(n, attr);
                 if (href != null)
                 {
+                    if (href.startsWith("http://web.archive.org/"))
+                    {
+                        Util.err("Unexpected link:" + href);
+                    }
+
                     int count = 0;
                     int index = 0;
                     boolean mult = false;
@@ -540,5 +559,12 @@ public class MainScrapeArchiveOrg
                 }
             }
         }
+    }
+
+    /* ========================================================================================== */
+
+    private void loadExternalResources() throws Exception
+    {
+        // ###
     }
 }

@@ -1,8 +1,12 @@
 package my.WebArchiveOrg;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class ArchiveOrgUrl
 {
-    private static final String ARCHIVE_PREFIX = "https://web.archive.org/web/";
+    private static final String ARCHIVE_PREFIX_HTTPS = "https://web.archive.org/web/";
+    private static final String ARCHIVE_PREFIX_HTTP = "https://web.archive.org/web/";
 
     /*
      * Check for matching except the timestamp, e.g.:
@@ -14,7 +18,10 @@ public class ArchiveOrgUrl
         if (url == null || archiveOrgRoot == null)
             return false;
 
-        if (!url.startsWith(ARCHIVE_PREFIX) || !archiveOrgRoot.startsWith(ARCHIVE_PREFIX))
+        if (!url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP) && !url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
+            return false;
+
+        if (!archiveOrgRoot.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP) && !archiveOrgRoot.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
             return false;
 
         String urlRest = extractArchivedUrlPart(url);
@@ -22,10 +29,9 @@ public class ArchiveOrgUrl
 
         if (urlRest == null || rootRest == null)
             return false;
-        
+
         if (allowWwwDiffer)
         {
-
             // Normalize www. for comparison
             urlRest = stripWww(urlRest);
             rootRest = stripWww(rootRest);
@@ -59,7 +65,7 @@ public class ArchiveOrgUrl
         if (timestamp == null || rootRest == null)
             return null;
 
-        return ARCHIVE_PREFIX + timestamp + "/" + rootRest;
+        return ARCHIVE_PREFIX_HTTPS + timestamp + "/" + rootRest;
     }
 
     public static String urlRelativePath(String url, String archiveOrgRoot)
@@ -84,25 +90,92 @@ public class ArchiveOrgUrl
     // Extract "http(s)://..." portion after the timestamp
     private static String extractArchivedUrlPart(String url)
     {
-        if (url == null || !url.startsWith(ARCHIVE_PREFIX))
+        String remainder = null;
+
+        if (url == null)
+        {
             return null;
-        String remainder = url.substring(ARCHIVE_PREFIX.length());
+        }
+        else if (url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP))
+        {
+            remainder = url.substring(ARCHIVE_PREFIX_HTTP.length());
+        }
+        else if (url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
+        {
+            remainder = url.substring(ARCHIVE_PREFIX_HTTPS.length());
+        }
+        else
+        {
+            return null;
+        }
+
         int slash = remainder.indexOf('/');
         if (slash == -1)
             return null;
+
         String result = remainder.substring(slash + 1);
+
+        result = fixSingleSlashInProtocol(result);
+
+        /*
+         * May have nesting, such as:
+         *     https://web.archive.org/web/20160411084012/https://web.archive.org/web/20160411084012im_/http://nationalism.org/banners/rugreen.gif
+         *     https://web.archive.org/web/20160426180114im_/http://web.archive.org/web/20041217144122/www.exile.ru/129/feature1.gif
+         */
+
+        while (result.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP) || result.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
+        {
+            result = extractArchivedUrlPart(result);
+            result = fixSingleSlashInProtocol(result);
+        }
+
         return result;
+    }
+
+    private static final Pattern fixSingleSlashInProtocolPattern = Pattern.compile("^(https?):/([^/])", Pattern.CASE_INSENSITIVE);
+
+    /*
+     * Change http:/xxx -> http://xxx
+     *        https:/xxx -> https://xxx
+     */
+    public static String fixSingleSlashInProtocol(String url)
+    {
+        if (url == null)
+            return null;
+
+        Matcher matcher = fixSingleSlashInProtocolPattern.matcher(url);
+        if (matcher.find())
+            return matcher.replaceFirst(matcher.group(1).toLowerCase() + "://" + matcher.group(2));
+        else
+            return url;
     }
 
     // Extract timestamp part between archive prefix and archived URL
     private static String extractTimestamp(String url)
     {
-        if (url == null || !url.startsWith(ARCHIVE_PREFIX))
+        String remainder = null;
+
+        if (url == null)
+        {
             return null;
-        String remainder = url.substring(ARCHIVE_PREFIX.length());
+        }
+        else if (url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP))
+        {
+            remainder = url.substring(ARCHIVE_PREFIX_HTTP.length());
+        }
+        else if (url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
+        {
+            remainder = url.substring(ARCHIVE_PREFIX_HTTPS.length());
+        }
+        else
+        {
+            return null;
+        }
+
         int slash = remainder.indexOf('/');
         if (slash == -1)
             return null;
+
         return remainder.substring(0, slash);
     }
 

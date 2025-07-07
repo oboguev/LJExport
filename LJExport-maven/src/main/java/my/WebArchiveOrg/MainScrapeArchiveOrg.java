@@ -2,6 +2,7 @@ package my.WebArchiveOrg;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.http.HttpStatus;
@@ -72,8 +73,13 @@ public class MainScrapeArchiveOrg
     {
         LimitProcessorUsage.limit();
         Util.out(">>> Start time: " + Util.timeNow());
-        scrape("");
-        // ### rempap page a-links to local files (preserve anchors!)
+        
+        // donwload HTML files
+        // ### scrape("");
+
+        // rempap intra-page html links ("a") to local files
+        remapRelativePageLinks();
+        
         // ### download images and pdfs and remap links
         Main.playCompletionSound();
     }
@@ -331,5 +337,15 @@ public class MainScrapeArchiveOrg
         }
 
         return false;
+    }
+    
+    /* ========================================================================== */
+    
+    private void remapRelativePageLinks() throws Exception
+    {
+        // ### rempap page html links ("a"0 to local files (preserve anchors!) -- if file exists
+        // ### extension:
+        List<String> list = Util.enumerateFiles(pagesDir);
+        Util.noop();
     }
 }

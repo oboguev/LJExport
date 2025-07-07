@@ -88,7 +88,7 @@ public class ArchiveOrgUrl
     }
 
     // Extract "http(s)://..." portion after the timestamp
-    private static String extractArchivedUrlPart(String url)
+    public static String extractArchivedUrlPart(String url)
     {
         String remainder = null;
 

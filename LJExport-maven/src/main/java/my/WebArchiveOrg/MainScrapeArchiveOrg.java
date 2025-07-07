@@ -20,15 +20,18 @@ import my.LJExport.runtime.Web.Response;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
 
+// https://web.archive.org/web/20080915105832/http://nationalism.org/forum/08/read.php-f=1&i=5603&t=5579.htm
+
 /*
  * Использовать -Xss16m
  */
 public class MainScrapeArchiveOrg
 {
-    private static final String ArchiveOrgWebRoot = "https://web.archive.org/web/20160411084012/http://www.nationalism.org/";
+    // private static final String ArchiveOrgWebRoot = "https://web.archive.org/web/20160411084012/http://www.nationalism.org/";
+    private static final String ArchiveOrgWebRoot = "https://web.archive.org/web/20080912012829/http://nationalism.org";
     // private static final String DownloadRoot = "C:\\LJExport-journals\\nationalism.org";
     private static final String DownloadRoot = Config.DownloadRoot + File.separator + "nationalism.org";
-    private static final Set<String> Excludes = Util.setOf("forum/", "rr/4/index.htm");
+    private static final Set<String> Excludes = Util.setOf("forum/", "rr/4/index.htm"); // ###
 
     private final String archiveOrgWebRoot;
     private final String downloadRoot;
@@ -68,7 +71,6 @@ public class MainScrapeArchiveOrg
         pageMapFile = new File(pageMapFilePath).getCanonicalFile();
         Util.mkdir(pagesDir);
         Util.mkdir(linksDir);
-        LinkDownloader.init(linksDir);
         Web.init();
     }
 
@@ -77,7 +79,7 @@ public class MainScrapeArchiveOrg
         LimitProcessorUsage.limit();
         Util.out(">>> Start time: " + Util.timeNow());
 
-        if (Config.False)
+        if (Config.True)
         {
             // donwload HTML files from archive.org
             scrape("");
@@ -95,8 +97,8 @@ public class MainScrapeArchiveOrg
             // remap intra-page html links ("a") to local files
             remapRelativePageLinks();
         }
-        
-        if (Config.True)
+
+        if (Config.False)
         {
             loadExternalResources();
         }
@@ -260,6 +262,10 @@ public class MainScrapeArchiveOrg
         parser.parseHtmlWithBaseUrl(r.finalUrl);
 
         String charset = parser.extractCharset();
+        
+        if (charset != null && charset.equalsIgnoreCase("win-1251"))
+            charset = "windows-1251";
+            
         if (charset != null && r.charset != null && !charset.equalsIgnoreCase(r.charset.name()))
         {
             parser = new ParserArchiveOrg();
@@ -426,11 +432,12 @@ public class MainScrapeArchiveOrg
         for (Node an : JSOUP.findElements(parser.pageRoot, "a"))
         {
             String href = JSOUP.getAttribute(an, "href");
-            if (href != null && href.equals("https://web.archive.org/web/20160622134130/http:/nationalism.org/library/publicism/holmogorov/holmogorov-specnaz-2002-01-1.htm"))
+            if (href != null && href.equals(
+                    "https://web.archive.org/web/20160622134130/http:/nationalism.org/library/publicism/holmogorov/holmogorov-specnaz-2002-01-1.htm"))
             {
                 Util.noop();
             }
-            
+
             if (href != null && ArchiveOrgUrl.urlMatchesRoot(href, archiveOrgWebRoot, true))
             {
                 boolean b = remapNodeA(an, href, fileRelPath);
@@ -511,6 +518,7 @@ public class MainScrapeArchiveOrg
     private void lookupDoubleArchiveLinks(String tag, String attr) throws Exception
     {
         pageMap = readPageMap();
+
         List<String> list = Util.enumerateAnyHtmlFiles(pagesDir);
 
         for (String fn : list)
@@ -565,6 +573,85 @@ public class MainScrapeArchiveOrg
 
     private void loadExternalResources() throws Exception
     {
+        pageMap = readPageMap();
+
+        LinkDownloader.init(linksDir);
+
+        List<String> list = Util.enumerateAnyHtmlFiles(pagesDir);
+        for (String fn : list)
+        {
+            String fullFilePath = pagesDir + File.separator + fn;
+            String relPath = fn.replace(File.separator, "/");
+            loadExternalResources(fullFilePath, relPath);
+        }
+    }
+
+    private void loadExternalResources(String fullFilePath, String fileRelPath) throws Exception
+    {
+        ParserArchiveOrg parser = new ParserArchiveOrg();
+        parser.pageSource = Util.readFileAsString(fullFilePath);
+        String baseUrl = pageMap.get(fileRelPath);
+        if (baseUrl == null)
+            throw new Exception("File is not in page map");
+        parser.parseHtmlWithBaseUrl(baseUrl);
+
+        boolean updated = false;
+
+        for (Node an : JSOUP.findElements(parser.pageRoot, "a"))
+        {
+            String href = JSOUP.getAttribute(an, "href");
+
+            if (href != null && ArchiveOrgUrl.urlMatchesRoot(href, archiveOrgWebRoot, true))
+            {
+                updated |= loadExternalResource(an, "href", href, fileRelPath);
+            }
+        }
+
+        for (Node an : JSOUP.findElements(parser.pageRoot, "img"))
+        {
+            String href = JSOUP.getAttribute(an, "src");
+
+            if (href != null && ArchiveOrgUrl.urlMatchesRoot(href, archiveOrgWebRoot, true))
+            {
+                updated |= loadExternalResource(an, "src", href, fileRelPath);
+            }
+        }
+
+        if (updated && Config.False) // ###
+        {
+            String html = JSOUP.emitHtml(parser.pageRoot);
+            Util.writeToFileSafe(fullFilePath, html);
+        }
+    }
+
+    private boolean loadExternalResource(Node an, String tag, String original_href, String loadedFileRelPath) throws Exception
+    {
+        /*
+         * Unwrapped_href is used for resource naming, it is original URL before archival.
+         * Whereas original_href is used for actual resource downloading.
+         */
+        String unwrapped_href = ArchiveOrgUrl.extractArchivedUrlPart(original_href);
+        if (unwrapped_href == null)
+            unwrapped_href = original_href;
+
+        if (!LinkDownloader.shouldDownload(unwrapped_href, tag.equalsIgnoreCase("a")))
+            return false;
+
+        String newref = LinkDownloader.download(linksDir, unwrapped_href, original_href, null, "");
+        
+        if (newref == null)
+        {
+            Util.err("Failed to download " + original_href);
+        }
+        else
+        {
+           Util.out("Downloaded " + original_href + " => " + newref); 
+        }
+
+        // ### try to download original_href 
+        // ### if cannot, return false
+
         // ###
+        return false;
     }
 }

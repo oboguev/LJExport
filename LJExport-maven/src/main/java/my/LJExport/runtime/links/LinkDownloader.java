@@ -34,11 +34,11 @@ public class LinkDownloader
      *    - monthly pages
      */
     public static final String LINK_REFERENCE_PREFIX_PAGES = "../../../links/";
-    public static final String LINK_REFERENCE_PREFIX_MONTHLY_PAGES ="../../links/";
+    public static final String LINK_REFERENCE_PREFIX_MONTHLY_PAGES = "../../links/";
     public static final String LINK_REFERENCE_PREFIX_PROFILE = "../links/";
     public static final String LINK_REFERENCE_PREFIX_PROFILE_DOWN_1 = "../../links/";
     public static final String LINK_REFERENCE_PREFIX_PROFILE_DOWN_2 = "../../../links/";
-    
+
     private static FileBackedMap href2file = new FileBackedMap();
     private static Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -51,46 +51,69 @@ public class LinkDownloader
 
     public static String download(String linksDir, String href, String referer, String linkReferencePrefix)
     {
+        return download(linksDir, href, href, referer, linkReferencePrefix);
+    }
+
+    /*
+     * download_href is used for actual downloading
+     * name_href is used for storing/naming the resource in links directory
+     * 
+     * Usually they are the same.
+     * However when downloading happens from archive.org,
+     * download_href is archived url such as https://web.archive.org/web/20160528141306/http:/nationalism.org/library/science/politics/golosov/golosov-cpcs-2002.pdf
+     * and name_href is http://nationalism.org/library/science/politics/golosov/golosov-cpcs-2002.pdf
+     */
+    public static String download(String linksDir, String name_href, String download_href, String referer,
+            String linkReferencePrefix)
+    {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);
         AtomicReference<String> filename = new AtomicReference<>(null);
         String href_noanchor = null;
+        String download_href_noanchor = null;
 
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
             threadName = "(unnamed)";
 
+        String href = name_href;
+
         try
         {
             // avoid HTTPS certificate problem
-            href = https2http(href, "l-stat.livejournal.net");
-            href = https2http(href, "l-userpic.livejournal.com");
+            download_href = https2http(download_href, "l-stat.livejournal.net");
+            download_href = https2http(download_href, "l-userpic.livejournal.com");
 
             // LJ responds with HTTP code 412 if picture is marked 18+ and request is not HTTPS
-            href = http2https(href, "pics.livejournal.com");
-            href = http2https(href, "ic.pics.livejournal.com");
+            download_href = http2https(download_href, "pics.livejournal.com");
+            download_href = http2https(download_href, "ic.pics.livejournal.com");
 
             // map washingtonpost image resizer url
-            href = map_washpost_imr(href);
+            download_href = map_washpost_imr(download_href);
 
             href_noanchor = Util.stripAnchor(href);
-            if (failedSet.contains(href_noanchor))
+            download_href_noanchor = Util.stripAnchor(download_href);
+
+            if (failedSet.contains(download_href_noanchor))
                 return null;
+
             filename.set(buildFilePath(linksDir, href));
 
             // Main.out(">>> Downloading: " + href + " -> " + filename.get());
-            
-            final String final_href = href;
+
+            // final String final_href = href;
             final String final_href_noanchor = href_noanchor;
+            final String final_download_href = download_href;
+            final String final_download_href_noanchor = download_href_noanchor;
             final String final_threadName = threadName;
 
             Thread.currentThread().setName(threadName + " downloading " + href + " namelock wait");
 
             NamedLocks.interlock(href_noanchor, () ->
             {
-                if (failedSet.contains(final_href_noanchor))
+                if (failedSet.contains(final_download_href_noanchor))
                     throw new AlreadyFailedException();
 
-                Thread.currentThread().setName(final_threadName + " downloading " + final_href + " prepare");
+                Thread.currentThread().setName(final_threadName + " downloading " + final_download_href_noanchor + " prepare");
 
                 String actual_filename = filename.get();
                 String afn = href2file.getAnyUrlProtocol(final_href_noanchor);
@@ -110,7 +133,7 @@ public class LinkDownloader
                 }
                 else
                 {
-                    String host = (new URL(final_href)).getHost();
+                    String host = (new URL(final_download_href_noanchor)).getHost();
                     host = host.toLowerCase();
 
                     Map<String, String> headers = new HashMap<>();
@@ -135,24 +158,24 @@ public class LinkDownloader
 
                     try
                     {
-                        Thread.currentThread().setName(final_threadName + " downloading " + final_href);
-                        r = Web.get(final_href, Web.BINARY | Web.PROGRESS, headers, (code) ->
+                        Thread.currentThread().setName(final_threadName + " downloading " + final_download_href_noanchor);
+                        r = Web.get(final_download_href, Web.BINARY | Web.PROGRESS, headers, (code) ->
                         {
                             return code >= 200 && code <= 299 && code != 204;
                         });
                     }
                     catch (Exception ex)
                     {
-                        if (final_href_noanchor != null)
-                            failedSet.add(final_href_noanchor);
+                        if (final_download_href_noanchor != null)
+                            failedSet.add(final_download_href_noanchor);
                         throw ex;
                     }
 
                     if (r.code < 200 || r.code >= 300 || r.code == 204)
                     {
                         response.set(r);
-                        if (final_href_noanchor != null)
-                            failedSet.add(final_href_noanchor);
+                        if (final_download_href_noanchor != null)
+                            failedSet.add(final_download_href_noanchor);
                         throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);
                     }
 
@@ -164,8 +187,8 @@ public class LinkDownloader
                         }
                         catch (UnableCreateDirectoryException dex)
                         {
-                            actual_filename = linksDir + File.separator + "@@@" + File.separator +  "x-" + Util.uuid2();
-                            
+                            actual_filename = linksDir + File.separator + "@@@" + File.separator + "x-" + Util.uuid2();
+
                             String ext = getFileExtension(f.getName());
                             if (ext != null && ext.length() != 0 && ext.length() <= 4)
                                 actual_filename += "." + ext;
@@ -186,8 +209,8 @@ public class LinkDownloader
                     catch (Exception ex)
                     {
                         Util.noop();
-                        if (final_href_noanchor != null)
-                            failedSet.add(final_href_noanchor);
+                        if (final_download_href_noanchor != null)
+                            failedSet.add(final_download_href_noanchor);
                         throw ex;
                     }
                 }
@@ -202,7 +225,7 @@ public class LinkDownloader
         }
         catch (Exception ex)
         {
-            String host = extractHostSafe(href);
+            String host = extractHostSafe(download_href);
             Web.Response r = response.get();
 
             if (ex instanceof AlreadyFailedException)
@@ -317,9 +340,9 @@ public class LinkDownloader
                 }
             }
 
-            // Main.err("Unable to download external link " + href, ex);
-            if (href_noanchor != null)
-                failedSet.add(href_noanchor);
+            // Main.err("Unable to download external link " + download_href, ex);
+            if (download_href_noanchor != null)
+                failedSet.add(download_href_noanchor);
 
             Util.noop();
 
@@ -391,7 +414,7 @@ public class LinkDownloader
             if (href == null || href.length() == 0)
                 return false;
             href = Util.stripAnchor(href);
-            
+
             if (DontDownload.dontDownload(href))
                 return false;
 

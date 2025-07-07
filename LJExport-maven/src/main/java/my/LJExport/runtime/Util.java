@@ -733,7 +733,11 @@ public class Util
             relativeURL = relativeURL.trim();
 
         if (relativeURL != null)
+        {
             relativeURL = encodeFragment(relativeURL);
+            /* Windows backslashes in some old HTML files, e.g. ..\index.html */
+            relativeURL = relativeURL.replace("\\", "/");
+        }
 
         if (baseURL == null || baseURL.isEmpty())
             return relativeURL;

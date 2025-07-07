@@ -14,6 +14,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.html.JSOUP;
 import my.LJExport.runtime.LimitProcessorUsage;
+import my.LJExport.runtime.TeleportUrl;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
@@ -207,7 +208,7 @@ public class MainScrapeArchiveOrg
 
         for (String xurl : links)
         {
-            xurl = degarbleTeleportPro(xurl);
+            xurl = TeleportUrl.ungarbleTeleportUrl(xurl);
 
             if (ArchiveOrgUrl.urlMatchesRoot(xurl, archiveOrgWebRoot, true))
             {
@@ -497,8 +498,16 @@ public class MainScrapeArchiveOrg
             if (!divider.equals(PageMapFileDivider))
                 throw new Exception("Unable to read page map file");
 
-            if (m.get(relPath) != null)
-                throw new Exception("Unable to read page map file");
+            if (m.get(relPath) != null && !m.get(relPath).equals(finalUrl))
+            {
+                switch (relPath)
+                {
+                case "index.html":
+                    break;
+                default:
+                    throw new Exception("Unable to read page map file");
+                }
+            }
 
             m.put(relPath, finalUrl);
 
@@ -764,43 +773,5 @@ public class MainScrapeArchiveOrg
 
         // ###
         return false;
-    }
-
-    /* ====================================================================================== */
-
-    /*
-     * Recover URLs garled in a specific way by Teleport Pro.
-     * 
-     * https://web.archive.org/web/20030914114836/http://nationalism.org/library/publicism/holmogorov/holmogorov-specnaz-2002-01-1.htm%20%20%5Cn%5CnThis%20file%20was%20not%20retrieved%20by%20Teleport%20Pro,%20because%20it%20is%20addressed%20on%20a%20domain%20or%20path%20outside%20the%20boundaries%20set%20for%20its%20Starting%20Address.%20%20%5Cn%5CnDo%20you%20want%20to%20open%20it%20from%20the%20server?%27))window.location=%27http://nationalism.org/library/publicism/holmogorov/holmogorov-specnaz-2002-01-1.htm
-     * https://web.archive.org/web/20110102033831/http://nationalism.org/forum/06/1081.shtml%20%20%5Cn%5CnThis%20file%20was%20not%20retrieved%20by%20Teleport%20Pro,%20because%20it%20is%20addressed%20on%20a%20domain%20or%20path%20outside%20the%20boundaries%20set%20for%20its%20Starting%20Address.%20%20%5Cn%5CnDo%20you%20want%20to%20open%20it%20from%20the%20server?%27))window.location=%27http://nationalism.org/forum/06/1081.shtml
-     * https://web.archive.org/web/20031028005746/http://nationalism.org/pioneer/intellfenomen_1.htm%20%20%5Cn%5CnThis%20file%20was%20not%20retrieved%20by%20Teleport%20Pro,%20because%20it%20is%20addressed%20on%20a%20domain%20or%20path%20outside%20the%20boundaries%20set%20for%20its%20Starting%20Address.%20%20%5Cn%5CnDo%20you%20want%20to%20open%20it%20from%20the%20server?%27))window.location=%27http://nationalism.org/pioneer/intellfenomen_1.htm
-     */
-    public static String degarbleTeleportPro(String url)
-    {
-        if (url == null)
-            return null;
-
-        // Look for the first occurrence of "%20" followed by the Teleport Pro notice
-        int garbleIndex = url.indexOf("%20%20%5Cn%5CnThis%20file%20was%20not%20retrieved%20by%20Teleport%20Pro");
-        if (garbleIndex != -1)
-        {
-            // Cut off everything after the legitimate URL
-            return url.substring(0, garbleIndex);
-        }
-
-        // Fallback: look for the embedded JavaScript URL assignment
-        int redirectIndex = url.indexOf("window.location=%27http");
-        if (redirectIndex != -1)
-        {
-            int start = url.indexOf("http", redirectIndex);
-            int end = url.indexOf("'", start);
-            if (start != -1 && end != -1)
-            {
-                return url.substring(0, url.indexOf("http")) + url.substring(start, end);
-            }
-        }
-
-        // No garble pattern detected, return the original URL
-        return url;
     }
 }

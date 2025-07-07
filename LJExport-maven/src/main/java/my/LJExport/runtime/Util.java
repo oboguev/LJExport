@@ -321,6 +321,7 @@ public class Util
         Set<String> ws = new HashSet<String>();
 
         String rs = loadResource(path) + "\n";
+        rs = rs.replace("\r", "");
         for (String line : rs.split("\n"))
         {
             line = stripComment(line);
@@ -331,6 +332,25 @@ public class Util
         }
 
         return ws;
+    }
+
+    public static void write_set(String path, Set<String> ws) throws Exception
+    {
+        StringBuilder sb = new StringBuilder();
+
+        for (String s : ws)
+        {
+            if (sb.length() != 0)
+            {
+                if (isWindowsOS())
+                    sb.append("\r\n");
+                else
+                    sb.append("\n");
+            }
+            sb.append(s);
+        }
+
+        Util.writeToFileSafe(path, sb.toString());
     }
 
     public static String stripComment(String s) throws Exception
@@ -451,7 +471,7 @@ public class Util
             }
         }
     }
-    
+
     private static boolean enumerateFilesMatches(String fn, Set<String> extensions)
     {
         for (String ext : extensions)
@@ -459,7 +479,7 @@ public class Util
             if (fn.toLowerCase().endsWith(ext.toLowerCase()))
                 return true;
         }
-        
+
         return false;
     }
 

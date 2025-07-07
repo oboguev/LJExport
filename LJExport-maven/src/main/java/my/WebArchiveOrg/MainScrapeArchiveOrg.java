@@ -41,6 +41,7 @@ public class MainScrapeArchiveOrg
     private final String pageMapFilePath;
     private final File pageMapFile;
     private Map<String, String> pageMap = null;
+    private Set<String> url_set_404 = null;
 
     private Set<String> prune_follow = new HashSet<>();
     private Set<String> prune_scrape = new HashSet<>();
@@ -73,6 +74,16 @@ public class MainScrapeArchiveOrg
         Util.mkdir(pagesDir);
         Util.mkdir(linksDir);
         Web.init();
+
+        if (new File(set404filepath()).getCanonicalFile().exists())
+            url_set_404 = Util.read_set(set404filepath());
+        else
+            url_set_404 = new HashSet<>();
+    }
+
+    private String set404filepath()
+    {
+        return this.downloadRoot + File.separator + "http-error-404.txt";
     }
 
     private void do_main() throws Exception
@@ -254,7 +265,7 @@ public class MainScrapeArchiveOrg
             return null;
 
         StringBuilder sb = new StringBuilder();
-        
+
         for (char ch : input.toCharArray())
         {
             switch (ch)
@@ -273,12 +284,15 @@ public class MainScrapeArchiveOrg
                 break;
             }
         }
-        
+
         return sb.toString();
     }
 
     private void downloadFromArchive(String url, File fp) throws Exception
     {
+        if (url_set_404.contains(url))
+            return;
+
         Util.out(String.format("Downloading %s => %s", url, fp.getCanonicalPath()));
 
         if (url.contains("#"))
@@ -291,6 +305,13 @@ public class MainScrapeArchiveOrg
         if (r.code != HttpStatus.SC_OK)
         {
             Util.err(String.format("Failed to load %s, error: %s", url, Web.describe(r.code)));
+            
+            if (r.code == 404)
+            {
+                url_set_404.add(url);
+                Util.write_set(set404filepath(), url_set_404);
+            }
+
             return;
         }
 
@@ -504,7 +525,7 @@ public class MainScrapeArchiveOrg
             linkRelPath = Util.stripTail(linkRelPath, "/");
 
         /* link can be file or directory */
-        File fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator))); 
+        File fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator)));
         if (!fp.exists())
             return false;
 
@@ -515,7 +536,7 @@ public class MainScrapeArchiveOrg
             else
                 linkRelPath += "/index.html";
 
-            fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator))); 
+            fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator)));
             if (!fp.exists())
                 return false;
         }

@@ -962,9 +962,9 @@ public class JSOUP
             if (av != null && av.trim().length() != 0)
             {
                 // https://web.archive.org/web/20160323032912/mailto:"rusaction@front.ru"
-                if (av.contains("/mailto:")|| av.startsWith("javascript:"))
+                if (av.contains("/mailto:") || av.startsWith("javascript:"))
                     return false;
-                
+
                 String newv = null;
                 try
                 {
@@ -972,10 +972,10 @@ public class JSOUP
                 }
                 catch (Exception ex)
                 {
-                    // malformed URL
+                    // malformed or grabled URL
                     return false;
                 }
-                
+
                 if (!Util.isSameURL(av, newv))
                 {
                     if (getAttribute(n, "original-" + attr) == null)

@@ -249,7 +249,7 @@ public class MainScrapeArchiveOrg
 
     public String fileRelPath2FullPath(String relPath)
     {
-        return pagesDir + File.separator + encodeUnsafeFileNameChars(relPath.replace("/", File.separator)); // ###
+        return pagesDir + File.separator + encodeUnsafeFileNameChars(relPath.replace("/", File.separator)); // ### make new and check no conflicts old-new
     }
 
     /**

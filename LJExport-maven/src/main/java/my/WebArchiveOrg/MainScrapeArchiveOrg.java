@@ -22,6 +22,7 @@ import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
+import my.LJExport.styles.StyleProcessor;
 import my.WebArchiveOrg.customize.Exclude;
 
 /*
@@ -51,6 +52,7 @@ public class MainScrapeArchiveOrg
     private final String downloadRoot;
     private final String pagesDir;
     private final String linksDir;
+    private final String stylesCatalogDir;
     private final String pageMapFilePath;
     private final File pageMapFile;
     private Map<String, String> pageMap = null;
@@ -87,10 +89,12 @@ public class MainScrapeArchiveOrg
 
         pagesDir = this.downloadRoot + File.separator + "pages";
         linksDir = this.downloadRoot + File.separator + "links";
+        stylesCatalogDir = this.downloadRoot + File.separator + "styles";
         pageMapFilePath = this.downloadRoot + File.separator + "pages-map.txt";
         pageMapFile = new File(pageMapFilePath).getCanonicalFile();
         Util.mkdir(pagesDir);
         Util.mkdir(linksDir);
+        Util.mkdir(stylesCatalogDir);
         Web.init();
 
         if (new File(set404filepath()).getCanonicalFile().exists())
@@ -107,7 +111,7 @@ public class MainScrapeArchiveOrg
     private void do_main() throws Exception
     {
         boolean production = Config.False;
-        
+
         LimitProcessorUsage.limit();
         Util.out(">>> Start time: " + Util.timeNow());
 
@@ -135,12 +139,16 @@ public class MainScrapeArchiveOrg
             preloadExternalResources();
         }
 
-        if (production || Config.True)
+        if (production || Config.False)
         {
+            // download images. pdfs etc. and remap links (a, img)
             loadExternalResources();
         }
 
-        // download images. pdfs etc. and remap links (a, img)
+        if (production || Config.True)
+        {
+            loadStyles();
+        }
 
         Util.out(">>> Completed");
         Main.playCompletionSound();
@@ -889,14 +897,21 @@ public class MainScrapeArchiveOrg
         {
             // Util.out("Downloaded " + original_href + " => " + newref);
         }
-        
+
         String relLink = RelativeLink.createRelativeLink("links/" + newref, "pages/" + loadedFileRelPath);
-        
+
         if (JSOUP.getAttribute(an, "original-" + attr) == null)
             JSOUP.setAttribute(an, "original-" + attr, original_href);
 
         JSOUP.updateAttribute(an, attr, relLink);
 
         return true;
+    }
+
+    /* ========================================================================================== */
+
+    private void loadStyles() throws Exception
+    {
+        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, pagesDir);
     }
 }

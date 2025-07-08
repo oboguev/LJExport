@@ -6,6 +6,20 @@ import my.LJExport.runtime.Util;
 
 public class StyleProcessor
 {
+    public static void processAllHtmlFiles(String styleCatalogDir, String htmlPagesRootDir) throws Exception
+    {
+        StyleManager styleManager = new StyleManager(styleCatalogDir);
+        try
+        {
+            styleManager.init();
+            processAllHtmlFiles(styleManager, htmlPagesRootDir);
+        }
+        finally
+        {
+            styleManager.close();
+        }
+    }
+    
     public static void processAllHtmlFiles(StyleManager styleManager, String htmlPagesRootDir) throws Exception
     {
         while (htmlPagesRootDir.endsWith(File.separator))
@@ -14,7 +28,6 @@ public class StyleProcessor
         File fp = new File(htmlPagesRootDir).getCanonicalFile();
         if (!fp.exists() && fp.isDirectory())
             throw new Exception("Not a directory: " + fp.getCanonicalPath());
-        
         
         for (String relPath : Util.enumerateAnyHtmlFiles(htmlPagesRootDir))
         {

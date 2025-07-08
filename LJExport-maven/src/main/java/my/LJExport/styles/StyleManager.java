@@ -30,7 +30,7 @@ public class StyleManager
     private FileBackedMap href2file = new FileBackedMap();
     private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    public StyleManager(String styleCatalogDir, String htmlPagesDir) throws Exception
+    public StyleManager(String styleCatalogDir) throws Exception
     {
         while (styleCatalogDir.endsWith(File.separator))
             styleCatalogDir = Util.stripTail(styleCatalogDir, File.separator);
@@ -48,8 +48,7 @@ public class StyleManager
 
     public synchronized void init() throws Exception
     {
-        href2file.close();
-        failedSet.clear();
+        close();
 
         File catalog = new File(styleCatalogDir);
         if (!catalog.isDirectory())
@@ -136,7 +135,7 @@ public class StyleManager
             ParserArchiveOrg parser = new ParserArchiveOrg();
             parser.pageSource = Util.readFileAsString(htmlFilePath);
             parser.parseHtml();
-            
+
             boolean updated = false;
 
             // ### style tags
@@ -155,7 +154,7 @@ public class StyleManager
 
                 if (rel == null || !relContainsStylesheet(rel))
                     continue;
-                
+
                 if (!rel.trim().equalsIgnoreCase("stylesheet"))
                     throw new Exception("Unexpected value of link.rel: " + rel);
 
@@ -165,7 +164,7 @@ public class StyleManager
                 if (type == null || type.trim().equalsIgnoreCase("text/css"))
                     updated |= processStyleLink(JSOUP.asElement(n), href, htmlFilePath);
             }
-            
+
             if (updated)
             {
                 // ### emit html and safe-save
@@ -194,11 +193,25 @@ public class StyleManager
 
     private boolean processStyleLink(Element el, String href, String htmlFilePath) throws Exception
     {
+        if (href.toLowerCase().startsWith("http://") || href.toLowerCase().startsWith("https://"))
+        {
+            // do process
+        }
+        else
+        {
+            String generatedBy = JSOUP.getAttribute(el, "generated-by");
+            if (generatedBy != null && generatedBy.equals("ljexport-style-manager"))
+                return false;
+            throw new Exception("Unexpected link.href: " + href);
+        }
+        
         // ### download styles
         // ### check they have no imports
-        // ### add new link tags <link rel="stylesheet" href="..." type="text/css">
+        // ### add new link tags <link rel="stylesheet" href="..." type="text/css" generated-by="ljexport-style-manager">
         // ### change original to <link rel="original-stylesheet" original-href="..." original-type="..."> and delete href and type
         // ### return true
         return false;
     }
+    
+    /* ================================================================================== */
 }

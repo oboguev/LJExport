@@ -4,8 +4,12 @@ public class TeleportUrl
 {
     public static String ungarbleTeleportUrl(String url) throws Exception
     {
-        url = ungarbleTeleportPro(url);
-        url = ungarbleJavaScriptTeleport(url);
+        if (url != null)
+        {
+            url = ungarbleTeleportPro(url);
+            url = ungarbleJavaScriptTeleport(url);
+        }
+
         return url;
     }
 

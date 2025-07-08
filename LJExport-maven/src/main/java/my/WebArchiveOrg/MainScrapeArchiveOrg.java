@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.jsoup.nodes.Node;
 
@@ -21,8 +22,6 @@ import my.LJExport.runtime.Web.Response;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
 import my.WebArchiveOrg.customize.Exclude;
-
-// https://web.archive.org/web/20080915105832/http://nationalism.org/forum/08/read.php-f=1&i=5603&t=5579.htm
 
 /*
  * Использовать -Xss16m
@@ -93,7 +92,7 @@ public class MainScrapeArchiveOrg
         LimitProcessorUsage.limit();
         Util.out(">>> Start time: " + Util.timeNow());
 
-        if (Config.True)
+        if (Config.False)
         {
             // donwload HTML files from archive.org
             scrape("");
@@ -106,7 +105,7 @@ public class MainScrapeArchiveOrg
             lookupDoubleArchiveLinks("img", "src");
         }
 
-        if (Config.False)
+        if (Config.True)
         {
             // remap intra-page html links ("a") to local files
             remapRelativePageLinks();
@@ -554,8 +553,8 @@ public class MainScrapeArchiveOrg
             {
                 Util.noop();
             }
-
-            // ### degarbleTeleportPro
+            
+            href = TeleportUrl.ungarbleTeleportUrl(href);
 
             if (href != null && ArchiveOrgUrl.urlMatchesRoot(href, archiveOrgWebRoot, true))
             {
@@ -592,15 +591,12 @@ public class MainScrapeArchiveOrg
 
         if (fp.isDirectory())
         {
-            if (linkRelPath.length() == 0)
-                linkRelPath += "index.html";
-            else
-                linkRelPath += "/index.html";
-
-            fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator)));
-            if (!fp.exists())
+            Pair<File,String> p = findDirIndexFile(fp, linkRelPath);
+            if (p == null)
                 return false;
-        } // ### try index.htm index.shtml index.shtm
+            fp = p.getLeft();
+            linkRelPath = p.getRight();
+        } 
 
         String newref = RelativeLink.createRelativeLink(linkRelPath, loadedFileRelPath);
 
@@ -621,6 +617,29 @@ public class MainScrapeArchiveOrg
         }
 
         return true;
+    }
+    
+    private Pair<File,String> findDirIndexFile(File fp, String linkRelPath)
+    {
+        // index.htm if exists otherwise index.html if exists
+        Pair<File,String> p = findDirIndexFile(fp, linkRelPath, "index.htm");
+        if (p == null)
+            p = findDirIndexFile(fp, linkRelPath, "index.html");
+        return p;
+    }
+    
+    private Pair<File,String> findDirIndexFile(File fp, String linkRelPath, String indexFile)
+    {
+        if (linkRelPath.length() == 0)
+            linkRelPath += "index.html";
+        else
+            linkRelPath += "/index.html";
+
+        fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator)));
+        if (fp.exists())
+            return Pair.of(fp,linkRelPath);
+        else 
+            return null;
     }
 
     private String extractAnchor(String urlPath)
@@ -657,6 +676,8 @@ public class MainScrapeArchiveOrg
                 String href = JSOUP.getAttribute(n, attr);
                 if (href != null)
                 {
+                    href = TeleportUrl.ungarbleTeleportUrl(href);
+                    
                     if (href.startsWith("http://web.archive.org/"))
                     {
                         Util.err("Unexpected link:" + href);
@@ -771,7 +792,6 @@ public class MainScrapeArchiveOrg
         // ### try to download original_href 
         // ### if cannot, return false
 
-        // ###
         return false;
     }
 }

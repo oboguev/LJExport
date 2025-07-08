@@ -42,7 +42,7 @@ public class LinkDownloader
     private static FileBackedMap href2file = new FileBackedMap();
     private static Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    public static void init(String linksDir) throws Exception
+    public static synchronized void init(String linksDir) throws Exception
     {
         href2file.close();
         href2file.init(linksDir + File.separator + "map-href-file.txt");

@@ -981,7 +981,7 @@ public class JSOUP
                 }
                 catch (Exception ex)
                 {
-                    // malformed or grabled URL  // ###
+                    // malformed or grabled URL
                     return false;
                 }
 

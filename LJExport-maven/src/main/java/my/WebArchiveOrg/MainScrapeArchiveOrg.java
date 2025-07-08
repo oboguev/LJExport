@@ -1,6 +1,7 @@
 package my.WebArchiveOrg;
 
 import java.io.File;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -567,6 +568,7 @@ public class MainScrapeArchiveOrg
                 }
                 updated |= b;
             }
+            // ### remap index.html to index.htm if original is dir
         }
 
         if (updated)
@@ -590,7 +592,7 @@ public class MainScrapeArchiveOrg
         File fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator)));
         if (!fp.exists())
             return false;
-
+        
         if (fp.isDirectory())
         {
             Pair<File, String> p = findDirIndexFile(fp, linkRelPath);
@@ -599,9 +601,21 @@ public class MainScrapeArchiveOrg
             fp = p.getLeft();
             linkRelPath = p.getRight();
         }
+        else if (linkRelPath.equals("index.html") || linkRelPath.endsWith("/index.html"))
+        {
+            // remap index.html to index.htm if it exists
+            File fp2 = new File(fp.getParentFile(), "index.htm").getCanonicalFile();
+            if (fp2.exists() && fp2.isFile())
+            {
+                linkRelPath = Util.stripTail(linkRelPath, "index.html") + "index.htm"; 
+                fp = fp2;
+            }
+        }
 
         String newref = RelativeLink.createRelativeLink(encodeUnsafeFileNameChars(linkRelPath), loadedFileRelPath);
-
+        
+        newref = URLEncoder.encode(newref, "UTF-8").replace("+", "%20").replace("%2F", "/");           
+        
         if (anchor != null)
             newref += anchor;
 
@@ -633,9 +647,9 @@ public class MainScrapeArchiveOrg
     private Pair<File, String> findDirIndexFile(File fp, String linkRelPath, String indexFile)
     {
         if (linkRelPath.length() == 0)
-            linkRelPath += "index.html";
+            linkRelPath += indexFile;
         else
-            linkRelPath += "/index.html";
+            linkRelPath += "/" + indexFile;
 
         fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator)));
         if (fp.exists())

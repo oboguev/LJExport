@@ -84,6 +84,7 @@ public class Main
     public static AtomicInteger unloadablePages;
     private static Set<String> deadLinks;
     private static boolean logged_in = false;
+    public static LinkDownloader linkDownloader = new LinkDownloader(); 
 
     public static void setAborting()
     {
@@ -229,7 +230,7 @@ public class Main
             linksDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "links";
             Util.mkdir(pagesDir);
             Util.mkdir(linksDir);
-            LinkDownloader.init(linksDir);
+            linkDownloader.init(linksDir);
 
             manualDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "manual-load";
             enumManualPages();

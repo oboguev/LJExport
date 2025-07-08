@@ -14,7 +14,6 @@ import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
-import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 /*
@@ -126,7 +125,7 @@ public class MainDownloadLinks
             out(">>> Processing download links for user " + Config.User);
 
             Util.mkdir(linksDir);
-            LinkDownloader.init(linksDir);
+            Main.linkDownloader.init(linksDir);
 
             pageFiles = Util.enumerateOnlyHtmlFiles(pagesDir);
             pageFilesTotalCount = pageFiles.size();

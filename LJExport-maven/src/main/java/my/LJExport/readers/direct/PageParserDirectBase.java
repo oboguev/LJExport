@@ -355,7 +355,7 @@ public abstract class PageParserDirectBase
         {
             String href = JSOUP.getAttribute(n, attr);
 
-            if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
+            if (Main.linkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
                 String referer = (rurl == null) ? null : LJUtil.recordPageURL(rurl);
 
@@ -365,7 +365,7 @@ public abstract class PageParserDirectBase
                 }
                 else
                 {
-                    String newref = LinkDownloader.download(linksDir, href, referer, linkReferencePrefix);
+                    String newref = Main.linkDownloader.download(linksDir, href, referer, linkReferencePrefix);
                     if (newref != null)
                     {
                         JSOUP.updateAttribute(n, attr, newref);
@@ -412,7 +412,7 @@ public abstract class PageParserDirectBase
             try
             {
                 Thread.currentThread().setName("webload");
-                newref = LinkDownloader.download(linksDir, href, referer, linkReferencePrefix);
+                newref = Main.linkDownloader.download(linksDir, href, referer, linkReferencePrefix);
             }
             catch (Exception ex)
             {

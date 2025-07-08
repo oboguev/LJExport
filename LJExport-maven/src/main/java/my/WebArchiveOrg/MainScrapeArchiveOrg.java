@@ -20,7 +20,6 @@ import my.LJExport.runtime.TeleportUrl;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
-import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
 import my.LJExport.styles.StyleProcessor;
 import my.WebArchiveOrg.customize.Exclude;
@@ -795,12 +794,12 @@ public class MainScrapeArchiveOrg
         if (PreloadResourcesList == null)
             return;
 
-        LinkDownloader.init(linksDir);
+        Main.linkDownloader.init(linksDir);
 
         for (String name_href : Util.read_list(PreloadResourcesList))
         {
             String download_href = ArchiveOrgLatestCaptureWebRoot + name_href;
-            String newref = LinkDownloader.download(linksDir, name_href, download_href, null, "");
+            String newref = Main.linkDownloader.download(linksDir, name_href, download_href, null, "");
             if (newref == null)
             {
                 Util.err("Failed to download " + name_href);
@@ -818,7 +817,7 @@ public class MainScrapeArchiveOrg
     {
         pageMap = readPageMap();
 
-        LinkDownloader.init(linksDir);
+        Main.linkDownloader.init(linksDir);
 
         List<String> list = Util.enumerateAnyHtmlFiles(pagesDir);
         for (String fn : list)
@@ -883,10 +882,10 @@ public class MainScrapeArchiveOrg
         if (naming_href == null)
             naming_href = original_href;
 
-        if (!LinkDownloader.shouldDownload(naming_href, attr.equalsIgnoreCase("href")))
+        if (!Main.linkDownloader.shouldDownload(naming_href, attr.equalsIgnoreCase("href")))
             return false;
 
-        String newref = LinkDownloader.download(linksDir, naming_href, download_href, null, "");
+        String newref = Main.linkDownloader.download(linksDir, naming_href, download_href, null, "");
 
         if (newref == null)
         {

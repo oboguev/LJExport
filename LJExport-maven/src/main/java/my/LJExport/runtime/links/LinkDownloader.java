@@ -39,17 +39,24 @@ public class LinkDownloader
     public static final String LINK_REFERENCE_PREFIX_PROFILE_DOWN_1 = "../../links/";
     public static final String LINK_REFERENCE_PREFIX_PROFILE_DOWN_2 = "../../../links/";
 
-    private static FileBackedMap href2file = new FileBackedMap();
-    private static Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private FileBackedMap href2file = new FileBackedMap();
+    private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    public static synchronized void init(String linksDir) throws Exception
+    public synchronized void init(String linksDir) throws Exception
     {
+        close();
         href2file.close();
         href2file.init(linksDir + File.separator + "map-href-file.txt");
         failedSet.clear();
     }
+    
+    public synchronized void close() throws Exception
+    {
+        href2file.close();
+        failedSet.clear();
+    }
 
-    public static String download(String linksDir, String href, String referer, String linkReferencePrefix)
+    public String download(String linksDir, String href, String referer, String linkReferencePrefix)
     {
         return download(linksDir, href, href, referer, linkReferencePrefix);
     }
@@ -63,7 +70,7 @@ public class LinkDownloader
      * download_href is archived url such as https://web.archive.org/web/20160528141306/http:/nationalism.org/library/science/politics/golosov/golosov-cpcs-2002.pdf
      * and name_href is http://nationalism.org/library/science/politics/golosov/golosov-cpcs-2002.pdf
      */
-    public static String download(String linksDir, String name_href, String download_href, String referer,
+    public String download(String linksDir, String name_href, String download_href, String referer,
             String linkReferencePrefix)
     {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);
@@ -354,12 +361,12 @@ public class LinkDownloader
         }
     }
 
-    private static boolean isCircularRedirect(Exception ex)
+    private boolean isCircularRedirect(Exception ex)
     {
         return ex instanceof ClientProtocolException && ex.getCause() instanceof CircularRedirectException;
     }
 
-    private static String encodePathCopmonents(String ref)
+    private String encodePathCopmonents(String ref)
     {
         StringBuilder sb = new StringBuilder();
 
@@ -376,7 +383,7 @@ public class LinkDownloader
         return sb.toString();
     }
 
-    private static String https2http(String href, String host)
+    private String https2http(String href, String host)
     {
         final String key = "https://" + host + "/";
         final String key_change = "http://" + host + "/";
@@ -385,7 +392,7 @@ public class LinkDownloader
         return href;
     }
 
-    private static String http2https(String href, String host)
+    private String http2https(String href, String host)
     {
         final String key = "http://" + host + "/";
         final String key_change = "https://" + host + "/";
@@ -394,7 +401,7 @@ public class LinkDownloader
         return href;
     }
 
-    private static String map_washpost_imr(String href) throws Exception
+    private String map_washpost_imr(String href) throws Exception
     {
         final String prefix = "https://img.washingtonpost.com/wp-apps/imrs.php?src=https://img.washingtonpost.com/";
         final String postfix = "&w=1484";
@@ -407,7 +414,7 @@ public class LinkDownloader
         return href;
     }
 
-    public static boolean shouldDownload(String href, boolean filterDownloadFileTypes) throws Exception
+    public boolean shouldDownload(String href, boolean filterDownloadFileTypes) throws Exception
     {
         try
         {
@@ -472,14 +479,14 @@ public class LinkDownloader
         }
     }
 
-    private static String extractHost(String href) throws Exception
+    private String extractHost(String href) throws Exception
     {
         String host = (new URL(href)).getHost();
         host = host.toLowerCase();
         return host;
     }
 
-    private static String extractHostSafe(String href)
+    private String extractHostSafe(String href)
     {
         try
         {
@@ -493,7 +500,7 @@ public class LinkDownloader
 
     /* ======================================================================== */
 
-    private static String buildFilePath(String linksDir, String href) throws Exception
+    private String buildFilePath(String linksDir, String href) throws Exception
     {
         URL url = new URL(href);
 
@@ -560,7 +567,7 @@ public class LinkDownloader
 
     private static final int MaxPathComponentLength = 80;
 
-    private static String makeSanePathComponent(String component) throws Exception
+    private String makeSanePathComponent(String component) throws Exception
     {
         /*
          * Unpack %xx sequences -> unicode.

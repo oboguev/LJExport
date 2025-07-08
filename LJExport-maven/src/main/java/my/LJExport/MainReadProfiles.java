@@ -11,7 +11,6 @@ import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
-import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 /*
@@ -130,7 +129,7 @@ public class MainReadProfiles
             Util.out(">>> Preparing to download profile for user " + Config.User);
 
             Util.mkdir(linksDir);
-            LinkDownloader.init(linksDir);
+            Main.linkDownloader.init(linksDir);
 
             new ReadProfile().readAll();
 

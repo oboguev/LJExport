@@ -106,13 +106,13 @@ public class MainScrapeArchiveOrg
             lookupDoubleArchiveLinks("img", "src");
         }
 
-        if (Config.True)
+        if (Config.False)
         {
             // remap intra-page html links ("a") to local files
             remapRelativePageLinks();
         }
 
-        if (Config.False)
+        if (Config.True)
         {
             loadExternalResources();
         }
@@ -568,7 +568,11 @@ public class MainScrapeArchiveOrg
                 }
                 updated |= b;
             }
-            // ### remap index.html to index.htm if original is dir
+            else
+            {
+                // remap relative index.html to index.htm if original is a directory
+                updated |= remapIndexFile(an, fullFilePath);
+            }
         }
 
         if (updated)
@@ -666,6 +670,33 @@ public class MainScrapeArchiveOrg
         else
             return null;
     }
+    
+    private boolean remapIndexFile(Node an, String fullHostingFilePath) throws Exception
+    {
+        String href = JSOUP.getAttribute(an, "href");
+        String original_href = JSOUP.getAttribute(an, "original-href");
+
+        // missing or absolute URI
+        if (href == null || href.contains(":") || href.startsWith("/"))
+            return false;
+        
+        if (!href.equals("index.html") && !href.endsWith("/index.html"))
+            return false;
+        
+        if (original_href == null || original_href.endsWith("index.html"))
+            return false;
+        
+        String ixref = Util.stripTail(href, "index.html") + "index.htm";
+        
+        File fp = new File(fullHostingFilePath).getCanonicalFile();
+        fp = new File(fp.getParentFile(), ixref.replace("/", File.separator));
+        if (!fp.exists() || !fp.isFile())
+            return false;
+        
+        JSOUP.updateAttribute(an, "href", ixref);
+
+        return true;
+    }
 
     /* ========================================================================================== */
 
@@ -744,6 +775,8 @@ public class MainScrapeArchiveOrg
 
     private void loadExternalResources(String fullFilePath, String fileRelPath) throws Exception
     {
+        Util.out("Loading external resources for file " + fileRelPath);
+
         ParserArchiveOrg parser = new ParserArchiveOrg();
         parser.pageSource = Util.readFileAsString(fullFilePath);
         String baseUrl = pageMap.get(fileRelPath);
@@ -780,9 +813,10 @@ public class MainScrapeArchiveOrg
         }
     }
 
-    private boolean loadExternalResource(Node an, String tag, String original_href, String loadedFileRelPath) throws Exception
+    private boolean loadExternalResource(Node an, String attr, String original_href, String loadedFileRelPath) throws Exception
     {
-        // ### degarbleTeleportPro
+        original_href = TeleportUrl.ungarbleTeleportUrl(original_href);
+
         /*
          * Unwrapped_href is used for resource naming, it is original URL before archival.
          * Whereas original_href is used for actual resource downloading.
@@ -791,7 +825,7 @@ public class MainScrapeArchiveOrg
         if (unwrapped_href == null)
             unwrapped_href = original_href;
 
-        if (!LinkDownloader.shouldDownload(unwrapped_href, tag.equalsIgnoreCase("a")))
+        if (!LinkDownloader.shouldDownload(unwrapped_href, attr.equalsIgnoreCase("href")))
             return false;
 
         String newref = LinkDownloader.download(linksDir, unwrapped_href, original_href, null, "");
@@ -799,10 +833,11 @@ public class MainScrapeArchiveOrg
         if (newref == null)
         {
             Util.err("Failed to download " + original_href);
+            Util.noop();
         }
         else
         {
-            Util.out("Downloaded " + original_href + " => " + newref);
+            // Util.out("Downloaded " + original_href + " => " + newref);
         }
 
         // ### try to download original_href 

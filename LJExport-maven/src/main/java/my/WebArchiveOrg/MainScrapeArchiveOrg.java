@@ -536,6 +536,8 @@ public class MainScrapeArchiveOrg
 
     private void remapRelativePageLinks(String fullFilePath, String fileRelPath) throws Exception
     {
+        Util.out("Remapping local page links in " + fileRelPath);
+        
         ParserArchiveOrg parser = new ParserArchiveOrg();
         parser.pageSource = Util.readFileAsString(fullFilePath);
         String baseUrl = pageMap.get(fileRelPath);
@@ -553,7 +555,7 @@ public class MainScrapeArchiveOrg
             {
                 Util.noop();
             }
-            
+
             href = TeleportUrl.ungarbleTeleportUrl(href);
 
             if (href != null && ArchiveOrgUrl.urlMatchesRoot(href, archiveOrgWebRoot, true))
@@ -591,14 +593,14 @@ public class MainScrapeArchiveOrg
 
         if (fp.isDirectory())
         {
-            Pair<File,String> p = findDirIndexFile(fp, linkRelPath);
+            Pair<File, String> p = findDirIndexFile(fp, linkRelPath);
             if (p == null)
                 return false;
             fp = p.getLeft();
             linkRelPath = p.getRight();
-        } 
+        }
 
-        String newref = RelativeLink.createRelativeLink(linkRelPath, loadedFileRelPath);
+        String newref = RelativeLink.createRelativeLink(encodeUnsafeFileNameChars(linkRelPath), loadedFileRelPath);
 
         if (anchor != null)
             newref += anchor;
@@ -618,17 +620,17 @@ public class MainScrapeArchiveOrg
 
         return true;
     }
-    
-    private Pair<File,String> findDirIndexFile(File fp, String linkRelPath)
+
+    private Pair<File, String> findDirIndexFile(File fp, String linkRelPath)
     {
         // index.htm if exists otherwise index.html if exists
-        Pair<File,String> p = findDirIndexFile(fp, linkRelPath, "index.htm");
+        Pair<File, String> p = findDirIndexFile(fp, linkRelPath, "index.htm");
         if (p == null)
             p = findDirIndexFile(fp, linkRelPath, "index.html");
         return p;
     }
-    
-    private Pair<File,String> findDirIndexFile(File fp, String linkRelPath, String indexFile)
+
+    private Pair<File, String> findDirIndexFile(File fp, String linkRelPath, String indexFile)
     {
         if (linkRelPath.length() == 0)
             linkRelPath += "index.html";
@@ -637,8 +639,8 @@ public class MainScrapeArchiveOrg
 
         fp = new File(pagesDir + File.separator + encodeUnsafeFileNameChars(linkRelPath.replace("/", File.separator)));
         if (fp.exists())
-            return Pair.of(fp,linkRelPath);
-        else 
+            return Pair.of(fp, encodeUnsafeFileNameChars(linkRelPath.replace(File.separator, "/")));
+        else
             return null;
     }
 
@@ -677,7 +679,7 @@ public class MainScrapeArchiveOrg
                 if (href != null)
                 {
                     href = TeleportUrl.ungarbleTeleportUrl(href);
-                    
+
                     if (href.startsWith("http://web.archive.org/"))
                     {
                         Util.err("Unexpected link:" + href);

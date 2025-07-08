@@ -706,9 +706,9 @@ public abstract class PageParser
 
     abstract protected String getPageSource() throws Exception;
 
-    public void downloadExternalLinks(Node root, String linksDir) throws Exception
+    public void downloadExternalLinks(Node root) throws Exception
     {
-        if (linksDir == null || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
+        if (Main.linkDownloader == null || !Main.linkDownloader.isInitialized()  || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
             return;
         
         applyProtocolAndBaseDefaults(root);
@@ -718,11 +718,11 @@ public abstract class PageParser
         unwrapImgPrx(root, "a", "href");
         unwrapImgPrx(root, "a", "original-href");
 
-        downloadExternalLinks(root, linksDir, "a", "href", true);
-        downloadExternalLinks(root, linksDir, "img", "src", false);
+        downloadExternalLinks(root, "a", "href", true);
+        downloadExternalLinks(root, "img", "src", false);
     }
 
-    private void downloadExternalLinks(Node root, String linksDir, String tag, String attr, boolean filterDownloadFileTypes)
+    private void downloadExternalLinks(Node root, String tag, String attr, boolean filterDownloadFileTypes)
             throws Exception
     {
         for (Node n : JSOUP.findElements(root, tag))
@@ -732,7 +732,7 @@ public abstract class PageParser
             if (Main.linkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
                 String referer = LJUtil.recordPageURL(rurl);
-                String newref = Main.linkDownloader.download(linksDir, href, referer, LinkDownloader.LINK_REFERENCE_PREFIX_PAGES);
+                String newref = Main.linkDownloader.download(href, referer, LinkDownloader.LINK_REFERENCE_PREFIX_PAGES);
                 if (newref != null)
                 {
                     JSOUP.updateAttribute(n, attr, newref);

@@ -7,10 +7,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,8 +15,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.html.JSOUP;
-import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.links.LinkDownloader;
 import my.WebArchiveOrg.ParserArchiveOrg;
 
 public class StyleManager
@@ -27,8 +24,7 @@ public class StyleManager
     private final String styleCatalogDir;
 
     private String styleDir;
-    private FileBackedMap href2file = new FileBackedMap();
-    private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private LinkDownloader linkManager = new LinkDownloader(); 
 
     public StyleManager(String styleCatalogDir) throws Exception
     {
@@ -118,14 +114,13 @@ public class StyleManager
             styleDir = targetDir.getCanonicalPath();
         }
 
-        href2file.init(styleDir + File.separator + "map-href-file.txt");
+        linkManager.init(styleDir);
     }
 
     public synchronized void close() throws Exception
     {
-        href2file.close();
-        failedSet.clear();
         styleDir = null;
+        linkManager.close();
     }
 
     public void processHtmlFile(String htmlFilePath) throws Exception
@@ -204,6 +199,8 @@ public class StyleManager
                 return false;
             throw new Exception("Unexpected link.href: " + href);
         }
+        
+        // ### linkManager.download
         
         // ### download styles
         // ### check they have no imports

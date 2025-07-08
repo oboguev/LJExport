@@ -41,6 +41,7 @@ public class LinkDownloader
 
     private FileBackedMap href2file = new FileBackedMap();
     private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private String linksDir;
 
     public synchronized void init(String linksDir) throws Exception
     {
@@ -48,17 +49,24 @@ public class LinkDownloader
         href2file.close();
         href2file.init(linksDir + File.separator + "map-href-file.txt");
         failedSet.clear();
+        this.linksDir = linksDir;
     }
     
     public synchronized void close() throws Exception
     {
+        linksDir = null;
         href2file.close();
         failedSet.clear();
     }
-
-    public String download(String linksDir, String href, String referer, String linkReferencePrefix)
+    
+    public boolean isInitialized()
     {
-        return download(linksDir, href, href, referer, linkReferencePrefix);
+        return linksDir != null;
+    }
+
+    public String download(String href, String referer, String linkReferencePrefix)
+    {
+        return download(href, href, referer, linkReferencePrefix);
     }
 
     /*
@@ -70,7 +78,7 @@ public class LinkDownloader
      * download_href is archived url such as https://web.archive.org/web/20160528141306/http:/nationalism.org/library/science/politics/golosov/golosov-cpcs-2002.pdf
      * and name_href is http://nationalism.org/library/science/politics/golosov/golosov-cpcs-2002.pdf
      */
-    public String download(String linksDir, String name_href, String download_href, String referer,
+    public String download(String name_href, String download_href, String referer,
             String linkReferencePrefix)
     {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);

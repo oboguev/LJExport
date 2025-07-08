@@ -25,7 +25,6 @@ import my.LJExport.runtime.Web.Response;
 public class PageReaderDirect implements PageReader, PageContentSource
 {
     private final String fileDir;
-    private final String linksDir;
 
     private PageParserDirectBase parser;
 
@@ -42,7 +41,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
      */
     private static final boolean UseEmbeddedComments = false;
 
-    public PageReaderDirect(String rurl, String fileDir, String linksDir)
+    public PageReaderDirect(String rurl, String fileDir)
     {
         parser = new PageParserDirectClassic(this);
 
@@ -66,7 +65,6 @@ public class PageReaderDirect implements PageReader, PageContentSource
         parser.rurl = rurl;
         parser.rid = rurl.substring(0, rurl.indexOf('.'));
         this.fileDir = fileDir + File.separator;
-        this.linksDir = linksDir;
     }
 
     @Override
@@ -170,7 +168,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
         Thread.currentThread().setName(threadName);
 
-        parser.downloadExternalLinks(firstPageRoot, linksDir, AbsoluteLinkBase.User);
+        parser.downloadExternalLinks(firstPageRoot, AbsoluteLinkBase.User);
         parser.pageSource = JSOUP.emitHtml(firstPageRoot);
         Util.writeToFileSafe(fileDir + parser.rid + ".html", parser.pageSource);
 

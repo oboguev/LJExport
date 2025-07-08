@@ -632,7 +632,7 @@ public class Main
                 switch (Config.Method)
                 {
                 case SELENIUM:
-                    reader = new PageReaderSelenium(rurl, pageDir, linksDir, seleniumContext);
+                    reader = new PageReaderSelenium(rurl, pageDir, seleniumContext);
                     break;
 
                 case HTML_UNIT:
@@ -644,7 +644,7 @@ public class Main
                     break;
 
                 case DIRECT:
-                    reader = new PageReaderDirect(rurl, pageDir, linksDir);
+                    reader = new PageReaderDirect(rurl, pageDir);
                     break;
                 }
 

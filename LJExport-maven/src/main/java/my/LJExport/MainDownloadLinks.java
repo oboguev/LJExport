@@ -205,7 +205,7 @@ public class MainDownloadLinks
             parser.pageSource = Util.readFileAsString(pageFileFullPath);
             parser.parseHtml(parser.pageSource);
 
-            if (parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User))
+            if (parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.User))
             {
                 String newPageSource = JSOUP.emitHtml(parser.pageRoot);
                 Util.writeToFileSafe(pageFileFullPath, newPageSource);

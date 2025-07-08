@@ -45,7 +45,6 @@ public class PageReaderSelenium extends PageParser implements PageReader
 
     private RemoteWebDriver driver;
     private String fileDir;
-    private String linksDir;
 
     final private boolean saveAsSinglePage = true;
 
@@ -110,8 +109,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
                 driver.manage().window().setPosition(new org.openqa.selenium.Point(30, 30));
             }
 
-            PageReaderSelenium reader = new PageReaderSelenium("http://" + Config.Site + "/login.bml", null, null,
-                                                               new Context(driver, false));
+            PageReaderSelenium reader = new PageReaderSelenium("http://" + Config.Site + "/login.bml", null, new Context(driver, false));
             reader.driver = driver;
 
             // perform login
@@ -224,7 +222,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
         }
     }
 
-    public PageReaderSelenium(String rurl, String fileDir, String linksDir, Context context)
+    public PageReaderSelenium(String rurl, String fileDir, Context context)
     {
         // rurl = "2106296.html"; // test: tor85 (no comments)  
         // rurl = "175603.html";  // test: a_bugaev (comments disabled)
@@ -234,7 +232,6 @@ public class PageReaderSelenium extends PageParser implements PageReader
         this.rurl = rurl;
         this.rid = rurl.substring(0, rurl.indexOf('.'));
         this.fileDir = fileDir + File.separator;
-        this.linksDir = linksDir;
         this.driver = context.driver;
     }
 
@@ -273,7 +270,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
                 mergeComments(firstPageRoot);
             }
 
-            downloadExternalLinks(firstPageRoot, linksDir);
+            downloadExternalLinks(firstPageRoot);
             pageSource = JSOUP.emitHtml(firstPageRoot);
             Util.writeToFileSafe(fileDir + rid + ".html", pageSource);
         }
@@ -314,7 +311,7 @@ public class PageReaderSelenium extends PageParser implements PageReader
         if (pageRoot == null)
             parseHtml();
         removeJunk(flags);
-        downloadExternalLinks(pageRoot, linksDir);
+        downloadExternalLinks(pageRoot);
         return JSOUP.emitHtml(pageRoot);
     }
 

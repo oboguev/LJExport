@@ -140,7 +140,7 @@ public class ReadProfile
         }
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
+        parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.User);
 
         String html = JSOUP.emitHtml(parser.pageRoot);
         if (!fpProfileDir.exists())
@@ -182,7 +182,7 @@ public class ReadProfile
         }
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.WWW_Livejournal);
+        parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.WWW_Livejournal);
 
         String html = JSOUP.emitHtml(parser.pageRoot);
         if (!fpProfileDir.exists())
@@ -223,7 +223,7 @@ public class ReadProfile
         JSOUP.removeElements(pageRoot, JSOUP.findElements(pageRoot, "form"));
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.WWW_Livejournal);
+        parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.WWW_Livejournal);
 
         File fpMemoriesDir = new File(fpProfileDir, "memories").getCanonicalFile();
         if (fpMemoriesDir.exists())
@@ -315,7 +315,7 @@ public class ReadProfile
         JSOUP.removeElements(parser.pageRoot, delvec);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.from(finalUrl.get()));
+        parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.from(finalUrl.get()));
 
         remapPageLinksToLocalFiles(parser.pageRoot);
 
@@ -537,7 +537,7 @@ public class ReadProfile
         combinePagerPages(parser.pageRoot, "picture catalog");
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
+        parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.User);
 
         Set<String> userBases = userBases();
         CaseCollisions cc = new CaseCollisions();
@@ -691,7 +691,7 @@ public class ReadProfile
         combinePagerPages(parser.pageRoot, "picture album " + title);
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
-        parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
+        parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.User);
 
         loadImageAlbumPictures(parser.pageRoot, linksDir, title);
 
@@ -742,7 +742,7 @@ public class ReadProfile
                     PageParserDirectBase parser = prepareImagesPage(href, Config.User + " - Pictures - " + albumTitle);
                     deletePagers(parser.pageRoot);
                     parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_2);
-                    parser.downloadExternalLinks(parser.pageRoot, linksDir, AbsoluteLinkBase.User);
+                    parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.User);
                     String html = JSOUP.emitHtml(parser.pageRoot);
 
                     if (!fp.getParentFile().exists())

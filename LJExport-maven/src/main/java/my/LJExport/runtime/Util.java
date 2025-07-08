@@ -314,11 +314,11 @@ public class Util
     }
 
     /*
-     * Read list of strings from file.  
+     * Read set of strings from file.  
      */
     public static Set<String> read_set(String path) throws Exception
     {
-        Set<String> ws = new HashSet<String>();
+        Set<String> ws = new HashSet<>();
 
         String rs = loadResource(path) + "\n";
         rs = rs.replace("\r", "");
@@ -371,6 +371,27 @@ public class Util
         Util.writeToFileSafe(path, sb.toString());
     }
 
+    /*
+     * Read list of strings from file.  
+     */
+    public static List<String> read_list(String path) throws Exception
+    {
+        List<String> ws = new ArrayList<>();
+
+        String rs = loadResource(path) + "\n";
+        rs = rs.replace("\r", "");
+        for (String line : rs.split("\n"))
+        {
+            line = stripComment(line);
+            line = despace(line);
+            if (line.equals(" ") || line.length() == 0 || line.startsWith("#"))
+                continue;
+            ws.add(line);
+        }
+
+        return ws;
+    }
+    
     public static String stripComment(String s) throws Exception
     {
         int k = s.indexOf('#');

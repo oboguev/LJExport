@@ -16,6 +16,7 @@ import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectDreamwidthOrg;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.styles.StyleProcessor;
 
 /*
  * Collects posts within a month with various styles.
@@ -215,6 +216,9 @@ public class MonthCollectors
                 mc.parser.remapLocalRelativeLinks(
                         LinkDownloader.LINK_REFERENCE_PREFIX_PAGES,
                         LinkDownloader.LINK_REFERENCE_PREFIX_MONTHLY_PAGES);
+                
+                StyleProcessor.relocaleLocalHtmlStyleReferences(mc.parser.pageRoot, -1);
+                
             }
             String monthlyPageSource = JSOUP.emitHtml(mc.parser.pageRoot);
 

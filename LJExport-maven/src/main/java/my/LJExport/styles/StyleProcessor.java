@@ -6,13 +6,22 @@ import my.LJExport.runtime.Util;
 
 public class StyleProcessor
 {
-    public static void processAllHtmlFiles(String styleCatalogDir, String htmlPagesRootDir) throws Exception
+    public enum StyleProcessorAction
+    {
+        /* load remote styles to local repository and patch HTML files to reference local copies */
+        TO_LOCAL,  
+        
+        /* revert the change to HTML files */
+        REVERT
+    }
+    
+    public static void processAllHtmlFiles(String styleCatalogDir, String htmlPagesRootDir, StyleProcessorAction action) throws Exception
     {
         StyleManager styleManager = new StyleManager(styleCatalogDir);
         try
         {
             styleManager.init();
-            processAllHtmlFiles(styleManager, htmlPagesRootDir);
+            processAllHtmlFiles(styleManager, htmlPagesRootDir, action);
         }
         finally
         {
@@ -20,7 +29,7 @@ public class StyleProcessor
         }
     }
     
-    public static void processAllHtmlFiles(StyleManager styleManager, String htmlPagesRootDir) throws Exception
+    public static void processAllHtmlFiles(StyleManager styleManager, String htmlPagesRootDir, StyleProcessorAction action) throws Exception
     {
         while (htmlPagesRootDir.endsWith(File.separator))
             htmlPagesRootDir= Util.stripTail(htmlPagesRootDir, File.separator);
@@ -32,7 +41,7 @@ public class StyleProcessor
         for (String relPath : Util.enumerateAnyHtmlFiles(htmlPagesRootDir))
         {
             String path = htmlPagesRootDir + File.separator + relPath;
-            styleManager.processHtmlFile(path);
+            styleManager.processHtmlFile(path, action);
         }
     }
 }

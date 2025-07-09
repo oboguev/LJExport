@@ -63,6 +63,11 @@ public class LinkDownloader
     {
         return linksDir != null;
     }
+    
+    public String getLinksDir()
+    {
+        return linksDir;
+    }
 
     public String download(String href, String referer, String linkReferencePrefix)
     {

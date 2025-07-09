@@ -22,6 +22,7 @@ import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Web.Response;
 import my.LJExport.runtime.links.RelativeLink;
 import my.LJExport.styles.StyleProcessor;
+import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
 import my.WebArchiveOrg.customize.Exclude;
 
 /*
@@ -911,6 +912,6 @@ public class MainScrapeArchiveOrg
 
     private void loadStyles() throws Exception
     {
-        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, pagesDir);
+        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, pagesDir, StyleProcessorAction.TO_LOCAL);
     }
 }

@@ -11,20 +11,22 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
-
+import my.LJExport.Config;
 import my.LJExport.html.JSOUP;
+import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.WebArchiveOrg.ParserArchiveOrg;
+import my.LJExport.runtime.synch.InterprocessLock;
+import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
 
 public class StyleManager
 {
     private final String styleCatalogDir;
 
     private String styleDir;
-    private LinkDownloader linkManager = new LinkDownloader(); 
+    private LinkDownloader linkDownloader = new LinkDownloader();
+    private InterprocessLock styleRepositoryLock;
+    static final String StyleManagerSignature = "ljexport-style-manager";
 
     public StyleManager(String styleCatalogDir) throws Exception
     {
@@ -114,55 +116,48 @@ public class StyleManager
             styleDir = targetDir.getCanonicalPath();
         }
 
-        linkManager.init(styleDir);
+        linkDownloader.init(styleDir);
+
+        styleRepositoryLock = new InterprocessLock(styleDir + File.separator + "repository.lock");
     }
 
     public synchronized void close() throws Exception
     {
         styleDir = null;
-        linkManager.close();
+        linkDownloader.close();
+
+        if (styleRepositoryLock != null)
+        {
+            styleRepositoryLock.close();
+            styleRepositoryLock = null;
+        }
     }
 
-    public void processHtmlFile(String htmlFilePath) throws Exception
+    public void processHtmlFile(String htmlFilePath, StyleProcessorAction action) throws Exception
     {
         try
         {
-            ParserArchiveOrg parser = new ParserArchiveOrg();
+            PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
             parser.pageSource = Util.readFileAsString(htmlFilePath);
             parser.parseHtml();
 
             boolean updated = false;
-
-            // ### style tags
-            // ### <style>
-            // ### @import url("other.css");
-            // ### </style>
-
-            // ### <p style="color: blue; font-weight: bold;"> can have @import?
-
-            //   <link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=1B2M2Y8A"> 
-            for (Node n : JSOUP.findElements(parser.findHead(), "link"))
+            
+            switch (action)
             {
-                String rel = JSOUP.getAttribute(n, "rel");
-                String type = JSOUP.getAttribute(n, "type");
-                String href = JSOUP.getAttribute(n, "href");
+            case TO_LOCAL:
+                updated = new StyleActionToLocal(styleDir, linkDownloader, styleRepositoryLock).processHtmlFileToLocal(htmlFilePath, parser);
+                break;
 
-                if (rel == null || !relContainsStylesheet(rel))
-                    continue;
-
-                if (!rel.trim().equalsIgnoreCase("stylesheet"))
-                    throw new Exception("Unexpected value of link.rel: " + rel);
-
-                if (href == null)
-                    throw new Exception("Unexpected value of link.href: " + null);
-
-                if (type == null || type.trim().equalsIgnoreCase("text/css"))
-                    updated |= processStyleLink(JSOUP.asElement(n), href, htmlFilePath);
+            case REVERT:
+                updated = new StyleActionRevert().processHtmlFileRevert(htmlFilePath, parser);
+                break;
             }
 
-            if (updated)
+            if (updated && Config.False) // ###
             {
-                // ### emit html and safe-save
+                String html = JSOUP.emitHtml(parser.pageRoot);
+                Util.writeToFileSafe(htmlFilePath, html);
             }
         }
         catch (Exception ex)
@@ -170,45 +165,4 @@ public class StyleManager
             throw new Exception("While processing styles for " + htmlFilePath, ex);
         }
     }
-
-    public boolean relContainsStylesheet(String relValue)
-    {
-        if (relValue != null)
-        {
-            String[] tokens = relValue.trim().toLowerCase().split("\\s+");
-            for (String token : tokens)
-            {
-                if ("stylesheet".equals(token))
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean processStyleLink(Element el, String href, String htmlFilePath) throws Exception
-    {
-        if (href.toLowerCase().startsWith("http://") || href.toLowerCase().startsWith("https://"))
-        {
-            // do process
-        }
-        else
-        {
-            String generatedBy = JSOUP.getAttribute(el, "generated-by");
-            if (generatedBy != null && generatedBy.equals("ljexport-style-manager"))
-                return false;
-            throw new Exception("Unexpected link.href: " + href);
-        }
-        
-        // ### linkManager.download
-        
-        // ### download styles
-        // ### check they have no imports
-        // ### add new link tags <link rel="stylesheet" href="..." type="text/css" generated-by="ljexport-style-manager">
-        // ### change original to <link rel="original-stylesheet" original-href="..." original-type="..."> and delete href and type
-        // ### return true
-        return false;
-    }
-    
-    /* ================================================================================== */
 }

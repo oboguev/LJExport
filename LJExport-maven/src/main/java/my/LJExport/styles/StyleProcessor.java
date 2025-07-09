@@ -2,6 +2,8 @@ package my.LJExport.styles;
 
 import java.io.File;
 
+import org.jsoup.nodes.Node;
+
 import my.LJExport.runtime.Util;
 
 public class StyleProcessor
@@ -45,5 +47,19 @@ public class StyleProcessor
             String path = htmlPagesRootDir + File.separator + relPath;
             styleManager.processHtmlFile(path, action, baseURL);
         }
+    }
+    
+    /*
+     * For all links to local styles, i.e. ../../{repeat}/../styles/remainder
+     * add or remove preceding ../ as follows:
+     * 
+     * deltaLevel = +2   add ../../ 
+     * deltaLevel = +1   add ../ 
+     * deltaLevel = -1   remove ../ 
+     * deltaLevel = -2   remove ../../ 
+     */
+    public static boolean relocaleLocalHtmlStyleReferences(Node pageRoot, int deltaLevel) throws Exception
+    {
+        return new StyleActionRelocate().relocaleLocalHtmlStyleReferences(pageRoot, deltaLevel);
     }
 }

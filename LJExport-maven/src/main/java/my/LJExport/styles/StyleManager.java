@@ -33,8 +33,14 @@ public class StyleManager
         while (styleCatalogDir.endsWith(File.separator))
             styleCatalogDir = Util.stripTail(styleCatalogDir, File.separator);
 
-        styleCatalogDir = new File(styleCatalogDir).getCanonicalPath();
+        File fp = new File(styleCatalogDir).getCanonicalFile();
+        styleCatalogDir = fp.getCanonicalPath();
+        if (fp.exists() && !fp.isDirectory())
+            throw new Exception("Not a directory: " + styleCatalogDir);
+        
         Util.mkdir(styleCatalogDir);
+        if (!fp.exists() || !fp.isDirectory())
+            throw new Exception("Unable to create directory: " + styleCatalogDir);
 
         this.styleCatalogDir = styleCatalogDir;
     }
@@ -164,5 +170,16 @@ public class StyleManager
         {
             throw new Exception("While processing styles for " + htmlFilePath, ex);
         }
+    }
+    
+    public static boolean isHtmlReferenceToLocalStyle(String href)
+    {
+        if (!href.startsWith("../"))
+            return false;
+
+        while (href.startsWith("../"))
+            href = href.substring("../".length());
+        
+        return href.startsWith("styles/");
     }
 }

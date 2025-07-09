@@ -108,6 +108,7 @@ public class MainStylesRevertToRemote
             processDir("reposts");
             processDir("monthly-pages");
             processDir("monthly-reposts");
+            processDir("profile");
             
             Main.out(">>> Completed reverting page styles back to server/remote for user " + Config.User);
         }
@@ -126,7 +127,7 @@ public class MainStylesRevertToRemote
         if (!which.equals("pages"))
         {
             File fp = new File(dir).getCanonicalFile();
-            if (!fp.exists())
+            if (!fp.exists() || !fp.isDirectory())
                 return;
         }
 

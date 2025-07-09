@@ -143,8 +143,13 @@ public class StyleManager
 
     public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl) throws Exception
     {
+        String threadName = Thread.currentThread().getName(); 
+                
         try
         {
+            String rurl = new File(htmlFilePath).getName();
+            Thread.currentThread().setName("processing styles " + rurl); 
+
             PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
             parser.pageSource = Util.readFileAsString(htmlFilePath);
             parser.parseHtml();
@@ -171,6 +176,10 @@ public class StyleManager
         catch (Exception ex)
         {
             throw new Exception("While processing styles for " + htmlFilePath, ex);
+        }
+        finally
+        {
+            Thread.currentThread().setName(threadName); 
         }
     }
     

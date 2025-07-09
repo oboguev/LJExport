@@ -912,6 +912,6 @@ public class MainScrapeArchiveOrg
 
     private void loadStyles() throws Exception
     {
-        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, pagesDir, StyleProcessorAction.TO_LOCAL);
+        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, pagesDir, StyleProcessorAction.TO_LOCAL, null);
     }
 }

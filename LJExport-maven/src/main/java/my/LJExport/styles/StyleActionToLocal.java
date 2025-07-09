@@ -38,8 +38,11 @@ public class StyleActionToLocal
         this.styleRepositoryLock = styleRepositoryLock;
     }
     
-    public boolean processHtmlFileToLocal(String htmlFilePath, PageParserDirectBasePassive parser) throws Exception
+    public boolean processHtmlFileToLocal(String htmlFilePath, PageParserDirectBasePassive parser, String htmlPageUrl) throws Exception
     {
+        if (htmlPageUrl != null && !Util.isAbsoluteURL(htmlPageUrl))
+            throw new IllegalArgumentException("HTML page URL is not absolute: " + htmlPageUrl);
+        
         boolean updated = false;
 
         // ### inline style tags
@@ -53,8 +56,11 @@ public class StyleActionToLocal
         // ### <p style="color: blue; font-weight: bold;"> can have @import or url:?
         // ### use InterprocessLock for locking
 
+        /*
+         * LINK tags
+         */
         //   <link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=1B2M2Y8A"> 
-        for (Node n : JSOUP.findElements(parser.findHead(), "link"))
+        for (Node n : JSOUP.findElements(parser.pageRoot, "link"))
         {
             String generated_by = JSOUP.getAttribute(n, "generated-by");
             if (generated_by != null && generated_by.trim().equalsIgnoreCase(StyleManagerSignature))
@@ -64,6 +70,7 @@ public class StyleActionToLocal
             if (suppressed_by != null && suppressed_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
 
+            /* tag not processed yet*/
             String rel = JSOUP.getAttribute(n, "rel");
             String type = JSOUP.getAttribute(n, "type");
             String href = JSOUP.getAttribute(n, "href");
@@ -80,9 +87,41 @@ public class StyleActionToLocal
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
                 updated |= processStyleLink(JSOUP.asElement(n), href, htmlFilePath);
         }
+        
+        /*
+         * STYLE tags
+         */
+        for (Node n : JSOUP.findElements(parser.pageRoot, "style"))
+        {
+            String generated_by = JSOUP.getAttribute(n, "generated-by");
+            if (generated_by != null && generated_by.trim().equalsIgnoreCase(StyleManagerSignature))
+                continue;
+
+            String suppressed_by = JSOUP.getAttribute(n, "suppressed-by");
+            if (suppressed_by != null && suppressed_by.trim().equalsIgnoreCase(StyleManagerSignature))
+                continue;
+            
+            /* tag not processed yet*/
+            // ###
+        }
+        
+        /*
+         * STYLE attribute on regular tags
+         */
+        for (Node n : JSOUP.findElements(parser.pageRoot))
+        {
+            String style_altered_by = JSOUP.getAttribute(n, "style-altered-by");
+            if (style_altered_by != null && style_altered_by.trim().equalsIgnoreCase(StyleManagerSignature))
+                continue;
+            
+            /* tag not processed yet*/
+            // ###
+        }        
 
         return updated;
     }
+
+    /* ================================================================================== */
 
     public boolean relContainsStylesheet(String relValue)
     {

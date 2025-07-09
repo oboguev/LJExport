@@ -8,6 +8,12 @@ public class ArchiveOrgUrl
     private static final String ARCHIVE_PREFIX_HTTPS = "https://web.archive.org/web/";
     private static final String ARCHIVE_PREFIX_HTTP = "https://web.archive.org/web/";
 
+    public static boolean isArchiveOrgUrl(String url)
+    {
+        String lc = url.toLowerCase();
+        return lc.startsWith(ARCHIVE_PREFIX_HTTP) || lc.startsWith(ARCHIVE_PREFIX_HTTPS);
+    }
+
     /*
      * Check for matching except the timestamp, e.g.:
      * https://web.archive.org/web/20160404043545/http://nationalism.org/aziopa/berdyayev2.htm
@@ -21,7 +27,8 @@ public class ArchiveOrgUrl
         if (!url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP) && !url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
             return false;
 
-        if (!archiveOrgRoot.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP) && !archiveOrgRoot.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
+        if (!archiveOrgRoot.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP)
+                && !archiveOrgRoot.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
             return false;
 
         String urlRest = extractArchivedUrlPart(url);

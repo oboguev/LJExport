@@ -133,7 +133,7 @@ public class StyleManager
         }
     }
 
-    public void processHtmlFile(String htmlFilePath, StyleProcessorAction action) throws Exception
+    public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl) throws Exception
     {
         try
         {
@@ -146,7 +146,7 @@ public class StyleManager
             switch (action)
             {
             case TO_LOCAL:
-                updated = new StyleActionToLocal(styleDir, linkDownloader, styleRepositoryLock).processHtmlFileToLocal(htmlFilePath, parser);
+                updated = new StyleActionToLocal(styleDir, linkDownloader, styleRepositoryLock).processHtmlFileToLocal(htmlFilePath, parser, htmlPageUrl);
                 break;
 
             case REVERT:

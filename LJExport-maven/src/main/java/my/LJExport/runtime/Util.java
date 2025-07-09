@@ -900,6 +900,37 @@ public class Util
         }
     }
 
+    public static boolean isAbsoluteURL(String url)
+    {
+        try
+        {
+            if (url == null || url.trim().isEmpty())
+                return false;
+            
+            URI uri = new URI(url.trim());
+            
+            if (uri.getScheme() == null || uri.getHost() == null)
+                return false;
+            
+            switch (uri.getScheme().toLowerCase())
+            {
+            case "http":
+            case "https":
+                break;
+
+            default:
+                throw new RuntimeException("Unexpected scheme " + uri.getScheme() + "://") ;
+            
+            }
+            
+            return 0 != uri.getHost().trim().length();
+        }
+        catch (URISyntaxException e)
+        {
+            return false;
+        }
+    }
+
     private static boolean equalsIgnoreCase(String a, String b)
     {
         return (a == null && b == null) || (a != null && a.equalsIgnoreCase(b));

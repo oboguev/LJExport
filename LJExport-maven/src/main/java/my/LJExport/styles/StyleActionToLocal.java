@@ -26,35 +26,27 @@ import my.LJExport.runtime.synch.InterprocessLock;
 public class StyleActionToLocal
 {
     private static final String StyleManagerSignature = StyleManager.StyleManagerSignature;
-    
+    private static final String GeneratedBy = StyleManager.GeneratedBy;
+    private static final String SuppressedBy = StyleManager.SuppressedBy;
+
     private final String styleDir;
     private final LinkDownloader linkDownloader;
     private final InterprocessLock styleRepositoryLock;
-    
+
     public StyleActionToLocal(String styleDir, LinkDownloader linkDownloader, InterprocessLock styleRepositoryLock)
     {
         this.styleDir = styleDir;
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
     }
-    
-    public boolean processHtmlFileToLocal(String htmlFilePath, PageParserDirectBasePassive parser, String htmlPageUrl) throws Exception
+
+    public boolean processHtmlFileToLocal(String htmlFilePath, PageParserDirectBasePassive parser, String htmlPageUrl)
+            throws Exception
     {
         if (htmlPageUrl != null && !Util.isAbsoluteURL(htmlPageUrl))
             throw new IllegalArgumentException("HTML page URL is not absolute: " + htmlPageUrl);
-        
+
         boolean updated = false;
-
-        // ### inline style tags
-        // ### <style>
-        // ### @import url("other.css");
-        // ### </style>
-        // ### use InterprocessLock for locking
-        // ### change to <style type="text/StyleManagerSignature-suppressed-css">
-
-        // ### style attributes on regular tags 
-        // ### <p style="color: blue; font-weight: bold;"> can have @import or url:?
-        // ### use InterprocessLock for locking
 
         /*
          * LINK tags
@@ -62,11 +54,11 @@ public class StyleActionToLocal
         //   <link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=1B2M2Y8A"> 
         for (Node n : JSOUP.findElements(parser.pageRoot, "link"))
         {
-            String generated_by = JSOUP.getAttribute(n, "generated-by");
+            String generated_by = JSOUP.getAttribute(n, GeneratedBy);
             if (generated_by != null && generated_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
 
-            String suppressed_by = JSOUP.getAttribute(n, "suppressed-by");
+            String suppressed_by = JSOUP.getAttribute(n, SuppressedBy);
             if (suppressed_by != null && suppressed_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
 
@@ -86,25 +78,35 @@ public class StyleActionToLocal
 
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
                 updated |= processStyleLink(JSOUP.asElement(n), href, htmlFilePath);
+
+            // ### original: set original-rel, set original-href, set original-type (if type exists), set suppressed-by, change rel=original-stylesheet
+            // ###           check initially has no original-rel/href/type and no suppressed-by or generated-by
+            // ### new: set rel, href, type (if type exists or text/css), set generated-by, copy other attributes from original
+            // ### insert new after original
         }
-        
+
         /*
          * STYLE tags
          */
         for (Node n : JSOUP.findElements(parser.pageRoot, "style"))
         {
-            String generated_by = JSOUP.getAttribute(n, "generated-by");
+            String generated_by = JSOUP.getAttribute(n, GeneratedBy);
             if (generated_by != null && generated_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
 
-            String suppressed_by = JSOUP.getAttribute(n, "suppressed-by");
+            String suppressed_by = JSOUP.getAttribute(n, SuppressedBy);
             if (suppressed_by != null && suppressed_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
-            
+
             /* tag not processed yet*/
             // ###
+
+            // ### original tag: set suppressed-by, save type to original-type (if not null) and change type="text/StyleManagerSignature-suppressed-css" 
+            // ###           check initially has no original-type and no suppressed-by or generated-by
+            // ### new tag: copy type and other attributes, apply generated-by
+            // ### copy inner content from original to new and insert new after original 
         }
-        
+
         /*
          * STYLE attribute on regular tags
          */
@@ -113,12 +115,24 @@ public class StyleActionToLocal
             String style_altered_by = JSOUP.getAttribute(n, "style-altered-by");
             if (style_altered_by != null && style_altered_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
-            
+
             /* tag not processed yet*/
-            // ###
-        }        
+            // ### check has no original-style
+            // ### save style to original-style
+            // ### update style
+        }
 
         return updated;
+
+        // ### <style>
+        // ### @import url("other.css");
+        // ### </style>
+        // ### use InterprocessLock for locking
+        // ### change to <style type="text/StyleManagerSignature-suppressed-css">
+
+        // ### style attributes on regular tags 
+        // ### <p style="color: blue; font-weight: bold;"> can have @import or url:?
+        // ### use InterprocessLock for locking
     }
 
     /* ================================================================================== */
@@ -146,7 +160,7 @@ public class StyleActionToLocal
         }
         else
         {
-            String generatedBy = JSOUP.getAttribute(el, "generated-by");
+            String generatedBy = JSOUP.getAttribute(el, GeneratedBy);
             if (generatedBy != null && generatedBy.equals(StyleManagerSignature))
                 return false;
             throw new Exception("Unexpected link.href: " + href);

@@ -8,6 +8,8 @@ import my.LJExport.runtime.Util;
 public class StyleActionRelocate
 {
     private static final String StyleManagerSignature = StyleManager.StyleManagerSignature;
+    private static final String GeneratedBy = StyleManager.GeneratedBy;
+    // private static final String SuppressedBy = StyleManager.SuppressedBy;
 
     /*
      * For all links to local styles, i.e. ../../{repeat}/../styles/remainder
@@ -28,9 +30,10 @@ public class StyleActionRelocate
         /*
          * LINK tags
          */
+        //   <link rel="stylesheet" type="text/css" href="../../../styles/remainder" generated-by="...."> 
         for (Node n : JSOUP.findElements(pageRoot, "link"))
         {
-            String generated_by = JSOUP.getAttribute(n, "generated-by");
+            String generated_by = JSOUP.getAttribute(n, GeneratedBy);
             if (generated_by == null || !generated_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
 
@@ -49,7 +52,7 @@ public class StyleActionRelocate
          */
         for (Node n : JSOUP.findElements(pageRoot, "style"))
         {
-            String generated_by = JSOUP.getAttribute(n, "generated-by");
+            String generated_by = JSOUP.getAttribute(n, GeneratedBy);
             if (generated_by == null || !generated_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
 

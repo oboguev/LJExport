@@ -27,6 +27,8 @@ public class StyleManager
     private LinkDownloader linkDownloader = new LinkDownloader();
     private InterprocessLock styleRepositoryLock;
     static final String StyleManagerSignature = "ljexport-style-manager";
+    static final String GeneratedBy = "ljexport-generated-by";
+    static final String SuppressedBy = "ljexport-suppressed-by";
 
     public StyleManager(String styleCatalogDir) throws Exception
     {

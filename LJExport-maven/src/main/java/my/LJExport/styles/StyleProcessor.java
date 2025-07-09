@@ -17,7 +17,9 @@ public class StyleProcessor
         REVERT
     }
 
-    public static void processAllHtmlFiles(String styleCatalogDir, String htmlPagesRootDir, StyleProcessorAction action,
+    public static void processAllHtmlFiles(String styleCatalogDir,
+            String htmlPagesRootDir,
+            StyleProcessorAction action,
             String baseURL) throws Exception
     {
         StyleManager styleManager = new StyleManager(styleCatalogDir);
@@ -32,7 +34,9 @@ public class StyleProcessor
         }
     }
 
-    public static void processAllHtmlFiles(StyleManager styleManager, String htmlPagesRootDir, StyleProcessorAction action,
+    public static void processAllHtmlFiles(StyleManager styleManager,
+            String htmlPagesRootDir,
+            StyleProcessorAction action,
             String baseURL) throws Exception
     {
         while (htmlPagesRootDir.endsWith(File.separator))
@@ -48,7 +52,7 @@ public class StyleProcessor
             styleManager.processHtmlFile(path, action, baseURL);
         }
     }
-    
+
     /*
      * For all links to local styles, i.e. ../../{repeat}/../styles/remainder
      * add or remove preceding ../ as follows:

@@ -8,6 +8,8 @@ import my.LJExport.readers.direct.PageParserDirectBasePassive;
 public class StyleActionRevert
 {
     private static final String StyleManagerSignature = StyleManager.StyleManagerSignature;
+    private static final String GeneratedBy = StyleManager.GeneratedBy;
+    private static final String SuppressedBy = StyleManager.SuppressedBy;
 
     public boolean processHtmlFileRevert(String htmlFilePath, PageParserDirectBasePassive parser) throws Exception
     {
@@ -18,8 +20,8 @@ public class StyleActionRevert
          */
         for (Node n : JSOUP.findElements(parser.pageRoot, "link"))
         {
-            String suppressed_by = JSOUP.getAttribute(n, "suppressed-by");
-            String generated_by = JSOUP.getAttribute(n, "generated-by");
+            String suppressed_by = JSOUP.getAttribute(n, SuppressedBy);
+            String generated_by = JSOUP.getAttribute(n, GeneratedBy);
 
             if (generated_by != null && generated_by.trim().equalsIgnoreCase(StyleManagerSignature))
             {
@@ -52,7 +54,7 @@ public class StyleActionRevert
                 if (original_type != null)
                     JSOUP.deleteAttribute(n, "original-type");
                 JSOUP.deleteAttribute(n, "original-href");
-                JSOUP.deleteAttribute(n, "suppressed-by");
+                JSOUP.deleteAttribute(n, SuppressedBy);
 
                 updated = true;
             }
@@ -63,8 +65,8 @@ public class StyleActionRevert
          */
         for (Node n : JSOUP.findElements(parser.pageRoot, "style"))
         {
-            String suppressed_by = JSOUP.getAttribute(n, "suppressed-by");
-            String generated_by = JSOUP.getAttribute(n, "generated-by");
+            String suppressed_by = JSOUP.getAttribute(n, SuppressedBy);
+            String generated_by = JSOUP.getAttribute(n, GeneratedBy);
 
             if (generated_by != null && generated_by.trim().equalsIgnoreCase(StyleManagerSignature))
             {
@@ -81,7 +83,7 @@ public class StyleActionRevert
                     JSOUP.setAttribute(n, "type", original_type);
                     JSOUP.deleteAttribute(n, "original-type");
                 }
-                JSOUP.deleteAttribute(n, "suppressed-by");
+                JSOUP.deleteAttribute(n, SuppressedBy);
                 updated = true;
             }
         }

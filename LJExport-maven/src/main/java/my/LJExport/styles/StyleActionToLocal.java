@@ -78,6 +78,8 @@ public class StyleActionToLocal
 
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
                 updated |= processStyleLink(JSOUP.asElement(n), href, htmlFilePath);
+            
+            // ### can have baseUrl?
 
             // ### original: set original-rel, set original-href, set original-type (if type exists), set suppressed-by, change rel=original-stylesheet
             // ###           check initially has no original-rel/href/type and no suppressed-by or generated-by
@@ -99,7 +101,7 @@ public class StyleActionToLocal
                 continue;
 
             /* tag not processed yet*/
-            // ###
+            // ### can have baseUrl?
 
             // ### original tag: set suppressed-by, save type to original-type (if not null) and change type="text/StyleManagerSignature-suppressed-css" 
             // ###           check initially has no original-type and no suppressed-by or generated-by
@@ -117,6 +119,7 @@ public class StyleActionToLocal
                 continue;
 
             /* tag not processed yet*/
+            // ### can have baseUrl?
             // ### check has no original-style
             // ### save style to original-style
             // ### update style

@@ -1,5 +1,7 @@
 package my.LJExport.styles;
 
+import org.jsoup.nodes.DataNode;
+import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.html.JSOUP;
@@ -55,10 +57,20 @@ public class StyleActionRelocate
             String generated_by = JSOUP.getAttribute(n, GeneratedBy);
             if (generated_by == null || !generated_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
+            
+            Element el = JSOUP.asElement(n);
+            boolean isPureCss = el.children().isEmpty() && el.childNodeSize() == 1 && el.childNode(0) instanceof DataNode;
+            if (!isPureCss)
+                throw new Exception("STYLE has non-CSS content");
 
-            // ### inline
-
-            updated = true;
+            String css = el.data();
+            String newcss = relocateCss(css);
+            if (newcss != null)
+            {
+                el.empty(); // Remove existing content
+                el.appendChild(new DataNode(newcss, el.baseUri()));
+                updated = true;
+            }
         }
 
         /*
@@ -69,10 +81,14 @@ public class StyleActionRelocate
             String style_altered_by = JSOUP.getAttribute(n, "style-altered-by");
             if (style_altered_by == null || !style_altered_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
-
-            // ### inline
-
-            updated = true;
+            
+            String css = JSOUP.getAttribute(n, "style");
+            String newcss = relocateCss(css);
+            if (newcss != null)
+            {
+                JSOUP.updateAttribute(n, "style", newcss);
+                updated = true;
+            }
         }
 
         return updated;
@@ -103,4 +119,10 @@ public class StyleActionRelocate
     }
 
     /* =================================================================================================== */
+    
+    private String relocateCss(String css) throws Exception
+    {
+        // ###
+        return null;
+    }
 }

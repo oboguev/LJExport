@@ -605,10 +605,9 @@ public class StyleActionToLocal
         String modified_style = resolveInlineStyleDependencies(original_style, htmlFilePath, htmlPageUrl);
         if (modified_style != null)
         {
-            // ### save style to original-style
-            // ### update style
-            // ### add AlteredBy
-
+            JSOUP.setAttribute(el, Original + "style", original_style);
+            JSOUP.updateAttribute(el, "style", modified_style);
+            JSOUP.setAttribute(el, AlteredBy, StyleManagerSignature);
             updated = true;
         }
 

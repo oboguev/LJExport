@@ -42,8 +42,8 @@ public class StyleActionToLocal
     private final LinkDownloader linkDownloader;
     private final IntraInterprocessLock styleRepositoryLock;
     private final FileBackedMap resolvedCSS;
-    private final List<URI> inprogress = new ArrayList<>();
     private final TxLog txLog;
+    private final List<URI> inprogress = new ArrayList<>();
 
     public StyleActionToLocal(LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock, FileBackedMap resolvedCSS,
             TxLog txLog)
@@ -95,7 +95,7 @@ public class StyleActionToLocal
 
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
             {
-                processStyleLink(JSOUP.asElement(n), href, htmlFilePath, htmlPageUrl);
+                processHtmlLinkTag(JSOUP.asElement(n), href, htmlFilePath, htmlPageUrl);
                 updated = true;
             }
         }
@@ -117,18 +117,11 @@ public class StyleActionToLocal
                 throw new Exception("Unexpected attributes in LINK tag");
 
             /* tag not processed yet*/
-
-            // ### <style>
-            // ### @import url("other.css");
-            // ### </style>
-            // ### use InterprocessLock for locking
-            // ### change to <style type="text/StyleManagerSignature-suppressed-css">
-
-            // ### original tag: set suppressed-by, save type to original-type (if not null) and change type="text/StyleManagerSignature-suppressed-css" 
-            // ###           check initially has no original-type and no suppressed-by or generated-by
-            // ### new tag: copy type and other attributes, apply generated-by
-            // ### copy inner content from original to new and insert new after original
-            // ### updated |= ....
+            String type = JSOUP.getAttribute(n, "type");
+            if (type == null || type.trim().equalsIgnoreCase("text/css"))
+            {
+                updated |= processHtmlStyleTag(JSOUP.asElement(n), htmlFilePath, htmlPageUrl);
+            }
         }
 
         /*
@@ -182,7 +175,7 @@ public class StyleActionToLocal
      * LINK tag
      */
     //   <link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=1B2M2Y8A"> 
-    private void processStyleLink(Element elLink, String hrefComposite, String htmlFilePath, String baseUrl) throws Exception
+    private void processHtmlLinkTag(Element elLink, String hrefComposite, String htmlFilePath, String baseUrl) throws Exception
     {
         List<String> hrefList = CssHelper.cssLinks(hrefComposite);
         Element elInsertAfter = elLink;
@@ -191,12 +184,12 @@ public class StyleActionToLocal
         {
             String href = hrefList.get(k);
             AtomicReference<Element> createdElement = new AtomicReference<>();
-            processStyleLink(elLink, href, htmlFilePath, baseUrl, elInsertAfter, k == hrefList.size() - 1, createdElement);
+            processHtmlLinkTag(elLink, href, htmlFilePath, baseUrl, elInsertAfter, k == hrefList.size() - 1, createdElement);
             elInsertAfter = createdElement.get();
         }
     }
 
-    private void processStyleLink(Element elLink, String href, String htmlFilePath, String baseUrl, Element elInsertAfter,
+    private void processHtmlLinkTag(Element elLink, String href, String htmlFilePath, String baseUrl, Element elInsertAfter,
             boolean updateElLink, AtomicReference<Element> createdElement) throws Exception
     {
         if (baseUrl == null && !Util.isAbsoluteURL(href))
@@ -209,10 +202,12 @@ public class StyleActionToLocal
             throw new Exception("Unexpected link.href: " + href);
         }
 
-        if (ArchiveOrgUrl.isArchiveOrgUrl(href))
+        String cssFileURL = Util.resolveURL(baseUrl, href);
+
+        if (ArchiveOrgUrl.isArchiveOrgUrl(cssFileURL))
             throw new Exception("Loading styles from Web Archive is not implemented");
 
-        String newref = resolvedCSS.getAnyUrlProtocol(href);
+        String newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
         if (newref == null)
         {
             // lock repository to avoid deadlocks while processing A.css and B.css referencing each other
@@ -235,12 +230,12 @@ public class StyleActionToLocal
                 /*
                  * Check if this CSS has already been adjusted on disk
                  */
-                newref = resolvedCSS.getAnyUrlProtocol(href);
+                newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
                 if (newref == null)
                 {
-                    newref = linkDownloader.download(href, null, "");
+                    newref = linkDownloader.download(cssFileURL, null, "");
                     if (newref == null)
-                        throw new Exception("Failed to download style URL: " + href);
+                        throw new Exception("Failed to download style URL: " + cssFileURL);
                     String cssFilePath = linkDownloader.rel2abs(newref);
 
                     /*
@@ -249,7 +244,7 @@ public class StyleActionToLocal
                     inprogress.clear();
 
                     String beforeCss = Util.readFileAsString(cssFilePath);
-                    String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, href, baseUrl);
+                    String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL);
                     if (modifiedCss != null)
                     {
                         String beforeFilePath = cssFilePath + "." + Util.uuid() + ".before";
@@ -264,17 +259,17 @@ public class StyleActionToLocal
                         txLog.writeLine(String.format("About to write a mapping to map file: %s%sfrom: %s%sto: %s",
                                 resolvedCSS.getPath(),
                                 System.lineSeparator(),
-                                href,
+                                cssFileURL,
                                 System.lineSeparator(),
                                 newref));
-                        resolvedCSS.put(href, newref);
+                        resolvedCSS.put(cssFileURL, newref);
                         txLog.writeLine(String.format("Wrote a mapping to %s", resolvedCSS.getPath()));
                         txLog.clear();
                         new File(beforeFilePath).delete();
                     }
                     else
                     {
-                        resolvedCSS.put(href, newref);
+                        resolvedCSS.put(cssFileURL, newref);
                     }
                 }
             }
@@ -366,17 +361,23 @@ public class StyleActionToLocal
 
     /* ================================================================================== */
 
-    private String resolveCssDependencies(String cssText, String cssFilePath, String cssFileURL, String baseUrl) throws Exception
+    /*
+     * cssText -- CSS content/text to process
+     * hostingFilePath -- path of either CSS file or HTML file containing cssText, in a local file system
+     * hostingFileURL -- original URL of hosting CSS/HTML file, used to resolve relative links in cssText     
+     */
+    private String resolveCssDependencies(String cssText, String hostingFilePath, String hostingFileURL) throws Exception
     {
-        // ### inprogress.add(new URI(href));
+        // ### inprogress.add(new URI(hostingFileURL));
         // ### keep a in-memory list of scans in progress, to detect recursion
         // ### check for recursion, isSame
         // ### on exit - finally -- pop
 
-        // ### check style at newref for imports
-        // ### background-image: url("https://www.dreamwidth.org/images/header-bg.png");
-        // ### @import url("https://www.dreamwidth.org/css/base.css");
-        // ###
+        /*
+         * check style at newref for imports
+         *      @import url("https://www.dreamwidth.org/css/base.css");
+         *      background-image: url("https://www.dreamwidth.org/images/header-bg.png");
+         */
         CascadingStyleSheet css = CSSReader.readFromString(cssText, ECSSVersion.CSS30);
         if (css == null)
             throw new Exception("Failed to parse CSS content");
@@ -443,5 +444,52 @@ public class StyleActionToLocal
     {
         // ###
         return null;
+    }
+
+    /* ================================================================================== */
+
+    // ### original tag: change type="text/StyleManagerSignature-suppressed-css" 
+    // ### change to <style type="text/StyleManagerSignature-suppressed-css">
+
+    /*
+     * STYLE tags
+     * 
+    // <style>
+    //     @import url("other.css");
+    // </style>
+     */
+    private boolean processHtmlStyleTag(Element elStyle, String htmlFilePath, String htmlPageUrl) throws Exception
+    {
+        boolean updated = false;
+
+        String cssText = elStyle.data();
+        String modifiedCss = resolveCssDependencies(cssText, htmlFilePath, htmlPageUrl);
+        if (modifiedCss != null)
+        {
+            updateStyleElement(elStyle, modifiedCss);
+            updated = true;
+        }
+
+        return updated;
+    }
+
+    private void updateStyleElement(Element elStyle, String modifiedCss) throws Exception
+    {
+        if (JSOUP.getAttribute(elStyle, Original + "type") != null)
+            throw new Exception("LINK tag contains unexpected original-type attribute");
+        
+        String original_type = JSOUP.getAttribute(elStyle, "type");
+        
+
+        Element elx = elStyle.clone().empty(); // shallow copy (preserves attributes)
+        JSOUP.setAttribute(elx, GeneratedBy, StyleManagerSignature);
+        // ### copy modifiedCss to elx
+        elStyle.after(elx); // insert into the tree
+        
+        if (original_type != null)
+            JSOUP.setAttribute(elStyle, Original + "type", original_type);
+        JSOUP.setAttribute(elStyle, SuppressedBy, StyleManagerSignature);
+        JSOUP.deleteAttribute(elStyle, "type");
+        JSOUP.setAttribute(elStyle, "type", "text/" + StyleManagerSignature  + "-suppressed-css");
     }
 }

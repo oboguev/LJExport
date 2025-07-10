@@ -6,6 +6,9 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
+/*
+ * Inter-process locking
+ */
 public class InterprocessLock
 {
     private final File lockFile;

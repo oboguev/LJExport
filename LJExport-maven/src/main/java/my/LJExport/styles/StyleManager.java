@@ -16,7 +16,7 @@ import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.synch.InterprocessLock;
+import my.LJExport.runtime.synch.IntraInterprocessLock;
 import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
 
 public class StyleManager
@@ -25,7 +25,7 @@ public class StyleManager
 
     private String styleDir;
     private LinkDownloader linkDownloader = new LinkDownloader();
-    private InterprocessLock styleRepositoryLock;
+    private IntraInterprocessLock styleRepositoryLock;
     static final String StyleManagerSignature = "ljexport-style-manager";
     static final String GeneratedBy = "ljexport-generated-by";
     static final String SuppressedBy = "ljexport-suppressed-by";
@@ -126,7 +126,7 @@ public class StyleManager
 
         linkDownloader.init(styleDir);
 
-        styleRepositoryLock = new InterprocessLock(styleDir + File.separator + "repository.lock");
+        styleRepositoryLock = new IntraInterprocessLock(styleDir + File.separator + "repository.lock");
     }
 
     public synchronized void close() throws Exception

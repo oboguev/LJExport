@@ -21,7 +21,7 @@ import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.synch.InterprocessLock;
+import my.LJExport.runtime.synch.IntraInterprocessLock;
 
 public class StyleActionToLocal
 {
@@ -31,9 +31,9 @@ public class StyleActionToLocal
 
     private final String styleDir;
     private final LinkDownloader linkDownloader;
-    private final InterprocessLock styleRepositoryLock;
+    private final IntraInterprocessLock styleRepositoryLock;
 
-    public StyleActionToLocal(String styleDir, LinkDownloader linkDownloader, InterprocessLock styleRepositoryLock)
+    public StyleActionToLocal(String styleDir, LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock)
     {
         this.styleDir = styleDir;
         this.linkDownloader = linkDownloader;

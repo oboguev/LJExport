@@ -173,8 +173,9 @@ public class StyleActionToLocal
 
     /*
      * LINK tag
+     * 
+     *    <link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=1B2M2Y8A"> 
      */
-    //   <link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=1B2M2Y8A"> 
     private void processHtmlLinkTag(Element elLink, String hrefComposite, String htmlFilePath, String baseUrl) throws Exception
     {
         List<String> hrefList = CssHelper.cssLinks(hrefComposite);
@@ -448,15 +449,12 @@ public class StyleActionToLocal
 
     /* ================================================================================== */
 
-    // ### original tag: change type="text/StyleManagerSignature-suppressed-css" 
-    // ### change to <style type="text/StyleManagerSignature-suppressed-css">
-
     /*
      * STYLE tags
      * 
-    // <style>
-    //     @import url("other.css");
-    // </style>
+     * <style>
+     *     @import url("other.css");
+     * </style>
      */
     private boolean processHtmlStyleTag(Element elStyle, String htmlFilePath, String htmlPageUrl) throws Exception
     {

@@ -1,5 +1,6 @@
 package my.LJExport.runtime;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,13 +9,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -189,12 +194,7 @@ public class Util
 
     public static void writeToFileSafe(String path, String content) throws Exception
     {
-        File f = new File(path).getAbsoluteFile().getCanonicalFile();
-        File ft = new File(path + ".tmp").getAbsoluteFile().getCanonicalFile();
-        if (ft.exists())
-            ft.delete();
-        writeToFile(ft.getCanonicalPath(), content);
-        Files.move(ft.toPath(), f.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        writeToFileSafe(path, content.getBytes(StandardCharsets.UTF_8));
     }
 
     public static void writeToFileSafe(String path, byte[] content) throws Exception
@@ -211,6 +211,82 @@ public class Util
     {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
         return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Atomically replaces {@code path} with {@code content} and tries to survive an OS crash or power loss.
+     *
+     * <p>
+     * The method:
+     * <ol>
+     * <li>writes to {@code path + ".tmp"} in the same directory,</li>
+     * <li>calls {@link FileChannel#force(boolean)} on the temp file,</li>
+     * <li>renames the temp file over the target with {@code ATOMIC_MOVE},</li>
+     * <li>calls {@code force(true)} on the parent directory.</li>
+     * </ol>
+     *
+     * @throws IOException
+     *             if the write cannot be completed safely
+     */
+    public static void writeToFileVerySafe(String path, String content) throws IOException
+    {
+        writeToFileVerySafe(path, content.getBytes(StandardCharsets.UTF_8));
+    }
+    
+    public static void writeToFileVerySafe(String path, byte[] content) throws IOException
+    {
+        // --- Sanity checks ---------------------------------------------------
+        Path target = Paths.get(path).toAbsolutePath().normalize();
+        if (!target.isAbsolute())
+            throw new IllegalArgumentException("Target path must be absolute");
+        Path dir = target.getParent();
+        if (dir == null)
+            throw new IOException("Target must reside in a directory");
+
+        // Use the same name + ".tmp" so they share the same directory entry length
+        Path tmp = dir.resolve(target.getFileName() + ".tmp");
+
+        // --- 1. Remove any stale temp file ----------------------------------
+        Files.deleteIfExists(tmp);
+
+        // --- 2. Write & fsync the temp file ---------------------------------
+        try (FileChannel fc = FileChannel.open(tmp,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.TRUNCATE_EXISTING))
+        {
+            ByteBuffer buf = ByteBuffer.wrap(content);
+            while (buf.hasRemaining())
+                fc.write(buf);
+            fc.force(true); // data + metadata
+        }
+        catch (IOException e)
+        {
+            // Clean up on failure
+            Files.deleteIfExists(tmp);
+            throw e;
+        }
+
+        // --- 3. Atomically replace the target -------------------------------
+        try
+        {
+            Files.move(tmp, target,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        }
+        catch (AtomicMoveNotSupportedException | UnsupportedOperationException ex)
+        {
+            // Windows before JDK 16 cannot combine ATOMIC_MOVE + REPLACE_EXISTING.
+            // Fallback: delete target first, then atomic-move.
+            Files.deleteIfExists(target);
+            Files.move(tmp, target, StandardCopyOption.ATOMIC_MOVE);
+        }
+
+        // --- 4. fsync the directory so the rename itself is durable ---------
+        try (FileChannel dirFc = FileChannel.open(dir, StandardOpenOption.READ))
+        {
+            dirFc.force(true); // metadata only would suffice, but true is portable
+        }
     }
 
     public static String stripProtocol(String url) throws Exception
@@ -391,7 +467,7 @@ public class Util
 
         return ws;
     }
-    
+
     public static String stripComment(String s) throws Exception
     {
         int k = s.indexOf('#');
@@ -906,12 +982,12 @@ public class Util
         {
             if (url == null || url.trim().isEmpty())
                 return false;
-            
+
             URI uri = new URI(url.trim());
-            
+
             if (uri.getScheme() == null || uri.getHost() == null)
                 return false;
-            
+
             switch (uri.getScheme().toLowerCase())
             {
             case "http":
@@ -919,10 +995,10 @@ public class Util
                 break;
 
             default:
-                throw new RuntimeException("Unexpected scheme " + uri.getScheme() + "://") ;
-            
+                throw new RuntimeException("Unexpected scheme " + uri.getScheme() + "://");
+
             }
-            
+
             return 0 != uri.getHost().trim().length();
         }
         catch (URISyntaxException e)
@@ -1043,5 +1119,31 @@ public class Util
     private static boolean isWhitespaceOrNBSP(char c)
     {
         return Character.isWhitespace(c) || c == '\u00A0';
+    }
+
+    public static void safeClose(Closeable c)
+    {
+        try
+        {
+            if (c != null)
+                c.close();
+        }
+        catch (Exception ex)
+        {
+            err("Failed to close " + c.getClass().getName());
+        }
+    }
+
+    public static void safeClose(AutoCloseable c)
+    {
+        try
+        {
+            if (c != null)
+                c.close();
+        }
+        catch (Exception ex)
+        {
+            err("Failed to close " + c.getClass().getName());
+        }
     }
 }

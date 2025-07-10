@@ -25,6 +25,7 @@ import my.LJExport.Config;
 import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.FileBackedMap;
+import my.LJExport.runtime.TxLog;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
@@ -38,19 +39,18 @@ public class StyleActionToLocal
     private static final String SuppressedBy = StyleManager.SuppressedBy;
     private static final String Original = StyleManager.Original;
 
-    private final String styleDir;
     private final LinkDownloader linkDownloader;
     private final IntraInterprocessLock styleRepositoryLock;
     private final FileBackedMap resolvedCSS;
     private final List<URI> inprogress = new ArrayList<>();
+    private final TxLog txLog;
 
-    public StyleActionToLocal(String styleDir, LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock,
-            FileBackedMap resolvedCSS)
+    public StyleActionToLocal(LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock, FileBackedMap resolvedCSS, TxLog txLog)
     {
-        this.styleDir = styleDir;
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
         this.resolvedCSS = resolvedCSS;
+        this.txLog = txLog;
     }
 
     public boolean processHtmlFileToLocalStyles(String htmlFilePath, PageParserDirectBasePassive parser, String htmlPageUrl)
@@ -206,7 +206,18 @@ public class StyleActionToLocal
             styleRepositoryLock.lockExclusive();
             try
             {
-                // ### txLogCheckEmpty
+                txLog.open();
+
+                if (!txLog.isEmpty())
+                {
+                    StringBuilder sb = new StringBuilder();
+                    final String nl = "\n";
+                    sb.append("Operation on styles repository was aborted in the middle of critical phase." + nl);
+                    sb.append("Please check transaction log and take corrective action." + nl);
+                    sb.append("Log file: " + txLog.getPath());
+                    Util.err(sb.toString());
+                    throw new Exception(sb.toString());
+                }
                 
                 /*
                  * Check if this CSS has already been adjusted on disk
@@ -224,21 +235,38 @@ public class StyleActionToLocal
                      */
                     inprogress.clear();
 
-                    String modifiedCss = resolveCssDependencies(Util.readFileAsString(cssFilePath), cssFilePath, href, baseUrl);
+                    String beforeCss = Util.readFileAsString(cssFilePath);
+                    String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, href, baseUrl);
                     if (modifiedCss != null)
                     {
-                        // ### save before (.guid-before)
-                        // ### txLog saving ... to ...
-                        Util.writeToFileSafe(cssFilePath, modifiedCss);
-                        // ### txLog overwrote ...
-                        // ### txLog writig to resolved css
+                        String beforeFilePath = cssFilePath + "." + Util.uuid() + ".before";
+                        Util.writeToFileVerySafe(beforeFilePath, beforeCss);
+                        txLog.writeLine(String.format("Saved file [%s] to [%s]", cssFilePath, beforeFilePath));
+
+                        txLog.writeLine(String.format("About to overwrite file with edited CSS content, file path: [%s]", cssFilePath));
+                        Util.writeToFileVerySafe(cssFilePath, modifiedCss);
+                        txLog.writeLine(String.format("Overwrote file with edited CSS content, file path: [%s]", cssFilePath));
+
+                        txLog.writeLine(String.format("About to write a mapping to map file: %s%sfrom: %s%sto: %s", 
+                                resolvedCSS.getPath(),
+                                System.lineSeparator(),
+                                href, 
+                                System.lineSeparator(), 
+                                newref));
+                        resolvedCSS.put(href, newref);
+                        txLog.writeLine(String.format("Wrote a mapping to %s", resolvedCSS.getPath()));
+                        txLog.clear();
+                        new File(beforeFilePath).delete();
                     }
-                    resolvedCSS.put(href, newref);
-                    // ### txLogClear
+                    else
+                    {
+                        resolvedCSS.put(href, newref);
+                    }
                 }
             }
             finally
             {
+                txLog.close();
                 styleRepositoryLock.unlock();
             }
         }

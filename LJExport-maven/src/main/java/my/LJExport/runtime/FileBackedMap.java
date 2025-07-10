@@ -79,6 +79,11 @@ public class FileBackedMap
 
         initialized = true;
     }
+    
+    public String getPath() throws Exception
+    {
+        return file.getCanonicalPath();
+    }
 
     public synchronized String get(String key)
     {

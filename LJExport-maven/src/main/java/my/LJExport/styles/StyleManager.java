@@ -15,6 +15,7 @@ import my.LJExport.Config;
 import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.FileBackedMap;
+import my.LJExport.runtime.TxLog;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
@@ -27,8 +28,9 @@ public class StyleManager
     private String styleDir;
     private LinkDownloader linkDownloader = new LinkDownloader();
     private IntraInterprocessLock styleRepositoryLock;
-    private FileBackedMap resolvedCSS = new FileBackedMap(); 
-    
+    private FileBackedMap resolvedCSS = new FileBackedMap();
+    private TxLog txLog;
+
     private boolean initialized = false;
     private boolean initializing = false;
 
@@ -68,7 +70,7 @@ public class StyleManager
             throw new Exception("Already initialized");
 
         // close();
-        
+
         try
         {
             initializing = true;
@@ -82,7 +84,7 @@ public class StyleManager
             throw ex;
         }
     }
-    
+
     private void inner_init() throws Exception
     {
         File catalog = new File(styleCatalogDir);
@@ -157,6 +159,7 @@ public class StyleManager
         resolvedCSS.init(styleDir + File.separator + "resolved-css-map.txt");
 
         styleRepositoryLock = new IntraInterprocessLock(styleDir + File.separator + "repository.lock");
+        txLog = new TxLog(styleDir + File.separator + "transaction.log");
     }
 
     public synchronized void close() throws Exception
@@ -169,6 +172,12 @@ public class StyleManager
         {
             styleRepositoryLock.close();
             styleRepositoryLock = null;
+        }
+        
+        if (txLog != null)
+        {
+            txLog.close();
+            txLog = null;
         }
 
         initialized = false;
@@ -193,7 +202,7 @@ public class StyleManager
             switch (action)
             {
             case TO_LOCAL:
-                updated = new StyleActionToLocal(styleDir, linkDownloader, styleRepositoryLock, resolvedCSS)
+                updated = new StyleActionToLocal(linkDownloader, styleRepositoryLock, resolvedCSS, txLog)
                         .processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
                 break;
 

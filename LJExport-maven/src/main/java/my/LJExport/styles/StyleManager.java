@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import my.LJExport.Config;
 import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
@@ -26,6 +27,8 @@ public class StyleManager
     private String styleDir;
     private LinkDownloader linkDownloader = new LinkDownloader();
     private IntraInterprocessLock styleRepositoryLock;
+    private FileBackedMap resolvedCSS = new FileBackedMap(); 
+    
     private boolean initialized = false;
     private boolean initializing = false;
 
@@ -150,8 +153,7 @@ public class StyleManager
         }
 
         linkDownloader.init(styleDir);
-
-        // ### FileBasedmap
+        resolvedCSS.init(styleDir + File.separator + "resolved-css-map.txt");
 
         styleRepositoryLock = new IntraInterprocessLock(styleDir + File.separator + "repository.lock");
     }
@@ -160,6 +162,7 @@ public class StyleManager
     {
         styleDir = null;
         linkDownloader.close();
+        resolvedCSS.close();
 
         if (styleRepositoryLock != null)
         {
@@ -189,7 +192,7 @@ public class StyleManager
             switch (action)
             {
             case TO_LOCAL:
-                updated = new StyleActionToLocal(styleDir, linkDownloader, styleRepositoryLock)
+                updated = new StyleActionToLocal(styleDir, linkDownloader, styleRepositoryLock, resolvedCSS)
                         .processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
                 break;
 

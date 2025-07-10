@@ -51,22 +51,36 @@ public class LinkDownloader
         failedSet.clear();
         this.linksDir = linksDir;
     }
-    
+
     public synchronized void close() throws Exception
     {
         linksDir = null;
         href2file.close();
         failedSet.clear();
     }
-    
+
     public boolean isInitialized()
     {
         return linksDir != null;
     }
-    
+
     public String getLinksDir()
     {
         return linksDir;
+    }
+
+    public String rel2abs(String rel) throws Exception
+    {
+        return linksDir + File.separator + rel.replace("/", File.separator);
+    }
+
+    public String abs2rel(String abs) throws Exception
+    {
+        String prefix =  linksDir + File.separator;
+        if (!abs.startsWith(prefix))
+            throw new Exception("File path is not within a repository: " + abs);
+        String rel = Util.stripStart(abs, prefix);
+        return rel.replace(File.separator, "/");
     }
 
     public String download(String href, String referer, String linkReferencePrefix)

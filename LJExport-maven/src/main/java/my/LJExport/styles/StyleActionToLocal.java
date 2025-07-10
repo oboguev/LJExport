@@ -1,6 +1,8 @@
 package my.LJExport.styles;
 
-import java.io.File;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -19,6 +21,7 @@ import com.helger.css.writer.CSSWriter;
 import my.LJExport.Config;
 import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
@@ -32,12 +35,15 @@ public class StyleActionToLocal
     private final String styleDir;
     private final LinkDownloader linkDownloader;
     private final IntraInterprocessLock styleRepositoryLock;
+    private final FileBackedMap resolvedCSS;
+    private final List<URI> inprogress = new ArrayList<>();  
 
-    public StyleActionToLocal(String styleDir, LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock)
+    public StyleActionToLocal(String styleDir, LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock, FileBackedMap resolvedCSS)
     {
         this.styleDir = styleDir;
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
+        this.resolvedCSS = resolvedCSS;
     }
 
     public boolean processHtmlFileToLocalStyles(String htmlFilePath, PageParserDirectBasePassive parser, String htmlPageUrl)
@@ -78,6 +84,8 @@ public class StyleActionToLocal
 
             if (href == null)
                 throw new Exception("Unexpected value of link.href: null");
+            
+            // ### href resolves to list ?? etc.
 
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
                 updated |= processStyleLink(JSOUP.asElement(n), href, htmlFilePath, htmlPageUrl);
@@ -165,10 +173,6 @@ public class StyleActionToLocal
      * LINK tag
      */
     //   <link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=1B2M2Y8A"> 
-    // ### original: set original-rel, set original-href, set original-type (if type exists), set suppressed-by, change rel=original-stylesheet
-    // ###           check initially has no original-rel/href/type and no suppressed-by or generated-by
-    // ### new: set rel, href, type (if type exists or text/css), set generated-by, copy other attributes from original
-    // ### insert new after original
     private boolean processStyleLink(Element el, String href, String htmlFilePath, String baseUrl) throws Exception
     {
         if (baseUrl == null && !Util.isAbsoluteURL(href))
@@ -185,38 +189,75 @@ public class StyleActionToLocal
         styleRepositoryLock.lockExclusive();
         try
         {
-            // ### keep a list (on-disk) of alrady adjusted css files to prevent double-scan 
-            // ### check list if should scan
-            
-            // ### keep a in-memory list of scans in progress, to detect recursion
+            /*
+             * No in-progress CSS processing yet on this thread
+             */
+            inprogress.clear();
 
-            String newref = linkDownloader.download(href, null, "");
-            String cssFilePath = linkDownloader.getLinksDir() + File.separator + newref.replace("/", File.separator);
-
-            String modifiedCss = resolveCssDependencies(Util.readFileAsString(cssFilePath), cssFilePath, href, baseUrl);
-
-            if (modifiedCss != null)
+            /*
+             * Check if this CSS has already been adjusted on disk
+             */
+            String newref = resolvedCSS.getAnyUrlProtocol(href);
+            if (newref == null)
             {
-                // ### write it to cssFilePath
-                // ### add to list
+                newref = linkDownloader.download(href, null, "");
+                if (newref == null)
+                    throw new Exception("Failed to download style URL: " + href);
+                String cssFilePath = linkDownloader.rel2abs(newref);
+                String modifiedCss = resolveCssDependencies(Util.readFileAsString(cssFilePath), cssFilePath, href, baseUrl);
+                if (modifiedCss != null)
+                    Util.writeToFileSafe(cssFilePath, modifiedCss);
+                resolvedCSS.put(href, newref);
             }
+            
+            updateLink(el, newref);
+            
+            return true;
         }
         finally
         {
             styleRepositoryLock.unlock();
         }
+    }
+    
+    private void updateLink(Element el, String newref) throws Exception
+    {
+        String original_rel = JSOUP.getAttribute(el, "rel");
+        String original_type = JSOUP.getAttribute(el, "type");
+        String original_href = JSOUP.getAttribute(el, "href");
+        
+        
+        Element elx = el.clone().empty();  // shallow copy (preserves attributes)
+        el.after(elx);  // insert into the tree
+        
+        JSOUP.deleteAttribute(elx, "rel");
+        JSOUP.deleteAttribute(elx, "type");
+        JSOUP.deleteAttribute(elx, "href");
+        
+        JSOUP.setAttribute(elx, "rel", "stylesheet");
+        if (original_type != null)
+            JSOUP.setAttribute(elx, "type", original_type);  // "text/css" or ommitted
+        JSOUP.setAttribute(elx, "href", "###"); // ### URL encoded newref and relocated with ../
+        JSOUP.setAttribute(elx, GeneratedBy, StyleManagerSignature);
+        
+        
+        
 
-        // ### add new link tags <link rel="stylesheet" href="..." type="text/css" generated-by=StyleManagerSignature>
         // ### change original to <link rel="original-stylesheet" original-rel="..." original-href="..." original-type="..." suppressed-by=StyleManagerSignature> and delete href and type
-        // ### return true
 
-        return false;
+        // ### original: set original-rel, set original-href, set original-type (if type exists), set suppressed-by, change rel=original-stylesheet
+        // ###           check initially has no original-rel/href/type and no suppressed-by or generated-by
     }
 
     /* ================================================================================== */
 
     private String resolveCssDependencies(String cssText, String cssFilePath, String cssFileURL, String baseUrl) throws Exception
     {
+        // ### inprogress.add(new URI(href));
+        // ### keep a in-memory list of scans in progress, to detect recursion
+        // ### check for recursion, isSame
+        // ### on exit - finally -- pop
+
         // ### check style at newref for imports
         // ### background-image: url("https://www.dreamwidth.org/images/header-bg.png");
         // ### @import url("https://www.dreamwidth.org/css/base.css");

@@ -82,6 +82,9 @@ public class FileBackedMap
 
     public synchronized String get(String key)
     {
+        if (!initialized)
+            throw new RuntimeException("File-backed map is not initialized");
+
         return map.get(key);
     }
 
@@ -95,6 +98,9 @@ public class FileBackedMap
 
     public synchronized String put(String key, String value) throws IOException
     {
+        if (!initialized)
+            throw new RuntimeException("File-backed map is not initialized");
+
         if (map.containsKey(key))
             throw new IllegalArgumentException("Key already exists: " + key);
 

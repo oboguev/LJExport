@@ -14,6 +14,7 @@ import org.jsoup.nodes.Node;
 
 import com.helger.css.ECSSVersion;
 import com.helger.css.decl.CSSDeclaration;
+import com.helger.css.decl.CSSDeclarationList;
 import com.helger.css.decl.CSSExpression;
 import com.helger.css.decl.CSSExpressionMemberTermURI;
 import com.helger.css.decl.CSSImportRule;
@@ -21,7 +22,9 @@ import com.helger.css.decl.CSSStyleRule;
 import com.helger.css.decl.CascadingStyleSheet;
 import com.helger.css.decl.ICSSExpressionMember;
 import com.helger.css.reader.CSSReader;
+import com.helger.css.reader.CSSReaderDeclarationList;
 import com.helger.css.writer.CSSWriter;
+import com.helger.css.writer.CSSWriterSettings;
 
 import my.LJExport.Config;
 import my.LJExport.html.JSOUP;
@@ -42,9 +45,29 @@ public class StyleActionToLocal
     private static final String AlteredBy = StyleManager.AlteredBy;
     private static final String Original = StyleManager.Original;
 
-    private final LinkDownloader linkDownloader;
+    /*
+     * Interprocess and inter-thread lock on styles repository.
+     */
     private final IntraInterprocessLock styleRepositoryLock;
+    
+    /*
+     * Downloads remote resources to files in the repository. 
+     */
+    private final LinkDownloader linkDownloader;
+
+    /*
+     * Persistent (on-disk) map that stores local CSS style sheets that have already been
+     * re-written to resolve external links in them. A link to a remote server is re-written
+     * to become a link to a local file cached in styles repository.
+     * 
+     * Maps URL -> local file path (of retrieved URL content) relative to repository root.
+     */
     private final FileBackedMap resolvedCSS;
+    
+    /*
+     * Transaction log. Helps to identify a state of style repository if a failure (OS crash
+     * or power down) happens in the middle of update operation.
+     */
     private final TxLog txLog;
 
     /* 
@@ -153,7 +176,10 @@ public class StyleActionToLocal
                 throw new Exception("Unexpected attribute in a tag");
 
             /* tag not processed yet*/
-            updated |= processHtmlStyleAttribute(JSOUP.asElement(n), htmlFilePath, htmlPageUrl);
+            if (JSOUP.getAttribute(n, "style") != null)
+            {
+                updated |= processHtmlStyleAttribute(JSOUP.asElement(n), htmlFilePath, htmlPageUrl);
+            }
         }
 
         return updated;
@@ -508,6 +534,7 @@ public class StyleActionToLocal
 
     private String downloadAndRelink(String originalUrl, String baseUrl)
     {
+        // ### check if remote
         // ###
         return null;
     }
@@ -539,7 +566,7 @@ public class StyleActionToLocal
     private void updateStyleElement(Element elStyle, String modifiedCss) throws Exception
     {
         if (JSOUP.getAttribute(elStyle, Original + "type") != null)
-            throw new Exception("LINK tag contains unexpected original-type attribute");
+            throw new Exception("STYLE tag contains unexpected original-type attribute");
 
         String original_type = JSOUP.getAttribute(elStyle, "type");
 
@@ -557,14 +584,6 @@ public class StyleActionToLocal
 
     /* ================================================================================== */
 
-    // ### style attributes on regular tags 
-
-    // ### check has no original-style
-    // ### save style to original-style
-    // ### update style
-    // ### add AlteredBy
-    // ### updated |= ....
-
     /*
      * Process style external url references inside inline style attribute on tags, such as: 
      * 
@@ -572,12 +591,93 @@ public class StyleActionToLocal
      *   <li style="list-style-image: url('icons/bullet.png');">Item</li>
      *   <div style="cursor: url('cursors/pointer.cur'), pointer;">Hover here</div>
      */
-    private boolean processHtmlStyleAttribute(Element el, String htmlFilePath, String htmlPageUrl)
+    private boolean processHtmlStyleAttribute(Element el, String htmlFilePath, String htmlPageUrl) throws Exception
     {
         boolean updated = false;
 
-        // ###
+        if (JSOUP.getAttribute(el, Original + "style") != null)
+            throw new Exception("Tag contains unexpected original-style attribute");
+
+        String original_style = JSOUP.getAttribute(el, "style");
+        if (original_style == null)
+            return false;
+
+        String modified_style = resolveInlineStyleDependencies(original_style, htmlFilePath, htmlPageUrl);
+        if (modified_style != null)
+        {
+            // ### save style to original-style
+            // ### update style
+            // ### add AlteredBy
+
+            updated = true;
+        }
 
         return updated;
+    }
+
+    /**
+     * Rewrite url(...) references that live in an inline style attribute such as
+     * <p style="background-image:url('bg.jpg')">
+     * .
+     *
+     * @param inlineStyleText
+     *            the raw value of the style attribute
+     * @param hostingFilePath
+     *            absolute path on disk of the HTML file that contains this style attribute
+     * @param hostingFileURL
+     *            equivalent file://… URL of the same HTML file (used by downloadAndRelink)
+     * @return the modified style string, or {@code null} if nothing changed
+     *
+     * @throws Exception
+     *             if the declaration list cannot be parsed
+     */
+    private String resolveInlineStyleDependencies(String inlineStyleText,
+            String hostingFilePath,
+            String hostingFileURL) throws Exception
+    {
+        // 1. Parse “prop: value; …” into a declaration list.
+        CSSDeclarationList declList = CSSReaderDeclarationList.readFromString(inlineStyleText, ECSSVersion.CSS30);
+        if (declList == null)
+            throw new Exception("Failed to parse inline style content");
+
+        boolean updated = false;
+
+        // 2. Walk every declaration -> expression -> member, just as with full CSS.
+        for (CSSDeclaration declaration : declList.getAllDeclarations())
+        {
+            CSSExpression expr = declaration.getExpression();
+            if (expr == null)
+                continue;
+
+            for (ICSSExpressionMember member : expr.getAllMembers())
+            {
+                if (member instanceof CSSExpressionMemberTermURI)
+                {
+                    CSSExpressionMemberTermURI uriTerm = (CSSExpressionMemberTermURI) member;
+                    String originalUrl = uriTerm.getURIString();
+
+                    // Inline styles can only reference images/fonts/etc.
+                    String newUrl = downloadAndRelink(originalUrl, hostingFileURL);
+
+                    if (!newUrl.equals(originalUrl))
+                    {
+                        uriTerm.setURIString(newUrl);
+                        updated = true;
+                    }
+                }
+            }
+        }
+
+        // 3. Emit the rewritten declaration list (or null if unchanged).
+        if (updated)
+        {
+            CSSWriterSettings settings = new CSSWriterSettings(ECSSVersion.CSS30, false);
+            settings.setOptimizedOutput(true); // optional: strip superfluous whitespace
+            return declList.getAsCSSString(settings, 0);
+        }
+        else
+        {
+            return null;
+        }
     }
 }

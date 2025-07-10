@@ -37,6 +37,7 @@ public class StyleManager
     static final String StyleManagerSignature = "ljexport-style-manager";
     static final String GeneratedBy = "ljexport-generated-by";
     static final String SuppressedBy = "ljexport-suppressed-by";
+    static final String AlteredBy = "ljexport-style-altered-by";
     static final String Original = "ljexport-original-";
 
     public StyleManager(String styleCatalogDir) throws Exception

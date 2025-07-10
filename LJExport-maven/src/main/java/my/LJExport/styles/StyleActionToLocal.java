@@ -39,6 +39,7 @@ public class StyleActionToLocal
     private static final String StyleManagerSignature = StyleManager.StyleManagerSignature;
     private static final String GeneratedBy = StyleManager.GeneratedBy;
     private static final String SuppressedBy = StyleManager.SuppressedBy;
+    private static final String AlteredBy = StyleManager.AlteredBy;
     private static final String Original = StyleManager.Original;
 
     private final LinkDownloader linkDownloader;
@@ -63,6 +64,12 @@ public class StyleActionToLocal
         this.txLog = txLog;
     }
 
+    /*
+     * Returns @true if parsed HTML file (tree) had been changed during style processing,
+     * and the tree needs to be written back to the file.
+     * 
+     * If no changes are done, return @false.   
+     */
     public boolean processHtmlFileToLocalStyles(String htmlFilePath, PageParserDirectBasePassive parser, String htmlPageUrl)
             throws Exception
     {
@@ -138,7 +145,7 @@ public class StyleActionToLocal
          */
         for (Node n : JSOUP.findElements(parser.pageRoot))
         {
-            String style_altered_by = JSOUP.getAttribute(n, "style-altered-by");
+            String style_altered_by = JSOUP.getAttribute(n, AlteredBy);
             if (style_altered_by != null && style_altered_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
 
@@ -146,19 +153,10 @@ public class StyleActionToLocal
                 throw new Exception("Unexpected attribute in a tag");
 
             /* tag not processed yet*/
-
-            // ### style attributes on regular tags 
-            // ### <p style="color: blue; font-weight: bold;"> can have @import or url:?
-            // ### use InterprocessLock for locking
-
-            // ### check has no original-style
-            // ### save style to original-style
-            // ### update style
-            // ### updated |= ....
+            updated |= processHtmlStyleAttribute(JSOUP.asElement(n), htmlFilePath, htmlPageUrl);
         }
 
         return updated;
-
     }
 
     /* ================================================================================== */
@@ -555,5 +553,31 @@ public class StyleActionToLocal
         JSOUP.setAttribute(elStyle, SuppressedBy, StyleManagerSignature);
         JSOUP.deleteAttribute(elStyle, "type");
         JSOUP.setAttribute(elStyle, "type", "text/" + StyleManagerSignature + "-suppressed-css");
+    }
+
+    /* ================================================================================== */
+
+    // ### style attributes on regular tags 
+
+    // ### check has no original-style
+    // ### save style to original-style
+    // ### update style
+    // ### add AlteredBy
+    // ### updated |= ....
+
+    /*
+     * Process style external url references inside inline style attribute on tags, such as: 
+     * 
+     *   <p style="background-image: url('images/bg.jpg'); color: blue;">
+     *   <li style="list-style-image: url('icons/bullet.png');">Item</li>
+     *   <div style="cursor: url('cursors/pointer.cur'), pointer;">Hover here</div>
+     */
+    private boolean processHtmlStyleAttribute(Element el, String htmlFilePath, String htmlPageUrl)
+    {
+        boolean updated = false;
+
+        // ###
+
+        return updated;
     }
 }

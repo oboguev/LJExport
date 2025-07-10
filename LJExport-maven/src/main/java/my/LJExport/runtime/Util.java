@@ -975,33 +975,38 @@ public class Util
             URI uri1 = new URI(url1);
             URI uri2 = new URI(url2);
 
-            // Compare scheme and host case-insensitively
-            if (!equalsIgnoreCase(uri1.getScheme(), uri2.getScheme()))
-                return false;
-
-            if (!equalsIgnoreCase(uri1.getHost(), uri2.getHost()))
-                return false;
-
-            // Compare port (default ports need normalization if desired)
-            if (uri1.getPort() != uri2.getPort())
-                return false;
-
-            // Compare path, query, and fragment case-sensitively
-            if (!Objects.equals(uri1.getPath(), uri2.getPath()))
-                return false;
-
-            if (!Objects.equals(uri1.getQuery(), uri2.getQuery()))
-                return false;
-
-            if (!Objects.equals(uri1.getFragment(), uri2.getFragment()))
-                return false;
-
-            return true;
+            return isSameURL(uri1, uri2);
         }
         catch (URISyntaxException e)
         {
             return false;
         }
+    }
+
+    public static boolean isSameURL(URI uri1, URI uri2)
+    {
+        // Compare scheme and host case-insensitively
+        if (!equalsIgnoreCase(uri1.getScheme(), uri2.getScheme()))
+            return false;
+
+        if (!equalsIgnoreCase(uri1.getHost(), uri2.getHost()))
+            return false;
+
+        // Compare port (default ports need normalization if desired)
+        if (uri1.getPort() != uri2.getPort())
+            return false;
+
+        // Compare path, query, and fragment case-sensitively
+        if (!Objects.equals(uri1.getPath(), uri2.getPath()))
+            return false;
+
+        if (!Objects.equals(uri1.getQuery(), uri2.getQuery()))
+            return false;
+
+        if (!Objects.equals(uri1.getFragment(), uri2.getFragment()))
+            return false;
+
+        return true;
     }
 
     public static boolean isAbsoluteURL(String url)

@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.net.URLEncoder;
 
@@ -372,32 +373,59 @@ public class StyleActionToLocal
 
     /*
      * cssText -- CSS content/text to process
-     * hostingFilePath -- path of either CSS file or HTML file containing cssText, in a local file system
+     * hostingFilePath -- path of either CSS file or HTML file containing cssText, cached in a local file system
      * hostingFileURL -- original URL of hosting CSS/HTML file, used to resolve relative links in cssText     
      */
     private String resolveCssDependencies(String cssText, String hostingFilePath, String hostingFileURL) throws Exception
     {
-        // ### inprogress.add(new URI(hostingFileURL));
-        // ### keep a in-memory list of scans in progress, to detect recursion
-        // ### check for recursion, isSame
-        // ### on exit - finally -- pop
-
         /*
-         * check style at newref for imports
-         *      @import url("https://www.dreamwidth.org/css/base.css");
-         *      background-image: url("https://www.dreamwidth.org/images/header-bg.png");
+         * Check for circular references in stylesheets being re-writtem
          */
+        URI uri = new URI(hostingFileURL);
+        for (URI xuri : inprogress)
+        {
+            if (isSameURL(uri, xuri))
+            {
+                /*
+                 * Should later add actual handling of circular references.
+                 * For now just abort.
+                 */
+                throw new Exception("Detected circular reference in style sheets");
+            }
+        }
+
+        inprogress.add(uri);
+        try
+        {
+            return do_resolveCssDependencies(cssText, hostingFilePath, hostingFileURL);
+        }
+        finally
+        {
+            inprogress.remove(inprogress.size() - 1);
+
+        }
+    }
+
+    private String do_resolveCssDependencies(String cssText, String hostingFilePath, String hostingFileURL) throws Exception
+    {
         CascadingStyleSheet css = CSSReader.readFromString(cssText, ECSSVersion.CSS30);
         if (css == null)
             throw new Exception("Failed to parse CSS content");
 
         boolean updated = false;
 
+        /*
+         * check style for imports:
+         * 
+         *      @import url("https://www.dreamwidth.org/css/base.css");
+         *      background-image: url("https://www.dreamwidth.org/images/header-bg.png");
+         */
+
         // Walk @import rules
         for (CSSImportRule importRule : css.getAllImportRules())
         {
             String url = importRule.getLocationString();
-            String newUrl = downloadAndRelink(url); // ### baseUrl
+            String newUrl = downloadAndRelink(url, hostingFileURL);
             // ### if (ArchiveOrgUrl.isArchiveOrgUrl
             // ### recursive? -- if so detect and abort
             importRule.setLocationString(newUrl);
@@ -421,7 +449,7 @@ public class StyleActionToLocal
                             CSSExpressionMemberTermURI uriTerm = (CSSExpressionMemberTermURI) member;
                             String originalUrl = uriTerm.getURIString();
                             /* this cannot be CSS but only image or similar file, hence no recursion */
-                            String newUrl = downloadAndRelink(originalUrl); // ### baseUrl
+                            String newUrl = downloadAndRelink(originalUrl, hostingFileURL);
                             uriTerm.setURIString(newUrl);
                             changed = true;
                             updated = true;
@@ -449,7 +477,38 @@ public class StyleActionToLocal
         }
     }
 
-    private String downloadAndRelink(String originalUrl)
+    private boolean isSameURL(URI uri1, URI uri2)
+    {
+        // Compare scheme and host case-insensitively
+        if (Config.False && !equalsIgnoreCase(uri1.getScheme(), uri2.getScheme()))
+            return false;
+
+        if (!equalsIgnoreCase(uri1.getHost(), uri2.getHost()))
+            return false;
+
+        // Compare port (default ports need normalization if desired)
+        if (Config.False && uri1.getPort() != uri2.getPort())
+            return false;
+
+        // Compare path, query, and fragment case-sensitively
+        if (!Objects.equals(uri1.getPath(), uri2.getPath()))
+            return false;
+
+        if (!Objects.equals(uri1.getQuery(), uri2.getQuery()))
+            return false;
+
+        if (!Objects.equals(uri1.getFragment(), uri2.getFragment()))
+            return false;
+
+        return true;
+    }
+
+    private boolean equalsIgnoreCase(String a, String b)
+    {
+        return (a == null && b == null) || (a != null && a.equalsIgnoreCase(b));
+    }
+
+    private String downloadAndRelink(String originalUrl, String baseUrl)
     {
         // ###
         return null;

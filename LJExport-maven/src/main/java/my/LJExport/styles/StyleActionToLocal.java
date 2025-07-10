@@ -61,6 +61,9 @@ public class StyleActionToLocal
             String suppressed_by = JSOUP.getAttribute(n, SuppressedBy);
             if (suppressed_by != null && suppressed_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
+            
+            if (generated_by != null || suppressed_by != null)
+                throw new Exception("Unexpected attributes in LINK tag");
 
             /* tag not processed yet*/
             String rel = JSOUP.getAttribute(n, "rel");
@@ -77,7 +80,7 @@ public class StyleActionToLocal
                 throw new Exception("Unexpected value of link.href: null");
 
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
-                updated |= processStyleLink(JSOUP.asElement(n), href, htmlFilePath);
+                updated |= processStyleLink(JSOUP.asElement(n), href, htmlFilePath, htmlPageUrl);
         }
 
         /*
@@ -93,12 +96,22 @@ public class StyleActionToLocal
             if (suppressed_by != null && suppressed_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
 
+            if (generated_by != null || suppressed_by != null)
+                throw new Exception("Unexpected attributes in LINK tag");
+
             /* tag not processed yet*/
+            
+            // ### <style>
+            // ### @import url("other.css");
+            // ### </style>
+            // ### use InterprocessLock for locking
+            // ### change to <style type="text/StyleManagerSignature-suppressed-css">
 
             // ### original tag: set suppressed-by, save type to original-type (if not null) and change type="text/StyleManagerSignature-suppressed-css" 
             // ###           check initially has no original-type and no suppressed-by or generated-by
             // ### new tag: copy type and other attributes, apply generated-by
-            // ### copy inner content from original to new and insert new after original 
+            // ### copy inner content from original to new and insert new after original
+            // ### updated |= ....
         }
 
         /*
@@ -110,23 +123,23 @@ public class StyleActionToLocal
             if (style_altered_by != null && style_altered_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
 
+            if (style_altered_by != null)
+                throw new Exception("Unexpected attribute in a tag");
+                
             /* tag not processed yet*/
+
+            // ### style attributes on regular tags 
+            // ### <p style="color: blue; font-weight: bold;"> can have @import or url:?
+            // ### use InterprocessLock for locking
+            
             // ### check has no original-style
             // ### save style to original-style
             // ### update style
+            // ### updated |= ....
         }
 
         return updated;
 
-        // ### <style>
-        // ### @import url("other.css");
-        // ### </style>
-        // ### use InterprocessLock for locking
-        // ### change to <style type="text/StyleManagerSignature-suppressed-css">
-
-        // ### style attributes on regular tags 
-        // ### <p style="color: blue; font-weight: bold;"> can have @import or url:?
-        // ### use InterprocessLock for locking
     }
 
     /* ================================================================================== */
@@ -152,13 +165,9 @@ public class StyleActionToLocal
     // ###           check initially has no original-rel/href/type and no suppressed-by or generated-by
     // ### new: set rel, href, type (if type exists or text/css), set generated-by, copy other attributes from original
     // ### insert new after original
-    private boolean processStyleLink(Element el, String href, String htmlFilePath) throws Exception
+    private boolean processStyleLink(Element el, String href, String htmlFilePath, String baseUrl) throws Exception
     {
-        if (href.toLowerCase().startsWith("http://") || href.toLowerCase().startsWith("https://"))
-        {
-            // do process
-        }
-        else
+        if (!Util.isAbsoluteURL(href))
         {
             String generatedBy = JSOUP.getAttribute(el, GeneratedBy);
             if (generatedBy != null && generatedBy.equals(StyleManagerSignature))

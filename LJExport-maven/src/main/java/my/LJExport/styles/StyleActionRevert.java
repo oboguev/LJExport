@@ -10,6 +10,7 @@ public class StyleActionRevert
     private static final String StyleManagerSignature = StyleManager.StyleManagerSignature;
     private static final String GeneratedBy = StyleManager.GeneratedBy;
     private static final String SuppressedBy = StyleManager.SuppressedBy;
+    private static final String Original = StyleManager.Original;
 
     public boolean processHtmlFileRevertStylesToRemote(String htmlFilePath, PageParserDirectBasePassive parser) throws Exception
     {
@@ -31,9 +32,9 @@ public class StyleActionRevert
 
             if (suppressed_by != null && suppressed_by.trim().equalsIgnoreCase(StyleManagerSignature))
             {
-                String original_rel = JSOUP.getAttribute(n, "original-rel");
-                String original_type = JSOUP.getAttribute(n, "original-type");
-                String original_href = JSOUP.getAttribute(n, "original-href");
+                String original_rel = JSOUP.getAttribute(n, Original + "rel");
+                String original_type = JSOUP.getAttribute(n, Original + "type");
+                String original_href = JSOUP.getAttribute(n, Original + "href");
 
                 if (original_rel == null)
                     throw new Exception("Link tag missing attribute original-rel");
@@ -50,10 +51,10 @@ public class StyleActionRevert
                     JSOUP.setAttribute(n, "type", original_type);
                 JSOUP.setAttribute(n, "href", original_href);
 
-                JSOUP.deleteAttribute(n, "original-rel");
+                JSOUP.deleteAttribute(n, Original + "rel");
                 if (original_type != null)
-                    JSOUP.deleteAttribute(n, "original-type");
-                JSOUP.deleteAttribute(n, "original-href");
+                    JSOUP.deleteAttribute(n, Original + "type");
+                JSOUP.deleteAttribute(n, Original + "href");
                 JSOUP.deleteAttribute(n, SuppressedBy);
 
                 updated = true;
@@ -76,12 +77,12 @@ public class StyleActionRevert
 
             if (suppressed_by != null && suppressed_by.trim().equalsIgnoreCase(StyleManagerSignature))
             {
-                String original_type = JSOUP.getAttribute(n, "original-type");
+                String original_type = JSOUP.getAttribute(n, Original + "type");
                 JSOUP.deleteAttribute(n, "type");
                 if (original_type != null)
                 {
                     JSOUP.setAttribute(n, "type", original_type);
-                    JSOUP.deleteAttribute(n, "original-type");
+                    JSOUP.deleteAttribute(n, Original + "type");
                 }
                 JSOUP.deleteAttribute(n, SuppressedBy);
                 updated = true;
@@ -96,12 +97,12 @@ public class StyleActionRevert
             String style_altered_by = JSOUP.getAttribute(n, "style-altered-by");
             if (style_altered_by != null && style_altered_by.trim().equalsIgnoreCase(StyleManagerSignature))
             {
-                String original_style = JSOUP.getAttribute(n, "original-style");
+                String original_style = JSOUP.getAttribute(n, Original + "style");
                 if (original_style != null)
                 {
                     JSOUP.deleteAttribute(n, "style");
                     JSOUP.setAttribute(n, "style", original_style);
-                    JSOUP.deleteAttribute(n, "original-style");
+                    JSOUP.deleteAttribute(n, Original + "style");
                 }
                 JSOUP.deleteAttribute(n, "style-altered-by");
                 updated = true;

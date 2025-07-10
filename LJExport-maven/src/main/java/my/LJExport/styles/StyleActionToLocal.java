@@ -31,14 +31,16 @@ public class StyleActionToLocal
     private static final String StyleManagerSignature = StyleManager.StyleManagerSignature;
     private static final String GeneratedBy = StyleManager.GeneratedBy;
     private static final String SuppressedBy = StyleManager.SuppressedBy;
+    private static final String Original = StyleManager.Original;
 
     private final String styleDir;
     private final LinkDownloader linkDownloader;
     private final IntraInterprocessLock styleRepositoryLock;
     private final FileBackedMap resolvedCSS;
-    private final List<URI> inprogress = new ArrayList<>();  
+    private final List<URI> inprogress = new ArrayList<>();
 
-    public StyleActionToLocal(String styleDir, LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock, FileBackedMap resolvedCSS)
+    public StyleActionToLocal(String styleDir, LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock,
+            FileBackedMap resolvedCSS)
     {
         this.styleDir = styleDir;
         this.linkDownloader = linkDownloader;
@@ -67,7 +69,7 @@ public class StyleActionToLocal
             String suppressed_by = JSOUP.getAttribute(n, SuppressedBy);
             if (suppressed_by != null && suppressed_by.trim().equalsIgnoreCase(StyleManagerSignature))
                 continue;
-            
+
             if (generated_by != null || suppressed_by != null)
                 throw new Exception("Unexpected attributes in LINK tag");
 
@@ -84,7 +86,7 @@ public class StyleActionToLocal
 
             if (href == null)
                 throw new Exception("Unexpected value of link.href: null");
-            
+
             // ### href resolves to list ?? etc.
 
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
@@ -108,7 +110,7 @@ public class StyleActionToLocal
                 throw new Exception("Unexpected attributes in LINK tag");
 
             /* tag not processed yet*/
-            
+
             // ### <style>
             // ### @import url("other.css");
             // ### </style>
@@ -133,13 +135,13 @@ public class StyleActionToLocal
 
             if (style_altered_by != null)
                 throw new Exception("Unexpected attribute in a tag");
-                
+
             /* tag not processed yet*/
 
             // ### style attributes on regular tags 
             // ### <p style="color: blue; font-weight: bold;"> can have @import or url:?
             // ### use InterprocessLock for locking
-            
+
             // ### check has no original-style
             // ### save style to original-style
             // ### update style
@@ -166,7 +168,7 @@ public class StyleActionToLocal
 
         return false;
     }
-    
+
     /* ================================================================================== */
 
     /*
@@ -209,9 +211,9 @@ public class StyleActionToLocal
                     Util.writeToFileSafe(cssFilePath, modifiedCss);
                 resolvedCSS.put(href, newref);
             }
-            
+
             updateLink(el, newref);
-            
+
             return true;
         }
         finally
@@ -219,34 +221,42 @@ public class StyleActionToLocal
             styleRepositoryLock.unlock();
         }
     }
-    
+
     private void updateLink(Element el, String newref) throws Exception
     {
+        if (JSOUP.getAttribute(el, Original + "rel") != null ||
+                JSOUP.getAttribute(el, Original + "type") != null ||
+                JSOUP.getAttribute(el, Original + "href") != null)
+        {
+            throw new Exception("LINK tag contains unexpected original-xxx attributes");
+        }
+
         String original_rel = JSOUP.getAttribute(el, "rel");
         String original_type = JSOUP.getAttribute(el, "type");
         String original_href = JSOUP.getAttribute(el, "href");
-        
-        
-        Element elx = el.clone().empty();  // shallow copy (preserves attributes)
-        el.after(elx);  // insert into the tree
-        
+
+        Element elx = el.clone().empty(); // shallow copy (preserves attributes)
+        el.after(elx); // insert into the tree
+
         JSOUP.deleteAttribute(elx, "rel");
         JSOUP.deleteAttribute(elx, "type");
         JSOUP.deleteAttribute(elx, "href");
-        
+
         JSOUP.setAttribute(elx, "rel", "stylesheet");
         if (original_type != null)
-            JSOUP.setAttribute(elx, "type", original_type);  // "text/css" or ommitted
+            JSOUP.setAttribute(elx, "type", original_type); // "text/css" or ommitted
         JSOUP.setAttribute(elx, "href", "###"); // ### URL encoded newref and relocated with ../
         JSOUP.setAttribute(elx, GeneratedBy, StyleManagerSignature);
-        
-        
-        
 
-        // ### change original to <link rel="original-stylesheet" original-rel="..." original-href="..." original-type="..." suppressed-by=StyleManagerSignature> and delete href and type
-
-        // ### original: set original-rel, set original-href, set original-type (if type exists), set suppressed-by, change rel=original-stylesheet
-        // ###           check initially has no original-rel/href/type and no suppressed-by or generated-by
+        JSOUP.deleteAttribute(el, "rel");
+        JSOUP.deleteAttribute(el, "type");
+        JSOUP.deleteAttribute(el, "href");
+        JSOUP.setAttribute(el, "rel", Original + "stylesheet");
+        JSOUP.setAttribute(el, Original + "rel", original_rel);
+        if (original_type != null)
+            JSOUP.setAttribute(el, Original + "type", original_type);
+        JSOUP.setAttribute(el, Original + "href", original_href);
+        JSOUP.setAttribute(el, SuppressedBy, StyleManagerSignature);
     }
 
     /* ================================================================================== */

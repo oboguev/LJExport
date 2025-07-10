@@ -161,30 +161,39 @@ public class StyleActionToLocal
     
     /* ================================================================================== */
 
+    /*
+     * LINK tag
+     */
+    //   <link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=1B2M2Y8A"> 
     // ### original: set original-rel, set original-href, set original-type (if type exists), set suppressed-by, change rel=original-stylesheet
     // ###           check initially has no original-rel/href/type and no suppressed-by or generated-by
     // ### new: set rel, href, type (if type exists or text/css), set generated-by, copy other attributes from original
     // ### insert new after original
     private boolean processStyleLink(Element el, String href, String htmlFilePath, String baseUrl) throws Exception
     {
-        if (!Util.isAbsoluteURL(href))
+        if (baseUrl == null && !Util.isAbsoluteURL(href))
         {
-            String generatedBy = JSOUP.getAttribute(el, GeneratedBy);
-            if (generatedBy != null && generatedBy.equals(StyleManagerSignature))
-                return false;
             throw new Exception("Unexpected link.href: " + href);
         }
-
-        String newref = linkDownloader.download(href, null, "");
-        String cssFilePath = linkDownloader.getLinksDir() + File.separator + newref.replace("/", File.separator);
+        else if (!Util.isAbsoluteURL(href))
+        {
+            // later may resolve it against baseUrl
+            throw new Exception("Unexpected link.href: " + href);
+        }
 
         // lock repository to avoid deadlocks while processing A.css and B.css referencing each other
         styleRepositoryLock.lockExclusive();
         try
         {
-            // ### keep a list (on-disk) of adjusted css files to prevent double-scan and recursion
+            // ### keep a list (on-disk) of alrady adjusted css files to prevent double-scan 
             // ### check list if should scan
-            String modifiedCss = resolveCssDependencies(Util.readFileAsString(cssFilePath), cssFilePath, href);
+            
+            // ### keep a in-memory list of scans in progress, to detect recursion
+
+            String newref = linkDownloader.download(href, null, "");
+            String cssFilePath = linkDownloader.getLinksDir() + File.separator + newref.replace("/", File.separator);
+
+            String modifiedCss = resolveCssDependencies(Util.readFileAsString(cssFilePath), cssFilePath, href, baseUrl);
 
             if (modifiedCss != null)
             {
@@ -206,7 +215,7 @@ public class StyleActionToLocal
 
     /* ================================================================================== */
 
-    private String resolveCssDependencies(String cssText, String cssFilePath, String cssFileURL) throws Exception
+    private String resolveCssDependencies(String cssText, String cssFilePath, String cssFileURL, String baseUrl) throws Exception
     {
         // ### check style at newref for imports
         // ### background-image: url("https://www.dreamwidth.org/images/header-bg.png");
@@ -223,7 +232,7 @@ public class StyleActionToLocal
         {
             String url = importRule.getLocationString();
             String newUrl = downloadAndRelink(url);
-            // ### recursive?
+            // ### recursive? -- if so detect and abort
             importRule.setLocationString(newUrl);
             updated = true;
         }
@@ -244,11 +253,11 @@ public class StyleActionToLocal
                         {
                             CSSExpressionMemberTermURI uriTerm = (CSSExpressionMemberTermURI) member;
                             String originalUrl = uriTerm.getURIString();
+                            /* this cannot be CSS but only image or similar file, hence no recursion */
                             String newUrl = downloadAndRelink(originalUrl);
                             uriTerm.setURIString(newUrl);
                             changed = true;
                             updated = true;
-                            // ### recursive ?
                         }
                     }
                     if (changed && Config.False)

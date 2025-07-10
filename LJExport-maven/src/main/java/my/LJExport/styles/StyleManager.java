@@ -26,6 +26,9 @@ public class StyleManager
     private String styleDir;
     private LinkDownloader linkDownloader = new LinkDownloader();
     private IntraInterprocessLock styleRepositoryLock;
+    private boolean initialized = false;
+    private boolean initializing = false;
+
     static final String StyleManagerSignature = "ljexport-style-manager";
     static final String GeneratedBy = "ljexport-generated-by";
     static final String SuppressedBy = "ljexport-suppressed-by";
@@ -39,7 +42,7 @@ public class StyleManager
         styleCatalogDir = fp.getCanonicalPath();
         if (fp.exists() && !fp.isDirectory())
             throw new Exception("Not a directory: " + styleCatalogDir);
-        
+
         Util.mkdir(styleCatalogDir);
         if (!fp.exists() || !fp.isDirectory())
             throw new Exception("Unable to create directory: " + styleCatalogDir);
@@ -54,8 +57,30 @@ public class StyleManager
 
     public synchronized void init() throws Exception
     {
-        close();
+        if (initializing)
+            throw new Exception("Partial initialization");
 
+        if (initialized)
+            throw new Exception("Already initialized");
+
+        // close();
+        
+        try
+        {
+            initializing = true;
+            inner_init();
+            initializing = false;
+            initialized = true;
+        }
+        catch (Exception ex)
+        {
+            close();
+            throw ex;
+        }
+    }
+    
+    private void inner_init() throws Exception
+    {
         File catalog = new File(styleCatalogDir);
         if (!catalog.isDirectory())
             throw new IOException("styleCatalogDir does not exist or is not a directory: " + styleCatalogDir);
@@ -126,6 +151,8 @@ public class StyleManager
 
         linkDownloader.init(styleDir);
 
+        // ### FileBasedmap
+
         styleRepositoryLock = new IntraInterprocessLock(styleDir + File.separator + "repository.lock");
     }
 
@@ -139,27 +166,31 @@ public class StyleManager
             styleRepositoryLock.close();
             styleRepositoryLock = null;
         }
+
+        initialized = false;
+        initializing = false;
     }
 
     public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl) throws Exception
     {
-        String threadName = Thread.currentThread().getName(); 
-                
+        String threadName = Thread.currentThread().getName();
+
         try
         {
             String rurl = new File(htmlFilePath).getName();
-            Thread.currentThread().setName("processing styles " + rurl); 
+            Thread.currentThread().setName("processing styles " + rurl);
 
             PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
             parser.pageSource = Util.readFileAsString(htmlFilePath);
             parser.parseHtml();
 
             boolean updated = false;
-            
+
             switch (action)
             {
             case TO_LOCAL:
-                updated = new StyleActionToLocal(styleDir, linkDownloader, styleRepositoryLock).processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
+                updated = new StyleActionToLocal(styleDir, linkDownloader, styleRepositoryLock)
+                        .processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
                 break;
 
             case REVERT:
@@ -179,10 +210,10 @@ public class StyleManager
         }
         finally
         {
-            Thread.currentThread().setName(threadName); 
+            Thread.currentThread().setName(threadName);
         }
     }
-    
+
     public static boolean isHtmlReferenceToLocalStyle(String href)
     {
         if (!href.startsWith("../"))
@@ -190,7 +221,7 @@ public class StyleManager
 
         while (href.startsWith("../"))
             href = href.substring("../".length());
-        
+
         return href.startsWith("styles/");
     }
 }

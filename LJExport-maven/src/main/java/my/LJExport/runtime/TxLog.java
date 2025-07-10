@@ -30,6 +30,31 @@ import java.util.Set;
  * <p>
  * The class is thread-safe inside a single JVM instance.
  * </p>
+ * 
+ * ******************************************************************************************************************
+ * 
+ * Implementation notes & caveats
+ * 
+ * Exclusive access:   
+ *   FileChannel.tryLock() grabs an advisory OS lock on the whole file. If another process has already locked it, 
+ *   locking fails immediately and the constructor throws. This satisfies the “do not wait for lock” requirement.
+ * 
+ * Atomic create vs. race with other creators: 
+ *   The open sequence (CREATE + DSYNC + APPEND) is itself atomic from the perspective of the file system. 
+ *   If several processes race when the file does not yet exist, exactly one creates it;  the rest open the same inode later and then fail to lock it. 
+ *   Hence each writer ends up with its own separate file instance.
+ * 
+ * Durability guarantee:   
+ *   writer.flush() drains the JVM buffer into the kernel; channel.force(true) then requests that the kernel flush its cache 
+ *   to the physical medium and also persist metadata such as file length. 
+ *   On modern disks/SSDs this survives sudden power loss as long as the device honors flush commands.
+ * 
+ * Performance:    
+ *   Because every write triggers a full fsync, throughput is limited by the storage latency. 
+ *   If you need higher throughput you can batch several small logical writes into one physical call (e.g., via an explicit flush() method).
+ * 
+ * Character encoding: 
+ *   UTF-8 is hard-wired for portability and because log lines rarely need a different encoding nowadays.
  */
 public final class TxLog implements Closeable
 {

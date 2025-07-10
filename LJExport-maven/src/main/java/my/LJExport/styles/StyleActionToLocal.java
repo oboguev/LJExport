@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.net.URLEncoder;
 
+import org.jsoup.nodes.DataNode;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 
@@ -43,9 +44,16 @@ public class StyleActionToLocal
     private final IntraInterprocessLock styleRepositoryLock;
     private final FileBackedMap resolvedCSS;
     private final TxLog txLog;
+
+    /* 
+     * list (stack) of URLs of CSS/HTML files with styles being currently re-writtem,
+     * used to detect circular references 
+     */
     private final List<URI> inprogress = new ArrayList<>();
 
-    public StyleActionToLocal(LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock, FileBackedMap resolvedCSS,
+    public StyleActionToLocal(LinkDownloader linkDownloader,
+            IntraInterprocessLock styleRepositoryLock,
+            FileBackedMap resolvedCSS,
             TxLog txLog)
     {
         this.linkDownloader = linkDownloader;
@@ -312,7 +320,7 @@ public class StyleActionToLocal
 
         JSOUP.setAttribute(elx, "rel", "stylesheet");
         if (original_type != null)
-            JSOUP.setAttribute(elx, "type", original_type); // "text/css" or ommitted
+            JSOUP.setAttribute(elx, "type", original_type); // "text/css" or omitted
         JSOUP.setAttribute(elx, "href", urlEncodeLink(relpath));
         JSOUP.setAttribute(elx, GeneratedBy, StyleManagerSignature);
 
@@ -475,19 +483,18 @@ public class StyleActionToLocal
     {
         if (JSOUP.getAttribute(elStyle, Original + "type") != null)
             throw new Exception("LINK tag contains unexpected original-type attribute");
-        
+
         String original_type = JSOUP.getAttribute(elStyle, "type");
-        
 
         Element elx = elStyle.clone().empty(); // shallow copy (preserves attributes)
         JSOUP.setAttribute(elx, GeneratedBy, StyleManagerSignature);
-        // ### copy modifiedCss to elx
+        elx.appendChild(new DataNode(modifiedCss, elx.baseUri()));
         elStyle.after(elx); // insert into the tree
-        
+
         if (original_type != null)
             JSOUP.setAttribute(elStyle, Original + "type", original_type);
         JSOUP.setAttribute(elStyle, SuppressedBy, StyleManagerSignature);
         JSOUP.deleteAttribute(elStyle, "type");
-        JSOUP.setAttribute(elStyle, "type", "text/" + StyleManagerSignature  + "-suppressed-css");
+        JSOUP.setAttribute(elStyle, "type", "text/" + StyleManagerSignature + "-suppressed-css");
     }
 }

@@ -40,7 +40,7 @@ public class StyleActionToLocal
         this.styleRepositoryLock = styleRepositoryLock;
     }
 
-    public boolean processHtmlFileToLocal(String htmlFilePath, PageParserDirectBasePassive parser, String htmlPageUrl)
+    public boolean processHtmlFileToLocalStyles(String htmlFilePath, PageParserDirectBasePassive parser, String htmlPageUrl)
             throws Exception
     {
         if (htmlPageUrl != null && !Util.isAbsoluteURL(htmlPageUrl))
@@ -74,17 +74,10 @@ public class StyleActionToLocal
                 throw new Exception("Unexpected value of link.rel: " + rel);
 
             if (href == null)
-                throw new Exception("Unexpected value of link.href: " + null);
+                throw new Exception("Unexpected value of link.href: null");
 
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
                 updated |= processStyleLink(JSOUP.asElement(n), href, htmlFilePath);
-            
-            // ### can have baseUrl?
-
-            // ### original: set original-rel, set original-href, set original-type (if type exists), set suppressed-by, change rel=original-stylesheet
-            // ###           check initially has no original-rel/href/type and no suppressed-by or generated-by
-            // ### new: set rel, href, type (if type exists or text/css), set generated-by, copy other attributes from original
-            // ### insert new after original
         }
 
         /*
@@ -101,7 +94,6 @@ public class StyleActionToLocal
                 continue;
 
             /* tag not processed yet*/
-            // ### can have baseUrl?
 
             // ### original tag: set suppressed-by, save type to original-type (if not null) and change type="text/StyleManagerSignature-suppressed-css" 
             // ###           check initially has no original-type and no suppressed-by or generated-by
@@ -119,7 +111,6 @@ public class StyleActionToLocal
                 continue;
 
             /* tag not processed yet*/
-            // ### can have baseUrl?
             // ### check has no original-style
             // ### save style to original-style
             // ### update style
@@ -154,7 +145,13 @@ public class StyleActionToLocal
 
         return false;
     }
+    
+    /* ================================================================================== */
 
+    // ### original: set original-rel, set original-href, set original-type (if type exists), set suppressed-by, change rel=original-stylesheet
+    // ###           check initially has no original-rel/href/type and no suppressed-by or generated-by
+    // ### new: set rel, href, type (if type exists or text/css), set generated-by, copy other attributes from original
+    // ### insert new after original
     private boolean processStyleLink(Element el, String href, String htmlFilePath) throws Exception
     {
         if (href.toLowerCase().startsWith("http://") || href.toLowerCase().startsWith("https://"))

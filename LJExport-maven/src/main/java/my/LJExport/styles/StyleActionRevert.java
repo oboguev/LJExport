@@ -11,7 +11,7 @@ public class StyleActionRevert
     private static final String GeneratedBy = StyleManager.GeneratedBy;
     private static final String SuppressedBy = StyleManager.SuppressedBy;
 
-    public boolean processHtmlFileRevert(String htmlFilePath, PageParserDirectBasePassive parser) throws Exception
+    public boolean processHtmlFileRevertStylesToRemote(String htmlFilePath, PageParserDirectBasePassive parser) throws Exception
     {
         boolean updated = false;
 

@@ -159,11 +159,11 @@ public class StyleManager
             switch (action)
             {
             case TO_LOCAL:
-                updated = new StyleActionToLocal(styleDir, linkDownloader, styleRepositoryLock).processHtmlFileToLocal(htmlFilePath, parser, htmlPageUrl);
+                updated = new StyleActionToLocal(styleDir, linkDownloader, styleRepositoryLock).processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
                 break;
 
             case REVERT:
-                updated = new StyleActionRevert().processHtmlFileRevert(htmlFilePath, parser);
+                updated = new StyleActionRevert().processHtmlFileRevertStylesToRemote(htmlFilePath, parser);
                 break;
             }
 

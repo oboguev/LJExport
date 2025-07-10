@@ -4,7 +4,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.concurrent.atomic.AtomicReference;
 import java.net.URLEncoder;
 
 import org.jsoup.nodes.Element;
@@ -45,7 +45,8 @@ public class StyleActionToLocal
     private final List<URI> inprogress = new ArrayList<>();
     private final TxLog txLog;
 
-    public StyleActionToLocal(LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock, FileBackedMap resolvedCSS, TxLog txLog)
+    public StyleActionToLocal(LinkDownloader linkDownloader, IntraInterprocessLock styleRepositoryLock, FileBackedMap resolvedCSS,
+            TxLog txLog)
     {
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
@@ -91,9 +92,6 @@ public class StyleActionToLocal
 
             if (href == null)
                 throw new Exception("Unexpected value of link.href: null");
-
-            // ### href resolves to list ?? etc.
-            // ### CssHelper.cssLinks
 
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
             {
@@ -184,7 +182,22 @@ public class StyleActionToLocal
      * LINK tag
      */
     //   <link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=1B2M2Y8A"> 
-    private void processStyleLink(Element el, String href, String htmlFilePath, String baseUrl) throws Exception
+    private void processStyleLink(Element elLink, String hrefComposite, String htmlFilePath, String baseUrl) throws Exception
+    {
+        List<String> hrefList = CssHelper.cssLinks(hrefComposite);
+        Element elInsertAfter = elLink;
+
+        for (int k = 0; k < hrefList.size(); k++)
+        {
+            String href = hrefList.get(k);
+            AtomicReference<Element> createdElement = new AtomicReference<>();
+            processStyleLink(elLink, href, htmlFilePath, baseUrl, elInsertAfter, k == hrefList.size() - 1, createdElement);
+            elInsertAfter = createdElement.get();
+        }
+    }
+
+    private void processStyleLink(Element elLink, String href, String htmlFilePath, String baseUrl, Element elInsertAfter,
+            boolean updateElLink, AtomicReference<Element> createdElement) throws Exception
     {
         if (baseUrl == null && !Util.isAbsoluteURL(href))
         {
@@ -195,7 +208,7 @@ public class StyleActionToLocal
             // later may resolve it against baseUrl
             throw new Exception("Unexpected link.href: " + href);
         }
-        
+
         if (ArchiveOrgUrl.isArchiveOrgUrl(href))
             throw new Exception("Loading styles from Web Archive is not implemented");
 
@@ -218,7 +231,7 @@ public class StyleActionToLocal
                     Util.err(sb.toString());
                     throw new Exception(sb.toString());
                 }
-                
+
                 /*
                  * Check if this CSS has already been adjusted on disk
                  */
@@ -243,15 +256,16 @@ public class StyleActionToLocal
                         Util.writeToFileVerySafe(beforeFilePath, beforeCss);
                         txLog.writeLine(String.format("Saved file [%s] to [%s]", cssFilePath, beforeFilePath));
 
-                        txLog.writeLine(String.format("About to overwrite file with edited CSS content, file path: [%s]", cssFilePath));
+                        txLog.writeLine(
+                                String.format("About to overwrite file with edited CSS content, file path: [%s]", cssFilePath));
                         Util.writeToFileVerySafe(cssFilePath, modifiedCss);
                         txLog.writeLine(String.format("Overwrote file with edited CSS content, file path: [%s]", cssFilePath));
 
-                        txLog.writeLine(String.format("About to write a mapping to map file: %s%sfrom: %s%sto: %s", 
+                        txLog.writeLine(String.format("About to write a mapping to map file: %s%sfrom: %s%sto: %s",
                                 resolvedCSS.getPath(),
                                 System.lineSeparator(),
-                                href, 
-                                System.lineSeparator(), 
+                                href,
+                                System.lineSeparator(),
                                 newref));
                         resolvedCSS.put(href, newref);
                         txLog.writeLine(String.format("Wrote a mapping to %s", resolvedCSS.getPath()));
@@ -271,28 +285,30 @@ public class StyleActionToLocal
             }
         }
 
-        updateLinkElement(el, htmlFilePath, newref);
+        updateLinkElement(elLink, htmlFilePath, newref, elInsertAfter, updateElLink, createdElement);
     }
 
-    private void updateLinkElement(Element el, String htmlFilePath, String newref) throws Exception
+    private void updateLinkElement(Element elLink, String htmlFilePath, String newref, Element elInsertAfter, boolean updateElLink,
+            AtomicReference<Element> createdElement) throws Exception
     {
         String cssFilePath = linkDownloader.rel2abs(newref);
         String relpath = RelativeLink.fileRelativeLink(cssFilePath, htmlFilePath,
                 Config.DownloadRoot + File.separator + Config.User);
 
-        if (JSOUP.getAttribute(el, Original + "rel") != null ||
-                JSOUP.getAttribute(el, Original + "type") != null ||
-                JSOUP.getAttribute(el, Original + "href") != null)
+        if (JSOUP.getAttribute(elLink, Original + "rel") != null ||
+                JSOUP.getAttribute(elLink, Original + "type") != null ||
+                JSOUP.getAttribute(elLink, Original + "href") != null)
         {
             throw new Exception("LINK tag contains unexpected original-xxx attributes");
         }
 
-        String original_rel = JSOUP.getAttribute(el, "rel");
-        String original_type = JSOUP.getAttribute(el, "type");
-        String original_href = JSOUP.getAttribute(el, "href");
+        String original_rel = JSOUP.getAttribute(elLink, "rel");
+        String original_type = JSOUP.getAttribute(elLink, "type");
+        String original_href = JSOUP.getAttribute(elLink, "href");
 
-        Element elx = el.clone().empty(); // shallow copy (preserves attributes)
-        el.after(elx); // insert into the tree
+        Element elx = elLink.clone().empty(); // shallow copy (preserves attributes)
+        createdElement.set(elx);
+        elInsertAfter.after(elx); // insert into the tree
 
         JSOUP.deleteAttribute(elx, "rel");
         JSOUP.deleteAttribute(elx, "type");
@@ -304,15 +320,18 @@ public class StyleActionToLocal
         JSOUP.setAttribute(elx, "href", urlEncodeLink(relpath));
         JSOUP.setAttribute(elx, GeneratedBy, StyleManagerSignature);
 
-        JSOUP.deleteAttribute(el, "rel");
-        JSOUP.deleteAttribute(el, "type");
-        JSOUP.deleteAttribute(el, "href");
-        JSOUP.setAttribute(el, "rel", Original + "stylesheet");
-        JSOUP.setAttribute(el, Original + "rel", original_rel);
-        if (original_type != null)
-            JSOUP.setAttribute(el, Original + "type", original_type);
-        JSOUP.setAttribute(el, Original + "href", original_href);
-        JSOUP.setAttribute(el, SuppressedBy, StyleManagerSignature);
+        if (updateElLink)
+        {
+            JSOUP.deleteAttribute(elLink, "rel");
+            JSOUP.deleteAttribute(elLink, "type");
+            JSOUP.deleteAttribute(elLink, "href");
+            JSOUP.setAttribute(elLink, "rel", Original + "stylesheet");
+            JSOUP.setAttribute(elLink, Original + "rel", original_rel);
+            if (original_type != null)
+                JSOUP.setAttribute(elLink, Original + "type", original_type);
+            JSOUP.setAttribute(elLink, Original + "href", original_href);
+            JSOUP.setAttribute(elLink, SuppressedBy, StyleManagerSignature);
+        }
     }
 
     private String urlEncodeLink(String relativeFilePath) throws Exception

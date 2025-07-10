@@ -7,6 +7,12 @@ import java.util.Map;
 
 import my.LJExport.Config;
 
+/*
+ * TODO:
+ * 
+ * Disallow multiple keys (except for different protocols and host case difference)
+ * to point to the same file relative path, or rather same relpath.toLowerCase().
+ */
 public class FileBackedMap
 {
     private final Map<String, String> map = new HashMap<>();

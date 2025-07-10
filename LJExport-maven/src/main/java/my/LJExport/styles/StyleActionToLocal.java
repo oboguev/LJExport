@@ -29,6 +29,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
+import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public class StyleActionToLocal
 {
@@ -95,7 +96,10 @@ public class StyleActionToLocal
             // ### CssHelper.cssLinks
 
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
-                updated |= processStyleLink(JSOUP.asElement(n), href, htmlFilePath, htmlPageUrl);
+            {
+                processStyleLink(JSOUP.asElement(n), href, htmlFilePath, htmlPageUrl);
+                updated = true;
+            }
         }
 
         /*
@@ -180,7 +184,7 @@ public class StyleActionToLocal
      * LINK tag
      */
     //   <link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=1B2M2Y8A"> 
-    private boolean processStyleLink(Element el, String href, String htmlFilePath, String baseUrl) throws Exception
+    private void processStyleLink(Element el, String href, String htmlFilePath, String baseUrl) throws Exception
     {
         if (baseUrl == null && !Util.isAbsoluteURL(href))
         {
@@ -191,40 +195,55 @@ public class StyleActionToLocal
             // later may resolve it against baseUrl
             throw new Exception("Unexpected link.href: " + href);
         }
+        
+        if (ArchiveOrgUrl.isArchiveOrgUrl(href))
+            throw new Exception("Loading styles from Web Archive is not implemented");
 
-        // lock repository to avoid deadlocks while processing A.css and B.css referencing each other
-        styleRepositoryLock.lockExclusive();
-        try
+        String newref = resolvedCSS.getAnyUrlProtocol(href);
+        if (newref == null)
         {
-            /*
-             * No in-progress CSS processing yet on this thread
-             */
-            inprogress.clear();
-
-            /*
-             * Check if this CSS has already been adjusted on disk
-             */
-            String newref = resolvedCSS.getAnyUrlProtocol(href);
-            if (newref == null)
+            // lock repository to avoid deadlocks while processing A.css and B.css referencing each other
+            styleRepositoryLock.lockExclusive();
+            try
             {
-                newref = linkDownloader.download(href, null, "");
+                // ### txLogCheckEmpty
+                
+                /*
+                 * Check if this CSS has already been adjusted on disk
+                 */
+                newref = resolvedCSS.getAnyUrlProtocol(href);
                 if (newref == null)
-                    throw new Exception("Failed to download style URL: " + href);
-                String cssFilePath = linkDownloader.rel2abs(newref);
-                String modifiedCss = resolveCssDependencies(Util.readFileAsString(cssFilePath), cssFilePath, href, baseUrl);
-                if (modifiedCss != null)
-                    Util.writeToFileSafe(cssFilePath, modifiedCss);
-                resolvedCSS.put(href, newref);
+                {
+                    newref = linkDownloader.download(href, null, "");
+                    if (newref == null)
+                        throw new Exception("Failed to download style URL: " + href);
+                    String cssFilePath = linkDownloader.rel2abs(newref);
+
+                    /*
+                     * No in-progress CSS processing yet on this thread
+                     */
+                    inprogress.clear();
+
+                    String modifiedCss = resolveCssDependencies(Util.readFileAsString(cssFilePath), cssFilePath, href, baseUrl);
+                    if (modifiedCss != null)
+                    {
+                        // ### save before (.guid-before)
+                        // ### txLog saving ... to ...
+                        Util.writeToFileSafe(cssFilePath, modifiedCss);
+                        // ### txLog overwrote ...
+                        // ### txLog writig to resolved css
+                    }
+                    resolvedCSS.put(href, newref);
+                    // ### txLogClear
+                }
             }
-
-            updateLinkElement(el, htmlFilePath, newref);
-
-            return true;
+            finally
+            {
+                styleRepositoryLock.unlock();
+            }
         }
-        finally
-        {
-            styleRepositoryLock.unlock();
-        }
+
+        updateLinkElement(el, htmlFilePath, newref);
     }
 
     private void updateLinkElement(Element el, String htmlFilePath, String newref) throws Exception
@@ -321,7 +340,8 @@ public class StyleActionToLocal
         for (CSSImportRule importRule : css.getAllImportRules())
         {
             String url = importRule.getLocationString();
-            String newUrl = downloadAndRelink(url);
+            String newUrl = downloadAndRelink(url); // ### baseUrl
+            // ### if (ArchiveOrgUrl.isArchiveOrgUrl
             // ### recursive? -- if so detect and abort
             importRule.setLocationString(newUrl);
             updated = true;
@@ -344,7 +364,7 @@ public class StyleActionToLocal
                             CSSExpressionMemberTermURI uriTerm = (CSSExpressionMemberTermURI) member;
                             String originalUrl = uriTerm.getURIString();
                             /* this cannot be CSS but only image or similar file, hence no recursion */
-                            String newUrl = downloadAndRelink(originalUrl);
+                            String newUrl = downloadAndRelink(originalUrl); // ### baseUrl
                             uriTerm.setURIString(newUrl);
                             changed = true;
                             updated = true;

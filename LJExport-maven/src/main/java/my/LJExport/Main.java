@@ -84,7 +84,7 @@ public class Main
     public static AtomicInteger unloadablePages;
     private static Set<String> deadLinks;
     private static boolean logged_in = false;
-    public static LinkDownloader linkDownloader = new LinkDownloader(); 
+    public static LinkDownloader linkDownloader = new LinkDownloader();
 
     public static void setAborting()
     {
@@ -190,6 +190,15 @@ public class Main
         if (Config.Method == WebMethod.SELENIUM)
             UrlDurationHistory.display();
 
+        try
+        {
+            Main.linkDownloader.close();
+        }
+        catch (Exception ex)
+        {
+            Util.noop();
+        }
+
         playCompletionSound();
     }
 
@@ -219,7 +228,7 @@ public class Main
             RateLimiter.LJ_PAGES.setRateLimit(100);
             Web.init();
             do_login();
-            
+
             RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimit_LiveJournal_Calendar);
             Calendar.index();
             RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimit_LiveJournal_PageLoad);
@@ -426,7 +435,7 @@ public class Main
         }
 
         Web.Response r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", sb.toString());
-        
+
         if (Config.isDreamwidthOrg())
         {
             if (r.code != 302)
@@ -510,7 +519,7 @@ public class Main
             postForm(sb, "returnto", "https://www.dreamwidth.org/");
             postForm(sb, "ret", "1");
             postForm(sb, "logout_one", "Log out");
-            
+
             try
             {
                 r = Web.post("http://www." + Config.LoginSite + "/logout", sb.toString());
@@ -542,7 +551,7 @@ public class Main
             setLogoutFailed();
         }
     }
-    
+
     private static void postForm(StringBuilder sb, String key, String value) throws Exception
     {
         if (sb.length() != 0)

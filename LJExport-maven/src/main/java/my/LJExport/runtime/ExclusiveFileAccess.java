@@ -128,6 +128,10 @@ public class ExclusiveFileAccess
     {
         if (writer != null)
             writer.flush();
+
+        // Ensure physical disk write
+        if (channel != null && channel.isOpen())
+            channel.force(true);
     }
 
     public synchronized void close()

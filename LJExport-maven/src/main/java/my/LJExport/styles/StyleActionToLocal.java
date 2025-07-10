@@ -1,8 +1,12 @@
 package my.LJExport.styles;
 
+import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -24,6 +28,7 @@ import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.links.RelativeLink;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
 
 public class StyleActionToLocal
@@ -212,7 +217,7 @@ public class StyleActionToLocal
                 resolvedCSS.put(href, newref);
             }
 
-            updateLink(el, newref);
+            updateLinkElement(el, htmlFilePath, newref);
 
             return true;
         }
@@ -222,8 +227,12 @@ public class StyleActionToLocal
         }
     }
 
-    private void updateLink(Element el, String newref) throws Exception
+    private void updateLinkElement(Element el, String htmlFilePath, String newref) throws Exception
     {
+        String cssFilePath = linkDownloader.rel2abs(newref);
+        String relpath = RelativeLink.fileRelativeLink(cssFilePath, htmlFilePath,
+                Config.DownloadRoot + File.separator + Config.User);
+
         if (JSOUP.getAttribute(el, Original + "rel") != null ||
                 JSOUP.getAttribute(el, Original + "type") != null ||
                 JSOUP.getAttribute(el, Original + "href") != null)
@@ -245,7 +254,7 @@ public class StyleActionToLocal
         JSOUP.setAttribute(elx, "rel", "stylesheet");
         if (original_type != null)
             JSOUP.setAttribute(elx, "type", original_type); // "text/css" or ommitted
-        JSOUP.setAttribute(elx, "href", "###"); // ### URL encoded newref and relocated with ../
+        JSOUP.setAttribute(elx, "href", urlEncodeLink(relpath));
         JSOUP.setAttribute(elx, GeneratedBy, StyleManagerSignature);
 
         JSOUP.deleteAttribute(el, "rel");
@@ -257,6 +266,36 @@ public class StyleActionToLocal
             JSOUP.setAttribute(el, Original + "type", original_type);
         JSOUP.setAttribute(el, Original + "href", original_href);
         JSOUP.setAttribute(el, SuppressedBy, StyleManagerSignature);
+    }
+
+    private String urlEncodeLink(String relativeFilePath) throws Exception
+    {
+        if (relativeFilePath == null || relativeFilePath.isEmpty())
+            return relativeFilePath;
+
+        StringBuilder encoded = new StringBuilder();
+        String[] components = relativeFilePath.split("/");
+
+        for (int i = 0; i < components.length; i++)
+        {
+            String comp = components[i];
+            if (i > 0)
+                encoded.append('/');
+
+            // Preserve "." and ".." exactly
+            if (comp.equals(".") || comp.equals(".."))
+            {
+                encoded.append(comp);
+            }
+            else
+            {
+                // Encode and manually replace '+' with '%20'
+                String encodedComp = URLEncoder.encode(comp, "UTF-8").replace("+", "%20");
+                encoded.append(encodedComp);
+            }
+        }
+
+        return encoded.toString();
     }
 
     /* ================================================================================== */

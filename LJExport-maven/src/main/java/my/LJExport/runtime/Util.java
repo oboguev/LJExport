@@ -200,7 +200,7 @@ public class Util
     public static void writeToFileSafe(String path, byte[] content) throws Exception
     {
         File f = new File(path).getAbsoluteFile().getCanonicalFile();
-        File ft = new File(path + ".tmp").getAbsoluteFile().getCanonicalFile();
+        File ft = new File(path + staticTempExtension()).getAbsoluteFile().getCanonicalFile();
         if (ft.exists())
             ft.delete();
         writeToFile(ft.getCanonicalPath(), content);
@@ -227,40 +227,38 @@ public class Util
      *
      * @throws IOException
      *             if the write cannot be completed safely
-     *              
-     * ******************************************************************************************************
+     * 
+     *             ******************************************************************************************************
      *
-     * Why this is the safest one can get in pure Java:
+     *             Why this is the safest one can get in pure Java:
      * 
-     * - FileChannel.force(true) is the Java equivalent of fsync(2); 
-     *   it asks the OS to flush both file data and metadata to the physical medium.
-     *   
-     * - Files.move with ATOMIC_MOVE maps to rename(2) on POSIX file-systems 
-     *   and to MoveFileExW(MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING) on modern Windows, 
-     *   giving atomic replacement semantics.
-     *   
-     * - force(true) on the parent directory completes the durability contract: 
-     *   the rename is only journal-committed once the directory entry itself is flushed.
+     *             - FileChannel.force(true) is the Java equivalent of fsync(2); it asks the OS to flush both file data and metadata
+     *             to the physical medium.
      * 
-     * Caveats:
+     *             - Files.move with ATOMIC_MOVE maps to rename(2) on POSIX file-systems and to MoveFileExW(MOVEFILE_WRITE_THROUGH |
+     *             MOVEFILE_REPLACE_EXISTING) on modern Windows, giving atomic replacement semantics.
      * 
-     * - Not all file systems honor fsync/force (e.g., some network shares, old FAT volumes, exotic FUSE file systems).
+     *             - force(true) on the parent directory completes the durability contract: the rename is only journal-committed
+     *             once the directory entry itself is flushed.
      * 
-     * - Certain hardware controllers lie about flush—a consumer-grade disk with a volatile write-back cache 
-     *   can still lose the last few milliseconds of writes after power loss unless it has a capacitor or you disable the cache.
-     *   
-     * - If you need each individual write() in long-running code to be made durable, 
-     *   open the file with StandardOpenOption.DSYNC or SYNC; 
-     *   here we only force once at the end for performance.
+     *             Caveats:
      * 
-     * For most desktop/server deployments on ext4, APFS, NTFS or XFS with proper power-loss protection,
-     * the method is the practical upper bound of crash-resilient file replacement one  can achieve with Java.
+     *             - Not all file systems honor fsync/force (e.g., some network shares, old FAT volumes, exotic FUSE file systems).
+     * 
+     *             - Certain hardware controllers lie about flush—a consumer-grade disk with a volatile write-back cache can still
+     *             lose the last few milliseconds of writes after power loss unless it has a capacitor or you disable the cache.
+     * 
+     *             - If you need each individual write() in long-running code to be made durable, open the file with
+     *             StandardOpenOption.DSYNC or SYNC; here we only force once at the end for performance.
+     * 
+     *             For most desktop/server deployments on ext4, APFS, NTFS or XFS with proper power-loss protection, the method is
+     *             the practical upper bound of crash-resilient file replacement one can achieve with Java.
      */
     public static void writeToFileVerySafe(String path, String content) throws IOException
     {
         writeToFileVerySafe(path, content.getBytes(StandardCharsets.UTF_8));
     }
-    
+
     public static void writeToFileVerySafe(String path, byte[] content) throws IOException
     {
         // --- Sanity checks ---------------------------------------------------
@@ -271,8 +269,7 @@ public class Util
         if (dir == null)
             throw new IOException("Target must reside in a directory");
 
-        // Use the same name + ".tmp" so they share the same directory entry length
-        Path tmp = dir.resolve(target.getFileName() + ".tmp");
+        Path tmp = dir.resolve(target.getFileName() + Util.staticTempExtension());
 
         // --- 1. Remove any stale temp file ----------------------------------
         Files.deleteIfExists(tmp);
@@ -1178,5 +1175,24 @@ public class Util
         {
             err("Failed to close " + c.getClass().getName());
         }
+    }
+
+    public static String tempExtension()
+    {
+        return tempExtension(5);
+    }
+
+    public static String tempExtension(int n)
+    {
+        return ".tmp~" + RandomString.rs(n);
+    }
+
+    private static String tempExtension = null;
+
+    public static synchronized String staticTempExtension()
+    {
+        if (tempExtension == null)
+            tempExtension = tempExtension(5);
+        return tempExtension;
     }
 }

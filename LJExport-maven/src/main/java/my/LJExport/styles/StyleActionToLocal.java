@@ -30,6 +30,7 @@ import my.LJExport.Config;
 import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.FileBackedMap;
+import my.LJExport.runtime.RandomString;
 import my.LJExport.runtime.TxLog;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
@@ -340,7 +341,7 @@ public class StyleActionToLocal
             String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL);
             if (modifiedCss != null)
             {
-                String beforeFilePath = cssFilePath + "." + Util.uuid() + ".before";
+                String beforeFilePath = cssFilePath + "." + RandomString.rs(5) + "~before";
                 Util.writeToFileVerySafe(beforeFilePath, beforeCss);
                 txLog.writeLine(String.format("Saved file [%s] to [%s]", cssFilePath, beforeFilePath));
 

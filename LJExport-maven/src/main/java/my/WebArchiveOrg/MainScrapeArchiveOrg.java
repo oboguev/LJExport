@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -15,6 +16,7 @@ import org.jsoup.nodes.Node;
 import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.html.JSOUP;
+import my.LJExport.runtime.LJExportInformation;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.TeleportUrl;
 import my.LJExport.runtime.Util;
@@ -116,6 +118,10 @@ public class MainScrapeArchiveOrg
 
         LimitProcessorUsage.limit();
         Util.out(">>> Start time: " + Util.timeNow());
+
+        Properties p = LJExportInformation.load();
+        p.setProperty(LJExportInformation.IsDownloadedFromWebArchiveOrg, "true");
+        LJExportInformation.save(p);
 
         if (production || Config.False)
         {

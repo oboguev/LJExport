@@ -81,7 +81,8 @@ public class StyleActionToLocal
      * used to detect circular references 
      */
     private final List<URI> inprogress = new ArrayList<>();
-    
+
+    private final boolean isDownloadedFromWebArchiveOrg;
     private String currentHtmlFilePath;
 
     /*
@@ -90,16 +91,14 @@ public class StyleActionToLocal
     public StyleActionToLocal(LinkDownloader linkDownloader,
             IntraInterprocessLock styleRepositoryLock,
             FileBackedMap resolvedCSS,
-            TxLog txLog)
+            TxLog txLog,
+            boolean isDownloadedFromWebArchiveOrg)
     {
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
         this.resolvedCSS = resolvedCSS;
         this.txLog = txLog;
-        
-        // <link rel="stylesheet" type="text/css" href="/web/20160426180858cs_/http://nationalism.org/forum/07/general1.css" title="general">
-        // ### is from achive.org
-        // ### isArchiveOrgUriPath
+        this.isDownloadedFromWebArchiveOrg = isDownloadedFromWebArchiveOrg;
     }
 
     /*
@@ -262,6 +261,12 @@ public class StyleActionToLocal
     private void processHtmlLinkTag(Element elLink, String href, String htmlFilePath, String baseUrl, Element elInsertAfter,
             boolean updateElLink, AtomicReference<Element> createdElement) throws Exception
     {
+        if (!Util.isAbsoluteURL(href) && this.isDownloadedFromWebArchiveOrg && ArchiveOrgUrl.isArchiveOrgUriPath(href))
+        {
+            // <link rel="stylesheet" type="text/css" href="/web/20160426180858cs_/http://nationalism.org/forum/07/general1.css" title="general">
+            href = "https://" + href;
+        }
+        
         if (baseUrl == null && !Util.isAbsoluteURL(href))
         {
             throw new Exception("Unexpected link.href: " + href);
@@ -855,7 +860,7 @@ public class StyleActionToLocal
             if (url.equals("file://" + this.currentHtmlFilePath.replace(File.separator, "/")))
                 return;
         }
-        
+
         StringBuilder sb = new StringBuilder();
 
         for (URI uri : inprogress)

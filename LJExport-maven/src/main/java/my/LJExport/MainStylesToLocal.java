@@ -106,7 +106,7 @@ public class MainStylesToLocal
             Config.mangleUser();
 
             Util.out(">>> Making HTML styles locally cached for user " + Config.User);
-
+            
             processDir("pages");
             processDir("reposts");
             processDir("monthly-pages");

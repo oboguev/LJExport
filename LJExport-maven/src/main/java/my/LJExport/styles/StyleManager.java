@@ -15,6 +15,7 @@ import my.LJExport.Config;
 import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.FileBackedMap;
+import my.LJExport.runtime.LJExportInformation;
 import my.LJExport.runtime.TxLog;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.LinkDownloader;
@@ -30,6 +31,7 @@ public class StyleManager
     private IntraInterprocessLock styleRepositoryLock;
     private FileBackedMap resolvedCSS = new FileBackedMap();
     private TxLog txLog;
+    private boolean isDownloadedFromWebArchiveOrg = false;
 
     private boolean initialized = false;
     private boolean initializing = false;
@@ -55,6 +57,11 @@ public class StyleManager
             throw new Exception("Unable to create directory: " + styleCatalogDir);
 
         this.styleCatalogDir = styleCatalogDir;
+
+        this.isDownloadedFromWebArchiveOrg = LJExportInformation
+                .load()
+                .getProperty(LJExportInformation.IsDownloadedFromWebArchiveOrg, "false")
+                .equals("true");
     }
 
     public String getStyleDir()
@@ -174,7 +181,7 @@ public class StyleManager
             styleRepositoryLock.close();
             styleRepositoryLock = null;
         }
-        
+
         if (txLog != null)
         {
             txLog.close();
@@ -203,7 +210,7 @@ public class StyleManager
             switch (action)
             {
             case TO_LOCAL:
-                updated = new StyleActionToLocal(linkDownloader, styleRepositoryLock, resolvedCSS, txLog)
+                updated = new StyleActionToLocal(linkDownloader, styleRepositoryLock, resolvedCSS, txLog, isDownloadedFromWebArchiveOrg)
                         .processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
                 break;
 

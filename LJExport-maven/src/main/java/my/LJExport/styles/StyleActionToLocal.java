@@ -333,7 +333,7 @@ public class StyleActionToLocal
             newref = linkDownloader.download(cssFileURL, null, "");
             if (newref == null)
                 throw new Exception("Failed to download style URL: " + cssFileURL);
-            
+
             /* convert to absolute path*/
             String cssFilePath = linkDownloader.rel2abs(newref);
 
@@ -464,9 +464,17 @@ public class StyleActionToLocal
         {
             if (isSameURL(uri, xuri))
             {
+                displayCssCyclicError(inprogress, uri);
                 /*
                  * Should later add actual handling of circular references.
                  * For now just abort.
+                 * 
+                 * Future design:
+                 *   - mark current CSS as provisional and return its path
+                 *   - mark all CSS'es that reference provisional CSSes as provisional
+                 *   - do not write provisional CSS to disk, store it in memory
+                 *   - commit all provisional CSS to disk at the end of whole operation 
+                 * 
                  */
                 throw new Exception("Circular reference in style sheets");
             }
@@ -475,6 +483,7 @@ public class StyleActionToLocal
         inprogress.add(uri);
         try
         {
+            displayCssProgress(inprogress);
             return do_resolveCssDependencies(cssText, hostingFilePath, hostingFileURL);
         }
         finally
@@ -811,5 +820,37 @@ public class StyleActionToLocal
         {
             return null;
         }
+    }
+
+    /* =========================================================================================== */
+
+    private void displayCssProgress(List<URI> inprogress)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        for (URI uri : inprogress)
+        {
+            if (sb.length() != 0)
+                sb.append(" => ");
+            sb.append(uri.toString());
+        }
+
+        Util.out(">>> CSS: " + sb.toString());
+    }
+
+    private void displayCssCyclicError(List<URI> inprogress, URI uri)
+    {
+        inprogress = new ArrayList<>(inprogress);
+        inprogress.add(uri);
+
+        StringBuilder sb = new StringBuilder();
+        for (URI xuri : inprogress)
+        {
+            sb.append("  => ");
+            sb.append(xuri.toString());
+            sb.append("\n");
+        }
+
+        Util.err("Cyclic CSS reference:\n" + sb.toString());
     }
 }

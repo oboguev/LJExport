@@ -21,12 +21,11 @@ public class MainStylesRevertToRemote
     // private static final String AllUsersFromUser = "fat_yankey";
     private static final String AllUsersFromUser = null;
 
-    // private static final String Users = "oboguev";
-    // private static final String Users = "fritzmorgen,oboguev";
+    // private static final String Users = ALL_USERS;
     // private static final String Users = "abcdefgh";
-    private static final String Users = ALL_USERS;
+    private static final String Users = "nationalism.org";
 
-    private static final boolean ShowProgress = true;
+    private static final boolean ShowStylesProgress = true;
     
     public static void main(String[] args)
     {
@@ -133,6 +132,6 @@ public class MainStylesRevertToRemote
                 return;
         }
 
-        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.REVERT, null, ShowProgress);
+        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.REVERT, null, ShowStylesProgress);
     }
 }

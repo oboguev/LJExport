@@ -525,7 +525,7 @@ public class StyleActionToLocal
                             String originalUrl = uriTerm.getURIString();
                             /* this cannot be CSS but only image or similar file, hence no recursion */
                             String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath);
-                            uriTerm.setURIString(newUrl);
+                            uriTerm.setURIString(urlEncodeLink(newUrl));
                             changed = true;
                             updated = true;
                         }
@@ -792,7 +792,7 @@ public class StyleActionToLocal
 
                     if (!newUrl.equals(originalUrl))
                     {
-                        uriTerm.setURIString(newUrl);
+                        uriTerm.setURIString(urlEncodeLink(newUrl));
                         updated = true;
                     }
                 }
@@ -803,7 +803,7 @@ public class StyleActionToLocal
         if (updated)
         {
             CSSWriterSettings settings = new CSSWriterSettings(ECSSVersion.CSS30, false);
-            settings.setOptimizedOutput(true); // optional: strip superfluous whitespace
+            settings.setOptimizedOutput(false); // if true, then compactifies CSS
             return declList.getAsCSSString(settings, 0);
         }
         else

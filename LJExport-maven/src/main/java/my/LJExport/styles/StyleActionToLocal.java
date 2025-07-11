@@ -335,21 +335,29 @@ public class StyleActionToLocal
             if (newref != null)
                 return linkDownloader.abs2rel(newref);
 
-            /*
-             * Style loading from archive.org requires additional considerations,
-             * that we now do not address yet
-             */
+            String download_href = cssFileURL;
+            String naming_href = cssFileURL;
+
             if (ArchiveOrgUrl.isArchiveOrgUrl(cssFileURL))
             {
-                // ### cssFileURL at archive.org
-                throw new Exception("Loading style resources from Web Archive is not implemented: " + cssFileURL);
+                naming_href = ArchiveOrgUrl.extractArchivedUrlPart(cssFileURL);
+                if (naming_href == null)
+                    naming_href = download_href;
             }
-
+            
             /*
-             * Download file into the repository.
+             * Download file to local repository (residing in local file system).
              * Returns path relative to repository root, with url-encoded path components.
              */
-            newref = linkDownloader.download(cssFileURL, null, "");
+            newref = linkDownloader.download(naming_href, download_href, null, "");
+            if (newref == null && !naming_href.equals(download_href))
+            {
+                download_href = ArchiveOrgUrl.getLatestCaptureUrl(naming_href);
+                newref = linkDownloader.download(naming_href, download_href, null, "");
+                // TODO: add alias download_href if does not exist -> newref (decodePathCopmonents first)
+                // TODO: add alias cssFileURL if does not exist -> newref (decodePathCopmonents first)
+            }
+            
             if (newref == null)
                 throw new Exception("Failed to download style URL: " + cssFileURL);
             newref = linkDownloader.decodePathCopmonents(newref);
@@ -666,7 +674,7 @@ public class StyleActionToLocal
 
         /*
          * Download file to local repository (residing in local file system).
-         * Returns downloaded (and url-encoded) file path relative to repository root. 
+         * Returns path relative to repository root, with url-encoded path components.
          */
         String rel = linkDownloader.download(naming_href, download_href, null, "");
         if (rel == null && !naming_href.equals(download_href))

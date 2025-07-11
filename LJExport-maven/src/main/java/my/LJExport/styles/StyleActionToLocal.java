@@ -241,89 +241,113 @@ public class StyleActionToLocal
         if (ArchiveOrgUrl.isArchiveOrgUrl(cssFileURL))
             throw new Exception("Loading styles from Web Archive is not implemented");
 
-        String newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
-        if (newref == null)
-        {
-            // lock repository to avoid deadlocks while processing A.css and B.css referencing each other
-            styleRepositoryLock.lockExclusive();
-            try
-            {
-                txLog.open();
+        String newref = resolveCss(cssFileURL);
 
-                if (!txLog.isEmpty())
-                {
-                    StringBuilder sb = new StringBuilder();
-                    final String nl = "\n";
-                    sb.append("Operation on styles repository was aborted in the middle of critical phase." + nl);
-                    sb.append("Please check transaction log and take corrective action." + nl);
-                    sb.append("Log file: " + txLog.getPath());
-                    Util.err(sb.toString());
-                    throw new Exception(sb.toString());
-                }
-
-                /*
-                 * Check if this CSS has already been adjusted on disk
-                 */
-                newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
-                if (newref == null)
-                {
-                    newref = linkDownloader.download(cssFileURL, null, "");
-                    if (newref == null)
-                        throw new Exception("Failed to download style URL: " + cssFileURL);
-                    String cssFilePath = linkDownloader.rel2abs(newref);
-
-                    /*
-                     * No in-progress CSS processing yet on this thread
-                     */
-                    inprogress.clear();
-
-                    String beforeCss = Util.readFileAsString(cssFilePath);
-                    String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL);
-                    if (modifiedCss != null)
-                    {
-                        String beforeFilePath = cssFilePath + "." + Util.uuid() + ".before";
-                        Util.writeToFileVerySafe(beforeFilePath, beforeCss);
-                        txLog.writeLine(String.format("Saved file [%s] to [%s]", cssFilePath, beforeFilePath));
-
-                        txLog.writeLine(
-                                String.format("About to overwrite file with edited CSS content, file path: [%s]", cssFilePath));
-                        Util.writeToFileVerySafe(cssFilePath, modifiedCss);
-                        txLog.writeLine(String.format("Overwrote file with edited CSS content, file path: [%s]", cssFilePath));
-
-                        txLog.writeLine(String.format("About to write a mapping to map file: %s%sfrom: %s%sto: %s",
-                                resolvedCSS.getPath(),
-                                System.lineSeparator(),
-                                cssFileURL,
-                                System.lineSeparator(),
-                                newref));
-                        resolvedCSS.put(cssFileURL, newref);
-                        txLog.writeLine(String.format("Wrote a mapping to %s", resolvedCSS.getPath()));
-                        txLog.clear();
-                        new File(beforeFilePath).delete();
-                    }
-                    else
-                    {
-                        resolvedCSS.put(cssFileURL, newref);
-                    }
-                }
-            }
-            finally
-            {
-                txLog.close();
-                styleRepositoryLock.unlock();
-            }
-        }
-
-        updateLinkElement(elLink, htmlFilePath, newref, elInsertAfter, updateElLink, createdElement);
-    }
-
-    private void updateLinkElement(Element elLink, String htmlFilePath, String newref, Element elInsertAfter, boolean updateElLink,
-            AtomicReference<Element> createdElement) throws Exception
-    {
         String cssFilePath = linkDownloader.rel2abs(newref);
         String relpath = RelativeLink.fileRelativeLink(cssFilePath, htmlFilePath,
                 Config.DownloadRoot + File.separator + Config.User);
 
+        updateLinkElement(elLink, relpath, elInsertAfter, updateElLink, createdElement);
+    }
+
+    /*
+     * Download on-demand CSS and the whole chain of resources references by it into a local file system repository.
+     * Downloaded resources may include other CSS files referenced via @Import or image/font/other passive files referenced via url: (...).
+     * References may be cascaded and cause the whole chain of files to be loaded from a remote server into a local repository.
+     * 
+     * When downloading CSS files (including CSS file directly referenced as the argument and cascaded CSS files @Import-ed as dependencies),  
+     * re-write links in the downloaded CSS files so they reflect their relationship within local file system repository.
+     * If links were relative on the remote server, they most often will remain the same in local copies. 
+     * However if links were absolute, they will be changed to become relative.
+     * 
+     * Returns path to re-written local copy of CSS file, relative to the root of local repository. 
+     */
+    private String resolveCss(String cssFileURL) throws Exception
+    {
+        /* See if CSS file was already resolved earlier */
+        String newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
+        if (newref != null)
+            return newref;
+
+        // lock repository to avoid deadlocks while processing A.css and B.css referencing each other
+        styleRepositoryLock.lockExclusive();
+        try
+        {
+            txLog.open();
+
+            if (!txLog.isEmpty())
+            {
+                StringBuilder sb = new StringBuilder();
+                final String nl = "\n";
+                sb.append("Operation on styles repository was aborted in the middle of a critical phase." + nl);
+                sb.append("Please check transaction log and take corrective action." + nl);
+                sb.append("Log file: " + txLog.getPath());
+                Util.err(sb.toString());
+                throw new Exception(sb.toString());
+            }
+
+            /*
+             * Check if this CSS had already been adjusted on disk
+             */
+            newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
+            if (newref == null)
+            {
+                /*
+                 * Download file into repository.
+                 * Returns path relative to repository root.
+                 */
+                newref = linkDownloader.download(cssFileURL, null, "");
+                if (newref == null)
+                    throw new Exception("Failed to download style URL: " + cssFileURL);
+                String cssFilePath = linkDownloader.rel2abs(newref);
+
+                /*
+                 * No in-progress CSS processing yet on this thread
+                 */
+                inprogress.clear();
+
+                String beforeCss = Util.readFileAsString(cssFilePath);
+                String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL);
+                if (modifiedCss != null)
+                {
+                    String beforeFilePath = cssFilePath + "." + Util.uuid() + ".before";
+                    Util.writeToFileVerySafe(beforeFilePath, beforeCss);
+                    txLog.writeLine(String.format("Saved file [%s] to [%s]", cssFilePath, beforeFilePath));
+
+                    txLog.writeLine(
+                            String.format("About to overwrite file with edited CSS content, file path: [%s]", cssFilePath));
+                    Util.writeToFileVerySafe(cssFilePath, modifiedCss);
+                    txLog.writeLine(String.format("Overwrote file with edited CSS content, file path: [%s]", cssFilePath));
+
+                    txLog.writeLine(String.format("About to write a mapping to map file: %s%sfrom: %s%sto: %s",
+                            resolvedCSS.getPath(),
+                            System.lineSeparator(),
+                            cssFileURL,
+                            System.lineSeparator(),
+                            newref));
+                    resolvedCSS.put(cssFileURL, newref);
+                    txLog.writeLine(String.format("Wrote a mapping to %s", resolvedCSS.getPath()));
+                    txLog.clear();
+                    new File(beforeFilePath).delete();
+                }
+                else
+                {
+                    resolvedCSS.put(cssFileURL, newref);
+                }
+            }
+        }
+        finally
+        {
+            txLog.close();
+            styleRepositoryLock.unlock();
+        }
+
+        return newref;
+    }
+
+    private void updateLinkElement(Element elLink, String relpath, Element elInsertAfter, boolean updateElLink,
+            AtomicReference<Element> createdElement) throws Exception
+    {
         if (JSOUP.getAttribute(elLink, Original + "rel") != null ||
                 JSOUP.getAttribute(elLink, Original + "type") != null ||
                 JSOUP.getAttribute(elLink, Original + "href") != null)
@@ -561,18 +585,18 @@ public class StyleActionToLocal
          */
         if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteUrl))
             throw new Exception("Loading style resources from Web Archive is not implemented: " + absoluteUrl);
-        
+
         /*
          * Download file to local repository (residing in local file system).
          * Returns downloaded file path relative to repository root. 
          */
-        String rel = linkDownloader.download(absoluteUrl, null , "");
+        String rel = linkDownloader.download(absoluteUrl, null, "");
         if (rel == null)
             throw new Exception("Unable to download style passive resource: " + absoluteUrl);
-        
+
         /* Full local file path name */
         String abs = linkDownloader.rel2abs(rel);
-        
+
         /* File path relative to the referencing resource (both must reside within DownloadRoot)  */
         rel = RelativeLink.fileRelativeLink(abs, relativeToFilePath, Config.DownloadRoot);
 
@@ -608,25 +632,25 @@ public class StyleActionToLocal
          */
         if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteUrl))
             throw new Exception("Loading style resources from Web Archive is not implemented: " + absoluteUrl);
-        
+
         /*
          * Download file to local repository (residing in local file system).
          * Returns downloaded file path relative to repository root. 
          */
-        String rel = linkDownloader.download(absoluteUrl, null , "");
+        String rel = linkDownloader.download(absoluteUrl, null, "");
         if (rel == null)
             throw new Exception("Unable to download style passive resource: " + absoluteUrl);
-        
+
         /* Full local file path name */
         String abs = linkDownloader.rel2abs(rel);
-        
+
         /*
          * Download dependent resources
          */
-        
+
         // ### dependents
         // ### recursive? -- if so detect and abort
-        
+
         /* File path relative to the referencing resource (both must reside within DownloadRoot)  */
         rel = RelativeLink.fileRelativeLink(abs, relativeToFilePath, Config.DownloadRoot);
 

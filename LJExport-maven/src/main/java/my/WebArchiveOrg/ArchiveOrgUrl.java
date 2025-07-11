@@ -7,6 +7,8 @@ public class ArchiveOrgUrl
 {
     private static final String ARCHIVE_PREFIX_HTTPS = "https://web.archive.org/web/";
     private static final String ARCHIVE_PREFIX_HTTP = "https://web.archive.org/web/";
+    
+    private static final String ArchiveOrgLatestCaptureWebRoot = "https://web.archive.org/web/2id_/";
 
     public static boolean isArchiveOrgUrl(String url)
     {
@@ -272,6 +274,11 @@ public class ArchiveOrgUrl
                 && Character.isLowerCase(s.charAt(14))
                 && Character.isLowerCase(s.charAt(15))
                 && s.charAt(16) == '_';
+    }
+
+    public static String getLatestCaptureUrl(String original_href)
+    {
+        return ArchiveOrgUrl.ArchiveOrgLatestCaptureWebRoot + original_href;
     }
 
     // Example usage

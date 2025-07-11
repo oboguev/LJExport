@@ -50,8 +50,6 @@ public class MainScrapeArchiveOrg
     /*
      * Technical parameters
      */
-    private static final String ArchiveOrgLatestCaptureWebRoot = "https://web.archive.org/web/2id_/";
-
     private final String archiveOrgWebRoot;
     private final String downloadRoot;
     private final String pagesDir;
@@ -807,7 +805,7 @@ public class MainScrapeArchiveOrg
 
         for (String name_href : Util.read_list(PreloadResourcesList))
         {
-            String download_href = ArchiveOrgLatestCaptureWebRoot + name_href;
+            String download_href = ArchiveOrgUrl.getLatestCaptureUrl(name_href);
             String newref = Main.linkDownloader.download(name_href, download_href, null, "");
             if (newref == null)
             {

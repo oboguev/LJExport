@@ -347,7 +347,7 @@ public class StyleActionToLocal
 
             /*
              * Download file into the repository.
-             * Returns path relative to repository root.
+             * Returns path relative to repository root, with url-encoded path components.
              */
             newref = linkDownloader.download(cssFileURL, null, "");
             if (newref == null)
@@ -654,23 +654,34 @@ public class StyleActionToLocal
         if (!lc.startsWith("http://") && !lc.startsWith("https://"))
             throw new Exception("Referenced style resource is not remote: " + absoluteUrl);
 
-        /*
-         * Style loading from archive.org requires additional considerations,
-         * that we now do not address yet
-         */
-        if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteUrl)) // ###
-            throw new Exception("Loading style resources from Web Archive is not implemented: " + absoluteUrl);
+        String download_href = absoluteUrl;
+        String naming_href = absoluteUrl;
+
+        if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteUrl))
+        {
+            naming_href = ArchiveOrgUrl.extractArchivedUrlPart(absoluteUrl);
+            if (naming_href == null)
+                naming_href = download_href;
+        }
 
         /*
          * Download file to local repository (residing in local file system).
-         * Returns downloaded file path relative to repository root. 
+         * Returns downloaded (and url-encoded) file path relative to repository root. 
          */
-        String rel = linkDownloader.download(absoluteUrl, null, "");
+        String rel = linkDownloader.download(naming_href, download_href, null, "");
+        if (rel == null && !naming_href.equals(download_href))
+        {
+            download_href = ArchiveOrgUrl.getLatestCaptureUrl(naming_href);
+            rel = linkDownloader.download(naming_href, download_href, null, "");
+            // TODO: add alias download_href if does not exist -> rel (decodePathCopmonents first)
+            // TODO: add alias absoluteUrl if does not exist -> rel (decodePathCopmonents first)
+        }
+
         if (rel == null)
             throw new Exception("Unable to download style passive resource: " + absoluteUrl);
-        rel = linkDownloader.decodePathCopmonents(rel);
 
         /* Full local file path name */
+        rel = linkDownloader.decodePathCopmonents(rel);
         String abs = linkDownloader.rel2abs(rel);
 
         /* File path relative to the referencing resource (both must reside within DownloadRoot)  */
@@ -857,7 +868,7 @@ public class StyleActionToLocal
     private String resolvedCSS_getAnyUrlProtocol(String cssFileURL) throws Exception
     {
         String newref = null;
-        
+
         if (ArchiveOrgUrl.isArchiveOrgUrl(cssFileURL))
         {
             String cssNamingFileURL = ArchiveOrgUrl.extractArchivedUrlPart(cssFileURL);

@@ -55,7 +55,7 @@ public class StyleActionToLocal
     private final IntraInterprocessLock styleRepositoryLock;
 
     /*
-     * Downloads remote resources to files in local file sytem repository. 
+     * Downloads remote resources to files in local file system repository. 
      */
     private final LinkDownloader linkDownloader;
 
@@ -292,7 +292,10 @@ public class StyleActionToLocal
      */
     private String resolveCssFile(String cssFileURL) throws Exception
     {
-        /* See if CSS file was already resolved earlier */
+        /* 
+         * See if CSS file was already resolved earlier.
+         * Treat HTTP and HTTPS versions of the url as pointing to the same resource. 
+         */
         String newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
         if (newref != null)
             return newref;

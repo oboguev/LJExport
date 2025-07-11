@@ -49,7 +49,7 @@ public class StyleActionToLocal
      * Interprocess and inter-thread lock on styles repository.
      */
     private final IntraInterprocessLock styleRepositoryLock;
-    
+
     /*
      * Downloads remote resources to files in the repository. 
      */
@@ -63,7 +63,7 @@ public class StyleActionToLocal
      * Maps URL -> local file path (of retrieved URL content) relative to repository root.
      */
     private final FileBackedMap resolvedCSS;
-    
+
     /*
      * Transaction log. Helps to identify a state of style repository if a failure (OS crash
      * or power down) happens in the middle of update operation.
@@ -449,9 +449,7 @@ public class StyleActionToLocal
         for (CSSImportRule importRule : css.getAllImportRules())
         {
             String url = importRule.getLocationString();
-            String newUrl = downloadAndRelink(url, hostingFileURL);
-            // ### if (ArchiveOrgUrl.isArchiveOrgUrl
-            // ### recursive? -- if so detect and abort
+            String newUrl = downloadAndRelinkCssFile(url, hostingFileURL);
             importRule.setLocationString(newUrl);
             updated = true;
         }
@@ -473,7 +471,7 @@ public class StyleActionToLocal
                             CSSExpressionMemberTermURI uriTerm = (CSSExpressionMemberTermURI) member;
                             String originalUrl = uriTerm.getURIString();
                             /* this cannot be CSS but only image or similar file, hence no recursion */
-                            String newUrl = downloadAndRelink(originalUrl, hostingFileURL);
+                            String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath);
                             uriTerm.setURIString(newUrl);
                             changed = true;
                             updated = true;
@@ -532,10 +530,64 @@ public class StyleActionToLocal
         return (a == null && b == null) || (a != null && a.equalsIgnoreCase(b));
     }
 
-    private String downloadAndRelink(String originalUrl, String baseUrl)
+    /*
+     * Make sure passive data file (image/font/etc. ) identified by (baseUrl + originalUrl)
+     * is downloaded and resides in the local repository (kept in a local file system).
+     * 
+     * Return relative local file path to the downloaded resource when referenced from relativeToFilePath.
+     */
+    private String downloadAndRelinkPassiveFile(String originalUrl, String baseUrl, String relativeToFilePath) throws Exception
     {
+        if (originalUrl == null || originalUrl.trim().isEmpty())
+            throw new Exception("Resuouce URL is missing or blank");
+
+        String absoluteUrl = Util.resolveURL(baseUrl, baseUrl);
+
+        /*
+         * Resource is expected to be remote
+         */
+        String lc = absoluteUrl.toLowerCase();
+        if (!lc.startsWith("http://") && !lc.startsWith("https://"))
+            throw new Exception("Referenced style resource is not remote: " + absoluteUrl);
+
+        /*
+         * Style loading from archive.org requires additional considerations,
+         * that we now do not address yet
+         */
+        if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteUrl))
+            throw new Exception("Loading style resources from Web Archive is not implemented: " + absoluteUrl);
+        
+        /*
+         * Download file to local repository (residing in local file system).
+         * Returns downloaded file path relative to repository root. 
+         */
+        String rel = linkDownloader.download(absoluteUrl, null , "");
+        if (rel == null)
+            throw new Exception("Unable to download style passive resource: " + absoluteUrl);
+        
+        /* Full local file path name */
+        String abs = linkDownloader.rel2abs(rel);
+        
+        /* File path relative to the referencing resource (both must reside within DownloadRoot)  */
+        rel = RelativeLink.fileRelativeLink(abs, relativeToFilePath, Config.DownloadRoot);
+
+        return rel;
+    }
+
+    /*
+     * Make sure CSS file identified by (originalUrl, baseUrl)
+     * is downloaded and resides in local repository.
+     * 
+     * Recursively download depended resources.
+     * Rewrite links in the CSS file to them as necessary. 
+     * 
+     * Return relative local file path to the downloaded resource when referenced from relativeToFilePath.
+     */
+    private String downloadAndRelinkCssFile(String originalUrl, String baseUrl)
+    {
+        // ### if (ArchiveOrgUrl.isArchiveOrgUrl
+        // ### recursive? -- if so detect and abort
         // ### check if remote
-        // ###
         return null;
     }
 
@@ -656,7 +708,7 @@ public class StyleActionToLocal
                     String originalUrl = uriTerm.getURIString();
 
                     // Inline styles can only reference images/fonts/etc.
-                    String newUrl = downloadAndRelink(originalUrl, hostingFileURL);
+                    String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath);
 
                     if (!newUrl.equals(originalUrl))
                     {

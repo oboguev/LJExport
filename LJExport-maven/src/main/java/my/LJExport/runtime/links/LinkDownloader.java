@@ -21,6 +21,7 @@ import org.apache.http.conn.HttpHostConnectException;
 import my.LJExport.Config;
 import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.NamedLocks;
+import my.LJExport.runtime.NetErrors;
 import my.LJExport.runtime.URLCodec;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Web;
@@ -252,8 +253,7 @@ public class LinkDownloader
 
             Thread.currentThread().setName(threadName);
 
-            String newref = filename.get().substring((linksDir + File.separator).length());
-            newref = newref.replace(File.separator, "/");
+            String newref = abs2rel(filename.get());
             newref = linkReferencePrefix + encodePathCopmonents(newref);
             return newref;
         }
@@ -265,6 +265,11 @@ public class LinkDownloader
             if (ex instanceof AlreadyFailedException)
             {
                 // ignore
+            }
+            else if (!NetErrors.isNetworkException(ex))
+            {
+                // error is not network-related, such as NullPointerException
+                throw new RuntimeException(ex.getLocalizedMessage(), ex);
             }
             else if (host != null && r != null && r.code != 204 && r.code != 404)
             {
@@ -393,7 +398,7 @@ public class LinkDownloader
         return ex instanceof ClientProtocolException && ex.getCause() instanceof CircularRedirectException;
     }
 
-    private String encodePathCopmonents(String ref)
+    public String encodePathCopmonents(String ref)
     {
         StringBuilder sb = new StringBuilder();
 
@@ -404,6 +409,23 @@ public class LinkDownloader
                 if (sb.length() != 0)
                     sb.append("/");
                 sb.append(URLCodec.encode(pc));
+            }
+        }
+
+        return sb.toString();
+    }
+    
+    public String decodePathCopmonents(String ref)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        for (String pc : Util.asList(ref, "/"))
+        {
+            if (pc.length() != 0)
+            {
+                if (sb.length() != 0)
+                    sb.append("/");
+                sb.append(URLCodec.decode(pc));
             }
         }
 

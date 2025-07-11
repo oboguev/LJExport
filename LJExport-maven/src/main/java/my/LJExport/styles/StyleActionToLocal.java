@@ -299,7 +299,7 @@ public class StyleActionToLocal
          */
         String newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
         if (newref != null)
-            return newref;
+            return linkDownloader.abs2rel(newref);
 
         // lock repository to avoid deadlocks while processing A.css and B.css referencing each other
         styleRepositoryLock.lockExclusive();
@@ -324,7 +324,7 @@ public class StyleActionToLocal
              */
             newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
             if (newref != null)
-                return newref;
+                return linkDownloader.abs2rel(newref);
 
             /*
              * Download file into the repository.
@@ -333,6 +333,7 @@ public class StyleActionToLocal
             newref = linkDownloader.download(cssFileURL, null, "");
             if (newref == null)
                 throw new Exception("Failed to download style URL: " + cssFileURL);
+            newref = linkDownloader.decodePathCopmonents(newref);
 
             /* convert to absolute path*/
             String cssFilePath = linkDownloader.rel2abs(newref);
@@ -350,20 +351,20 @@ public class StyleActionToLocal
                 Util.writeToFileVerySafe(cssFilePath, modifiedCss);
                 txLog.writeLine(String.format("Overwrote file with edited CSS content, file path: [%s]", cssFilePath));
 
-                txLog.writeLine(String.format("About to write a mapping to map file: %s%sfrom: %s%sto: %s",
+                txLog.writeLine(String.format("About to write a mapping to map file: %s%s  from: %s%s  to:   %s",
                         resolvedCSS.getPath(),
                         System.lineSeparator(),
                         cssFileURL,
                         System.lineSeparator(),
                         newref));
-                resolvedCSS.put(cssFileURL, newref);
+                resolvedCSS.put(cssFileURL, linkDownloader.rel2abs(newref));
                 txLog.writeLine(String.format("Wrote a mapping to %s", resolvedCSS.getPath()));
                 txLog.clear();
                 new File(beforeFilePath).delete();
             }
             else
             {
-                resolvedCSS.put(cssFileURL, newref);
+                resolvedCSS.put(cssFileURL, linkDownloader.rel2abs(newref));
             }
         }
         finally
@@ -632,6 +633,7 @@ public class StyleActionToLocal
         String rel = linkDownloader.download(absoluteUrl, null, "");
         if (rel == null)
             throw new Exception("Unable to download style passive resource: " + absoluteUrl);
+        rel = linkDownloader.decodePathCopmonents(rel);
 
         /* Full local file path name */
         String abs = linkDownloader.rel2abs(rel);

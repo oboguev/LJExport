@@ -7,6 +7,7 @@ import java.util.StringTokenizer;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.Web;
 import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.styles.StyleProcessor;
 import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
@@ -55,7 +56,7 @@ public class MainStylesToLocal
         }
 
         Config.init("");
-        // Web.init();
+        Web.init();
         // Main.do_login();
         // RateLimiter.LJ_IMAGES.setRateLimit(100);
 
@@ -94,7 +95,7 @@ public class MainStylesToLocal
         }
 
         // Main.do_logout();
-        // Web.shutdown();
+        Web.shutdown();
     }
 
     private void do_user(String user) throws Exception

@@ -89,8 +89,18 @@ public class RelativeLink
     public static String fileRelativeLink(String linkPath, String loadedFilePath, String commonRoot) throws Exception
     {
         // Resolve canonical paths
-        File linkFile = new File(linkPath).getCanonicalFile();
-        File loadedFile = new File(loadedFilePath).getCanonicalFile();
+        File linkFile = null;
+        File loadedFile = null; 
+        
+        try
+        {
+            linkFile = new File(linkPath).getCanonicalFile();
+            loadedFile = new File(loadedFilePath).getCanonicalFile();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
 
         // Validate that paths are absolute
         if (!linkFile.isAbsolute() || !loadedFile.isAbsolute())

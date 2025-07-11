@@ -227,32 +227,31 @@ public class Util
      *
      * @throws IOException
      *             if the write cannot be completed safely
+     */
+    /*
+     * Why this is the safest one can get in pure Java:
      * 
-     *             ******************************************************************************************************
-     *
-     *             Why this is the safest one can get in pure Java:
+     * - FileChannel.force(true) is the Java equivalent of fsync(2); it asks the OS to flush both file data and metadata
+     *   to the physical medium.
      * 
-     *             - FileChannel.force(true) is the Java equivalent of fsync(2); it asks the OS to flush both file data and metadata
-     *             to the physical medium.
+     * - Files.move with ATOMIC_MOVE maps to rename(2) on POSIX file-systems and to MoveFileExW(MOVEFILE_WRITE_THROUGH |
+     *   MOVEFILE_REPLACE_EXISTING) on modern Windows, giving atomic replacement semantics.
      * 
-     *             - Files.move with ATOMIC_MOVE maps to rename(2) on POSIX file-systems and to MoveFileExW(MOVEFILE_WRITE_THROUGH |
-     *             MOVEFILE_REPLACE_EXISTING) on modern Windows, giving atomic replacement semantics.
+     * - force(true) on the parent directory completes the durability contract: the rename is only journal-committed
+     *   once the directory entry itself is flushed.
      * 
-     *             - force(true) on the parent directory completes the durability contract: the rename is only journal-committed
-     *             once the directory entry itself is flushed.
+     * Caveats:
      * 
-     *             Caveats:
+     * - Not all file systems honor fsync/force (e.g., some network shares, old FAT volumes, exotic FUSE file systems).
      * 
-     *             - Not all file systems honor fsync/force (e.g., some network shares, old FAT volumes, exotic FUSE file systems).
+     * - Certain hardware controllers lie about flush—a consumer-grade disk with a volatile write-back cache can still
+     *   lose the last few milliseconds of writes after power loss unless it has a capacitor or you disable the cache.
      * 
-     *             - Certain hardware controllers lie about flush—a consumer-grade disk with a volatile write-back cache can still
-     *             lose the last few milliseconds of writes after power loss unless it has a capacitor or you disable the cache.
+     * - If you need each individual write() in long-running code to be made durable, open the file with
+     *   StandardOpenOption.DSYNC or SYNC; here we only force once at the end for performance.
      * 
-     *             - If you need each individual write() in long-running code to be made durable, open the file with
-     *             StandardOpenOption.DSYNC or SYNC; here we only force once at the end for performance.
-     * 
-     *             For most desktop/server deployments on ext4, APFS, NTFS or XFS with proper power-loss protection, the method is
-     *             the practical upper bound of crash-resilient file replacement one can achieve with Java.
+     * For most desktop/server deployments on ext4, APFS, NTFS or XFS with proper power-loss protection, the method is
+     * the practical upper bound of crash-resilient file replacement one can achieve with Java.
      */
     public static void writeToFileVerySafe(String path, String content) throws IOException
     {
@@ -308,9 +307,16 @@ public class Util
         }
 
         // --- 4. fsync the directory so the rename itself is durable ---------
-        try (FileChannel dirFc = FileChannel.open(dir, StandardOpenOption.READ))
+        try
         {
-            dirFc.force(true); // metadata only would suffice, but true is portable
+            try (FileChannel dirFc = FileChannel.open(dir, StandardOpenOption.READ))
+            {
+                dirFc.force(true); // metadata only would suffice, but true is portable
+            }
+        }
+        catch (IOException | UnsupportedOperationException e)
+        {
+            // On Windows: expected — skip directory fsync
         }
     }
 

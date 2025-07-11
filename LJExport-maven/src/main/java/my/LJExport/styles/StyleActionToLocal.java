@@ -312,53 +312,56 @@ public class StyleActionToLocal
             }
 
             /*
-             * Check if this CSS had already been adjusted on disk
+             * Re-check if this CSS had already been adjusted on disk
+             * while we were waiting for repo lock
              */
             newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
+            if (newref != null)
+                return newref;
+
+            /*
+             * Download file into the repository.
+             * Returns path relative to repository root.
+             */
+            newref = linkDownloader.download(cssFileURL, null, "");
             if (newref == null)
+                throw new Exception("Failed to download style URL: " + cssFileURL);
+            
+            /* convert to absolute path*/
+            String cssFilePath = linkDownloader.rel2abs(newref);
+
+            /*
+             * No in-progress CSS processing yet on this thread
+             */
+            inprogress.clear();
+
+            String beforeCss = Util.readFileAsString(cssFilePath);
+            String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL);
+            if (modifiedCss != null)
             {
-                /*
-                 * Download file into repository.
-                 * Returns path relative to repository root.
-                 */
-                newref = linkDownloader.download(cssFileURL, null, "");
-                if (newref == null)
-                    throw new Exception("Failed to download style URL: " + cssFileURL);
-                String cssFilePath = linkDownloader.rel2abs(newref);
+                String beforeFilePath = cssFilePath + "." + Util.uuid() + ".before";
+                Util.writeToFileVerySafe(beforeFilePath, beforeCss);
+                txLog.writeLine(String.format("Saved file [%s] to [%s]", cssFilePath, beforeFilePath));
 
-                /*
-                 * No in-progress CSS processing yet on this thread
-                 */
-                inprogress.clear();
+                txLog.writeLine(
+                        String.format("About to overwrite file with edited CSS content, file path: [%s]", cssFilePath));
+                Util.writeToFileVerySafe(cssFilePath, modifiedCss);
+                txLog.writeLine(String.format("Overwrote file with edited CSS content, file path: [%s]", cssFilePath));
 
-                String beforeCss = Util.readFileAsString(cssFilePath);
-                String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL);
-                if (modifiedCss != null)
-                {
-                    String beforeFilePath = cssFilePath + "." + Util.uuid() + ".before";
-                    Util.writeToFileVerySafe(beforeFilePath, beforeCss);
-                    txLog.writeLine(String.format("Saved file [%s] to [%s]", cssFilePath, beforeFilePath));
-
-                    txLog.writeLine(
-                            String.format("About to overwrite file with edited CSS content, file path: [%s]", cssFilePath));
-                    Util.writeToFileVerySafe(cssFilePath, modifiedCss);
-                    txLog.writeLine(String.format("Overwrote file with edited CSS content, file path: [%s]", cssFilePath));
-
-                    txLog.writeLine(String.format("About to write a mapping to map file: %s%sfrom: %s%sto: %s",
-                            resolvedCSS.getPath(),
-                            System.lineSeparator(),
-                            cssFileURL,
-                            System.lineSeparator(),
-                            newref));
-                    resolvedCSS.put(cssFileURL, newref);
-                    txLog.writeLine(String.format("Wrote a mapping to %s", resolvedCSS.getPath()));
-                    txLog.clear();
-                    new File(beforeFilePath).delete();
-                }
-                else
-                {
-                    resolvedCSS.put(cssFileURL, newref);
-                }
+                txLog.writeLine(String.format("About to write a mapping to map file: %s%sfrom: %s%sto: %s",
+                        resolvedCSS.getPath(),
+                        System.lineSeparator(),
+                        cssFileURL,
+                        System.lineSeparator(),
+                        newref));
+                resolvedCSS.put(cssFileURL, newref);
+                txLog.writeLine(String.format("Wrote a mapping to %s", resolvedCSS.getPath()));
+                txLog.clear();
+                new File(beforeFilePath).delete();
+            }
+            else
+            {
+                resolvedCSS.put(cssFileURL, newref);
             }
         }
         finally

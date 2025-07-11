@@ -449,7 +449,7 @@ public class StyleActionToLocal
         for (CSSImportRule importRule : css.getAllImportRules())
         {
             String url = importRule.getLocationString();
-            String newUrl = downloadAndRelinkCssFile(url, hostingFileURL);
+            String newUrl = downloadAndRelinkCssFile(url, hostingFileURL, hostingFilePath);
             importRule.setLocationString(newUrl);
             updated = true;
         }
@@ -535,6 +535,11 @@ public class StyleActionToLocal
      * is downloaded and resides in the local repository (kept in a local file system).
      * 
      * Return relative local file path to the downloaded resource when referenced from relativeToFilePath.
+     * 
+     * Since this is a passive file referencing no other (external) resources and hence does not require 
+     * downloading other referenced resources and re-writing inner links to other resources embedded in the 
+     * downloaded file, we do not need to enter it into resolvedCSS. Because we just download and keep
+     * this file as a binary BLOB, and do not modify it -- unlike we do for CSS files. 
      */
     private String downloadAndRelinkPassiveFile(String originalUrl, String baseUrl, String relativeToFilePath) throws Exception
     {
@@ -575,20 +580,57 @@ public class StyleActionToLocal
     }
 
     /*
-     * Make sure CSS file identified by (originalUrl, baseUrl)
-     * is downloaded and resides in local repository.
+     * Make sure CSS file (identified by (baseUrl + originalUrl)
+     * is downloaded and resides in the local repository (kept in a local file system).
      * 
-     * Recursively download depended resources.
-     * Rewrite links in the CSS file to them as necessary. 
-     * 
+     * Also recursively download depended resources.
+     * Rewrite links in the CSS file to them as necessary, to point to local copies.
+     *  
      * Return relative local file path to the downloaded resource when referenced from relativeToFilePath.
      */
-    private String downloadAndRelinkCssFile(String originalUrl, String baseUrl)
+    private String downloadAndRelinkCssFile(String originalUrl, String baseUrl, String relativeToFilePath) throws Exception
     {
-        // ### if (ArchiveOrgUrl.isArchiveOrgUrl
+        if (originalUrl == null || originalUrl.trim().isEmpty())
+            throw new Exception("Resuouce URL is missing or blank");
+
+        String absoluteUrl = Util.resolveURL(baseUrl, baseUrl);
+
+        /*
+         * Resource is expected to be remote
+         */
+        String lc = absoluteUrl.toLowerCase();
+        if (!lc.startsWith("http://") && !lc.startsWith("https://"))
+            throw new Exception("Referenced style resource is not remote: " + absoluteUrl);
+
+        /*
+         * Style loading from archive.org requires additional considerations,
+         * that we now do not address yet
+         */
+        if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteUrl))
+            throw new Exception("Loading style resources from Web Archive is not implemented: " + absoluteUrl);
+        
+        /*
+         * Download file to local repository (residing in local file system).
+         * Returns downloaded file path relative to repository root. 
+         */
+        String rel = linkDownloader.download(absoluteUrl, null , "");
+        if (rel == null)
+            throw new Exception("Unable to download style passive resource: " + absoluteUrl);
+        
+        /* Full local file path name */
+        String abs = linkDownloader.rel2abs(rel);
+        
+        /*
+         * Download dependent resources
+         */
+        
+        // ### dependents
         // ### recursive? -- if so detect and abort
-        // ### check if remote
-        return null;
+        
+        /* File path relative to the referencing resource (both must reside within DownloadRoot)  */
+        rel = RelativeLink.fileRelativeLink(abs, relativeToFilePath, Config.DownloadRoot);
+
+        return rel;
     }
 
     /* ================================================================================== */

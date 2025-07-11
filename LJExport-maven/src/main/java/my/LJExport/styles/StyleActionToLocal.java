@@ -266,7 +266,7 @@ public class StyleActionToLocal
             // <link rel="stylesheet" type="text/css" href="/web/20160426180858cs_/http://nationalism.org/forum/07/general1.css" title="general">
             href = "https://" + href;
         }
-        
+
         if (baseUrl == null && !Util.isAbsoluteURL(href))
         {
             throw new Exception("Unexpected link.href: " + href);
@@ -278,9 +278,6 @@ public class StyleActionToLocal
         }
 
         String cssFileURL = Util.resolveURL(baseUrl, href);
-
-        if (ArchiveOrgUrl.isArchiveOrgUrl(cssFileURL))
-            throw new Exception("Loading styles from Web Archive is not implemented");
 
         String newref = resolveCssFile(cssFileURL);
 
@@ -309,7 +306,7 @@ public class StyleActionToLocal
          * See if CSS file was already resolved earlier.
          * Treat HTTP and HTTPS versions of the url as pointing to the same resource. 
          */
-        String newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
+        String newref = resolvedCSS_getAnyUrlProtocol(cssFileURL);
         if (newref != null)
             return linkDownloader.abs2rel(newref);
 
@@ -334,9 +331,19 @@ public class StyleActionToLocal
              * Re-check if this CSS had already been adjusted on disk
              * while we were waiting for repo lock
              */
-            newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
+            newref = resolvedCSS_getAnyUrlProtocol(cssFileURL);
             if (newref != null)
                 return linkDownloader.abs2rel(newref);
+
+            /*
+             * Style loading from archive.org requires additional considerations,
+             * that we now do not address yet
+             */
+            if (ArchiveOrgUrl.isArchiveOrgUrl(cssFileURL))
+            {
+                // ### cssFileURL at archive.org
+                throw new Exception("Loading style resources from Web Archive is not implemented: " + cssFileURL);
+            }
 
             /*
              * Download file into the repository.
@@ -351,7 +358,7 @@ public class StyleActionToLocal
             String cssFilePath = linkDownloader.rel2abs(newref);
 
             String beforeCss = Util.readFileAsString(cssFilePath);
-            String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL, false);
+            String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL, false); // ### archive.org
             if (modifiedCss != null)
             {
                 String beforeFilePath = cssFilePath + "." + RandomString.rs(5) + "~before";
@@ -363,6 +370,7 @@ public class StyleActionToLocal
                 Util.writeToFileVerySafe(cssFilePath, modifiedCss);
                 txLog.writeLine(String.format("Overwrote file with edited CSS content, file path: [%s]", cssFilePath));
 
+                // ### archive.org - twice
                 txLog.writeLine(String.format("About to write a mapping to map file: %s%s  from: %s%s  to:   %s",
                         resolvedCSS.getPath(),
                         System.lineSeparator(),
@@ -376,6 +384,7 @@ public class StyleActionToLocal
             }
             else
             {
+                // ### archive.org - twice
                 resolvedCSS.put(cssFileURL, linkDownloader.rel2abs(newref));
             }
         }
@@ -649,7 +658,7 @@ public class StyleActionToLocal
          * Style loading from archive.org requires additional considerations,
          * that we now do not address yet
          */
-        if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteUrl))
+        if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteUrl)) // ###
             throw new Exception("Loading style resources from Web Archive is not implemented: " + absoluteUrl);
 
         /*
@@ -692,13 +701,6 @@ public class StyleActionToLocal
         String lc = absoluteCssFileUrl.toLowerCase();
         if (!lc.startsWith("http://") && !lc.startsWith("https://"))
             throw new Exception("Referenced style resource is not remote: " + absoluteCssFileUrl);
-
-        /*
-         * Style loading from archive.org requires additional considerations,
-         * that we now do not address yet
-         */
-        if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteCssFileUrl))
-            throw new Exception("Loading style resources from Web Archive is not implemented: " + absoluteCssFileUrl);
 
         String newref = resolveCssFile(absoluteCssFileUrl);
 
@@ -848,6 +850,27 @@ public class StyleActionToLocal
         {
             return null;
         }
+    }
+
+    /* =========================================================================================== */
+
+    private String resolvedCSS_getAnyUrlProtocol(String cssFileURL) throws Exception
+    {
+        String newref = null;
+        
+        if (ArchiveOrgUrl.isArchiveOrgUrl(cssFileURL))
+        {
+            String cssNamingFileURL = ArchiveOrgUrl.extractArchivedUrlPart(cssFileURL);
+            if (cssNamingFileURL != null)
+            {
+                newref = resolvedCSS.getAnyUrlProtocol(cssNamingFileURL);
+                if (newref != null)
+                    return newref;
+            }
+        }
+
+        newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
+        return newref;
     }
 
     /* =========================================================================================== */

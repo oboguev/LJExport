@@ -187,10 +187,10 @@ public class ArchiveOrgUrl
     }
 
     /**
-     * Utility methods for recognising Wayback-Machine (archive.org) capture URLs.
+     * Utility methods for recognizing Wayback-Machine (archive.org) capture URLs.
      *
      * <p>
-     * Two URL shapes are recognised (after collapsing duplicate “/” characters):
+     * Two URL shapes are recognized (after collapsing duplicate “/” characters):
      *
      * <pre>
      * Variant 1: /web/20160426180858/http:/REMAINDER

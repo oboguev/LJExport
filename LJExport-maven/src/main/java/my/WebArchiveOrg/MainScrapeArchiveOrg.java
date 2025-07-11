@@ -41,6 +41,8 @@ public class MainScrapeArchiveOrg
     private static final Set<String> Excludes = Util.setOf("rr/4/index.htm");
     private static final String PreloadResourcesList = "scrape-archive-org/nationalism-org/preload-resources.txt";
 
+    private static boolean ShowStyleProgress = true;
+
     /* ================================================================================================== */
 
     /*
@@ -912,6 +914,6 @@ public class MainScrapeArchiveOrg
 
     private void loadStyles() throws Exception
     {
-        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, pagesDir, StyleProcessorAction.TO_LOCAL, null);
+        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, pagesDir, StyleProcessorAction.TO_LOCAL, null, ShowStyleProgress);
     }
 }

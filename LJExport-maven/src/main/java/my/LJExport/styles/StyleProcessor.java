@@ -20,13 +20,14 @@ public class StyleProcessor
     public static void processAllHtmlFiles(String styleCatalogDir,
             String htmlPagesRootDir,
             StyleProcessorAction action,
-            String baseURL) throws Exception
+            String baseURL, 
+            boolean showProgress) throws Exception
     {
         StyleManager styleManager = new StyleManager(styleCatalogDir);
         try
         {
             styleManager.init();
-            processAllHtmlFiles(styleManager, htmlPagesRootDir, action, baseURL);
+            processAllHtmlFiles(styleManager, htmlPagesRootDir, action, baseURL, showProgress);
         }
         finally
         {
@@ -37,7 +38,8 @@ public class StyleProcessor
     public static void processAllHtmlFiles(StyleManager styleManager,
             String htmlPagesRootDir,
             StyleProcessorAction action,
-            String baseURL) throws Exception
+            String baseURL, 
+            boolean showProgress) throws Exception
     {
         while (htmlPagesRootDir.endsWith(File.separator))
             htmlPagesRootDir = Util.stripTail(htmlPagesRootDir, File.separator);
@@ -49,6 +51,10 @@ public class StyleProcessor
         for (String relPath : Util.enumerateAnyHtmlFiles(htmlPagesRootDir))
         {
             String path = htmlPagesRootDir + File.separator + relPath;
+            
+            if (showProgress)
+                Util.out("Processing styles for " + path);
+            
             styleManager.processHtmlFile(path, action, baseURL);
         }
     }

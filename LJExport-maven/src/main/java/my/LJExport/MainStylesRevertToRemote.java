@@ -26,6 +26,8 @@ public class MainStylesRevertToRemote
     // private static final String Users = "abcdefgh";
     private static final String Users = ALL_USERS;
 
+    private static final boolean ShowProgress = true;
+    
     public static void main(String[] args)
     {
         try
@@ -131,6 +133,6 @@ public class MainStylesRevertToRemote
                 return;
         }
 
-        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.REVERT, null);
+        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.REVERT, null, ShowProgress);
     }
 }

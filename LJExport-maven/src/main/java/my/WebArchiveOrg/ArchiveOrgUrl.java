@@ -186,6 +186,94 @@ public class ArchiveOrgUrl
         return remainder.substring(0, slash);
     }
 
+    /**
+     * Utility methods for recognising Wayback-Machine (archive.org) capture URLs.
+     *
+     * <p>
+     * Two URL shapes are recognised (after collapsing duplicate “/” characters):
+     *
+     * <pre>
+     * Variant 1: /web/20160426180858/http:/REMAINDER
+     *            /web/20160426180858/https:/REMAINDER
+     *
+     * Variant 2: /web/20160426180858cs_/http:/REMAINDER
+     *            /web/20160426180858cs_/https:/REMAINDER
+     * </pre>
+     *
+     * In Variant 2 the extra “cs_” can be any two lower-case letters followed by “_”. The timestamp (with or without the suffix) is
+     * validated separately so the logic can be tweaked later if needed.
+     */
+
+    /** “/web/” + 14-digit timestamp + optional “aa_” + “/” + protocol */
+    private static final Pattern ARCHIVE_ORG_URI_PATTERN = Pattern.compile(
+            "^/web/(\\d{14})([a-z]{2}_)?/(https?:/).+",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Returns {@code true} iff the supplied {@code path} is a Wayback-Machine capture URL in one of the two recognised variants.
+     */
+    public static boolean isArchiveOrgUriPath(String path)
+    {
+        if (path == null || path.isEmpty())
+            return false;
+
+        // Collapse any “//” to "/"
+        String normalised = path.replaceAll("/{2,}", "/");
+
+        Matcher m = ARCHIVE_ORG_URI_PATTERN.matcher(normalised);
+        if (!m.matches())
+            return false;
+
+        // Concatenate the 14-digit timestamp with the optional “aa_” suffix.
+        String tsSegment = m.group(1) + (m.group(2) == null ? "" : m.group(2));
+        return isArchiveOrgTimestamp(tsSegment);
+    }
+
+    /**
+     * Validates a Wayback timestamp:
+     * <ul>
+     * <li>first 14 chars are digits (<code>yyyyMMddHHmmss</code>)</li>
+     * <li>year ∈ [1990, 2100]</li>
+     * <li>optionally followed by exactly two lower-case letters and “_”</li>
+     * </ul>
+     */
+    private static boolean isArchiveOrgTimestamp(String s)
+    {
+        if (s == null || s.length() < 14)
+        {
+            return false;
+        }
+
+        // 1) 14 digits.
+        for (int i = 0; i < 14; i++)
+        {
+            char c = s.charAt(i);
+            if (c < '0' || c > '9')
+            {
+                return false;
+            }
+        }
+
+        // 2) Plausible year.
+        int year = Integer.parseInt(s.substring(0, 4));
+        if (year < 1990 || year > 2100)
+        {
+            return false;
+        }
+
+        // 3) No suffix.
+        if (s.length() == 14)
+        {
+            return true;
+        }
+
+        // 4) “aa_” suffix (two a-z + “_”).
+        return s.length() == 17
+                && Character.isLowerCase(s.charAt(14))
+                && Character.isLowerCase(s.charAt(15))
+                && s.charAt(16) == '_';
+    }
+
     // Example usage
     public static void main(String[] args)
     {

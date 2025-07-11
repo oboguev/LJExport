@@ -81,6 +81,8 @@ public class StyleActionToLocal
      * used to detect circular references 
      */
     private final List<URI> inprogress = new ArrayList<>();
+    
+    private String currentHtmlFilePath;
 
     /*
      * Constructor for StyleActionToLocal processor.
@@ -94,6 +96,10 @@ public class StyleActionToLocal
         this.styleRepositoryLock = styleRepositoryLock;
         this.resolvedCSS = resolvedCSS;
         this.txLog = txLog;
+        
+        // <link rel="stylesheet" type="text/css" href="/web/20160426180858cs_/http://nationalism.org/forum/07/general1.css" title="general">
+        // ### is from achive.org
+        // ### isArchiveOrgUriPath
     }
 
     /*
@@ -128,7 +134,8 @@ public class StyleActionToLocal
         boolean updated = false;
 
         /* no in-progress CSS processing yet on this thread */
-        inprogress.clear();
+        this.inprogress.clear();
+        this.currentHtmlFilePath = htmlFilePath;
 
         /*
          * LINK tags
@@ -339,7 +346,7 @@ public class StyleActionToLocal
             String cssFilePath = linkDownloader.rel2abs(newref);
 
             String beforeCss = Util.readFileAsString(cssFilePath);
-            String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL);
+            String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL, false);
             if (modifiedCss != null)
             {
                 String beforeFilePath = cssFilePath + "." + RandomString.rs(5) + "~before";
@@ -455,12 +462,26 @@ public class StyleActionToLocal
      * hostingFilePath -- path of either CSS file or HTML file containing cssText, cached in a local file system
      * hostingFileURL -- original URL of hosting CSS/HTML file, used to resolve relative links in cssText     
      */
-    private String resolveCssDependencies(String cssText, String hostingFilePath, String hostingFileURL) throws Exception
+    private String resolveCssDependencies(String cssText, String hostingFilePath, String hostingFileURL, boolean isLocalHtmlFile)
+            throws Exception
     {
+        URI uri = null;
+
         /*
          * Check for circular references in stylesheets being re-writtem
          */
-        URI uri = new URI(hostingFileURL);
+        try
+        {
+            if (isLocalHtmlFile && hostingFileURL == null)
+                uri = new URI("file://" + hostingFilePath.replace(File.separator, "/"));
+            else
+                uri = new URI(hostingFileURL);
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+
         for (URI xuri : inprogress)
         {
             if (isSameURL(uri, xuri))
@@ -697,7 +718,7 @@ public class StyleActionToLocal
         boolean updated = false;
 
         String cssText = elStyle.data();
-        String modifiedCss = resolveCssDependencies(cssText, htmlFilePath, htmlPageUrl);
+        String modifiedCss = resolveCssDependencies(cssText, htmlFilePath, htmlPageUrl, true);
         if (modifiedCss != null)
         {
             updateStyleElement(elStyle, modifiedCss);
@@ -828,6 +849,13 @@ public class StyleActionToLocal
 
     private void displayCssProgress(List<URI> inprogress)
     {
+        if (inprogress.size() == 1)
+        {
+            String url = inprogress.get(0).toString();
+            if (url.equals("file://" + this.currentHtmlFilePath.replace(File.separator, "/")))
+                return;
+        }
+        
         StringBuilder sb = new StringBuilder();
 
         for (URI uri : inprogress)

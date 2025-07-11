@@ -503,7 +503,7 @@ public class StyleActionToLocal
         {
             String url = importRule.getLocationString();
             String newUrl = downloadAndRelinkCssFile(url, hostingFileURL, hostingFilePath);
-            importRule.setLocationString(newUrl);
+            importRule.setLocationString(urlEncodeLink(newUrl));
             updated = true;
         }
 

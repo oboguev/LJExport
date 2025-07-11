@@ -37,6 +37,10 @@ import my.LJExport.runtime.links.RelativeLink;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
+/*
+ * Process HTML file to adjust style links in it from remote to local.
+ * Copy remote style resources to a local file system repository as necessary.  
+ */
 public class StyleActionToLocal
 {
     private static final String StyleManagerSignature = StyleManager.StyleManagerSignature;
@@ -51,31 +55,35 @@ public class StyleActionToLocal
     private final IntraInterprocessLock styleRepositoryLock;
 
     /*
-     * Downloads remote resources to files in the repository. 
+     * Downloads remote resources to files in local file sytem repository. 
      */
     private final LinkDownloader linkDownloader;
 
     /*
      * Persistent (on-disk) map that stores local CSS style sheets that have already been
-     * re-written to resolve external links in them. A link to a remote server is re-written
-     * to become a link to a local file cached in styles repository.
+     * re-written to resolve external links in them. Links to remote servers within CSS are re-written
+     * to become instead links to local files cached in local styles repository. Once such re-write
+     * is completed, file is added to resolvedCSS. 
      * 
-     * Maps URL -> local file path (of retrieved URL content) relative to repository root.
+     * It maps URL (of original remote CSS file) -> local file path (of retrieved URL content) relative to the repository root.
      */
     private final FileBackedMap resolvedCSS;
 
     /*
      * Transaction log. Helps to identify a state of style repository if a failure (OS crash
-     * or power down) happens in the middle of update operation.
+     * or power down) happens in the middle of an update operation.
      */
     private final TxLog txLog;
 
     /* 
-     * list (stack) of URLs of CSS/HTML files with styles being currently re-writtem,
+     * List (stack) of URLs of CSS/HTML files with styles being currently re-written,
      * used to detect circular references 
      */
     private final List<URI> inprogress = new ArrayList<>();
 
+    /*
+     * Constructor for StyleActionToLocal processor.
+     */
     public StyleActionToLocal(LinkDownloader linkDownloader,
             IntraInterprocessLock styleRepositoryLock,
             FileBackedMap resolvedCSS,
@@ -88,10 +96,27 @@ public class StyleActionToLocal
     }
 
     /*
-     * Returns @true if parsed HTML file (tree) had been changed during style processing,
+     * Main (and only) exposed method:
+     * 
+     * Resolve HTML page styles from remote to local.
+     * Download remote styles from HTTP(S) servers to a local file system repository and adjust style resources 
+     * links in the HTML tree to point to a local copy of resources, instead of remote copy.
+     * 
+     * Arguments:
+     * 
+     *     @htmlFilePath = full file path of HTML file in a local file system
+     * 
+     *     @htmlPageUrl = original URL of the page on the server, used as a base URL for retrieving resources.
+     * 
+     *     @parser.pageRoot = root Document Element of JSOUP tree, of the parsed file at @htmlFilePath 
+     * 
+     * Returns @true if HTML file tree had been changed during style processing,
      * and the tree needs to be written back to the file.
      * 
-     * If no changes are done, return @false.   
+     * If no changes were done to HTML tree (e.g. no remote styles), return @false.
+     * 
+     * In particular, file that had already been processed earlier and contains style references
+     * only to local style resources, will result in @false.     
      */
     public boolean processHtmlFileToLocalStyles(String htmlFilePath, PageParserDirectBasePassive parser, String htmlPageUrl)
             throws Exception
@@ -187,7 +212,7 @@ public class StyleActionToLocal
 
     /* ================================================================================== */
 
-    public boolean relContainsStylesheet(String relValue)
+    private boolean relContainsStylesheet(String relValue)
     {
         if (relValue != null)
         {
@@ -241,7 +266,7 @@ public class StyleActionToLocal
         if (ArchiveOrgUrl.isArchiveOrgUrl(cssFileURL))
             throw new Exception("Loading styles from Web Archive is not implemented");
 
-        String newref = resolveCss(cssFileURL);
+        String newref = resolveCssFile(cssFileURL);
 
         String cssFilePath = linkDownloader.rel2abs(newref);
         String relpath = RelativeLink.fileRelativeLink(cssFilePath, htmlFilePath,
@@ -262,7 +287,7 @@ public class StyleActionToLocal
      * 
      * Returns path to re-written local copy of CSS file, relative to the root of local repository. 
      */
-    private String resolveCss(String cssFileURL) throws Exception
+    private String resolveCssFile(String cssFileURL) throws Exception
     {
         /* See if CSS file was already resolved earlier */
         String newref = resolvedCSS.getAnyUrlProtocol(cssFileURL);
@@ -598,7 +623,7 @@ public class StyleActionToLocal
         String abs = linkDownloader.rel2abs(rel);
 
         /* File path relative to the referencing resource (both must reside within DownloadRoot)  */
-        rel = RelativeLink.fileRelativeLink(abs, relativeToFilePath, Config.DownloadRoot);
+        rel = RelativeLink.fileRelativeLink(abs, relativeToFilePath, Config.DownloadRoot + File.separator + Config.User);
 
         return rel;
     }
@@ -617,44 +642,29 @@ public class StyleActionToLocal
         if (originalUrl == null || originalUrl.trim().isEmpty())
             throw new Exception("Resuouce URL is missing or blank");
 
-        String absoluteUrl = Util.resolveURL(baseUrl, baseUrl);
+        String absoluteCssFileUrl = Util.resolveURL(baseUrl, baseUrl);
 
         /*
          * Resource is expected to be remote
          */
-        String lc = absoluteUrl.toLowerCase();
+        String lc = absoluteCssFileUrl.toLowerCase();
         if (!lc.startsWith("http://") && !lc.startsWith("https://"))
-            throw new Exception("Referenced style resource is not remote: " + absoluteUrl);
+            throw new Exception("Referenced style resource is not remote: " + absoluteCssFileUrl);
 
         /*
          * Style loading from archive.org requires additional considerations,
          * that we now do not address yet
          */
-        if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteUrl))
-            throw new Exception("Loading style resources from Web Archive is not implemented: " + absoluteUrl);
+        if (ArchiveOrgUrl.isArchiveOrgUrl(absoluteCssFileUrl))
+            throw new Exception("Loading style resources from Web Archive is not implemented: " + absoluteCssFileUrl);
 
-        /*
-         * Download file to local repository (residing in local file system).
-         * Returns downloaded file path relative to repository root. 
-         */
-        String rel = linkDownloader.download(absoluteUrl, null, "");
-        if (rel == null)
-            throw new Exception("Unable to download style passive resource: " + absoluteUrl);
+        String newref = resolveCssFile(absoluteCssFileUrl);
 
-        /* Full local file path name */
-        String abs = linkDownloader.rel2abs(rel);
+        String cssFilePath = linkDownloader.rel2abs(newref);
+        String relpath = RelativeLink.fileRelativeLink(cssFilePath, relativeToFilePath,
+                Config.DownloadRoot + File.separator + Config.User);
 
-        /*
-         * Download dependent resources
-         */
-
-        // ### dependents
-        // ### recursive? -- if so detect and abort
-
-        /* File path relative to the referencing resource (both must reside within DownloadRoot)  */
-        rel = RelativeLink.fileRelativeLink(abs, relativeToFilePath, Config.DownloadRoot);
-
-        return rel;
+        return relpath;
     }
 
     /* ================================================================================== */

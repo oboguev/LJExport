@@ -126,6 +126,9 @@ public class StyleActionToLocal
 
         boolean updated = false;
 
+        /* no in-progress CSS processing yet on this thread */
+        inprogress.clear();
+
         /*
          * LINK tags
          */
@@ -330,11 +333,6 @@ public class StyleActionToLocal
             /* convert to absolute path*/
             String cssFilePath = linkDownloader.rel2abs(newref);
 
-            /*
-             * No in-progress CSS processing yet on this thread
-             */
-            inprogress.clear();
-
             String beforeCss = Util.readFileAsString(cssFilePath);
             String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL);
             if (modifiedCss != null)
@@ -466,7 +464,7 @@ public class StyleActionToLocal
                  * Should later add actual handling of circular references.
                  * For now just abort.
                  */
-                throw new Exception("Detected circular reference in style sheets");
+                throw new Exception("Circular reference in style sheets");
             }
         }
 

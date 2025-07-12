@@ -45,8 +45,9 @@ public class MainDownloadLinks
     // private static final String Users = "tutchev,tverdyi_znak,um_plus,unilevel";
     // private static final String Users = "vladimir_tor,von_hoffmann,wiradhe,wyradhe,ystrek,zhenziyou";
     // private static final String Users = "pikitan,schloenski,pravoe_org,piligrim,trufanov";
-    private static final String Users = "krylov_arhiv,krylov";
+    // private static final String Users = "krylov_arhiv,krylov";
     // private static final String Users = "zhu_s";
+    private static final String Users = "harmfulgrumpy.dreamwidth-org";
 
     private static final int NWorkThreads = 100;
     private static final int MaxConnectionsPerRoute = 10;
@@ -76,9 +77,6 @@ public class MainDownloadLinks
     {
         Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
         Web.init();
-
-        /* login may be required for pictures marked 18+ */
-        Main.do_login();
 
         ActivityCounters.reset();
         RateLimiter.LJ_IMAGES.setRateLimit(100);
@@ -114,6 +112,10 @@ public class MainDownloadLinks
         {
             Config.User = user;
             Config.mangleUser();
+            Config.autoconfigureSite();
+
+            /* login may be required for pictures marked 18+ */
+            Main.do_login();
 
             final String userRoot = Config.DownloadRoot + File.separator + Config.User;
 

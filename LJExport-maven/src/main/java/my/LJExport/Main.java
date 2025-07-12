@@ -83,7 +83,7 @@ public class Main
     private static AtomicInteger nCurrent;
     public static AtomicInteger unloadablePages;
     private static Set<String> deadLinks;
-    private static boolean logged_in = false;
+    private static Set<String> logged_in = new HashSet<>();
     public static LinkDownloader linkDownloader = new LinkDownloader();
 
     public static void setAborting()
@@ -405,10 +405,9 @@ public class Main
         if (!Config.UseLogin)
             return;
 
-        if (logged_in)
-            throw new Exception("Already logged in");
+        if (logged_in.contains(Config.LoginSite))
+            throw new Exception("Already logged in to " + Config.LoginSite);
 
-        // logged_in = false;
         Config.acquireLoginPassword();
 
         RateLimiter.LJ_PAGES.setRateLimit(100);
@@ -418,6 +417,8 @@ public class Main
         StringBuilder sb = new StringBuilder();
         if (Config.isDreamwidthOrg())
         {
+            out(String.format(">>> Using %s login captcha challenge code %s", Config.LoginSite, Config.DreamwidthCaptchaChallenge));
+            
             postForm(sb, "returnto", "https://www.dreamwidth.org/");
             postForm(sb, "chal", Config.DreamwidthCaptchaChallenge);
             postForm(sb, "response", "");
@@ -458,19 +459,40 @@ public class Main
             if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
                     || cookie.getName().equals("ljsession"))
             {
-                logged_in = true;
+                logged_in.add(Config.LoginSite);
             }
         }
 
-        if (!logged_in)
+        if (!logged_in.contains(Config.LoginSite))
             throw new Exception("Unable to log into the server: most probably incorrect username or password");
 
-        out(">>> Logged in");
+        out(">>> Logged in to " + Config.LoginSite);
     }
 
     public static void do_logout() throws Exception
     {
-        if (!Config.UseLogin)
+        Exception caught = null;
+
+        for (String loginSite : logged_in)
+        {
+            try
+            {
+                do_logout(loginSite);
+            }
+            catch (Exception ex)
+            {
+                if (caught == null)
+                    caught = ex;
+            }
+        }
+
+        if (caught != null)
+            throw caught;
+    }
+
+    private static void do_logout(String loginSite) throws Exception
+    {
+        if (!logged_in.contains(loginSite))
             return;
 
         RateLimiter.LJ_PAGES.setRateLimit(100);
@@ -479,7 +501,7 @@ public class Main
 
         for (Cookie cookie : Web.getCookieStore().getCookies())
         {
-            if (!Util.is_in_domain(Config.LoginSite, cookie.getDomain()))
+            if (!Util.is_in_domain(loginSite, cookie.getDomain()))
                 continue;
 
             if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
@@ -509,11 +531,11 @@ public class Main
             return;
         }
 
-        out(">>> Logging off " + Config.LoginSite);
+        out(">>> Logging off " + loginSite);
         StringBuilder sb = new StringBuilder();
         Web.Response r = null;
 
-        if (Config.isDreamwidthOrg())
+        if (Config.isDreamwidthOrg(loginSite))
         {
             // postForm(sb, "lj_form_auth", "c0:1751749200:98:86400:0vrUQLNDDF-3528051-7:81a4e8d76d221ba067aa15f83b26a0e7");
             postForm(sb, "returnto", "https://www.dreamwidth.org/");
@@ -522,7 +544,7 @@ public class Main
 
             try
             {
-                r = Web.post("http://www." + Config.LoginSite + "/logout", sb.toString());
+                r = Web.post("http://www." + loginSite + "/logout", sb.toString());
             }
             catch (Exception ex)
             {
@@ -530,7 +552,7 @@ public class Main
         }
         else
         {
-            sb.append("http://www." + Config.LoginSite + "/logout.bml?ret=1&user=" + Config.LoginUser + "&sessid=" + sessid);
+            sb.append("http://www." + loginSite + "/logout.bml?ret=1&user=" + Config.LoginUser + "&sessid=" + sessid);
             try
             {
                 r = Web.get(sb.toString());
@@ -542,12 +564,12 @@ public class Main
 
         if (r != null && r.code == HttpStatus.SC_OK)
         {
-            out(">>> Logged off");
-            logged_in = false;
+            out(">>> Logged off " + loginSite);
+            logged_in.remove(loginSite);
         }
         else
         {
-            out(">>> Loggoff unsuccessful");
+            out(">>> Loggoff unsuccessful from " + loginSite);
             setLogoutFailed();
         }
     }
@@ -561,7 +583,7 @@ public class Main
 
     public static void emergency_logout()
     {
-        if (logged_in)
+        if (!logged_in.isEmpty())
         {
             try
             {

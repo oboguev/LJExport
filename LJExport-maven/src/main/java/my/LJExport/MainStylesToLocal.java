@@ -107,6 +107,7 @@ public class MainStylesToLocal
         {
             Config.User = user;
             Config.mangleUser();
+            Config.autoconfigureSite();
 
             Util.out(">>> Making HTML styles locally cached for user " + Config.User);
 

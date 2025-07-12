@@ -108,6 +108,7 @@ public class MainReadProfiles
         {
             Config.User = user;
             Config.mangleUser();
+            Config.autoconfigureSite();
 
             if (user.equals("fritzmorgen"))
             {

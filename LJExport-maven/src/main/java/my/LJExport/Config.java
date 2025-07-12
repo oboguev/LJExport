@@ -22,7 +22,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "fritzmorgen";
+    public static final String Users = "harmfulgrumpy.dreamwidth-org";
     // public static final String Users = "colonelcassad";
     // public static final String Users = "nikital2014,bash_m_ak,genby,olegnemen,eremei,afanarizm,jlm_taurus,corporatelie,wyradhe,nilsky_nikolay,von_hoffmann,a_samovarov,bantaputu,a_kaminsky,d_olshansky,rn_manifesto,ru_bezch,nep2,ego,hokma,laert,haritonov,1981dn,1981dn_dn,bantaputu,polit_ec,zhenziyou,a_bugaev,tor85,oboguev,morky,krylov,rms1,pioneer_lj,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
     // public static final String Users = "alex_vergin,sergeytsvetkov,blog_10101"; // new-style journals 
@@ -80,6 +80,7 @@ public class Config
     };
 
     public static final WebMethod Method = Config.WebMethod.DIRECT;
+    public static boolean AutoconfigureSite = true;
     public static /*final*/ String DefaultSite = "livejournal.com";
     public static String Site = DefaultSite;
     public static String LoginSite = DefaultSite;
@@ -136,6 +137,7 @@ public class Config
     {
         User = user;
         mangleUser();
+        autoconfigureSite();
 
         // http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/ReadDebug.html
         // System.setProperty("javax.net.debug", "all");
@@ -234,9 +236,44 @@ public class Config
         return Config.Site.equals("lj.rossia.org");
     }
 
+    public static boolean isDreamwidthOrg(String loginSite)
+    {
+        return loginSite.equals("dreamwidth.org");
+    }
+
     public static boolean isDreamwidthOrg()
     {
         return Config.Site.equals("dreamwidth.org");
+    }
+
+    public static void autoconfigureSite() throws Exception
+    {
+        if (AutoconfigureSite)
+        {
+            if (User.contains(".dreamwidth-org"))
+            {
+                Config.LoginSite = Config.Site = Config.DefaultSite = "dreamwidth.org";
+                Config.UseLogin = true;
+                // Config.DownloadRoot += ".dreamwidth-org";
+            }
+            else if (User.contains(".lj-rossia-org"))
+            {
+                Config.LoginSite = Config.Site = Config.DefaultSite = "lj.rossia.org";
+                Config.UseLogin = false;
+                // Config.DownloadRoot += ".lj-rossia-org";
+            }
+            else
+            {
+                Config.LoginSite = Config.Site = Config.DefaultSite = "livejournal.com";
+                Config.UseLogin = true;
+
+                if (Config.False && Config.DownloadRoot.endsWith(".dreamwidth-org"))
+                    Config.DownloadRoot = Util.stripTail(Config.DownloadRoot, ".dreamwidth-org");
+
+                if (Config.False && Config.DownloadRoot.endsWith(".lj-rossia-org"))
+                    Config.DownloadRoot = Util.stripTail(Config.DownloadRoot, ".lj-rossia-org");
+            }
+        }
     }
 
     /* development aids */

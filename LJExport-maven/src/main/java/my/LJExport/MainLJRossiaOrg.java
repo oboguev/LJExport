@@ -9,6 +9,7 @@ public class MainLJRossiaOrg
         Config.Site = Config.DefaultSite= "lj.rossia.org";
         Config.UseLogin = false;
         Config.DownloadRoot += ".lj-rossia-org";
+        Config.AutoconfigureSite = false;
         
         Main main = new Main();
         main.do_main(User);

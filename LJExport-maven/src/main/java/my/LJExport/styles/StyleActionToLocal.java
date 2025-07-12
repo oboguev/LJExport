@@ -663,11 +663,15 @@ public class StyleActionToLocal
                             String originalUrl = uriTerm.getURIString();
                             /* this cannot be CSS but only image or similar file, hence no recursion */
                             String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath);
-                            uriTerm.setURIString(urlEncodeLink(newUrl));
-                            changed = true;
-                            updated = true;
+                            if (newUrl != null)
+                            {
+                                uriTerm.setURIString(urlEncodeLink(newUrl));
+                                changed = true;
+                                updated = true;
+                            }
                         }
                     }
+                    
                     if (changed && Config.False)
                     {
                         // Optionally log which declaration was updated
@@ -726,7 +730,9 @@ public class StyleActionToLocal
      * is downloaded and resides in the local repository (kept in a local file system).
      * 
      * Return relative local file path to the downloaded resource when referenced from relativeToFilePath.
-     * Path is *not* url-encoded and is exact file name in file system. 
+     * Path is *not* url-encoded and is exact file name in file system.
+     * 
+     * Will return null if file is not downloadable and is allowed to be non-downloadable. 
      * 
      * Since this is a passive file referencing no other (external) resources and hence does not require 
      * downloading other referenced resources and re-writing inner links to other resources embedded in the 
@@ -738,8 +744,8 @@ public class StyleActionToLocal
         if (originalUrl == null || originalUrl.trim().isEmpty())
             throw new Exception("Resuouce URL is missing or blank");
 
-        String absoluteUrl = Util.resolveURL(baseUrl, baseUrl);
-
+        String absoluteUrl = Util.resolveURL(baseUrl, originalUrl);
+        
         /*
          * Resource is expected to be remote
          */
@@ -771,7 +777,15 @@ public class StyleActionToLocal
         }
 
         if (rel == null)
+        {
+            if (allowUndownloadaleCss != null)
+            {
+                if (allowUndownloadaleCss.contains(download_href) || allowUndownloadaleCss.contains(naming_href))
+                    return null;
+            }
+
             throw new Exception("Unable to download style passive resource: " + absoluteUrl);
+        }
 
         /* Full local file path name */
         rel = linkDownloader.decodePathCopmonents(rel);
@@ -799,7 +813,7 @@ public class StyleActionToLocal
         if (originalUrl == null || originalUrl.trim().isEmpty())
             throw new Exception("Resuouce URL is missing or blank");
 
-        String absoluteCssFileUrl = Util.resolveURL(baseUrl, baseUrl);
+        String absoluteCssFileUrl = Util.resolveURL(baseUrl, originalUrl);
 
         /*
          * Resource is expected to be remote
@@ -944,8 +958,8 @@ public class StyleActionToLocal
 
                     // inline styles can only reference images/fonts/etc.
                     String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath);
-
-                    if (!newUrl.equals(originalUrl))
+                    
+                    if (newUrl != null && !newUrl.equals(originalUrl))
                     {
                         uriTerm.setURIString(urlEncodeLink(newUrl));
                         updated = true;

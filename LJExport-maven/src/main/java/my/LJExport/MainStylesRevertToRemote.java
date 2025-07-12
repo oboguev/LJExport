@@ -118,7 +118,7 @@ public class MainStylesRevertToRemote
             Main.out(">>> Completed reverting page styles back to server/remote for user " + Config.User);
 
             String remark = DryRun ? " (DRY RUN)" : "";
-            Util.out(String.format(">>> Files scanned: %d, updated in memory: %d, updated on disk %d%s",
+            Util.out(String.format(">>> Total files scanned: %d, updated in memory: %d, updated on disk: %d%s",
                     batchContext.scannedHtmlFiles.get(),
                     batchContext.updatedHtmlFiles.get(),
                     batchContext.savedHtmlFiles.get(),
@@ -150,7 +150,7 @@ public class MainStylesRevertToRemote
                 batchContext);
 
         String remark = DryRun ? " (DRY RUN)" : "";
-        Util.out(String.format(">>> Completed [%s] directory %s, files scanned: %d, updated in memory: %d, updated on disk %d%s",
+        Util.out(String.format(">>> Completed [%s] directory %s, files scanned: %d, updated in memory: %d, updated on disk: %d%s",
                 Config.User,
                 which,
                 batchContext.scannedHtmlFiles.get(),

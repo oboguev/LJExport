@@ -26,10 +26,11 @@ public class MainStylesToLocal
     private static final String AllUsersFromUser = null;
 
     // private static final String Users = ALL_USERS;
+    // private static final String Users = "udod99.lj-rossia-org";
     private static final String Users = "nationalism.org";
 
     private static final boolean ShowStylesProgress = true;
-    private static final boolean DryRun = true;
+    private static final boolean DryRun = false;
 
     public static void main(String[] args)
     {
@@ -120,7 +121,7 @@ public class MainStylesToLocal
             Main.out(">>> Completed making HTML styles locally cached for user " + Config.User);
             String remark = DryRun ? " (DRY RUN)" : "";
 
-            Util.out(String.format(">>> Files scanned: %d, updated in memory: %d, updated on disk %d%s",
+            Util.out(String.format(">>> Total files scanned: %d, updated in memory: %d, updated on disk: %d%s",
                     batchContext.scannedHtmlFiles.get(),
                     batchContext.updatedHtmlFiles.get(),
                     batchContext.savedHtmlFiles.get(),
@@ -152,7 +153,7 @@ public class MainStylesToLocal
                 batchContext);
 
         String remark = DryRun ? " (DRY RUN)" : "";
-        Util.out(String.format(">>> Completed [%s] directory %s, files scanned: %d, updated in memory: %d, updated on disk %d%s",
+        Util.out(String.format(">>> Completed [%s] directory %s, files scanned: %d, updated in memory: %d, updated on disk: %d%s",
                 Config.User,
                 which,
                 batchContext.scannedHtmlFiles.get(),

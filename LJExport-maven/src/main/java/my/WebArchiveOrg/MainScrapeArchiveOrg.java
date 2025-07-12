@@ -23,6 +23,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;
 import my.LJExport.runtime.links.RelativeLink;
+import my.LJExport.styles.HtmlFileBatchProcessingContext;
 import my.LJExport.styles.StyleProcessor;
 import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
 import my.WebArchiveOrg.customize.Exclude;
@@ -112,7 +113,7 @@ public class MainScrapeArchiveOrg
 
     private void do_main() throws Exception
     {
-        boolean production = Config.False;
+        boolean production = Config.True;
 
         LimitProcessorUsage.limit();
         Util.out(">>> Start time: " + Util.timeNow());
@@ -151,7 +152,7 @@ public class MainScrapeArchiveOrg
             loadExternalResources();
         }
 
-        if (production || Config.True)
+        if (production || Config.False)
         {
             loadStyles();
         }
@@ -918,6 +919,6 @@ public class MainScrapeArchiveOrg
 
     private void loadStyles() throws Exception
     {
-        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, pagesDir, StyleProcessorAction.TO_LOCAL, null, ShowStyleProgress, false);
+        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, pagesDir, StyleProcessorAction.TO_LOCAL, null, ShowStyleProgress, false, new HtmlFileBatchProcessingContext());
     }
 }

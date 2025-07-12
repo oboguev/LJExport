@@ -20,15 +20,16 @@ public class StyleProcessor
     public static void processAllHtmlFiles(String styleCatalogDir,
             String htmlPagesRootDir,
             StyleProcessorAction action,
-            String baseURL, 
+            String baseURL,
             boolean showProgress,
-            boolean dryRun) throws Exception
+            boolean dryRun,
+            HtmlFileBatchProcessingContext batchContext) throws Exception
     {
         StyleManager styleManager = new StyleManager(styleCatalogDir);
         try
         {
             styleManager.init();
-            processAllHtmlFiles(styleManager, htmlPagesRootDir, action, baseURL, showProgress, dryRun);
+            processAllHtmlFiles(styleManager, htmlPagesRootDir, action, baseURL, showProgress, dryRun, batchContext);
         }
         finally
         {
@@ -39,9 +40,10 @@ public class StyleProcessor
     public static void processAllHtmlFiles(StyleManager styleManager,
             String htmlPagesRootDir,
             StyleProcessorAction action,
-            String baseURL, 
+            String baseURL,
             boolean showProgress,
-            boolean dryRun) throws Exception
+            boolean dryRun,
+            HtmlFileBatchProcessingContext batchContext) throws Exception
     {
         while (htmlPagesRootDir.endsWith(File.separator))
             htmlPagesRootDir = Util.stripTail(htmlPagesRootDir, File.separator);
@@ -53,11 +55,12 @@ public class StyleProcessor
         for (String relPath : Util.enumerateAnyHtmlFiles(htmlPagesRootDir))
         {
             String path = htmlPagesRootDir + File.separator + relPath;
-            
+
             if (showProgress)
                 Util.out("Processing styles for " + path);
             
-            styleManager.processHtmlFile(path, action, baseURL, dryRun);
+            batchContext.scannedHtmlFiles.incrementAndGet();
+            styleManager.processHtmlFile(path, action, baseURL, dryRun, batchContext);
         }
     }
 

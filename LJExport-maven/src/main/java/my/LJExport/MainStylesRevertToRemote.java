@@ -8,6 +8,7 @@ import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.synch.ThreadsControl;
+import my.LJExport.styles.HtmlFileBatchProcessingContext;
 import my.LJExport.styles.StyleProcessor;
 import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
 
@@ -27,7 +28,7 @@ public class MainStylesRevertToRemote
 
     private static final boolean ShowStylesProgress = true;
     private static final boolean DryRun = false;
-    
+
     public static void main(String[] args)
     {
         try
@@ -106,26 +107,35 @@ public class MainStylesRevertToRemote
 
             Util.out(">>> Reverting page styles back to server/remote for user " + Config.User);
 
-            processDir("pages");
-            processDir("reposts");
-            processDir("monthly-pages");
-            processDir("monthly-reposts");
-            processDir("profile");
-            
+            HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
+
+            processDir("pages", batchContext);
+            processDir("reposts", batchContext);
+            processDir("monthly-pages", batchContext);
+            processDir("monthly-reposts", batchContext);
+            processDir("profile", batchContext);
+
             Main.out(">>> Completed reverting page styles back to server/remote for user " + Config.User);
+
+            String remark = DryRun ? " (DRY RUN)" : "";
+            Util.out(String.format(">>> Files scanned: %d, updated in memory: %d, updated on disk %d%s",
+                    batchContext.scannedHtmlFiles.get(),
+                    batchContext.updatedHtmlFiles.get(),
+                    batchContext.savedHtmlFiles.get(),
+                    remark));
         }
         finally
         {
             ThreadsControl.shutdownAfterUser();
         }
     }
-    
-    private void processDir(String which) throws Exception
+
+    private void processDir(String which, HtmlFileBatchProcessingContext batchContextAll) throws Exception
     {
         final String userRoot = Config.DownloadRoot + File.separator + Config.User;
         final String styleCatalogDir = userRoot + File.separator + "styles";
         final String dir = userRoot + File.separator + which;
-        
+
         if (!which.equals("pages"))
         {
             File fp = new File(dir).getCanonicalFile();
@@ -133,6 +143,21 @@ public class MainStylesRevertToRemote
                 return;
         }
 
-        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.REVERT, null, ShowStylesProgress, DryRun);
+        Util.out(String.format(">>> Scanning [%s] directory %s", Config.User, which));
+
+        HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
+        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.REVERT, null, ShowStylesProgress, DryRun,
+                batchContext);
+
+        String remark = DryRun ? " (DRY RUN)" : "";
+        Util.out(String.format(">>> Completed [%s] directory %s, files scanned: %d, updated in memory: %d, updated on disk %d%s",
+                Config.User,
+                which,
+                batchContext.scannedHtmlFiles.get(),
+                batchContext.updatedHtmlFiles.get(),
+                batchContext.savedHtmlFiles.get(),
+                remark));
+
+        batchContextAll.add(batchContext);
     }
 }

@@ -299,13 +299,62 @@ public class StyleActionToLocal
         String cssFileURL = Util.resolveURL(baseUrl, href);
 
         String newref = resolveCssFile(cssFileURL);
-        // ###
+        if (newref != null)
+        {
+            /* newref is *not* url-encoded and is exact file name in file system */
+            String cssFilePath = linkDownloader.rel2abs(newref);
+            String relpath = RelativeLink.fileRelativeLink(cssFilePath, htmlFilePath,
+                    Config.DownloadRoot + File.separator + Config.User);
 
-        String cssFilePath = linkDownloader.rel2abs(newref);
-        String relpath = RelativeLink.fileRelativeLink(cssFilePath, htmlFilePath,
-                Config.DownloadRoot + File.separator + Config.User);
+            updateLinkElement(elLink, urlEncodeLink(relpath), elInsertAfter, updateElLink, createdElement);
+            
+        }
+        else
+        {
+            updateLinkElement(elLink, cssFileURL, elInsertAfter, updateElLink, createdElement);
+        }
+    }
+    
+    private void updateLinkElement(Element elLink, String newlink, Element elInsertAfter, boolean updateElLink,
+            AtomicReference<Element> createdElement) throws Exception
+    {
+        if (JSOUP.getAttribute(elLink, Original + "rel") != null ||
+                JSOUP.getAttribute(elLink, Original + "type") != null ||
+                JSOUP.getAttribute(elLink, Original + "href") != null)
+        {
+            throw new Exception("LINK tag contains unexpected original-xxx attributes");
+        }
 
-        updateLinkElement(elLink, relpath, elInsertAfter, updateElLink, createdElement);
+        String original_rel = JSOUP.getAttribute(elLink, "rel");
+        String original_type = JSOUP.getAttribute(elLink, "type");
+        String original_href = JSOUP.getAttribute(elLink, "href");
+
+        Element elx = elLink.clone().empty(); // shallow copy (preserves attributes)
+        createdElement.set(elx);
+        elInsertAfter.after(elx); // insert into the tree
+
+        JSOUP.deleteAttribute(elx, "rel");
+        JSOUP.deleteAttribute(elx, "type");
+        JSOUP.deleteAttribute(elx, "href");
+
+        JSOUP.setAttribute(elx, "rel", "stylesheet");
+        if (original_type != null)
+            JSOUP.setAttribute(elx, "type", original_type); // "text/css" or omitted
+        JSOUP.setAttribute(elx, "href", newlink);
+        JSOUP.setAttribute(elx, GeneratedBy, StyleManagerSignature);
+
+        if (updateElLink)
+        {
+            JSOUP.deleteAttribute(elLink, "rel");
+            JSOUP.deleteAttribute(elLink, "type");
+            JSOUP.deleteAttribute(elLink, "href");
+            JSOUP.setAttribute(elLink, "rel", Original + "stylesheet");
+            JSOUP.setAttribute(elLink, Original + "rel", original_rel);
+            if (original_type != null)
+                JSOUP.setAttribute(elLink, Original + "type", original_type);
+            JSOUP.setAttribute(elLink, Original + "href", original_href);
+            JSOUP.setAttribute(elLink, SuppressedBy, StyleManagerSignature);
+        }
     }
 
     /*
@@ -318,7 +367,8 @@ public class StyleActionToLocal
      * If links were relative on the remote server, they most often will remain the same in local copies. 
      * However if links were absolute, they will be changed to become relative.
      * 
-     * Returns path to re-written local copy of CSS file, relative to the root of local repository. 
+     * Returns path to re-written local copy of CSS file, relative to the root of local repository.
+     * Path is *not* url-encoded and is exact file name in file system. 
      * Returns null if CSS file cannot be downloaded and original link should be left intact.
      */
     private String resolveCssFile(String cssFileURL) throws Exception
@@ -451,48 +501,9 @@ public class StyleActionToLocal
         return newref;
     }
 
-    private void updateLinkElement(Element elLink, String relpath, Element elInsertAfter, boolean updateElLink,
-            AtomicReference<Element> createdElement) throws Exception
-    {
-        if (JSOUP.getAttribute(elLink, Original + "rel") != null ||
-                JSOUP.getAttribute(elLink, Original + "type") != null ||
-                JSOUP.getAttribute(elLink, Original + "href") != null)
-        {
-            throw new Exception("LINK tag contains unexpected original-xxx attributes");
-        }
-
-        String original_rel = JSOUP.getAttribute(elLink, "rel");
-        String original_type = JSOUP.getAttribute(elLink, "type");
-        String original_href = JSOUP.getAttribute(elLink, "href");
-
-        Element elx = elLink.clone().empty(); // shallow copy (preserves attributes)
-        createdElement.set(elx);
-        elInsertAfter.after(elx); // insert into the tree
-
-        JSOUP.deleteAttribute(elx, "rel");
-        JSOUP.deleteAttribute(elx, "type");
-        JSOUP.deleteAttribute(elx, "href");
-
-        JSOUP.setAttribute(elx, "rel", "stylesheet");
-        if (original_type != null)
-            JSOUP.setAttribute(elx, "type", original_type); // "text/css" or omitted
-        JSOUP.setAttribute(elx, "href", urlEncodeLink(relpath));
-        JSOUP.setAttribute(elx, GeneratedBy, StyleManagerSignature);
-
-        if (updateElLink)
-        {
-            JSOUP.deleteAttribute(elLink, "rel");
-            JSOUP.deleteAttribute(elLink, "type");
-            JSOUP.deleteAttribute(elLink, "href");
-            JSOUP.setAttribute(elLink, "rel", Original + "stylesheet");
-            JSOUP.setAttribute(elLink, Original + "rel", original_rel);
-            if (original_type != null)
-                JSOUP.setAttribute(elLink, Original + "type", original_type);
-            JSOUP.setAttribute(elLink, Original + "href", original_href);
-            JSOUP.setAttribute(elLink, SuppressedBy, StyleManagerSignature);
-        }
-    }
-
+    /*
+     * Encode each separate path component of the path 
+     */
     private String urlEncodeLink(String relativeFilePath) throws Exception
     {
         if (relativeFilePath == null || relativeFilePath.isEmpty())
@@ -715,11 +726,12 @@ public class StyleActionToLocal
      * is downloaded and resides in the local repository (kept in a local file system).
      * 
      * Return relative local file path to the downloaded resource when referenced from relativeToFilePath.
+     * Path is *not* url-encoded and is exact file name in file system. 
      * 
      * Since this is a passive file referencing no other (external) resources and hence does not require 
      * downloading other referenced resources and re-writing inner links to other resources embedded in the 
      * downloaded file, we do not need to enter it into resolvedCSS. Because we just download and keep
-     * this file as a binary BLOB, and do not modify it -- unlike we do for CSS files. 
+     * this file as a binary BLOB, and do not modify it -- unlike we do for CSS files.
      */
     private String downloadAndRelinkPassiveFile(String originalUrl, String baseUrl, String relativeToFilePath) throws Exception
     {
@@ -779,6 +791,7 @@ public class StyleActionToLocal
      * Rewrite links in the CSS file to them as necessary, to point to local copies.
      *  
      * Return relative local file path to the downloaded resource when referenced from relativeToFilePath.
+     * Path is *not* url-encoded and is exact file name in file system.
      * Return null if CSS file cannot be downloaded and original remote link to it should be left intact. 
      */
     private String downloadAndRelinkCssFile(String originalUrl, String baseUrl, String relativeToFilePath) throws Exception
@@ -929,7 +942,7 @@ public class StyleActionToLocal
                     CSSExpressionMemberTermURI uriTerm = (CSSExpressionMemberTermURI) member;
                     String originalUrl = uriTerm.getURIString();
 
-                    // Inline styles can only reference images/fonts/etc.
+                    // inline styles can only reference images/fonts/etc.
                     String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath);
 
                     if (!newUrl.equals(originalUrl))

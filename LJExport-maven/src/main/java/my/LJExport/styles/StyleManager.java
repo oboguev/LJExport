@@ -212,7 +212,7 @@ public class StyleManager
         initializing = false;
     }
 
-    public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl, boolean dryRun)
+    public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl, boolean dryRun, HtmlFileBatchProcessingContext batchContext)
             throws Exception
     {
         String threadName = Thread.currentThread().getName();
@@ -240,12 +240,19 @@ public class StyleManager
                 updated = new StyleActionRevert().processHtmlFileRevertStylesToRemote(htmlFilePath, parser);
                 break;
             }
-
-            if (updated && !dryRun)
+            
+            if (updated)
             {
-                String html = JSOUP.emitHtml(parser.pageRoot);
-                Util.writeToFileSafe(htmlFilePath, html);
+                batchContext.updatedHtmlFiles.incrementAndGet();
+
+                if (!dryRun)
+                {
+                    String html = JSOUP.emitHtml(parser.pageRoot);
+                    Util.writeToFileSafe(htmlFilePath, html);
+                    batchContext.savedHtmlFiles.incrementAndGet();
+                }
             }
+
         }
         catch (Exception ex)
         {

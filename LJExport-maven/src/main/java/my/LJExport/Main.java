@@ -35,6 +35,7 @@ import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 import java.io.File;
+import java.net.URLDecoder;
 
 // import my.LJExport.test.*;
 
@@ -418,7 +419,7 @@ public class Main
         if (Config.isDreamwidthOrg())
         {
             out(String.format(">>> Using %s login captcha challenge code %s", Config.LoginSite, Config.DreamwidthCaptchaChallenge));
-            
+
             postForm(sb, "returnto", "https://www.dreamwidth.org/");
             postForm(sb, "chal", Config.DreamwidthCaptchaChallenge);
             postForm(sb, "response", "");
@@ -519,6 +520,25 @@ public class Main
                     }
                 }
 
+                if (sessid == null)
+                {
+                    /*
+                     * For DreamWidth
+                     */
+                    String urlDecodedCookie = URLDecoder.decode(cookie.getValue(), "UTF-8");
+                    st = new StringTokenizer(urlDecodedCookie, ":");
+
+                    while (st.hasMoreTokens())
+                    {
+                        String tok = st.nextToken();
+                        if (tok.length() >= 2 && tok.charAt(0) == 's')
+                        {
+                            sessid = tok.substring(1);
+                            break;
+                        }
+                    }
+                }
+
                 if (sessid != null)
                     break;
             }
@@ -541,6 +561,8 @@ public class Main
             postForm(sb, "returnto", "https://www.dreamwidth.org/");
             postForm(sb, "ret", "1");
             postForm(sb, "logout_one", "Log out");
+            postForm(sb, "user", Config.LoginUser);
+            postForm(sb, "sessid", sessid);
 
             try
             {

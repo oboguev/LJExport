@@ -104,6 +104,8 @@ https://red-sovet.su/*
 
 https://drakulablogdotcom3.files.wordpress.com/*
 
+http://visual.rzd.ru/*
+
 # moved to istmat.org 
 http://istmat.info/*
 https://istmat.info/*

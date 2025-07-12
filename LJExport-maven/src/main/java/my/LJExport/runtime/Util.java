@@ -112,7 +112,7 @@ public class Util
         int ls = site.length();
         int ld = domain.length();
 
-        if (ld < ls && site.charAt(ls - ld - 1) == '.')
+        if (ls > ld && site.charAt(ls - ld - 1) == '.' && site.endsWith(domain))
             return true;
 
         if (site.startsWith("www."))

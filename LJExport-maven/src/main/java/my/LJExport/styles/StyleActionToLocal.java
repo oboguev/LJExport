@@ -746,10 +746,14 @@ public class StyleActionToLocal
 
         String absoluteUrl = Util.resolveURL(baseUrl, originalUrl);
 
+        /* embedded data URL */
+        String lc = absoluteUrl.toLowerCase();
+        if (lc.startsWith("data:"))
+            return null;
+        
         /*
          * Resource is expected to be remote
          */
-        String lc = absoluteUrl.toLowerCase();
         if (!lc.startsWith("http://") && !lc.startsWith("https://"))
         {
             if (dontDownloadCss != null && dontDownloadCss.matchLocal(absoluteUrl))

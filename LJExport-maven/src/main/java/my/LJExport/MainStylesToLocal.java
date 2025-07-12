@@ -28,6 +28,7 @@ public class MainStylesToLocal
     private static final String Users = "nationalism.org";
 
     private static final boolean ShowStylesProgress = true;
+    private static final boolean DryRun = true;
 
     public static void main(String[] args)
     {
@@ -134,6 +135,6 @@ public class MainStylesToLocal
                 return;
         }
 
-        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.TO_LOCAL, null, ShowStylesProgress);
+        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.TO_LOCAL, null, ShowStylesProgress, DryRun);
     }
 }

@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.http.HttpException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.conn.HttpHostConnectException;
@@ -21,10 +22,10 @@ import org.apache.http.conn.HttpHostConnectException;
 import my.LJExport.Config;
 import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.NamedLocks;
-import my.LJExport.runtime.NetErrors;
 import my.LJExport.runtime.URLCodec;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Util.UnableCreateDirectoryException;
+import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
 
 public class LinkDownloader
@@ -230,7 +231,7 @@ public class LinkDownloader
                             response.set(r);
                             if (final_download_href_noanchor != null)
                                 failedSet.add(final_download_href_noanchor);
-                            throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);
+                            throw new HttpException("HTTP code " + r.code + ", reason: " + r.reason); // ###
                         }
                     }
 

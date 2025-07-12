@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import my.LJExport.Config;
 import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.FileBackedMap;
@@ -37,6 +36,7 @@ public class StyleManager
     private boolean isDownloadedFromWebArchiveOrg = false;
     private DownloadSource downloadSource;
     private Set<String> dontReparseCss;
+    private Set<String> allowUndownloadaleCss;
 
     private boolean initialized = false;
     private boolean initializing = false;
@@ -68,11 +68,17 @@ public class StyleManager
                 .getProperty(LJExportInformation.IsDownloadedFromWebArchiveOrg, "false")
                 .equals("true");
 
-        fp = new File(fp, "do-not-reparse-css.txt");
-        if (fp.exists())
-            dontReparseCss = Util.read_set_from_file(fp.getCanonicalPath());
+        File fpx = new File(fp, "do-not-reparse-css.txt");
+        if (fpx.exists())
+            dontReparseCss = Util.read_set_from_file(fpx.getCanonicalPath());
         else
             dontReparseCss = new HashSet<>();
+
+        fpx = new File(fp, "allow-undownloadable-css.txt");
+        if (fpx.exists())
+            allowUndownloadaleCss = Util.read_set_from_file(fpx.getCanonicalPath());
+        else
+            allowUndownloadaleCss = new HashSet<>();
     }
 
     public String getStyleDir()
@@ -206,7 +212,8 @@ public class StyleManager
         initializing = false;
     }
 
-    public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl) throws Exception
+    public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl, boolean dryRun)
+            throws Exception
     {
         String threadName = Thread.currentThread().getName();
 
@@ -225,7 +232,7 @@ public class StyleManager
             {
             case TO_LOCAL:
                 updated = new StyleActionToLocal(linkDownloader, styleRepositoryLock, resolvedCSS,
-                        txLog, isDownloadedFromWebArchiveOrg, downloadSource, dontReparseCss)
+                        txLog, isDownloadedFromWebArchiveOrg, downloadSource, dontReparseCss, allowUndownloadaleCss)
                                 .processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
                 break;
 
@@ -234,7 +241,7 @@ public class StyleManager
                 break;
             }
 
-            if (updated && Config.False) // ###
+            if (updated && !dryRun)
             {
                 String html = JSOUP.emitHtml(parser.pageRoot);
                 Util.writeToFileSafe(htmlFilePath, html);

@@ -85,6 +85,7 @@ public class StyleActionToLocal
     private final DownloadSource downloadSource;
 
     private final Set<String> dontReparseCss;
+    private final Set<String> allowUndownloadaleCss;
 
     /* 
      * List (stack) of URLs of CSS/HTML files with styles being currently re-written,
@@ -104,7 +105,8 @@ public class StyleActionToLocal
             TxLog txLog,
             boolean isDownloadedFromWebArchiveOrg,
             DownloadSource downloadSource,
-            Set<String> dontReparseCss)
+            Set<String> dontReparseCss,
+            Set<String> allowUndownloadaleCss)
     {
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
@@ -113,6 +115,7 @@ public class StyleActionToLocal
         this.isDownloadedFromWebArchiveOrg = isDownloadedFromWebArchiveOrg;
         this.downloadSource = downloadSource;
         this.dontReparseCss = dontReparseCss;
+        this.allowUndownloadaleCss = allowUndownloadaleCss;
     }
 
     /*
@@ -296,6 +299,7 @@ public class StyleActionToLocal
         String cssFileURL = Util.resolveURL(baseUrl, href);
 
         String newref = resolveCssFile(cssFileURL);
+        // ###
 
         String cssFilePath = linkDownloader.rel2abs(newref);
         String relpath = RelativeLink.fileRelativeLink(cssFilePath, htmlFilePath,
@@ -315,6 +319,7 @@ public class StyleActionToLocal
      * However if links were absolute, they will be changed to become relative.
      * 
      * Returns path to re-written local copy of CSS file, relative to the root of local repository. 
+     * Returns null if CSS file cannot be downloaded and original link should be left intact.
      */
     private String resolveCssFile(String cssFileURL) throws Exception
     {
@@ -375,7 +380,16 @@ public class StyleActionToLocal
             }
 
             if (newref == null)
+            {
+                if (allowUndownloadaleCss != null)
+                {
+                    if (allowUndownloadaleCss.contains(download_href) || allowUndownloadaleCss.contains(naming_href))
+                        return null;
+                }
+
                 throw new Exception("Failed to download style URL: " + cssFileURL);
+            }
+
             newref = linkDownloader.decodePathCopmonents(newref);
 
             /* convert to absolute path*/
@@ -571,6 +585,9 @@ public class StyleActionToLocal
 
     private String do_resolveCssDependencies(String cssText, String hostingFilePath, String hostingFileURL) throws Exception
     {
+        if (cssHasNoExternalReferences(cssText))
+            return null;
+
         if (dontReparseCss != null && hostingFileURL != null)
         {
             if (dontReparseCss.contains(hostingFileURL))
@@ -610,8 +627,11 @@ public class StyleActionToLocal
         {
             String url = importRule.getLocationString();
             String newUrl = downloadAndRelinkCssFile(url, hostingFileURL, hostingFilePath);
-            importRule.setLocationString(urlEncodeLink(newUrl));
-            updated = true;
+            if (newUrl != null)
+            {
+                importRule.setLocationString(urlEncodeLink(newUrl));
+                updated = true;
+            }
         }
 
         // Walk all style rules
@@ -759,6 +779,7 @@ public class StyleActionToLocal
      * Rewrite links in the CSS file to them as necessary, to point to local copies.
      *  
      * Return relative local file path to the downloaded resource when referenced from relativeToFilePath.
+     * Return null if CSS file cannot be downloaded and original remote link to it should be left intact. 
      */
     private String downloadAndRelinkCssFile(String originalUrl, String baseUrl, String relativeToFilePath) throws Exception
     {
@@ -775,12 +796,18 @@ public class StyleActionToLocal
             throw new Exception("Referenced style resource is not remote: " + absoluteCssFileUrl);
 
         String newref = resolveCssFile(absoluteCssFileUrl);
+        if (newref != null)
+        {
+            String cssFilePath = linkDownloader.rel2abs(newref);
+            String relpath = RelativeLink.fileRelativeLink(cssFilePath, relativeToFilePath,
+                    Config.DownloadRoot + File.separator + Config.User);
 
-        String cssFilePath = linkDownloader.rel2abs(newref);
-        String relpath = RelativeLink.fileRelativeLink(cssFilePath, relativeToFilePath,
-                Config.DownloadRoot + File.separator + Config.User);
-
-        return relpath;
+            return relpath;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     /* ================================================================================== */

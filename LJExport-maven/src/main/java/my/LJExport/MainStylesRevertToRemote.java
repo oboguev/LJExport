@@ -26,6 +26,7 @@ public class MainStylesRevertToRemote
     private static final String Users = "nationalism.org";
 
     private static final boolean ShowStylesProgress = true;
+    private static final boolean DryRun = false;
     
     public static void main(String[] args)
     {
@@ -132,6 +133,6 @@ public class MainStylesRevertToRemote
                 return;
         }
 
-        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.REVERT, null, ShowStylesProgress);
+        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.REVERT, null, ShowStylesProgress, DryRun);
     }
 }

@@ -14,6 +14,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.links.RelativeLink;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 /*
@@ -24,7 +25,7 @@ import my.LJExport.runtime.synch.ThreadsControl;
  */
 public class MainDownloadLinks
 {
-    private String pagesDir;
+    private String userRoot; 
     private String linksDir;
     private List<String> pageFiles;
     private int pageFilesTotalCount;
@@ -49,7 +50,7 @@ public class MainDownloadLinks
     // private static final String Users = "zhu_s";
     private static final String Users = "harmfulgrumpy.dreamwidth-org";
 
-    private static final int NWorkThreads = 100;
+    private static final int NWorkThreads = 200;
     private static final int MaxConnectionsPerRoute = 10;
 
     public static void main(String[] args)
@@ -117,10 +118,8 @@ public class MainDownloadLinks
             /* login may be required for pictures marked 18+ */
             Main.do_login();
 
-            final String userRoot = Config.DownloadRoot + File.separator + Config.User;
+            userRoot = Config.DownloadRoot + File.separator + Config.User;
 
-            pagesDir = userRoot + File.separator + "pages";
-            // pagesDir = userRoot + File.separator + "reposts";
             linksDir = userRoot + File.separator + "links";
             // offline = true;
 
@@ -129,7 +128,15 @@ public class MainDownloadLinks
             Util.mkdir(linksDir);
             Main.linkDownloader.init(linksDir);
 
-            pageFiles = Util.enumerateOnlyHtmlFiles(pagesDir);
+            pageFiles = enumerateHtmlFiles("pages", true);
+            if (Config.True)
+            {
+                pageFiles.addAll(enumerateHtmlFiles("profile", false));
+                pageFiles.addAll(enumerateHtmlFiles("reposts", false));
+                pageFiles.addAll(enumerateHtmlFiles("monthly-pages", false));
+                pageFiles.addAll(enumerateHtmlFiles("monthly-reposts", false));
+            }
+            
             pageFilesTotalCount = pageFiles.size();
 
             // start worker threads
@@ -170,6 +177,28 @@ public class MainDownloadLinks
             ThreadsControl.shutdownAfterUser();
         }
     }
+    
+    private List<String> enumerateHtmlFiles(String which, boolean required) throws Exception
+    {
+        String dir = userRoot + File.separator + which;
+        
+        File fp = new File(dir);
+        
+        if (!fp.exists() || !fp.isDirectory())
+        {
+            if (required)
+                throw new Exception("Directory does not exist: " + dir);
+            else
+                return new ArrayList<>(); 
+        }
+                
+        List<String> list = Util.enumerateOnlyHtmlFiles(dir);
+        
+        List<String> rlist = new ArrayList<>();
+        for (String fn : list)
+            rlist.add(which + File.separator + fn);
+        return rlist;
+    }
 
     void do_work() throws Exception
     {
@@ -191,7 +220,7 @@ public class MainDownloadLinks
                 out(String.format(">>> [%s] %s (%d/%d)", Config.User, pageFile, ++this.countFetched, pageFilesTotalCount));
             }
 
-            String pageFileFullPath = pagesDir + File.separator + pageFile;
+            String pageFileFullPath = userRoot + File.separator + pageFile;
             Thread.currentThread().setName("page-scanner: scanning " + Config.User + " " + pageFile);
 
             PageParserDirectBase parser = new PageParserDirectBasePassive();
@@ -206,7 +235,10 @@ public class MainDownloadLinks
 
             parser.pageSource = Util.readFileAsString(pageFileFullPath);
             parser.parseHtml(parser.pageSource);
-
+            
+            String linkReferencePrefix = RelativeLink.fileRelativeLink(this.linksDir, pageFileFullPath, this.userRoot);
+            parser.setLinkReferencePrefix(linkReferencePrefix + "/");
+            
             if (parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.User))
             {
                 String newPageSource = JSOUP.emitHtml(parser.pageRoot);

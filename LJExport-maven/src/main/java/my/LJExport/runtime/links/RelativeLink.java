@@ -75,7 +75,7 @@ public class RelativeLink
      * Arguments are full path names.
      * Calculate relative link from @loadedFilePath leading to @linkPath 
      * 
-     * For example:
+     * Result examples:
      * 
      *     vvv/index.html
      *     bratstvo/oprichnik/03/fin-de-siecle.htm

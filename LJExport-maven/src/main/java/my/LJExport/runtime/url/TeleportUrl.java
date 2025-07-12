@@ -1,4 +1,6 @@
-package my.LJExport.runtime;
+package my.LJExport.runtime.url;
+
+import my.LJExport.runtime.Util;
 
 public class TeleportUrl
 {

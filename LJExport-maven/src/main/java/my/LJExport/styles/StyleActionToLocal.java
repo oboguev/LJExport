@@ -5,7 +5,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.net.URLEncoder;
@@ -39,6 +38,7 @@ import my.LJExport.runtime.links.DownloadSource;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
+import my.LJExport.runtime.url.UrlSetMatcher;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
 /*
@@ -84,8 +84,9 @@ public class StyleActionToLocal
      */
     private final DownloadSource downloadSource;
 
-    private final Set<String> dontReparseCss;
-    private final Set<String> allowUndownloadaleCss;
+    private final UrlSetMatcher dontReparseCss;
+    private final UrlSetMatcher allowUndownloadaleCss;
+    private final UrlSetMatcher dontDownloadCss;
 
     /* 
      * List (stack) of URLs of CSS/HTML files with styles being currently re-written,
@@ -105,8 +106,9 @@ public class StyleActionToLocal
             TxLog txLog,
             boolean isDownloadedFromWebArchiveOrg,
             DownloadSource downloadSource,
-            Set<String> dontReparseCss,
-            Set<String> allowUndownloadaleCss)
+            UrlSetMatcher dontReparseCss,
+            UrlSetMatcher allowUndownloadaleCss,
+            UrlSetMatcher dontDownloadCss)
     {
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
@@ -116,6 +118,7 @@ public class StyleActionToLocal
         this.downloadSource = downloadSource;
         this.dontReparseCss = dontReparseCss;
         this.allowUndownloadaleCss = allowUndownloadaleCss;
+        this.dontDownloadCss = dontDownloadCss;
     }
 
     /*
@@ -307,14 +310,14 @@ public class StyleActionToLocal
                     Config.DownloadRoot + File.separator + Config.User);
 
             updateLinkElement(elLink, urlEncodeLink(relpath), elInsertAfter, updateElLink, createdElement);
-            
+
         }
         else
         {
             updateLinkElement(elLink, cssFileURL, elInsertAfter, updateElLink, createdElement);
         }
     }
-    
+
     private void updateLinkElement(Element elLink, String newlink, Element elInsertAfter, boolean updateElLink,
             AtomicReference<Element> createdElement) throws Exception
     {
@@ -431,11 +434,8 @@ public class StyleActionToLocal
 
             if (newref == null)
             {
-                if (allowUndownloadaleCss != null)
-                {
-                    if (allowUndownloadaleCss.contains(download_href) || allowUndownloadaleCss.contains(naming_href))
-                        return null;
-                }
+                if (allowUndownloadaleCss != null && allowUndownloadaleCss.matchOR(download_href, naming_href))
+                    return null;
 
                 throw new Exception("Failed to download style URL: " + cssFileURL);
             }
@@ -601,11 +601,11 @@ public class StyleActionToLocal
 
         if (dontReparseCss != null && hostingFileURL != null)
         {
-            if (dontReparseCss.contains(hostingFileURL))
+            if (dontReparseCss.match(hostingFileURL))
                 return null;
 
             if (ArchiveOrgUrl.isArchiveOrgUrl(hostingFileURL)
-                    && dontReparseCss.contains(ArchiveOrgUrl.extractArchivedUrlPart(hostingFileURL)))
+                    && dontReparseCss.match(ArchiveOrgUrl.extractArchivedUrlPart(hostingFileURL)))
                 return null;
         }
 
@@ -671,7 +671,7 @@ public class StyleActionToLocal
                             }
                         }
                     }
-                    
+
                     if (changed && Config.False)
                     {
                         // Optionally log which declaration was updated
@@ -745,13 +745,18 @@ public class StyleActionToLocal
             throw new Exception("Resuouce URL is missing or blank");
 
         String absoluteUrl = Util.resolveURL(baseUrl, originalUrl);
-        
+
         /*
          * Resource is expected to be remote
          */
         String lc = absoluteUrl.toLowerCase();
         if (!lc.startsWith("http://") && !lc.startsWith("https://"))
-            throw new Exception("Referenced style resource is not remote: " + absoluteUrl);
+        {
+            if (dontDownloadCss != null && dontDownloadCss.matchLocal(absoluteUrl))
+                return null;
+            else
+                throw new Exception("Referenced style resource is not remote: " + absoluteUrl);
+        }
 
         String download_href = absoluteUrl;
         String naming_href = absoluteUrl;
@@ -762,6 +767,9 @@ public class StyleActionToLocal
             if (naming_href == null)
                 naming_href = download_href;
         }
+
+        if (dontDownloadCss != null && dontDownloadCss.matchOR(download_href, naming_href))
+            return null;
 
         /*
          * Download file to local repository (residing in local file system).
@@ -778,13 +786,10 @@ public class StyleActionToLocal
 
         if (rel == null)
         {
-            if (allowUndownloadaleCss != null)
-            {
-                if (allowUndownloadaleCss.contains(download_href) || allowUndownloadaleCss.contains(naming_href))
-                    return null;
-            }
-
-            throw new Exception("Unable to download style passive resource: " + absoluteUrl);
+            if (allowUndownloadaleCss != null && allowUndownloadaleCss.matchOR(download_href, naming_href))
+                return null;
+            else
+                throw new Exception("Unable to download style passive resource: " + absoluteUrl);
         }
 
         /* Full local file path name */
@@ -958,7 +963,7 @@ public class StyleActionToLocal
 
                     // inline styles can only reference images/fonts/etc.
                     String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath);
-                    
+
                     if (newUrl != null && !newUrl.equals(originalUrl))
                     {
                         uriTerm.setURIString(urlEncodeLink(newUrl));

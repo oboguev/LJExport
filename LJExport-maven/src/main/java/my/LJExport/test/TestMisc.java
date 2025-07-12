@@ -1,8 +1,8 @@
 package my.LJExport.test;
 
 import my.LJExport.Main;
-import my.LJExport.runtime.URLCodec;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.url.URLCodec;
 
 public class TestMisc
 {

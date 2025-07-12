@@ -26,11 +26,11 @@ public class MainStylesToLocal
     private static final String AllUsersFromUser = null;
 
     // private static final String Users = ALL_USERS;
-    // private static final String Users = "udod99.lj-rossia-org";
-    private static final String Users = "nationalism.org";
+    private static final String Users = "harmfulgrumpy.dreamwidth-org";
+    // private static final String Users = "nationalism.org";
 
     private static final boolean ShowStylesProgress = true;
-    private static final boolean DryRun = false;
+    private static final boolean DryRun = true;
 
     public static void main(String[] args)
     {

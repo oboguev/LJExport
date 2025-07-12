@@ -22,11 +22,11 @@ import org.apache.http.conn.HttpHostConnectException;
 import my.LJExport.Config;
 import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.NamedLocks;
-import my.LJExport.runtime.URLCodec;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Util.UnableCreateDirectoryException;
 import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.url.URLCodec;
 
 public class LinkDownloader
 {

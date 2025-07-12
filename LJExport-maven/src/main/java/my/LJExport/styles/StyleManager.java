@@ -8,8 +8,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +20,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.DownloadSource;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
+import my.LJExport.runtime.url.UrlSetMatcher;
 import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
 
 public class StyleManager
@@ -35,8 +34,9 @@ public class StyleManager
     private TxLog txLog;
     private boolean isDownloadedFromWebArchiveOrg = false;
     private DownloadSource downloadSource;
-    private Set<String> dontReparseCss;
-    private Set<String> allowUndownloadaleCss;
+    private UrlSetMatcher dontReparseCss;
+    private UrlSetMatcher allowUndownloadaleCss;
+    private UrlSetMatcher dontDownloadCss;
 
     private boolean initialized = false;
     private boolean initializing = false;
@@ -70,15 +70,21 @@ public class StyleManager
 
         File fpx = new File(fp, "do-not-reparse-css.txt");
         if (fpx.exists())
-            dontReparseCss = Util.read_set_from_file(fpx.getCanonicalPath());
+            dontReparseCss = UrlSetMatcher.loadFile(fpx.getCanonicalPath());
         else
-            dontReparseCss = new HashSet<>();
+            dontReparseCss = UrlSetMatcher.empty();
 
         fpx = new File(fp, "allow-undownloadable-css.txt");
         if (fpx.exists())
-            allowUndownloadaleCss = Util.read_set_from_file(fpx.getCanonicalPath());
+            allowUndownloadaleCss = UrlSetMatcher.loadFile(fpx.getCanonicalPath());
         else
-            allowUndownloadaleCss = new HashSet<>();
+            allowUndownloadaleCss = UrlSetMatcher.empty();
+
+        fpx = new File(fp, "dont-download-css.txt");
+        if (fpx.exists())
+            dontDownloadCss = UrlSetMatcher.loadFile(fpx.getCanonicalPath());
+        else
+            dontDownloadCss = UrlSetMatcher.empty();
     }
 
     public String getStyleDir()
@@ -232,7 +238,7 @@ public class StyleManager
             {
             case TO_LOCAL:
                 updated = new StyleActionToLocal(linkDownloader, styleRepositoryLock, resolvedCSS,
-                        txLog, isDownloadedFromWebArchiveOrg, downloadSource, dontReparseCss, allowUndownloadaleCss)
+                        txLog, isDownloadedFromWebArchiveOrg, downloadSource, dontReparseCss, allowUndownloadaleCss, dontDownloadCss)
                                 .processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
                 break;
 

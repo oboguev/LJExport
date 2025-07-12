@@ -264,7 +264,9 @@ public class StyleActionToLocal
         if (!Util.isAbsoluteURL(href) && this.isDownloadedFromWebArchiveOrg && ArchiveOrgUrl.isArchiveOrgUriPath(href))
         {
             // <link rel="stylesheet" type="text/css" href="/web/20160426180858cs_/http://nationalism.org/forum/07/general1.css" title="general">
-            href = "https://" + href;
+            if (!href.startsWith("/"))
+                href = "/" + href;
+            href = ArchiveOrgUrl.ARCHIVE_SERVER + href;
         }
 
         if (baseUrl == null && !Util.isAbsoluteURL(href))
@@ -345,6 +347,12 @@ public class StyleActionToLocal
                     naming_href = download_href;
             }
             
+            if (naming_href.contains("nationalism.org/forum/07/general1.css"))
+            {
+                // ###
+                Util.noop();
+            }
+            
             /*
              * Download file to local repository (residing in local file system).
              * Returns path relative to repository root, with url-encoded path components.
@@ -366,7 +374,7 @@ public class StyleActionToLocal
             String cssFilePath = linkDownloader.rel2abs(newref);
 
             String beforeCss = Util.readFileAsString(cssFilePath);
-            String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL, false); // ### archive.org
+            String modifiedCss = resolveCssDependencies(beforeCss, cssFilePath, cssFileURL, false);
             if (modifiedCss != null)
             {
                 String beforeFilePath = cssFilePath + "." + RandomString.rs(5) + "~before";

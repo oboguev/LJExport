@@ -5,8 +5,10 @@ import java.util.regex.Pattern;
 
 public class ArchiveOrgUrl
 {
-    private static final String ARCHIVE_PREFIX_HTTPS = "https://web.archive.org/web/";
-    private static final String ARCHIVE_PREFIX_HTTP = "https://web.archive.org/web/";
+    public static final String ARCHIVE_PREFIX_HTTPS = "https://web.archive.org/web/";
+    public static final String ARCHIVE_PREFIX_HTTP = "https://web.archive.org/web/";
+
+    public static final String ARCHIVE_SERVER = "https://web.archive.org";
     
     private static final String ArchiveOrgLatestCaptureWebRoot = "https://web.archive.org/web/2id_/";
 

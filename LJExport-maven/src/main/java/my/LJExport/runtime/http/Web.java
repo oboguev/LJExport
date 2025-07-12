@@ -1,4 +1,4 @@
-package my.LJExport.runtime;
+package my.LJExport.runtime.http;
 
 import java.io.*;
 
@@ -20,6 +20,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.runtime.Util;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;

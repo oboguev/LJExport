@@ -6,7 +6,7 @@ import org.jsoup.parser.Tag;
 
 import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
-import my.LJExport.runtime.Web;
+import my.LJExport.runtime.http.Web;
 
 public class ParserArchiveOrg extends PageParserDirectBasePassive
 {

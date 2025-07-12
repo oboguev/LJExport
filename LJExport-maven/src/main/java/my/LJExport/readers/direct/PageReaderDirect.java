@@ -19,8 +19,8 @@ import my.LJExport.readers.PageReader;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.Web;
-import my.LJExport.runtime.Web.Response;
+import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.http.Web.Response;
 
 public class PageReaderDirect implements PageReader, PageContentSource
 {

@@ -1,4 +1,4 @@
-package my.LJExport.runtime;
+package my.LJExport.runtime.http;
 
 // https://github.com/adamfisk/LittleProxy
 
@@ -24,6 +24,7 @@ import org.littleshoot.proxy.impl.ThreadPoolConfiguration;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.runtime.LJUtil;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;

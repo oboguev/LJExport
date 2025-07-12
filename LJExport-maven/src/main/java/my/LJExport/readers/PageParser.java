@@ -16,7 +16,7 @@ import my.LJExport.Main;
 import my.LJExport.html.JSOUP;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.Web;
+import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 
 public abstract class PageParser

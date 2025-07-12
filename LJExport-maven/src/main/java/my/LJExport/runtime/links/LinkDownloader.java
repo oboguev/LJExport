@@ -24,8 +24,8 @@ import my.LJExport.runtime.NamedLocks;
 import my.LJExport.runtime.NetErrors;
 import my.LJExport.runtime.URLCodec;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.Web;
 import my.LJExport.runtime.Util.UnableCreateDirectoryException;
+import my.LJExport.runtime.http.Web;
 
 public class LinkDownloader
 {
@@ -100,6 +100,12 @@ public class LinkDownloader
      */
     public String download(String name_href, String download_href, String referer,
             String linkReferencePrefix)
+    {
+        return download(name_href, download_href, referer, linkReferencePrefix, null);
+    }
+    
+    public String download(String name_href, String download_href, String referer,
+            String linkReferencePrefix, DownloadSource downloadSource)
     {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);
         AtomicReference<String> filename = new AtomicReference<>(null);
@@ -190,28 +196,42 @@ public class LinkDownloader
                     }
 
                     Web.Response r = null;
-
-                    try
+                    
+                    if (downloadSource != null)
                     {
-                        Thread.currentThread().setName(final_threadName + " downloading " + final_download_href_noanchor);
-                        r = Web.get(final_download_href, Web.BINARY | Web.PROGRESS, headers, (code) ->
+                        byte[] binaryBody = downloadSource.load(final_href_noanchor, abs2rel(actual_filename));
+                        if (binaryBody != null)
                         {
-                            return code >= 200 && code <= 299 && code != 204;
-                        });
+                            r = new Web.Response();
+                            r.code  = 200;
+                            r.binaryBody = binaryBody;
+                        }
                     }
-                    catch (Exception ex)
+                    
+                    if (r == null)
                     {
-                        if (final_download_href_noanchor != null)
-                            failedSet.add(final_download_href_noanchor);
-                        throw ex;
-                    }
+                        try
+                        {
+                            Thread.currentThread().setName(final_threadName + " downloading " + final_download_href_noanchor);
+                            r = Web.get(final_download_href, Web.BINARY | Web.PROGRESS, headers, (code) ->
+                            {
+                                return code >= 200 && code <= 299 && code != 204;
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            if (final_download_href_noanchor != null)
+                                failedSet.add(final_download_href_noanchor);
+                            throw ex;
+                        }
 
-                    if (r.code < 200 || r.code >= 300 || r.code == 204)
-                    {
-                        response.set(r);
-                        if (final_download_href_noanchor != null)
-                            failedSet.add(final_download_href_noanchor);
-                        throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);
+                        if (r.code < 200 || r.code >= 300 || r.code == 204)
+                        {
+                            response.set(r);
+                            if (final_download_href_noanchor != null)
+                                failedSet.add(final_download_href_noanchor);
+                            throw new Exception("HTTP code " + r.code + ", reason: " + r.reason);
+                        }
                     }
 
                     try

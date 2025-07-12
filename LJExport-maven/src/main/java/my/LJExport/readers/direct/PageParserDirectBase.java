@@ -23,7 +23,7 @@ import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.Web;
+import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.AppendToThreadName;
 import my.LJExport.runtime.synch.FutureProcessor;

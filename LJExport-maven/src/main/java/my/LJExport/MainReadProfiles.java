@@ -8,9 +8,9 @@ import my.LJExport.profile.ReadProfile;
 import my.LJExport.runtime.EnumUsers;
 // import my.LJExport.runtime.HttpWireTracing;
 import my.LJExport.runtime.LimitProcessorUsage;
-import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.Web;
+import my.LJExport.runtime.http.RateLimiter;
+import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 /*

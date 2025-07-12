@@ -5,7 +5,9 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 import java.net.URLEncoder;
 
 import org.jsoup.nodes.DataNode;
@@ -33,6 +35,7 @@ import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.RandomString;
 import my.LJExport.runtime.TxLog;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.links.DownloadSource;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
@@ -76,6 +79,13 @@ public class StyleActionToLocal
      */
     private final TxLog txLog;
 
+    /*
+     * File overrides reader
+     */
+    private final DownloadSource downloadSource;
+
+    private final Set<String> dontReparseCss;
+
     /* 
      * List (stack) of URLs of CSS/HTML files with styles being currently re-written,
      * used to detect circular references 
@@ -92,13 +102,17 @@ public class StyleActionToLocal
             IntraInterprocessLock styleRepositoryLock,
             FileBackedMap resolvedCSS,
             TxLog txLog,
-            boolean isDownloadedFromWebArchiveOrg)
+            boolean isDownloadedFromWebArchiveOrg,
+            DownloadSource downloadSource,
+            Set<String> dontReparseCss)
     {
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
         this.resolvedCSS = resolvedCSS;
         this.txLog = txLog;
         this.isDownloadedFromWebArchiveOrg = isDownloadedFromWebArchiveOrg;
+        this.downloadSource = downloadSource;
+        this.dontReparseCss = dontReparseCss;
     }
 
     /*
@@ -346,26 +360,20 @@ public class StyleActionToLocal
                 if (naming_href == null)
                     naming_href = download_href;
             }
-            
-            if (naming_href.contains("nationalism.org/forum/07/general1.css"))
-            {
-                // ###
-                Util.noop();
-            }
-            
+
             /*
              * Download file to local repository (residing in local file system).
              * Returns path relative to repository root, with url-encoded path components.
              */
-            newref = linkDownloader.download(naming_href, download_href, null, "");
+            newref = linkDownloader.download(naming_href, download_href, null, "", downloadSource);
             if (newref == null && !naming_href.equals(download_href))
             {
                 download_href = ArchiveOrgUrl.getLatestCaptureUrl(naming_href);
-                newref = linkDownloader.download(naming_href, download_href, null, "");
+                newref = linkDownloader.download(naming_href, download_href, null, "", downloadSource);
                 // TODO: add alias download_href if does not exist -> newref (decodePathCopmonents first)
                 // TODO: add alias cssFileURL if does not exist -> newref (decodePathCopmonents first)
             }
-            
+
             if (newref == null)
                 throw new Exception("Failed to download style URL: " + cssFileURL);
             newref = linkDownloader.decodePathCopmonents(newref);
@@ -563,9 +571,30 @@ public class StyleActionToLocal
 
     private String do_resolveCssDependencies(String cssText, String hostingFilePath, String hostingFileURL) throws Exception
     {
+        if (dontReparseCss != null && hostingFileURL != null)
+        {
+            if (dontReparseCss.contains(hostingFileURL))
+                return null;
+
+            if (ArchiveOrgUrl.isArchiveOrgUrl(hostingFileURL)
+                    && dontReparseCss.contains(ArchiveOrgUrl.extractArchivedUrlPart(hostingFileURL)))
+                return null;
+        }
+
         CascadingStyleSheet css = CSSReader.readFromString(cssText, ECSSVersion.CSS30);
         if (css == null)
-            throw new Exception("Failed to parse CSS content");
+        {
+            Util.err("Failed to parse CSS content in " + hostingFileURL);
+            if (ArchiveOrgUrl.isArchiveOrgUrl(hostingFileURL))
+                Util.err("    archives " + ArchiveOrgUrl.extractArchivedUrlPart(hostingFileURL));
+
+            boolean crash = true;
+
+            if (crash)
+                throw new Exception("Failed to parse CSS content in " + hostingFileURL);
+            else
+                return null;
+        }
 
         boolean updated = false;
 
@@ -700,11 +729,11 @@ public class StyleActionToLocal
          * Download file to local repository (residing in local file system).
          * Returns path relative to repository root, with url-encoded path components.
          */
-        String rel = linkDownloader.download(naming_href, download_href, null, "");
+        String rel = linkDownloader.download(naming_href, download_href, null, "", downloadSource);
         if (rel == null && !naming_href.equals(download_href))
         {
             download_href = ArchiveOrgUrl.getLatestCaptureUrl(naming_href);
-            rel = linkDownloader.download(naming_href, download_href, null, "");
+            rel = linkDownloader.download(naming_href, download_href, null, "", downloadSource);
             // TODO: add alias download_href if does not exist -> rel (decodePathCopmonents first)
             // TODO: add alias absoluteUrl if does not exist -> rel (decodePathCopmonents first)
         }
@@ -849,6 +878,9 @@ public class StyleActionToLocal
             String hostingFilePath,
             String hostingFileURL) throws Exception
     {
+        if (inlineStyleHasNoExternalReferences(inlineStyleText))
+            return null;
+
         // 1. Parse “prop: value; …” into a declaration list.
         CSSDeclarationList declList = CSSReaderDeclarationList.readFromString(inlineStyleText, ECSSVersion.CSS30);
         if (declList == null)
@@ -953,5 +985,81 @@ public class StyleActionToLocal
         }
 
         Util.err("Cyclic CSS reference:\n" + sb.toString());
+    }
+
+    /* =========================================================================================== */
+
+    /**
+     * Returns {@code true} <i>only if</i> the supplied style attribute value is guaranteed not to contain any CSS {@code url(...)}
+     * reference.
+     *
+     * <p>
+     * The test is deliberately conservative: it treats <code>url</code> written in any mix of upper-/lower-case letters and
+     * followed by arbitrary ASCII whitespace (space, tab, CR, LF, form-feed) **before** the opening parenthesis as a match.
+     *
+     * <p>
+     * Examples that will trigger a <code>false</code> result:
+     * 
+     * <pre>
+     *   background:url(foo.png)
+     *   background:URL ( "foo.png" )    == note whitespace before (
+     *   background-image :   url(  'foo.png'  )
+     * </pre>
+     *
+     * <p>
+     * Examples that will return <code>true</code> (no <code>url(</code>):
+     * 
+     * <pre>
+     *   color:red;
+     *   font-weight:bold;
+     *   content:"the literal text url(foo)";
+     * </pre>
+     */
+
+    // (?i)      – case-insensitive
+    // \burl     – the ident “url” at a word boundary
+    // \s*       – optional whitespace (any length, incl. newlines)
+    // \(        – literal opening parenthesis
+    /** Case-insensitive match for <code>url  (</code> with optional whitespace */
+    private static final Pattern URL_FUNCTION = Pattern.compile("(?i)\\burl\\s*\\(");
+
+    private boolean inlineStyleHasNoExternalReferences(String style)
+    {
+        // Return TRUE only when the url(...) pattern is absent
+        return style == null || style.isEmpty() || !URL_FUNCTION.matcher(style).find();
+    }
+
+    /** Strip all CSS comments so they do not trigger false positives. */
+    private static final Pattern COMMENTS = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
+
+    /** Case-insensitive match for “@import” with optional whitespace after the “@”. */
+    private static final Pattern IMPORT_DIRECTIVE = Pattern.compile("(?i)@\\s*import\\b");
+
+    /**
+     * Returns {@code true} <i>only if</i> {@code cssText} is guaranteed not to contain any external references – namely
+     * {@code url(...)} functions or <code>@import</code> rules.
+     * 
+     * The check is conservative: if the method is not 100 % sure that no reference is present, it returns {@code false}.
+     */
+
+    // It first strips CSS comments so that a literal string like
+    //          /* @import url(foo.css) */ 
+    // inside a comment will not force a false result.
+
+    private boolean cssHasNoExternalReferences(String cssText)
+    {
+        if (cssText == null || cssText.isEmpty())
+            return true; // trivially safe
+
+        // 1. Remove comments – they cannot introduce live references
+        String noComments = COMMENTS.matcher(cssText).replaceAll("");
+
+        // 2. Look for either url(…) or @import.  Finding either => external ref
+        if (URL_FUNCTION.matcher(noComments).find())
+            return false;
+        if (IMPORT_DIRECTIVE.matcher(noComments).find())
+            return false;
+
+        return true; // guaranteed clean
     }
 }

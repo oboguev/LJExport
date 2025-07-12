@@ -213,6 +213,11 @@ public class Util
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
+    public static byte[] readFileAsByteArray(String path) throws Exception
+    {
+        return Files.readAllBytes(Paths.get(path));
+    }
+
     /**
      * Atomically replaces {@code path} with {@code content} and tries to survive an OS crash or power loss.
      *

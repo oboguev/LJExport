@@ -9,8 +9,8 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 import my.LJExport.calendar.YYYY_MM;
 import my.LJExport.runtime.ConfigUI;
 import my.LJExport.runtime.PasswordStorage;
-import my.LJExport.runtime.TrustAnySSL;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.http.TrustAnySSL;
 
 public class Config
 {

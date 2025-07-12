@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,6 +20,7 @@ import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.LJExportInformation;
 import my.LJExport.runtime.TxLog;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.links.DownloadSource;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
 import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
@@ -32,6 +35,8 @@ public class StyleManager
     private FileBackedMap resolvedCSS = new FileBackedMap();
     private TxLog txLog;
     private boolean isDownloadedFromWebArchiveOrg = false;
+    private DownloadSource downloadSource;
+    private Set<String> dontReparseCss;
 
     private boolean initialized = false;
     private boolean initializing = false;
@@ -62,6 +67,12 @@ public class StyleManager
                 .load()
                 .getProperty(LJExportInformation.IsDownloadedFromWebArchiveOrg, "false")
                 .equals("true");
+
+        fp = new File(fp, "do-not-reparse-css.txt");
+        if (fp.exists())
+            dontReparseCss = Util.read_set_from_file(fp.getCanonicalPath());
+        else
+            dontReparseCss = new HashSet<>();
     }
 
     public String getStyleDir()
@@ -165,6 +176,7 @@ public class StyleManager
 
         linkDownloader.init(styleDir);
         resolvedCSS.init(styleDir + File.separator + "resolved-css-map.txt");
+        downloadSource = new DownloadSource(styleCatalogDir + File.separator + "overrides");
 
         styleRepositoryLock = new IntraInterprocessLock(styleDir + File.separator + "repository.lock");
         txLog = new TxLog(styleDir + File.separator + "transaction.log");
@@ -188,6 +200,8 @@ public class StyleManager
             txLog = null;
         }
 
+        downloadSource = null;
+
         initialized = false;
         initializing = false;
     }
@@ -210,8 +224,9 @@ public class StyleManager
             switch (action)
             {
             case TO_LOCAL:
-                updated = new StyleActionToLocal(linkDownloader, styleRepositoryLock, resolvedCSS, txLog, isDownloadedFromWebArchiveOrg)
-                        .processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
+                updated = new StyleActionToLocal(linkDownloader, styleRepositoryLock, resolvedCSS,
+                        txLog, isDownloadedFromWebArchiveOrg, downloadSource, dontReparseCss)
+                                .processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
                 break;
 
             case REVERT:

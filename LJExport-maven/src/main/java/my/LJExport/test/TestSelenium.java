@@ -18,8 +18,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import my.LJExport.*;
 import my.LJExport.html.JSOUP;
-import my.LJExport.runtime.ProxyServer;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.http.ProxyServer;
 
 // http://seleniumhq.github.io/selenium/docs/api/java/index.html
 // http://docs.seleniumhq.org/docs

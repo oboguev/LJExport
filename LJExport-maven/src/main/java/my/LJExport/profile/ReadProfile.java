@@ -32,8 +32,8 @@ import my.LJExport.runtime.CaseCollisions;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.SafeFileName;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.Web;
-import my.LJExport.runtime.Web.Response;
+import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.http.Web.Response;
 import my.LJExport.runtime.links.LinkDownloader;
 
 /*

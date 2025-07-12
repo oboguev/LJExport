@@ -9,11 +9,11 @@ import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
-import my.LJExport.runtime.ActivityCounters;
 import my.LJExport.runtime.LimitProcessorUsage;
-import my.LJExport.runtime.RateLimiter;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.Web;
+import my.LJExport.runtime.http.ActivityCounters;
+import my.LJExport.runtime.http.RateLimiter;
+import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 /*

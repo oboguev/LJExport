@@ -9,7 +9,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import my.LJExport.Main;
-import my.LJExport.runtime.Web;
+import my.LJExport.runtime.http.Web;
 
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;

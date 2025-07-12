@@ -378,22 +378,38 @@ public class StyleActionToLocal
                 Util.writeToFileVerySafe(cssFilePath, modifiedCss);
                 txLog.writeLine(String.format("Overwrote file with edited CSS content, file path: [%s]", cssFilePath));
 
-                // ### archive.org - twice
                 txLog.writeLine(String.format("About to write a mapping to map file: %s%s  from: %s%s  to:   %s",
                         resolvedCSS.getPath(),
                         System.lineSeparator(),
-                        cssFileURL,
+                        naming_href,
                         System.lineSeparator(),
                         newref));
-                resolvedCSS.put(cssFileURL, linkDownloader.rel2abs(newref));
-                txLog.writeLine(String.format("Wrote a mapping to %s", resolvedCSS.getPath()));
+                resolvedCSS.put(naming_href, linkDownloader.rel2abs(newref));
+
+                if (download_href.equals(naming_href))
+                {
+                    txLog.writeLine(String.format("Wrote a mapping to %s", resolvedCSS.getPath()));
+                }
+                else
+                {
+                    txLog.writeLine(String.format("About to write another mapping to map file: %s%s  from: %s%s  to:   %s",
+                            resolvedCSS.getPath(),
+                            System.lineSeparator(),
+                            download_href,
+                            System.lineSeparator(),
+                            newref));
+                    resolvedCSS.put(download_href, linkDownloader.rel2abs(newref));
+                    txLog.writeLine(String.format("Wrote two mappings to %s", resolvedCSS.getPath()));
+                }
+
                 txLog.clear();
                 new File(beforeFilePath).delete();
             }
             else
             {
-                // ### archive.org - twice
-                resolvedCSS.put(cssFileURL, linkDownloader.rel2abs(newref));
+                resolvedCSS.put(naming_href, linkDownloader.rel2abs(newref));
+                if (!download_href.equals(naming_href))
+                    resolvedCSS.put(download_href, linkDownloader.rel2abs(newref));
             }
         }
         finally

@@ -1,7 +1,9 @@
 package my.LJExport.runtime.html;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -120,12 +122,13 @@ public class JSOUP
 
     public static List<Node> flatten(Node el) throws Exception
     {
-        List<Node> v1 = flatten_1(el);
+        // List<Node> v1 = flatten_1(el);
+        List<Node> v1 = flatten_3(el);
 
         /*
          * Verification
          */
-        if (Config.False)
+        if (Config.True)  // ###
         {
             List<Node> v2 = flatten_2(el);
 
@@ -148,7 +151,8 @@ public class JSOUP
         return v1;
     }
 
-    public static List<Node> flatten_1(Node el) throws Exception
+    @SuppressWarnings("unused")
+    private static List<Node> flatten_1(Node el) throws Exception
     {
         List<Node> vec = new ArrayList<>();
         flatten_1(vec, el, 0);
@@ -177,7 +181,8 @@ public class JSOUP
     /*
      * Alternative version for flattening
      */
-    public static List<Node> flatten_2(Node root)
+    @SuppressWarnings("unused")
+    private static List<Node> flatten_2(Node root)
     {
         List<Node> result = new ArrayList<>();
         flatten_2(root, result);
@@ -195,6 +200,54 @@ public class JSOUP
         // Recurse into children
         for (Node child : node.childNodes())
             flatten_2(child, result);
+    }
+
+    /**
+     * Depth-first pre-order traversal of a Jsoup node-subtree without recursion.
+     *
+     * <p>
+     * The resulting list is identical (same elements, same order) to what {@code flatten_1} / {@code flatten_2} return:
+     * </p>
+     *
+     * <ol>
+     * <li>Visit the current node itself</li>
+     * <li>Then its children from left-to-right (document order)</li>
+     * </ol>
+     *
+     * @param root
+     *            starting node (only that node’s subtree is flattened; siblings of {@code root} are not visited – this mirrors the
+     *            behaviour of the original routines)
+     * @return immutable snapshot of the traversal order
+     * @throws Exception
+     *             kept for full signature compatibility with the originals
+     */
+    @SuppressWarnings("unused")
+    private static List<Node> flatten_3(Node root) throws Exception
+    {
+        List<Node> result = new ArrayList<>();
+        if (root == null)
+            return result;
+
+        // Deque is used as a LIFO stack.
+        Deque<Node> stack = new ArrayDeque<>();
+        stack.push(root);
+
+        while (!stack.isEmpty())
+        {
+            Node node = stack.pop();
+            result.add(node);
+
+            /*
+             * Push children in *reverse* order so that the left-most child
+             * is on top of the stack – this preserves the natural (document)
+             * left-to-right order when we subsequently pop them.
+             */
+            List<Node> children = node.childNodes();
+            for (int i = children.size() - 1; i >= 0; i--)
+                stack.push(children.get(i));
+        }
+
+        return result;
     }
 
     public static String nodeName(Node n) throws Exception

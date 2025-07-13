@@ -167,7 +167,8 @@ public abstract class PageParserDirectBase
 
     /*static*/ public boolean downloadExternalLinks(Node root, AbsoluteLinkBase absoluteLinkBase) throws Exception
     {
-        if (Main.linkDownloader == null || !Main.linkDownloader.isInitialized() || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
+        if (Main.linkDownloader == null || !Main.linkDownloader.isInitialized() || Config.DownloadFileTypes == null
+                || Config.DownloadFileTypes.size() == 0)
             return false;
 
         boolean downloaded = false;
@@ -211,6 +212,7 @@ public abstract class PageParserDirectBase
         {
             fpUnwrap.shutdown();
             fpDownload.shutdown();
+            throw ex;
         }
 
         return downloaded || unwrapped;
@@ -588,10 +590,10 @@ public abstract class PageParserDirectBase
                 }
             }
         }
-        
+
         if (style != null)
             return style;
-        
+
         List<Node> vnodes = JSOUP.findElements(pageRoot, "article");
 
         for (Node n : vnodes)
@@ -1138,7 +1140,7 @@ public abstract class PageParserDirectBase
         title.text(titleText);
         head.appendChild(title);
     }
-    
+
     public Element findContentWrapper() throws Exception
     {
         return findBody();

@@ -50,7 +50,8 @@ public class MainDownloadLinks
     // private static final String Users = "zhu_s";
     private static final String Users = "harmfulgrumpy.dreamwidth-org";
 
-    private static final int NWorkThreads = 200;
+    /* we can use large number of threds because they usually are network IO bound */
+    private static final int NWorkThreads = 500;
     private static final int MaxConnectionsPerRoute = 10;
 
     public static void main(String[] args)
@@ -91,6 +92,9 @@ public class MainDownloadLinks
             user = user.trim().replace("\t", "").replace(" ", "");
             if (user.equals(""))
                 continue;
+            
+            if (Main.isAborting())
+                break;
 
             if (nuser++ != 0)
             {

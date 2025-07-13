@@ -78,7 +78,7 @@ public class LinkDownloader
 
     public String abs2rel(String abs) throws Exception
     {
-        String prefix =  linksDir + File.separator;
+        String prefix = linksDir + File.separator;
         if (!abs.startsWith(prefix))
             throw new Exception("File path is not within a repository: " + abs);
         String rel = Util.stripStart(abs, prefix);
@@ -104,7 +104,7 @@ public class LinkDownloader
     {
         return download(name_href, download_href, referer, linkReferencePrefix, null);
     }
-    
+
     public String download(String name_href, String download_href, String referer,
             String linkReferencePrefix, DownloadSource downloadSource)
     {
@@ -197,18 +197,18 @@ public class LinkDownloader
                     }
 
                     Web.Response r = null;
-                    
+
                     if (downloadSource != null)
                     {
                         byte[] binaryBody = downloadSource.load(final_href_noanchor, abs2rel(actual_filename));
                         if (binaryBody != null)
                         {
                             r = new Web.Response();
-                            r.code  = 200;
+                            r.code = 200;
                             r.binaryBody = binaryBody;
                         }
                     }
-                    
+
                     if (r == null)
                     {
                         try
@@ -231,7 +231,7 @@ public class LinkDownloader
                             response.set(r);
                             if (final_download_href_noanchor != null)
                                 failedSet.add(final_download_href_noanchor);
-                            throw new HttpException("HTTP code " + r.code + ", reason: " + r.reason); // ###
+                            throw new HttpException("HTTP code " + r.code + ", reason: " + r.reason);
                         }
                     }
 
@@ -435,7 +435,7 @@ public class LinkDownloader
 
         return sb.toString();
     }
-    
+
     public String decodePathCopmonents(String ref)
     {
         StringBuilder sb = new StringBuilder();
@@ -606,15 +606,29 @@ public class LinkDownloader
                 }
             }
 
-            String ext = getFileExtension(sb.toString());
+            String ext = (sb == null) ? null : getFileExtension(sb.toString());
 
             String query = url.getQuery();
             if (query != null && query.length() != 0)
             {
+                if (sb == null)
+                {
+                    // https://simg.sputnik.ru/?key=671d8d631c860987add28ec9742b240a2b6cac18
+                    sb = new StringBuilder();
+                    list.add(sb);
+                }
+                
                 sb.append("?" + query);
                 // reappend extenstion
                 if (ext != null && ext.length() != 0 && ext.length() <= 4)
                     sb.append("." + ext);
+            }
+            
+            if (sb == null)
+            {
+                // https://simg.sputnik.ru
+                sb = new StringBuilder("[unnamed-root]");
+                list.add(sb);
             }
         }
 

@@ -72,6 +72,9 @@ public class MainStylesToLocal
             user = user.trim().replace("\t", "").replace(" ", "");
             if (user.equals(""))
                 continue;
+            
+            if (Main.isAborting())
+                break;
 
             if (Config.False)
             {

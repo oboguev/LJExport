@@ -51,6 +51,10 @@ public class MainMoveReposts extends PageParserPassive
                     {
                         out("");
                     }
+
+                    if (Main.isAborting())
+                        break;
+                    
                     do_user(user);
                 }
             }

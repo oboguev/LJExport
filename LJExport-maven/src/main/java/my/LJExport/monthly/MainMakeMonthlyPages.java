@@ -48,6 +48,7 @@ public class MainMakeMonthlyPages
             for (String user : users.split(","))
             {
                 user = user.trim();
+                
                 if (user.length() != 0)
                 {
                     if (Config.False)
@@ -56,6 +57,9 @@ public class MainMakeMonthlyPages
                     }
                     else
                     {
+                        if (Main.isAborting())
+                            break;
+
                         if (divider)
                         {
                             Main.out("");

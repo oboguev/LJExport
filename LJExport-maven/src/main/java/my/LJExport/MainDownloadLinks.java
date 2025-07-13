@@ -10,6 +10,7 @@ import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;
+import my.LJExport.runtime.MemoryMonitor;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.ActivityCounters;
@@ -22,7 +23,7 @@ import my.LJExport.runtime.synch.ThreadsControl;
  * Загрузить отсутствующие локальные копии сссылок в страницах пользователя.
  * Они могут быть пропущены, если в момент загрузки страниц сервер, содержащий ссылки, не работал.
  * 
- * Use stack size: -Xss2m
+ * Use: -Xss4m -Xmx16g
  */
 public class MainDownloadLinks
 {
@@ -33,8 +34,8 @@ public class MainDownloadLinks
     private int countFetched = 0;
 
     private static final String ALL_USERS = "<all>";
-    // private static final String AllUsersFromUser = "fat_yankey";
-    private static final String AllUsersFromUser = null;
+    // private static final String AllUsersFromUser = null;
+    private static final String AllUsersFromUser = "avmalgin";
 
     private static final String Users = ALL_USERS;
 
@@ -58,7 +59,7 @@ public class MainDownloadLinks
     // private static final String Users = "harmfulgrumpy.dreamwidth-org";
 
     /* we can use large number of threds because they usually are network IO bound */
-    private static final int NWorkThreads = 500;
+    private static final int NWorkThreads = 300;
     private static final int MaxConnectionsPerRoute = 10;
 
     public static void main(String[] args)
@@ -66,6 +67,7 @@ public class MainDownloadLinks
         try
         {
             LimitProcessorUsage.limit();
+            MemoryMonitor.startMonitor();
             do_users(Users);
         }
         catch (Exception ex)
@@ -275,6 +277,9 @@ public class MainDownloadLinks
                 String newPageSource = JSOUP.emitHtml(parser.pageRoot);
                 Util.writeToFileSafe(pageFileFullPath, newPageSource);
             }
+
+            /* help GC */
+            parser = null;
         }
     }
 

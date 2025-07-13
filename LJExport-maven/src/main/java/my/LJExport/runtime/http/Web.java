@@ -739,6 +739,7 @@ public class Web
                 case 303:
                 case 400:
                 case 402:
+                case 405:
                 case 406:
                 case 409:
                 case 415:
@@ -1068,7 +1069,12 @@ public class Web
         Pattern pattern = Pattern.compile("(?i)(?:charset|utf-8)\\s*=\\s*([\\w\\-]+)");
         Matcher matcher = pattern.matcher(content);
         if (matcher.find())
-            return matcher.group(1).toLowerCase();
+        {
+            String charset = matcher.group(1).toLowerCase();
+            if (charset != null && charset.equalsIgnoreCase("win-1251"))
+                charset = "windows-1251";
+            return charset;
+        }
 
         return null;
     }

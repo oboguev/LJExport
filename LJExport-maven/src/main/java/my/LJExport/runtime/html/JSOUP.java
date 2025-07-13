@@ -128,7 +128,7 @@ public class JSOUP
         /*
          * Verification
          */
-        if (Config.True)  // ###
+        if (Config.False)
         {
             List<Node> v2 = flatten_2(el);
 
@@ -146,6 +146,20 @@ public class JSOUP
 
             if (v1.size() != v2.size())
                 throw new Exception("Bug in flatten #3");
+        }
+        
+        if (Config.True)
+        {
+            List<Node> v2 = flatten_2(el);
+            
+            if (v1.size() != v2.size())
+                throw new Exception("Bug in flatten #4");
+            
+            for (int k = 0; k < v1.size(); k++)
+            {
+                if (v1.get(k) != v2.get(k))
+                    throw new Exception("Bug in flatten #5");
+            }
         }
 
         return v1;

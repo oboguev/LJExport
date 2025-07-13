@@ -162,7 +162,15 @@ public class LinkDownloader
                 if (afn != null)
                     actual_filename = afn;
 
-                File f = new File(actual_filename).getCanonicalFile();
+                File f = null;
+                try
+                {
+                    f = new File(actual_filename).getCanonicalFile();
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
 
                 if (f.exists())
                 {
@@ -617,13 +625,13 @@ public class LinkDownloader
                     sb = new StringBuilder();
                     list.add(sb);
                 }
-                
+
                 sb.append("?" + query);
                 // reappend extenstion
                 if (ext != null && ext.length() != 0 && ext.length() <= 4)
                     sb.append("." + ext);
             }
-            
+
             if (sb == null)
             {
                 // https://simg.sputnik.ru
@@ -671,6 +679,9 @@ public class LinkDownloader
          */
         fn = URLCodec.encodeFilename(fn);
 
+        /* Fix dangerous trailing . or space (Windows will strip them silently) */
+        fn = escapeTrailingDotsAndSpaces(fn);
+
         /*
          * If name is too long
          */
@@ -684,6 +695,38 @@ public class LinkDownloader
         }
 
         return fn;
+    }
+
+    private static String escapeTrailingDotsAndSpaces(String s)
+    {
+        int i = s.length();
+        
+        while (i > 0)
+        {
+            char c = s.charAt(i - 1);
+            if (c == '.' || c == ' ')
+            {
+                i--;
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        if (i == s.length())
+            return s;
+
+        if (i == 0)
+            return "x-" + Util.uuid();
+
+        StringBuilder out = new StringBuilder(s.substring(0, i));
+        for (int j = i; j < s.length(); j++)
+        {
+            char c = s.charAt(j);
+            out.append(String.format("%%%02X", (int) c)); // %2E, %20
+        }
+        return out.toString();
     }
 
     public static String getFileExtension(String fn)

@@ -892,6 +892,8 @@ public class Web
             return true;
         if (host.equals("dreamwidth.org") || host.endsWith(".dreamwidth.org"))
             return true;
+        if (host.equals("krylov.cc") || host.endsWith(".krylov.cc"))
+            return true;
 
         return false;
     }

@@ -36,7 +36,7 @@ public class MainDownloadLinks
 
     private static final String ALL_USERS = "<all>";
     // private static final String AllUsersFromUser = null;
-    private static final String AllUsersFromUser = "kouzdra";
+    private static final String AllUsersFromUser = "tanya_mass";
 
     private static final String Users = ALL_USERS;
 

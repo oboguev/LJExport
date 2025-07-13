@@ -17,6 +17,8 @@ import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.RelativeLink;
+import my.LJExport.runtime.synch.LimitConcurrency;
+import my.LJExport.runtime.synch.MonthlyGate;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 /*
@@ -35,7 +37,7 @@ public class MainDownloadLinks
 
     private static final String ALL_USERS = "<all>";
     // private static final String AllUsersFromUser = null;
-    private static final String AllUsersFromUser = "avmalgin";
+    private static final String AllUsersFromUser = "bantaputu";
 
     private static final String Users = ALL_USERS;
 
@@ -61,6 +63,11 @@ public class MainDownloadLinks
     /* we can use large number of threds because they usually are network IO bound */
     private static final int NWorkThreads = 300;
     private static final int MaxConnectionsPerRoute = 10;
+
+    /* limit the number of threads working on large  monthly files, to prevent OutOfMemory */
+    private static final int NMonthlyWorkThreads = 4;
+
+    private MonthlyGate monthlyGate = new MonthlyGate(NMonthlyWorkThreads, 20);
 
     public static void main(String[] args)
     {
@@ -256,30 +263,44 @@ public class MainDownloadLinks
             String pageFileFullPath = userRoot + File.separator + pageFile;
             Thread.currentThread().setName("page-scanner: scanning " + Config.User + " " + pageFile);
 
-            PageParserDirectBase parser = new PageParserDirectBasePassive();
-            parser.rurl = Util.extractFileName(pageFileFullPath);
+            /*
+             * Monthly files are large.
+             * Do not keep many of them in memory at the same time, to avoid OutOfMemoryException. 
+             */
+            boolean monthly = pageFile.startsWith("monthly-");
+            monthlyGate.acquire(monthly);
 
-            if (Config.False)
+            try
             {
-                if (!parser.rurl.equals("253432.html"))
-                    continue;
-                Util.noop();
+                PageParserDirectBase parser = new PageParserDirectBasePassive();
+                parser.rurl = Util.extractFileName(pageFileFullPath);
+
+                if (Config.False)
+                {
+                    if (!parser.rurl.equals("253432.html"))
+                        continue;
+                    Util.noop();
+                }
+
+                parser.pageSource = Util.readFileAsString(pageFileFullPath);
+                parser.parseHtml(parser.pageSource);
+
+                String linkReferencePrefix = RelativeLink.fileRelativeLink(this.linksDir, pageFileFullPath, this.userRoot);
+                parser.setLinkReferencePrefix(linkReferencePrefix + "/");
+
+                if (parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.User))
+                {
+                    String newPageSource = JSOUP.emitHtml(parser.pageRoot);
+                    Util.writeToFileSafe(pageFileFullPath, newPageSource);
+                }
+
+                /* help GC */
+                parser = null;
             }
-
-            parser.pageSource = Util.readFileAsString(pageFileFullPath);
-            parser.parseHtml(parser.pageSource);
-
-            String linkReferencePrefix = RelativeLink.fileRelativeLink(this.linksDir, pageFileFullPath, this.userRoot);
-            parser.setLinkReferencePrefix(linkReferencePrefix + "/");
-
-            if (parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.User))
+            finally
             {
-                String newPageSource = JSOUP.emitHtml(parser.pageRoot);
-                Util.writeToFileSafe(pageFileFullPath, newPageSource);
+                monthlyGate.release(monthly);
             }
-
-            /* help GC */
-            parser = null;
         }
     }
 

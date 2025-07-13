@@ -137,6 +137,8 @@ public class Web
                 cs = Web.extractCharsetFromContentType(contentType);
                 if (cs != null)
                 {
+                    if (cs.equalsIgnoreCase("binary"))
+                        return null;
                     if (!Charset.isSupported(cs))
                         throw new Exception("Unsupported encoding " + contentType);
                     return Charset.forName(cs);

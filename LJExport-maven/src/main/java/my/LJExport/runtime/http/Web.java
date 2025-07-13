@@ -573,8 +573,9 @@ public class Web
         if (length >= 3
                 && (bytes[0] & 0xFF) == 0xEF
                 && (bytes[1] & 0xFF) == 0xBB
-                && (bytes[2] & 0xFF) == 0xBF) {
-            offset = 3;          // skip the BOM
+                && (bytes[2] & 0xFF) == 0xBF)
+        {
+            offset = 3; // skip the BOM
             length -= 3;
         }
 
@@ -784,6 +785,12 @@ public class Web
                     if (lastPass)
                         return null;
                     throw new RetryableException("Not a redirect (status " + statusCode + ")");
+
+                case 412:
+                    if (url.startsWith("https://imgprx.livejournal.net/") || url.startsWith("http://imgprx.livejournal.net/"))
+                        return null;
+                    else
+                        throw new RedirectLocationException("Not a redirect (status " + statusCode + ") for " + url);
 
                 default:
                     throw new RedirectLocationException("Not a redirect (status " + statusCode + ") for " + url);

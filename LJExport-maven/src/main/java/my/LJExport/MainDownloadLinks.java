@@ -17,7 +17,6 @@ import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.RelativeLink;
-import my.LJExport.runtime.synch.LimitConcurrency;
 import my.LJExport.runtime.synch.MonthlyGate;
 import my.LJExport.runtime.synch.ThreadsControl;
 
@@ -37,7 +36,7 @@ public class MainDownloadLinks
 
     private static final String ALL_USERS = "<all>";
     // private static final String AllUsersFromUser = null;
-    private static final String AllUsersFromUser = "bantaputu";
+    private static final String AllUsersFromUser = "kouzdra";
 
     private static final String Users = ALL_USERS;
 

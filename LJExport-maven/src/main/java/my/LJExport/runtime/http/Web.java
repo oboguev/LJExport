@@ -77,6 +77,7 @@ public class Web
         public String redirectLocation;
         public String contentType;
         public Charset charset;
+        public String actualCharset;
         public Header[] headers;
 
         private void setFinalUrl(HttpUriRequest request, HttpClientContext context, String url) throws Exception
@@ -130,26 +131,32 @@ public class Web
 
         public Charset extractCharset(boolean defaultToUTF8) throws Exception
         {
-            String cs;
+            String cs = null;
 
             if (contentType != null)
-            {
                 cs = Web.extractCharsetFromContentType(contentType);
-                if (cs != null)
-                {
-                    if (cs.equalsIgnoreCase("binary"))
-                        return null;
-                    if (!Charset.isSupported(cs))
-                        throw new Exception("Unsupported encoding " + contentType);
-                    return Charset.forName(cs);
-                }
-            }
 
-            cs = getHeader("x-archive-guessed-charset");
+            if (cs == null)
+                cs = getHeader("x-archive-guessed-charset");
+
             if (cs != null)
             {
+                this.actualCharset = cs;
+
+                if (cs.equalsIgnoreCase("binary"))
+                    return null;
+
+                if (cs.equalsIgnoreCase("utf-8-sig"))
+                    return null;
+
                 if (!Charset.isSupported(cs))
-                    throw new Exception("Unsupported encoding " + cs);
+                {
+                    if (finalUrl != null && !finalUrl.isEmpty())
+                        throw new Exception("Unsupported encoding " + cs + " in " + finalUrl);
+                    else
+                        throw new Exception("Unsupported encoding " + cs);
+                }
+
                 return Charset.forName(cs);
             }
 
@@ -498,8 +505,6 @@ public class Web
                 {
                     InputStream entityStream = null;
                     BufferedReader brd = null;
-                    StringBuilder sb = new StringBuilder();
-                    String line;
 
                     try
                     {
@@ -515,19 +520,11 @@ public class Web
                             entityStream = entity.getContent();
                             r.binaryBody = toByteArray(entityStream);
                         }
-                        else if (Config.True)
-                        {
-                            entityStream = entity.getContent();
-                            r.binaryBody = toByteArray(entityStream);
-                            r.body = new String(r.binaryBody, r.extractCharset(true));
-                        }
                         else
                         {
                             entityStream = entity.getContent();
-                            brd = new BufferedReader(new InputStreamReader(entityStream, r.extractCharset(true)));
-                            while ((line = brd.readLine()) != null)
-                                sb.append(line + "\r\n");
-                            r.body = sb.toString();
+                            r.binaryBody = toByteArray(entityStream);
+                            r.body = textBodyFromBinaryBody(r);
                         }
                     }
                     finally
@@ -546,6 +543,42 @@ public class Web
         }
 
         return r;
+    }
+
+    private static String textBodyFromBinaryBody(Response r) throws Exception
+    {
+        Charset charset = r.extractCharset(false);
+
+        if (charset != null)
+            return new String(r.binaryBody, charset);
+
+        if (r.actualCharset.equalsIgnoreCase("utf-8-sig"))
+            return decodeUtf8Sig(r.binaryBody);
+
+        return new String(r.binaryBody, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Decodes a byte array that may begin with the UTF-8 BOM (EF BB BF).
+     *
+     * @param bytes the data, possibly starting with a BOM
+     * @return the decoded {@link String}
+     */
+    private static String decodeUtf8Sig(byte[] bytes)
+    {
+        int offset = 0;
+        int length = bytes.length;
+
+        // Check for EF BB BF at the start
+        if (length >= 3
+                && (bytes[0] & 0xFF) == 0xEF
+                && (bytes[1] & 0xFF) == 0xBB
+                && (bytes[2] & 0xFF) == 0xBF) {
+            offset = 3;          // skip the BOM
+            length -= 3;
+        }
+
+        return new String(bytes, offset, length, StandardCharsets.UTF_8);
     }
 
     public static Response post(String url, String body) throws Exception
@@ -583,26 +616,12 @@ public class Web
             {
                 InputStream entityStream = null;
                 BufferedReader brd = null;
-                StringBuilder sb = new StringBuilder();
-                String line;
 
                 try
                 {
-                    if (Config.True)
-                    {
-                        entityStream = entity.getContent();
-                        r.binaryBody = toByteArray(entityStream);
-                        r.body = new String(r.binaryBody, r.extractCharset(true));
-                    }
-                    else
-                    {
-                        entityStream = entity.getContent();
-                        brd = new BufferedReader(new InputStreamReader(entityStream, r.extractCharset(true)));
-                        while ((line = brd.readLine()) != null)
-                            sb.append(line + "\r\n");
-                        r.body = sb.toString();
-
-                    }
+                    entityStream = entity.getContent();
+                    r.binaryBody = toByteArray(entityStream);
+                    r.body = textBodyFromBinaryBody(r);
                 }
                 finally
                 {
@@ -750,6 +769,7 @@ public class Web
                 case 429:
                 case 451:
                 case 507:
+                case 508:
                 case 530:
                     /* cannot map */
                     return null;
@@ -766,7 +786,7 @@ public class Web
                     throw new RetryableException("Not a redirect (status " + statusCode + ")");
 
                 default:
-                    throw new RedirectLocationException("Not a redirect (status " + statusCode + ")");
+                    throw new RedirectLocationException("Not a redirect (status " + statusCode + ") for " + url);
                 }
             }
             finally
@@ -1074,6 +1094,8 @@ public class Web
         {
             String charset = matcher.group(1).toLowerCase();
             if (charset != null && charset.equalsIgnoreCase("win-1251"))
+                charset = "windows-1251";
+            if (charset != null && charset.equalsIgnoreCase("cp-1251"))
                 charset = "windows-1251";
             return charset;
         }

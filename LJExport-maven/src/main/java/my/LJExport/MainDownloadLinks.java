@@ -9,6 +9,7 @@ import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.ActivityCounters;
@@ -25,11 +26,17 @@ import my.LJExport.runtime.synch.ThreadsControl;
  */
 public class MainDownloadLinks
 {
-    private String userRoot; 
+    private String userRoot;
     private String linksDir;
     private List<String> pageFiles;
     private int pageFilesTotalCount;
     private int countFetched = 0;
+
+    private static final String ALL_USERS = "<all>";
+    // private static final String AllUsersFromUser = "fat_yankey";
+    private static final String AllUsersFromUser = null;
+
+    private static final String Users = ALL_USERS;
 
     // private static final String Users = "funt";
     // private static final String Users = "_devol_,1981dn,1981dn_dn,64vlad,a_bugaev,a_kaminsky,a_samovarov,a_sevastianov,abcdefgh,afanarizm,afrika_sl,aleksei";
@@ -48,7 +55,7 @@ public class MainDownloadLinks
     // private static final String Users = "pikitan,schloenski,pravoe_org,piligrim,trufanov";
     // private static final String Users = "krylov_arhiv,krylov";
     // private static final String Users = "zhu_s";
-    private static final String Users = "harmfulgrumpy.dreamwidth-org";
+    // private static final String Users = "harmfulgrumpy.dreamwidth-org";
 
     /* we can use large number of threds because they usually are network IO bound */
     private static final int NWorkThreads = 500;
@@ -77,6 +84,13 @@ public class MainDownloadLinks
 
     private static void do_users(String users) throws Exception
     {
+        if (users.equals(ALL_USERS))
+        {
+            List<String> list = EnumUsers.allUsers(AllUsersFromUser, EnumUsers.Options.DEFAULT);
+            users = String.join(",", list);
+        }
+
+        Config.init("");
         Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
         Web.init();
 
@@ -92,9 +106,15 @@ public class MainDownloadLinks
             user = user.trim().replace("\t", "").replace(" ", "");
             if (user.equals(""))
                 continue;
-            
+
             if (Main.isAborting())
                 break;
+
+            if (Config.False)
+            {
+                Main.out(user);
+                continue;
+            }
 
             if (nuser++ != 0)
             {
@@ -103,8 +123,15 @@ public class MainDownloadLinks
                 out("");
             }
 
-            MainDownloadLinks self = new MainDownloadLinks();
-            self.do_user(user);
+            try
+            {
+                MainDownloadLinks self = new MainDownloadLinks();
+                self.do_user(user);
+            }
+            finally
+            {
+                ThreadsControl.shutdownAfterUser();
+            }
         }
 
         Main.do_logout();
@@ -140,7 +167,7 @@ public class MainDownloadLinks
                 pageFiles.addAll(enumerateHtmlFiles("monthly-pages", false));
                 pageFiles.addAll(enumerateHtmlFiles("monthly-reposts", false));
             }
-            
+
             pageFilesTotalCount = pageFiles.size();
 
             // start worker threads
@@ -181,23 +208,23 @@ public class MainDownloadLinks
             ThreadsControl.shutdownAfterUser();
         }
     }
-    
+
     private List<String> enumerateHtmlFiles(String which, boolean required) throws Exception
     {
         String dir = userRoot + File.separator + which;
-        
+
         File fp = new File(dir);
-        
+
         if (!fp.exists() || !fp.isDirectory())
         {
             if (required)
                 throw new Exception("Directory does not exist: " + dir);
             else
-                return new ArrayList<>(); 
+                return new ArrayList<>();
         }
-                
+
         List<String> list = Util.enumerateOnlyHtmlFiles(dir);
-        
+
         List<String> rlist = new ArrayList<>();
         for (String fn : list)
             rlist.add(which + File.separator + fn);
@@ -239,10 +266,10 @@ public class MainDownloadLinks
 
             parser.pageSource = Util.readFileAsString(pageFileFullPath);
             parser.parseHtml(parser.pageSource);
-            
+
             String linkReferencePrefix = RelativeLink.fileRelativeLink(this.linksDir, pageFileFullPath, this.userRoot);
             parser.setLinkReferencePrefix(linkReferencePrefix + "/");
-            
+
             if (parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.User))
             {
                 String newPageSource = JSOUP.emitHtml(parser.pageRoot);

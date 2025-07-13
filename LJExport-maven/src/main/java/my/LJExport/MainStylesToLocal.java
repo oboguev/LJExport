@@ -30,7 +30,7 @@ public class MainStylesToLocal
     // private static final String Users = "nationalism.org";
 
     private static final boolean ShowStylesProgress = true;
-    private static final boolean DryRun = false;
+    private static final boolean DryRun = true;
 
     public static void main(String[] args)
     {

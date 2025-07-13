@@ -173,7 +173,7 @@ public class Config
             NWorkThreads = Math.min(NWorkThreads, MaxThreads);
         }
 
-        acquireLoginPassword();
+        // acquireLoginPassword();
 
         if (UseFiddler && FiddlerTrustStore != null && FidlerTrustStorePassword == null)
         {

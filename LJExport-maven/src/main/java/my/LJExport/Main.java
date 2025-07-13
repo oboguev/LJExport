@@ -407,7 +407,10 @@ public class Main
             return;
 
         if (logged_in.contains(Config.LoginSite))
-            throw new Exception("Already logged in to " + Config.LoginSite);
+        {
+            out(">>> Already logged in to " + Config.LoginSite);
+            return;
+        }
 
         Config.acquireLoginPassword();
 

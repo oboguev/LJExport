@@ -14,13 +14,13 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import my.LJExport.Config;
-import my.LJExport.html.JSOUP;
 import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.HasNoComments;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.html.JSOUP;
 
 // examples: https://sergeytsvetkov.livejournal.com/2721896.html
 //           https://genby.livejournal.com/982965.html

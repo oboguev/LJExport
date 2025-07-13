@@ -8,11 +8,11 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.parser.Tag;
 
-import my.LJExport.html.JSOUP;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.html.JSOUP;
 
 public class PageParserDirectRossiaOrg extends PageParserDirectBase
 {

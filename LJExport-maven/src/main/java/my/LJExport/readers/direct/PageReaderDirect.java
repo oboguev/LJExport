@@ -11,7 +11,6 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
-import my.LJExport.html.JSOUP;
 import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
@@ -19,6 +18,7 @@ import my.LJExport.readers.PageReader;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;
 

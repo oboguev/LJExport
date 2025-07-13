@@ -16,8 +16,8 @@ import com.helger.css.reader.CSSReader;
 import com.helger.css.writer.CSSWriter;
 
 import my.LJExport.Config;
-import my.LJExport.html.JSOUP;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.html.JSOUP;
 
 public class StyleActionRelocate
 {

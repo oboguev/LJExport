@@ -15,10 +15,10 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
-import my.LJExport.html.JSOUP;
 import my.LJExport.runtime.LJExportInformation;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;
 import my.LJExport.runtime.links.RelativeLink;

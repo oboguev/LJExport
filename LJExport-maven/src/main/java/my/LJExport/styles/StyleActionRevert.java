@@ -2,8 +2,8 @@ package my.LJExport.styles;
 
 import org.jsoup.nodes.Node;
 
-import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.runtime.html.JSOUP;
 
 public class StyleActionRevert
 {

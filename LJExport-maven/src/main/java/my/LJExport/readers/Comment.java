@@ -12,7 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import my.LJExport.Config;
-import my.LJExport.html.JSOUP;
+import my.LJExport.runtime.html.JSOUP;
 
 public class Comment
 {

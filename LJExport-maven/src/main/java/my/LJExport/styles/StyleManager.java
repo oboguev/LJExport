@@ -11,12 +11,12 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import my.LJExport.html.JSOUP;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.LJExportInformation;
 import my.LJExport.runtime.TxLog;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.DownloadSource;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.IntraInterprocessLock;

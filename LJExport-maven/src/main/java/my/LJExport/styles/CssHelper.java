@@ -23,11 +23,8 @@ public class CssHelper
         int firstCombo = href.indexOf("??");
         if (firstCombo == -1)
         {
-            // No combo syntax — treat as a single CSS file
-            if (href.toLowerCase().contains(".css"))
-            {
-                result.add(href);
-            }
+            // No combo syntax — treat as a single CSS file regardless of extension
+            result.add(href);
             return result;
         }
 

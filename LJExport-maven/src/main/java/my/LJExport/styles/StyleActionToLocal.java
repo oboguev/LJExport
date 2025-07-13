@@ -177,7 +177,7 @@ public class StyleActionToLocal
             String rel = JSOUP.getAttribute(n, "rel");
             String type = JSOUP.getAttribute(n, "type");
             String href = JSOUP.getAttribute(n, "href");
-
+            
             if (rel == null || !relContainsStylesheet(rel))
                 continue;
 

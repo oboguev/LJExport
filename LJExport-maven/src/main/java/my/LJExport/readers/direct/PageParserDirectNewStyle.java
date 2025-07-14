@@ -413,4 +413,14 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
             return (Element) articles.get(0);
         }
     }
+
+    /* ============================================================== */
+    
+    @Override
+    public String extractDateTimeString() throws Exception
+    {
+        Node n = JSOUP.exactlyOne(JSOUP.findElementsWithClass(pageRoot, "p", "aentry-head__date"));
+        n = JSOUP.exactlyOne(JSOUP.findElements(n, "time"));
+        return JSOUP.asElement(n).text();
+    }
 }

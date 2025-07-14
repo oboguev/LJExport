@@ -815,4 +815,26 @@ public class PageParserDirectClassic extends PageParserDirectBase
             return (Element) articles.get(0);
         }
     }
+
+    /* ============================================================== */
+
+    @Override
+    public String extractDateTimeString() throws Exception
+    {
+        String result = null;
+
+        for (Node n : JSOUP.findElementsWithAllClasses(pageRoot, "time",
+                Util.setOf("b-singlepost-author-date", "published", "published")))
+        {
+            String s = JSOUP.asElement(n).text();
+            if (result != null && !s.equals(result))
+                throw new Exception("Unable to locate date/time");
+            result = s;
+        }
+
+        if (result == null)
+            throw new Exception("Unable to locate date/time");
+
+        return result;
+    }
 }

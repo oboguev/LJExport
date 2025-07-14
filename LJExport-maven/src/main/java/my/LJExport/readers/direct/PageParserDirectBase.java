@@ -1145,4 +1145,11 @@ public abstract class PageParserDirectBase
     {
         return findBody();
     }
+
+    /* ============================================================== */
+    
+    public String extractDateTimeString() throws Exception
+    {
+        throw new Exception("Not implemented");
+    }
 }

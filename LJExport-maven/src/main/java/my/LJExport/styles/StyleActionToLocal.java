@@ -1197,6 +1197,11 @@ public class StyleActionToLocal
 
     /** Case-insensitive match for “@import” with optional whitespace after the “@”. */
     private static final Pattern IMPORT_DIRECTIVE = Pattern.compile("(?i)@\\s*import\\b");
+    
+    // Matches full embedded `url(...)` constructs that begin with data:
+    // Case-insensitive, tolerant to whitespace and optional quotes
+    private static final Pattern EMBEDDED_DATA_URL =
+            Pattern.compile("(?i)\\burl\\s*\\(\\s*(['\"]?)data:[^\\)]*\\1\\s*\\)");    
 
     /**
      * Returns {@code true} <i>only if</i> {@code cssText} is guaranteed not to contain any external references – namely
@@ -1215,12 +1220,15 @@ public class StyleActionToLocal
             return true; // trivially safe
 
         // 1. Remove comments – they cannot introduce live references
-        String noComments = COMMENTS.matcher(cssText).replaceAll("");
+        String clean = COMMENTS.matcher(cssText).replaceAll("");
+        
+        // 2. Strip embedded data URLs so they do not trigger URL detection
+        clean = EMBEDDED_DATA_URL.matcher(clean).replaceAll(" ");        
 
-        // 2. Look for either url(…) or @import.  Finding either => external ref
-        if (URL_FUNCTION.matcher(noComments).find())
+        // 3. Look for either url(…) or @import.  Finding either => external ref
+        if (URL_FUNCTION.matcher(clean).find())
             return false;
-        if (IMPORT_DIRECTIVE.matcher(noComments).find())
+        if (IMPORT_DIRECTIVE.matcher(clean).find())
             return false;
 
         return true; // guaranteed clean
@@ -1232,10 +1240,13 @@ public class StyleActionToLocal
             return true; // trivially safe
 
         // 1. Remove comments – they cannot introduce live references
-        String noComments = COMMENTS.matcher(cssText).replaceAll("");
+        String clean = COMMENTS.matcher(cssText).replaceAll("");
 
-        // 2. Look for @import.  Finding => external ref
-        if (IMPORT_DIRECTIVE.matcher(noComments).find())
+        // 2. Strip embedded data URLs so they do not trigger URL detection
+        clean = EMBEDDED_DATA_URL.matcher(clean).replaceAll(" ");        
+
+        // 3. Look for @import.  Finding => external ref
+        if (IMPORT_DIRECTIVE.matcher(clean).find())
             return false;
 
         return true; // guaranteed clean

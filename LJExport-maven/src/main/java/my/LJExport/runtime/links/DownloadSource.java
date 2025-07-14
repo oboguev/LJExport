@@ -7,11 +7,20 @@ import my.LJExport.runtime.Util;
 public class DownloadSource
 {
     private final String rootDir;
+    private DownloadSource chain = null;
 
     public DownloadSource(String rootDir)
     {
         this.rootDir = rootDir;
     }
+    
+    public void chain(DownloadSource next)
+    {
+        if (chain == null)
+            chain = next;
+        else
+            chain.chain(next);
+    }    
 
     /*
      * relPath is Unix-style path relative to overrides repository
@@ -28,6 +37,10 @@ public class DownloadSource
         if (fp.exists())
         {
             return Util.readFileAsByteArray(path);
+        }
+        else if (chain != null)
+        {
+            return chain.load(href, relPath);
         }
         else
         {

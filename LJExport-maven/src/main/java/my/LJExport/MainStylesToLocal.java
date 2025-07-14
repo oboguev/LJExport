@@ -7,6 +7,7 @@ import java.util.StringTokenizer;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.styles.HtmlFileBatchProcessingContext;
@@ -26,7 +27,7 @@ public class MainStylesToLocal
     private static final String AllUsersFromUser = null;
 
     // private static final String Users = ALL_USERS;
-    private static final String Users = "harmfulgrumpy.dreamwidth-org";
+    private static final String Users = "krylov";
     // private static final String Users = "nationalism.org";
 
     private static final boolean ShowStylesProgress = true;
@@ -60,8 +61,8 @@ public class MainStylesToLocal
 
         Config.init("");
         Web.init();
-        // Main.do_login();
-        // RateLimiter.LJ_IMAGES.setRateLimit(100);
+        Main.do_login();
+        RateLimiter.LJ_IMAGES.setRateLimit(100);
 
         StringTokenizer st = new StringTokenizer(users, ", \t\r\n");
         int nuser = 0;
@@ -100,7 +101,7 @@ public class MainStylesToLocal
             }
         }
 
-        // Main.do_logout();
+        Main.do_logout();
         Web.shutdown();
     }
 
@@ -142,6 +143,10 @@ public class MainStylesToLocal
         final String userRoot = Config.DownloadRoot + File.separator + Config.User;
         final String styleCatalogDir = userRoot + File.separator + "styles";
         final String dir = userRoot + File.separator + which;
+        
+        String styleFallbackDir = null;
+        if (!Config.User.contains("."))
+            styleFallbackDir = Config.DownloadRoot + File.separator + "@livejournal-styles";
 
         if (!which.equals("pages"))
         {
@@ -153,7 +158,7 @@ public class MainStylesToLocal
         Util.out(String.format(">>> Scanning [%s] directory %s", Config.User, which));
 
         HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
-        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.TO_LOCAL, null, ShowStylesProgress, DryRun,
+        StyleProcessor.processAllHtmlFiles(styleCatalogDir, styleFallbackDir, dir, StyleProcessorAction.TO_LOCAL, null, ShowStylesProgress, DryRun,
                 batchContext);
 
         String remark = DryRun ? " (DRY RUN)" : "";

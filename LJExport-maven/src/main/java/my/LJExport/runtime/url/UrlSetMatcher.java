@@ -33,6 +33,8 @@ public final class UrlSetMatcher
     /** Prefixes to block; each ends with '/' or any character before the '*'. */
     private final List<String> prefixMatches;
 
+    private UrlSetMatcher chain = null;
+
     public static UrlSetMatcher loadFile(String filePath) throws Exception
     {
         return new UrlSetMatcher(Util.read_set_from_file(filePath));
@@ -41,6 +43,14 @@ public final class UrlSetMatcher
     public static UrlSetMatcher empty() throws Exception
     {
         return new UrlSetMatcher(new HashSet<String>());
+    }
+
+    public void chain(UrlSetMatcher next)
+    {
+        if (chain == null)
+            chain = next;
+        else
+            chain.chain(next);
     }
 
     public UrlSetMatcher(Set<String> rawPatterns)
@@ -79,7 +89,12 @@ public final class UrlSetMatcher
     public boolean match(String url)
     {
         if (url == null || url.isEmpty())
-            return false;
+        {
+            if (chain != null)
+                return chain.match(url);
+            else
+                return false;
+        }
 
         String norm = normalise(url);
 
@@ -94,7 +109,11 @@ public final class UrlSetMatcher
                 return true;
             }
         }
-        return false;
+
+        if (chain != null)
+            return chain.match(url);
+        else
+            return false;
     }
 
     public boolean matchOR(String url1, String url2)

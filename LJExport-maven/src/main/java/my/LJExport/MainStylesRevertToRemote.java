@@ -149,7 +149,7 @@ public class MainStylesRevertToRemote
         Util.out(String.format(">>> Scanning [%s] directory %s", Config.User, which));
 
         HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
-        StyleProcessor.processAllHtmlFiles(styleCatalogDir, dir, StyleProcessorAction.REVERT, null, ShowStylesProgress, DryRun,
+        StyleProcessor.processAllHtmlFiles(styleCatalogDir, null, dir, StyleProcessorAction.REVERT, null, ShowStylesProgress, DryRun,
                 batchContext);
 
         String remark = DryRun ? " (DRY RUN)" : "";

@@ -8,10 +8,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.runtime.BadToGood;
 import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.LJExportInformation;
 import my.LJExport.runtime.TxLog;
@@ -26,6 +29,7 @@ import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
 public class StyleManager
 {
     private final String styleCatalogDir;
+    private final String fallbackStyleDir;
 
     private String styleDir;
     private LinkDownloader linkDownloader = new LinkDownloader();
@@ -37,6 +41,8 @@ public class StyleManager
     private UrlSetMatcher dontReparseCss;
     private UrlSetMatcher allowUndownloadaleCss;
     private UrlSetMatcher dontDownloadCss;
+    private BadToGood badCssMapper;
+    private ConcurrentHashMap<String, Optional<String>> cssCache = new ConcurrentHashMap<>();
 
     private boolean initialized = false;
     private boolean initializing = false;
@@ -48,6 +54,11 @@ public class StyleManager
     static final String Original = "ljexport-original-";
 
     public StyleManager(String styleCatalogDir) throws Exception
+    {
+        this(styleCatalogDir, null);
+    }
+
+    public StyleManager(String styleCatalogDir, String fallbackStyleDir) throws Exception
     {
         while (styleCatalogDir.endsWith(File.separator))
             styleCatalogDir = Util.stripTail(styleCatalogDir, File.separator);
@@ -85,11 +96,40 @@ public class StyleManager
             dontDownloadCss = UrlSetMatcher.loadFile(fpx.getCanonicalPath());
         else
             dontDownloadCss = UrlSetMatcher.empty();
+
+        this.fallbackStyleDir = fallbackStyleDir;
+        if (fallbackStyleDir != null)
+        {
+            dontReparseCss = chain(dontReparseCss, this.fallbackStyleDir, "do-not-reparse-css.txt");
+            allowUndownloadaleCss = chain(allowUndownloadaleCss, this.fallbackStyleDir, "allow-undownloadable-css.txt");
+            dontDownloadCss = chain(dontDownloadCss, this.fallbackStyleDir, "dont-download-css.txt");
+        }
+    }
+
+    private UrlSetMatcher chain(UrlSetMatcher urlSetMatcher, String dir, String filename) throws Exception
+    {
+        File fpfall = new File(dir).getCanonicalFile();
+        if (!fpfall.exists() || !fpfall.isDirectory())
+            throw new Exception("Fallback style directory does not exist: " + dir);
+
+        File fpx = new File(fpfall, filename);
+        if (fpx.exists())
+        {
+            UrlSetMatcher ufall = UrlSetMatcher.loadFile(fpx.getCanonicalPath());
+            urlSetMatcher.chain(ufall);
+        }
+
+        return urlSetMatcher;
     }
 
     public String getStyleDir()
     {
         return styleDir;
+    }
+
+    public ConcurrentHashMap<String, Optional<String>> getCssCache()
+    {
+        return cssCache;
     }
 
     public synchronized void init() throws Exception
@@ -190,6 +230,21 @@ public class StyleManager
         resolvedCSS.init(styleDir + File.separator + "resolved-css-map.txt");
         downloadSource = new DownloadSource(styleCatalogDir + File.separator + "overrides");
 
+        if (fallbackStyleDir != null)
+        {
+            File fpfall = new File(fallbackStyleDir).getCanonicalFile();
+            if (!fpfall.exists() || !fpfall.isDirectory())
+                throw new Exception("Fallback style directory does not exist: " + fallbackStyleDir);
+
+            File fpx = new File(fpfall, "overrides");
+            if (fpx.exists() && fpx.isDirectory())
+                downloadSource.chain(new DownloadSource(fallbackStyleDir + File.separator + "overrides"));
+
+            fpx = new File(fpfall, "replace-css");
+            if (fpx.exists() && fpx.isDirectory())
+                badCssMapper = new BadToGood(fpx.getCanonicalPath());
+        }
+
         styleRepositoryLock = new IntraInterprocessLock(styleDir + File.separator + "repository.lock");
         txLog = new TxLog(styleDir + File.separator + "transaction.log");
     }
@@ -218,7 +273,8 @@ public class StyleManager
         initializing = false;
     }
 
-    public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl, boolean dryRun, HtmlFileBatchProcessingContext batchContext)
+    public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl, boolean dryRun,
+            HtmlFileBatchProcessingContext batchContext)
             throws Exception
     {
         String threadName = Thread.currentThread().getName();
@@ -237,8 +293,9 @@ public class StyleManager
             switch (action)
             {
             case TO_LOCAL:
-                updated = new StyleActionToLocal(linkDownloader, styleRepositoryLock, resolvedCSS,
-                        txLog, isDownloadedFromWebArchiveOrg, downloadSource, dontReparseCss, allowUndownloadaleCss, dontDownloadCss)
+                updated = new StyleActionToLocal(this, linkDownloader, styleRepositoryLock, resolvedCSS,
+                        txLog, isDownloadedFromWebArchiveOrg, downloadSource, dontReparseCss, allowUndownloadaleCss,
+                        dontDownloadCss, badCssMapper)
                                 .processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
                 break;
 
@@ -246,7 +303,7 @@ public class StyleManager
                 updated = new StyleActionRevert().processHtmlFileRevertStylesToRemote(htmlFilePath, parser);
                 break;
             }
-            
+
             if (updated)
             {
                 batchContext.updatedHtmlFiles.incrementAndGet();

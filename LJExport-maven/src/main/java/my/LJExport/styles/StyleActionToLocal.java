@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.net.URLEncoder;
@@ -29,6 +30,7 @@ import com.helger.css.writer.CSSWriterSettings;
 
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.runtime.BadToGood;
 import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.RandomString;
 import my.LJExport.runtime.TxLog;
@@ -39,6 +41,7 @@ import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
 import my.LJExport.runtime.url.UrlSetMatcher;
+import my.LJExport.test.StyleTest;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
 /*
@@ -87,6 +90,8 @@ public class StyleActionToLocal
     private final UrlSetMatcher dontReparseCss;
     private final UrlSetMatcher allowUndownloadaleCss;
     private final UrlSetMatcher dontDownloadCss;
+    private final BadToGood badCssMapper;
+    private final StyleManager styleManager;
 
     /* 
      * List (stack) of URLs of CSS/HTML files with styles being currently re-written,
@@ -100,7 +105,8 @@ public class StyleActionToLocal
     /*
      * Constructor for StyleActionToLocal processor.
      */
-    public StyleActionToLocal(LinkDownloader linkDownloader,
+    public StyleActionToLocal(StyleManager styleManager,
+            LinkDownloader linkDownloader,
             IntraInterprocessLock styleRepositoryLock,
             FileBackedMap resolvedCSS,
             TxLog txLog,
@@ -108,7 +114,8 @@ public class StyleActionToLocal
             DownloadSource downloadSource,
             UrlSetMatcher dontReparseCss,
             UrlSetMatcher allowUndownloadaleCss,
-            UrlSetMatcher dontDownloadCss)
+            UrlSetMatcher dontDownloadCss,
+            BadToGood badCssMapper)
     {
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
@@ -119,6 +126,8 @@ public class StyleActionToLocal
         this.dontReparseCss = dontReparseCss;
         this.allowUndownloadaleCss = allowUndownloadaleCss;
         this.dontDownloadCss = dontDownloadCss;
+        this.badCssMapper = badCssMapper;
+        this.styleManager = styleManager;
     }
 
     /*
@@ -177,7 +186,7 @@ public class StyleActionToLocal
             String rel = JSOUP.getAttribute(n, "rel");
             String type = JSOUP.getAttribute(n, "type");
             String href = JSOUP.getAttribute(n, "href");
-            
+
             if (rel == null || !relContainsStylesheet(rel))
                 continue;
 
@@ -594,7 +603,7 @@ public class StyleActionToLocal
         }
     }
 
-    private String do_resolveCssDependencies(String cssText, String hostingFilePath, String hostingFileURL) throws Exception
+    private String do_resolveCssDependencies(final String cssText, String hostingFilePath, String hostingFileURL) throws Exception
     {
         if (cssHasNoExternalReferences(cssText))
             return null;
@@ -609,19 +618,82 @@ public class StyleActionToLocal
                 return null;
         }
 
-        CascadingStyleSheet css = CSSReader.readFromString(cssText, ECSSVersion.CSS30);
+        String cacheKey = null;
+
+        if (hostingFilePath != null && hostingFilePath.endsWith(".html"))
+        {
+            /*
+             * Try to translate via cache
+             */
+            cacheKey = String.format("File Depth = %d\n%s", Util.filePathDepth(hostingFilePath), cssText);
+            Optional<String> result = styleManager.getCssCache().get(cacheKey);
+            if (result != null)
+            {
+                if (result.isPresent())
+                    result.get();
+                else
+                    return null;
+            }
+        }
+
+        String cssGoodText = null;
+
+        CascadingStyleSheet css = null;
+
+        if (badCssMapper != null)
+        {
+            cssGoodText = badCssMapper.good(cssText);
+            if (cssGoodText != null)
+                css = CSSReader.readFromString(cssGoodText, ECSSVersion.CSS30);
+            else
+                css = CSSReader.readFromString(cssText, ECSSVersion.CSS30);
+        }
+        else
+        {
+            css = CSSReader.readFromString(cssText, ECSSVersion.CSS30);
+        }
+
         if (css == null)
         {
-            Util.err("Failed to parse CSS content in " + hostingFileURL);
-            if (ArchiveOrgUrl.isArchiveOrgUrl(hostingFileURL))
+            String where = "<unknown>";
+
+            if (hostingFilePath != null && hostingFileURL != null)
+            {
+                where = hostingFilePath + " =  " + hostingFileURL;
+            }
+            else if (hostingFilePath != null)
+            {
+                where = hostingFilePath;
+
+            }
+            else if (hostingFileURL != null)
+            {
+                where = hostingFileURL;
+            }
+
+            Util.err("Malformed CSS content in " + where);
+
+            if (hostingFileURL != null && ArchiveOrgUrl.isArchiveOrgUrl(hostingFileURL))
+            {
                 Util.err("    archives " + ArchiveOrgUrl.extractArchivedUrlPart(hostingFileURL));
+            }
 
             boolean crash = true;
 
+            if (hostingFilePath == null || !hostingFilePath.endsWith(".html"))
+                crash = true;
+
+            if (!cssHasNoExternalImportReferences(cssText))
+                crash = true;
+
             if (crash)
-                throw new Exception("Failed to parse CSS content in " + hostingFileURL);
+            {
+                throw new Exception("Failed to parse CSS content in " + where);
+            }
             else
+            {
                 return null;
+            }
         }
 
         boolean updated = false;
@@ -686,10 +758,17 @@ public class StyleActionToLocal
             CSSWriter writer = new CSSWriter(ECSSVersion.CSS30, false);
             writer.setWriteHeaderText(false);
             String modifiedCss = writer.getCSSAsString(css);
+
+            if (cacheKey != null)
+                styleManager.getCssCache().put(cacheKey, Optional.of(modifiedCss));
+
             return modifiedCss;
         }
         else
         {
+            if (cacheKey != null)
+                styleManager.getCssCache().put(cacheKey, Optional.empty());
+
             return null;
         }
     }
@@ -744,13 +823,17 @@ public class StyleActionToLocal
         if (originalUrl == null || originalUrl.trim().isEmpty())
             throw new Exception("Resuouce URL is missing or blank");
 
+        /* embedded data URL */
+        if (originalUrl.toLowerCase().startsWith("data:"))
+            return null;
+
         String absoluteUrl = Util.resolveURL(baseUrl, originalUrl);
 
         /* embedded data URL */
         String lc = absoluteUrl.toLowerCase();
         if (lc.startsWith("data:"))
             return null;
-        
+
         /*
          * Resource is expected to be remote
          */
@@ -791,9 +874,22 @@ public class StyleActionToLocal
         if (rel == null)
         {
             if (allowUndownloadaleCss != null && allowUndownloadaleCss.matchOR(download_href, naming_href))
+            {
                 return null;
+            }
             else
+            {
+                String fn = linkDownloader.adviseFileName(naming_href);
+                fn = linkDownloader.abs2rel(fn);
+                Util.err("--------------------------------------------------------------------");
+                Util.err("Unable to download style passive resource:");
+                Util.err("    URL: " + absoluteUrl);
+                Util.err("    FN: " + fn);
+                if (!File.separator.equals("/"))
+                    Util.err("    FN: " + fn.replace("/", File.separator));
+                Util.err("--------------------------------------------------------------------");
                 throw new Exception("Unable to download style passive resource: " + absoluteUrl);
+            }
         }
 
         /* Full local file path name */
@@ -947,7 +1043,11 @@ public class StyleActionToLocal
         // 1. Parse “prop: value; …” into a declaration list.
         CSSDeclarationList declList = CSSReaderDeclarationList.readFromString(inlineStyleText, ECSSVersion.CSS30);
         if (declList == null)
-            throw new Exception("Failed to parse inline style content");
+        {
+            // throw new Exception("Failed to parse inline style content");
+            Util.err("Malformed inline tag style in " + hostingFilePath);
+            return null;
+        }
 
         boolean updated = false;
 
@@ -1124,5 +1224,92 @@ public class StyleActionToLocal
             return false;
 
         return true; // guaranteed clean
+    }
+
+    private boolean cssHasNoExternalImportReferences(String cssText)
+    {
+        if (cssText == null || cssText.isEmpty())
+            return true; // trivially safe
+
+        // 1. Remove comments – they cannot introduce live references
+        String noComments = COMMENTS.matcher(cssText).replaceAll("");
+
+        // 2. Look for @import.  Finding => external ref
+        if (IMPORT_DIRECTIVE.matcher(noComments).find())
+            return false;
+
+        return true; // guaranteed clean
+    }
+
+    /* ============================================================================ */
+
+    public static void main(String[] args)
+    {
+        StyleActionToLocal self = new StyleActionToLocal(
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
+                null,
+                null,
+                null,
+                null);
+
+        self.test1();
+    }
+
+    private void test1()
+    {
+        String cssText = StyleTest.CSS1;
+        CascadingStyleSheet css = CSSReader.readFromString(cssText, ECSSVersion.CSS30);
+
+        /*
+         * check style for imports:
+         * 
+         *      @import url("https://www.dreamwidth.org/css/base.css");
+         *      background-image: url("https://www.dreamwidth.org/images/header-bg.png");
+         */
+
+        // Walk @import rules
+        for (CSSImportRule importRule : css.getAllImportRules())
+        {
+            String url = importRule.getLocationString();
+            importRule.setLocationString("http://AAA.COM/IMPORT");
+            Util.unused(url);
+            Util.noop();
+        }
+
+        // Walk all style rules
+        for (CSSStyleRule rule : css.getAllStyleRules())
+        {
+            for (CSSDeclaration declaration : rule.getAllDeclarations())
+            {
+                CSSExpression expr = declaration.getExpression();
+                if (expr != null)
+                {
+                    for (ICSSExpressionMember member : expr.getAllMembers())
+                    {
+                        if (member instanceof CSSExpressionMemberTermURI)
+                        {
+                            CSSExpressionMemberTermURI uriTerm = (CSSExpressionMemberTermURI) member;
+                            String originalUrl = uriTerm.getURIString();
+                            uriTerm.setURIString("http://BBB.COM/URL");
+                            Util.noop();
+                            Util.unused(originalUrl);
+                        }
+                    }
+                }
+            }
+        }
+
+        CSSWriter writer = new CSSWriter(ECSSVersion.CSS30, false);
+        writer.setWriteHeaderText(false);
+        String modifiedCss = writer.getCSSAsString(css);
+        Util.unused(modifiedCss);
+
+        Util.noop();
     }
 }

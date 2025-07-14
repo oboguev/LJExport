@@ -18,6 +18,7 @@ public class StyleProcessor
     }
 
     public static void processAllHtmlFiles(String styleCatalogDir,
+            String styleFallbackDir,
             String htmlPagesRootDir,
             StyleProcessorAction action,
             String baseURL,
@@ -25,7 +26,8 @@ public class StyleProcessor
             boolean dryRun,
             HtmlFileBatchProcessingContext batchContext) throws Exception
     {
-        StyleManager styleManager = new StyleManager(styleCatalogDir);
+        StyleManager styleManager = new StyleManager(styleCatalogDir, styleFallbackDir);
+        
         try
         {
             styleManager.init();

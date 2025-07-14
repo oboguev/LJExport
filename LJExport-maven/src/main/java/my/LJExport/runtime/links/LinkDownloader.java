@@ -104,7 +104,19 @@ public class LinkDownloader
     {
         return download(name_href, download_href, referer, linkReferencePrefix, null);
     }
+    
+    public String adviseFileName(String name_href) throws Exception
+    {
+        String href = name_href;
+        String href_noanchor = Util.stripAnchor(href);
+        String fn = buildFilePath(linksDir, href);
+        String afn = href2file.getAnyUrlProtocol(href_noanchor);
+        if (afn != null)
+            fn = afn;
+        return fn;
+    }
 
+    
     public String download(String name_href, String download_href, String referer,
             String linkReferencePrefix, DownloadSource downloadSource)
     {

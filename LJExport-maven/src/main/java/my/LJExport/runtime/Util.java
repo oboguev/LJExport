@@ -949,9 +949,16 @@ public class Util
         }
 
         // Default case
-        URI base = new URI(baseURL);
-        URI resolved = base.resolve(relativeURL);
-        return resolved.toString();
+        try
+        {
+            URI base = new URI(baseURL);
+            URI resolved = base.resolve(relativeURL);
+            return resolved.toString();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
     }
 
     private static String encodeFragment(String url) throws Exception
@@ -1205,5 +1212,73 @@ public class Util
         if (tempExtension == null)
             tempExtension = tempExtension(5);
         return tempExtension;
+    }
+
+    /**
+     * Utility for calculating how “deep” a path is, measured as the number of
+     * name elements that appear after the root of the file-system (or Windows
+     * drive/UNC share) and including the file itself.
+     *
+     * <pre>
+     * F:\WINAPPS\LJExport\journals\krylov\pages\2003\10\704750.html  -> 8
+     * /LJExport/journals/krylov/pages/2003/10/704750.html            -> 7
+     * C:\                       -> 0
+     * /                          -> 0
+     * \\srv\share\dir\file.txt   -> 2   (dir + file.txt)
+     * </pre>
+     *
+     * The logic is completely platform-neutral—it works the same on Windows,
+     * Linux, or macOS, even if the path string itself comes from a different
+     * platform.
+     */
+
+    /**
+     * Returns the depth (number of name elements) of the supplied path string.
+     *
+     * @param rawPath any absolute or relative path, using ‘/’ or ‘\’
+     * @return number of name elements after the root; 0 for “just root”
+     * @throws IllegalArgumentException if {@code rawPath} is null/blank
+     */
+    public static int filePathDepth(String rawPath)
+    {
+        Objects.requireNonNull(rawPath, "path must not be null");
+        String p = rawPath.trim();
+        if (p.isEmpty())
+            throw new IllegalArgumentException("path must not be blank");
+
+        // 1. Normalise separators to ‘/’ so we only split once.
+        p = p.replace('\\', '/');
+
+        // 2. Remove a Windows drive-letter prefix, e.g. “C:” or “C:/”.
+        if (p.length() >= 2 && Character.isLetter(p.charAt(0)) && p.charAt(1) == ':')
+        {
+            p = p.substring(2);
+        }
+
+        // 3. Handle UNC paths:  //server/share/dir/…
+        if (p.startsWith("//"))
+        {
+            // Skip ‘//server/share’
+            int firstSlash = p.indexOf('/', 2);
+            int secondSlash = (firstSlash == -1) ? -1 : p.indexOf('/', firstSlash + 1);
+            if (secondSlash == -1)
+            {
+                // The path is only “//server/share” → depth 0
+                return 0;
+            }
+            p = p.substring(secondSlash);
+        }
+
+        // 4. Remove leading & trailing ‘/’ so split() behaves nicely.
+        p = p.replaceAll("^/+", "").replaceAll("/+$", "");
+
+        // 5. Empty string at this point means “root” (depth 0).
+        if (p.isEmpty())
+        {
+            return 0;
+        }
+
+        // 6. Everything that remains are name elements separated by ‘/’.
+        return p.split("/").length;
     }
 }

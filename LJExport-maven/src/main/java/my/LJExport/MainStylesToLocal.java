@@ -6,6 +6,7 @@ import java.util.StringTokenizer;
 
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;
+import my.LJExport.runtime.MemoryMonitor;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
@@ -38,6 +39,7 @@ public class MainStylesToLocal
         try
         {
             LimitProcessorUsage.limit();
+            MemoryMonitor.startMonitor();
             // HttpWireTracing.enable();
             do_users(Users);
         }

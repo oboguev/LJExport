@@ -60,7 +60,7 @@ public final class MemoryMonitor
                 {
                     int pct = (int) Math.round(getUsedHeapFraction() * 100);
                     Thread.currentThread().setName("memory monitor: heap usage " + pct + "%");
-                    Thread.sleep(Duration.ofSeconds(5).toMillis());
+                    Thread.sleep(Duration.ofSeconds(1).toMillis());
                 }
             }
             catch (InterruptedException ie)

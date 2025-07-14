@@ -315,7 +315,8 @@ public class StyleManager
                     batchContext.savedHtmlFiles.incrementAndGet();
                 }
             }
-
+            
+            parser = null;  // help GC
         }
         catch (Exception ex)
         {

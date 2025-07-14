@@ -620,20 +620,33 @@ public class StyleActionToLocal
 
         String cacheKey = null;
 
+        trace("---------------------------------------");
+        trace(String.format("001 - starting for file %s url %s", hostingFilePath, hostingFileURL));
+
         if (hostingFilePath != null && hostingFilePath.endsWith(".html"))
         {
             /*
              * Try to translate via cache
              */
             cacheKey = String.format("File Depth = %d\n%s", Util.filePathDepth(hostingFilePath), cssText);
+            trace(String.format("002.a - genereated cache key"));
             Optional<String> result = styleManager.getCssCache().get(cacheKey);
             if (result != null)
             {
+                trace(String.format("003.a - found in cache, returning"));
                 if (result.isPresent())
-                    result.get();
+                    return result.get();
                 else
                     return null;
             }
+            else
+            {
+                trace(String.format("003.x - not found in cache"));
+            }
+        }
+        else
+        {
+            trace(String.format("002.x - did not genereate cache key"));
         }
 
         String cssGoodText = null;
@@ -688,10 +701,12 @@ public class StyleActionToLocal
 
             if (crash)
             {
+                trace(String.format("004.a - failed to parse, crash exception"));
                 throw new Exception("Failed to parse CSS content in " + where);
             }
             else
             {
+                trace(String.format("004.x - failed to parse, return null"));
                 return null;
             }
         }
@@ -759,15 +774,53 @@ public class StyleActionToLocal
             writer.setWriteHeaderText(false);
             String modifiedCss = writer.getCSSAsString(css);
 
+            trace(String.format("005.a - finishing with update"));
+
             if (cacheKey != null)
+            {
+                if (styleManager.getCssCache().get(cacheKey) != null)
+                {
+                    trace(String.format("006.a - modified: already had in cache"));
+                    Util.noop();
+                }
+                else
+                {
+                    trace(String.format("006.a - modified: not in cache yet"));
+                }
+
+                trace(String.format("007.a - modified: store processing"));
                 styleManager.getCssCache().put(cacheKey, Optional.of(modifiedCss));
+            }
+            else
+            {
+                trace(String.format("007.b - modified: no cache key"));
+            }
 
             return modifiedCss;
         }
         else
         {
+            trace(String.format("005.x - finishing with no update"));
+
             if (cacheKey != null)
+            {
+                if (styleManager.getCssCache().get(cacheKey) != null)
+                {
+                    trace(String.format("006.c - unmodified: already had in cache"));
+                    Util.noop();
+                }
+                else
+                {
+                    trace(String.format("006.d - unmodified: not in cache yet"));
+                }
+
                 styleManager.getCssCache().put(cacheKey, Optional.empty());
+                trace(String.format("007.c - unmodified: store as empty"));
+            }
+            else
+            {
+                trace(String.format("007.d - unmodified: no cache key"));
+            }
 
             return null;
         }
@@ -822,6 +875,13 @@ public class StyleActionToLocal
     {
         if (originalUrl == null || originalUrl.trim().isEmpty())
             throw new Exception("Resuouce URL is missing or blank");
+
+        // &quot;http://static.gallery.ru/i/pleasewait.gif&quot;
+        if (originalUrl.startsWith("&quot;") && originalUrl.endsWith("&quot;") && !originalUrl.equals("&quot;"))
+        {
+            originalUrl = Util.stripStart(originalUrl, "&quot;");
+            originalUrl = Util.stripTail(originalUrl, "&quot;");
+        }
 
         /* embedded data URL */
         if (originalUrl.toLowerCase().startsWith("data:"))
@@ -1188,8 +1248,14 @@ public class StyleActionToLocal
 
     private boolean inlineStyleHasNoExternalReferences(String style)
     {
-        // Return TRUE only when the url(...) pattern is absent
-        return style == null || style.isEmpty() || !URL_FUNCTION.matcher(style).find();
+        if (style == null || style.isEmpty())
+            return true;
+
+        // Remove embedded data URLs first
+        String clean = EMBEDDED_DATA_URL.matcher(style).replaceAll(" ");
+
+        // If any other url(...) remains, assume external reference is possible
+        return !URL_FUNCTION.matcher(clean).find();
     }
 
     /** Strip all CSS comments so they do not trigger false positives. */
@@ -1197,11 +1263,10 @@ public class StyleActionToLocal
 
     /** Case-insensitive match for “@import” with optional whitespace after the “@”. */
     private static final Pattern IMPORT_DIRECTIVE = Pattern.compile("(?i)@\\s*import\\b");
-    
+
     // Matches full embedded `url(...)` constructs that begin with data:
     // Case-insensitive, tolerant to whitespace and optional quotes
-    private static final Pattern EMBEDDED_DATA_URL =
-            Pattern.compile("(?i)\\burl\\s*\\(\\s*(['\"]?)data:[^\\)]*\\1\\s*\\)");    
+    private static final Pattern EMBEDDED_DATA_URL = Pattern.compile("(?i)\\burl\\s*\\(\\s*(['\"]?)data:[^\\)]*\\1\\s*\\)");
 
     /**
      * Returns {@code true} <i>only if</i> {@code cssText} is guaranteed not to contain any external references – namely
@@ -1221,9 +1286,9 @@ public class StyleActionToLocal
 
         // 1. Remove comments – they cannot introduce live references
         String clean = COMMENTS.matcher(cssText).replaceAll("");
-        
+
         // 2. Strip embedded data URLs so they do not trigger URL detection
-        clean = EMBEDDED_DATA_URL.matcher(clean).replaceAll(" ");        
+        clean = EMBEDDED_DATA_URL.matcher(clean).replaceAll(" ");
 
         // 3. Look for either url(…) or @import.  Finding either => external ref
         if (URL_FUNCTION.matcher(clean).find())
@@ -1243,13 +1308,18 @@ public class StyleActionToLocal
         String clean = COMMENTS.matcher(cssText).replaceAll("");
 
         // 2. Strip embedded data URLs so they do not trigger URL detection
-        clean = EMBEDDED_DATA_URL.matcher(clean).replaceAll(" ");        
+        clean = EMBEDDED_DATA_URL.matcher(clean).replaceAll(" ");
 
         // 3. Look for @import.  Finding => external ref
         if (IMPORT_DIRECTIVE.matcher(clean).find())
             return false;
 
         return true; // guaranteed clean
+    }
+
+    private void trace(String s)
+    {
+        // Util.err(s);
     }
 
     /* ============================================================================ */

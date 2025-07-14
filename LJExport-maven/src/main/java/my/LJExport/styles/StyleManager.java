@@ -274,7 +274,7 @@ public class StyleManager
     }
 
     public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl, boolean dryRun,
-            HtmlFileBatchProcessingContext batchContext)
+            HtmlFileBatchProcessingContext batchContext, StringBuilder errorMessageLog)
             throws Exception
     {
         String threadName = Thread.currentThread().getName();
@@ -295,7 +295,7 @@ public class StyleManager
             case TO_LOCAL:
                 updated = new StyleActionToLocal(this, linkDownloader, styleRepositoryLock, resolvedCSS,
                         txLog, isDownloadedFromWebArchiveOrg, downloadSource, dontReparseCss, allowUndownloadaleCss,
-                        dontDownloadCss, badCssMapper)
+                        dontDownloadCss, badCssMapper, dryRun, errorMessageLog)
                                 .processHtmlFileToLocalStyles(htmlFilePath, parser, htmlPageUrl);
                 break;
 

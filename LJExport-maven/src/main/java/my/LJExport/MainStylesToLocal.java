@@ -33,6 +33,8 @@ public class MainStylesToLocal
 
     private static final boolean ShowStylesProgress = true;
     private static final boolean DryRun = true;
+    
+    private static final StringBuilder errorMessageLog = new StringBuilder(); 
 
     public static void main(String[] args)
     {
@@ -42,6 +44,16 @@ public class MainStylesToLocal
             MemoryMonitor.startMonitor();
             // HttpWireTracing.enable();
             do_users(Users);
+            
+            if (errorMessageLog.length() != 0)
+            {
+                Util.err("");
+                Util.err("************** STYLE RESOURCE ERRORS ************** ");
+                Util.err("");
+                Util.err(errorMessageLog.toString());
+                Util.err("");
+                Util.err("************** END OF STYLE RESOURCE ERRORS ************** ");
+            }
         }
         catch (Exception ex)
         {
@@ -161,7 +173,7 @@ public class MainStylesToLocal
 
         HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
         StyleProcessor.processAllHtmlFiles(styleCatalogDir, styleFallbackDir, dir, StyleProcessorAction.TO_LOCAL, null, ShowStylesProgress, DryRun,
-                batchContext);
+                batchContext, errorMessageLog);
 
         String remark = DryRun ? " (DRY RUN)" : "";
         Util.out(String.format(">>> Completed [%s] directory %s, files scanned: %d, updated in memory: %d, updated on disk: %d%s",

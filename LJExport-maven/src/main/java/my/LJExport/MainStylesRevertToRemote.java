@@ -150,7 +150,7 @@ public class MainStylesRevertToRemote
 
         HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
         StyleProcessor.processAllHtmlFiles(styleCatalogDir, null, dir, StyleProcessorAction.REVERT, null, ShowStylesProgress, DryRun,
-                batchContext);
+                batchContext, null);
 
         String remark = DryRun ? " (DRY RUN)" : "";
         Util.out(String.format(">>> Completed [%s] directory %s, files scanned: %d, updated in memory: %d, updated on disk: %d%s",

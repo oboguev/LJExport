@@ -92,6 +92,8 @@ public class StyleActionToLocal
     private final UrlSetMatcher dontDownloadCss;
     private final BadToGood badCssMapper;
     private final StyleManager styleManager;
+    private final boolean dryRun;
+    private final StringBuilder errorMessageLog;
 
     /* 
      * List (stack) of URLs of CSS/HTML files with styles being currently re-written,
@@ -115,7 +117,9 @@ public class StyleActionToLocal
             UrlSetMatcher dontReparseCss,
             UrlSetMatcher allowUndownloadaleCss,
             UrlSetMatcher dontDownloadCss,
-            BadToGood badCssMapper)
+            BadToGood badCssMapper,
+            boolean dryRun,
+            StringBuilder errorMessageLog)
     {
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
@@ -128,6 +132,8 @@ public class StyleActionToLocal
         this.dontDownloadCss = dontDownloadCss;
         this.badCssMapper = badCssMapper;
         this.styleManager = styleManager;
+        this.dryRun = dryRun;
+        this.errorMessageLog = errorMessageLog;
     }
 
     /*
@@ -876,12 +882,7 @@ public class StyleActionToLocal
         if (originalUrl == null || originalUrl.trim().isEmpty())
             throw new Exception("Resuouce URL is missing or blank");
 
-        // &quot;http://static.gallery.ru/i/pleasewait.gif&quot;
-        if (originalUrl.startsWith("&quot;") && originalUrl.endsWith("&quot;") && !originalUrl.equals("&quot;"))
-        {
-            originalUrl = Util.stripStart(originalUrl, "&quot;");
-            originalUrl = Util.stripTail(originalUrl, "&quot;");
-        }
+        originalUrl = fixBadPasiveFileLinkUrl(originalUrl);
 
         /* embedded data URL */
         if (originalUrl.toLowerCase().startsWith("data:"))
@@ -941,13 +942,28 @@ public class StyleActionToLocal
             {
                 String fn = linkDownloader.adviseFileName(naming_href);
                 fn = linkDownloader.abs2rel(fn);
-                Util.err("--------------------------------------------------------------------");
-                Util.err("Unable to download style passive resource:");
-                Util.err("    URL: " + absoluteUrl);
-                Util.err("    FN: " + fn);
+
+                StringBuilder sb = new StringBuilder();
+                String nl = "\n";
+
+                sb.append("--------------------------------------------------------------------" + nl);
+                sb.append("Unable to download style passive resource:" + nl);
+                sb.append("    URL: " + absoluteUrl + nl);
+                sb.append("    FN: " + fn + nl);
                 if (!File.separator.equals("/"))
-                    Util.err("    FN: " + fn.replace("/", File.separator));
+                    sb.append("    FN: " + fn.replace("/", File.separator));
+
+                Util.err(sb.toString());
                 Util.err("--------------------------------------------------------------------");
+
+                if (relativeToFilePath != null && relativeToFilePath.endsWith(".html") && dryRun && errorMessageLog != null)
+                {
+                    /* debug-time, to collect them all, use only for DryRun */
+                    errorMessageLog.append(sb);
+                    errorMessageLog.append(nl);
+                    return null;
+                }
+
                 throw new Exception("Unable to download style passive resource: " + absoluteUrl);
             }
         }
@@ -1000,6 +1016,30 @@ public class StyleActionToLocal
         {
             return null;
         }
+    }
+    
+    private String fixBadPasiveFileLinkUrl(String originalUrl) throws Exception
+    {
+        // &quot;http://static.gallery.ru/i/pleasewait.gif&quot;
+        if (originalUrl.startsWith("&quot;") && originalUrl.endsWith("&quot;") && !originalUrl.equals("&quot;"))
+        {
+            originalUrl = Util.stripStart(originalUrl, "&quot;");
+            originalUrl = Util.stripTail(originalUrl, "&quot;");
+        }
+        
+        switch (originalUrl)
+        {
+        case "https:l-stat.livejournal.netimgcommunity_v3.svg?v=43924":
+            return "https://l-stat.livejournal.net/img/community_v3.svg?v=43924";
+            
+        case "https:l-stat.livejournal.netimgpreloaderpreloader-disc-blue-white.gif?v=39255":
+            return "https://l-stat.livejournal.net/img/preloaderpreloader-disc-blue-white.gif?v=39255";
+            
+        default:
+            break;
+        }
+
+        return originalUrl;
     }
 
     /* ================================================================================== */
@@ -1333,10 +1373,14 @@ public class StyleActionToLocal
                 null,
                 null,
                 false,
+
                 null,
                 null,
                 null,
                 null,
+                null,
+                false,
+
                 null);
 
         self.test1();

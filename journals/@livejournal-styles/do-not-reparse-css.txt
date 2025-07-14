@@ -1,0 +1,8 @@
+#
+# URLs of CSS files that should not be parsed and re-written.
+#
+# Typically list here bad un-parseable CSS, which however
+# DO NOT contain @Import of url: clauses
+# and therefore do not need to be parsed for link relocation
+#
+

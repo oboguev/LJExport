@@ -1,0 +1,9 @@
+#
+# URLs of CSS files and CSS resources that should not cause processing to abort if they are not downloadable.
+# Original remote link will be maintained for these CSS files/resources.
+#
+
+https://l-stat.livejournal.net/img/icons/lock-16-gray.gif?v=1
+https://l-stat.livejournal.net/img/popup/splash/figure_frank.png
+http://booknik.ru/*
+http://kp.ua/test/img/result_bg2.gif

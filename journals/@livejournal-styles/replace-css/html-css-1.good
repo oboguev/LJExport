@@ -1,0 +1,929 @@
+﻿.b-photouploader {
+    width: 480px;
+    }
+
+
+
+/* items */
+.b-photouploader-items {
+    margin: 0;
+    }
+    .b-photouploader-item {
+        margin: 0;
+        padding: 1em 0 0;
+        }
+    /* item upload */
+    .b-photouploader-item-upload {
+        }
+        /* start */
+        .b-photouploader-item-upload-start {
+            }
+            .b-photouploader-item-upload-start .b-photouploader-panel-pictures,
+            .b-photouploader-item-upload-start .b-photouploader-panel-controls {
+                display: none;
+                }
+                .b-photouploader-item-upload-start .b-photouploader-panel-upload {
+                    margin-bottom: 0;
+                    }
+        /* uploaded */
+        .b-photouploader-item-upload-uploaded {
+            }
+            .b-photouploader-item-upload-uploaded .b-photouploader-panel-pictures {
+                margin-bottom: 15px;
+                overflow: auto;
+                max-height: 250px;
+                }
+
+        /* from flatmedia.css */
+        /* edit media popup */
+        .flatmedia-create-field {
+            display: none;
+            }
+
+        /* states */
+        .flatpopup-loading .flatpopup__preloader {
+            display: block;
+            }
+            .flatpopup-loading .flatpopup__body:after {
+                display: block;
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                background: #FFF;
+                opacity: .6;
+                z-index: 1;
+                }
+        .flatpopup-warning-state .flatpopup__msg-warning,
+        .flatpopup-success-state .flatpopup__msg-success {
+            display: block;
+            }
+        .flatpopup-create-state .flatmedia-create-field {
+            display: block;
+            }
+        .flatpopup-create-state .flatmedia-edit-field {
+            display: none;
+            }
+        .flatpopup-loading-state {
+            position: relative;
+            width: 100%;
+            min-height: 34px;
+            }
+            .flatpopup-loading-state:before {
+                display: block;
+                position: absolute;
+                z-index: 1;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                opacity: .6;
+                content: "";
+                background: #FFF;
+                }
+            .flatpopup-loading-state:after {
+                display: block;
+                position: absolute;
+                z-index: 2;
+                top: 50%;
+                left: 50%;
+                width: 34px;
+                height: 34px;
+                margin-top: -17px;
+                margin-left: -17px;
+                content: "";
+                background: url(http://l-stat.livejournal.net/img/preloader/preloader-disc-blue-white.gif?v=39255) 50% 50% no-repeat;
+                }
+        /* create-edit popups */
+        .flatpopup-delete-btn {
+            display: none;
+            }
+        .flatpopup-edit-state .flatpopup-delete-btn {
+            display: inline-block;
+            }
+        /* flatpopup form elements */
+        .flatpopup SELECT,
+        .flatpopup-label+SELECT {
+            max-width: 160px;
+            margin: 0 5px 0 0;
+            font-size: 14px;
+            vertical-align: middle;
+            }
+        .flatpopup-label {
+            color: #004359;
+            }
+            .b-ljform-field .flatpopup-label {
+                margin-right: 6px;
+                }
+        /* upload container */
+        .upload__box {
+            overflow: hidden;
+            position: relative;
+            min-height: 49px;
+            border: 4px dashed #DAE3E6;
+            background: #FFF;
+            text-align: center;
+            }
+            .upload__box-label {
+                display: block;
+                margin: -5px;
+                padding: 15px;
+                border: 4px dashed #DAE3E6;
+                background: #FFF;
+                cursor: pointer;
+                }
+        .upload__input {
+            position: absolute !important;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 50px;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            opacity: 0;
+            filter: alpha(opacity=0);
+            zoom: 1;
+            font-size: 10000px;
+            cursor: pointer;
+            }
+        .upload__items {
+            position: relative;
+            margin: 25px 0 19px;
+            padding: 0;
+            list-style: none;
+            }
+            .upload__item {
+                display: inline-block;
+                position: relative;
+                width: 144px;
+                height: 144px;
+                margin: 0 20px 30px;
+                padding: 22px;
+                cursor: pointer;
+                background-color: #FFF;
+                box-shadow: 0 7px 22px -9px #999;
+                box-sizing: border-box;
+                }
+                .upload__item_pic {
+                    display: block;
+                    width: 100px;
+                    height: 100px;
+                    background-position: 0 0;
+                    background-repeat: no-repeat;
+                    background-size: cover;
+                    text-align: center;
+                    }
+                .upload__item_remove {
+                    display: inline-block;
+                    position: absolute;
+                    top: -11px;
+                    right: -11px;
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #cf0011;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    background-color: #FFF;
+                    box-shadow: 0 3px 5px -3px #000000;
+                    }
+                    .upload__item_remove .svgicon {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        width: 12px;
+                        height: 12px;
+                        margin-top: -6px;
+                        margin-left: -6px;
+                        }
+
+        /* uploading progress bar animation */
+        .upload-bar {
+            opacity: 0;
+            position: relative;
+            height: 6px;
+            margin: 0 0 10px;
+            border-radius: 6px;
+            background-color: #CCC;
+            }
+            .upload-bar__inner {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 6px;
+                border-radius: 6px;
+                background-color: #0099CC;
+                }
+                .upload-bar__inner:after {
+                    content: "";
+                    z-index: 1;
+                    position: absolute;
+                    overflow: hidden;
+                    top: 0;
+                    left: 0;
+                    bottom: 0;
+                    right: 0;
+                       background-image: -webkit-gradient(linear, 0 0, 100% 100%,
+                          color-stop(.25, rgba(255, 255, 255, .2)),
+                          color-stop(.25, transparent), color-stop(.5, transparent),
+                          color-stop(.5, rgba(255, 255, 255, .2)),
+                          color-stop(.75, rgba(255, 255, 255, .2)),
+                          color-stop(.75, transparent), to(transparent)
+                       );
+                        background-image: -webkit-linear-gradient(
+                          -45deg,
+                          rgba(255, 255, 255, .2) 25%,
+                          transparent 25%,
+                          transparent 50%,
+                          rgba(255, 255, 255, .2) 50%,
+                          rgba(255, 255, 255, .2) 75%,
+                          transparent 75%,
+                          transparent
+                       );
+                        background-image: -moz-linear-gradient(
+                          -45deg,
+                          rgba(255, 255, 255, .2) 25%,
+                          transparent 25%,
+                          transparent 50%,
+                          rgba(255, 255, 255, .2) 50%,
+                          rgba(255, 255, 255, .2) 75%,
+                          transparent 75%,
+                          transparent
+                       );
+                        background-image: -ms-linear-gradient(
+                          -45deg,
+                          rgba(255, 255, 255, .2) 25%,
+                          transparent 25%,
+                          transparent 50%,
+                          rgba(255, 255, 255, .2) 50%,
+                          rgba(255, 255, 255, .2) 75%,
+                          transparent 75%,
+                          transparent
+                       );
+                        background-image: -o-linear-gradient(
+                          -45deg,
+                          rgba(255, 255, 255, .2) 25%,
+                          transparent 25%,
+                          transparent 50%,
+                          rgba(255, 255, 255, .2) 50%,
+                          rgba(255, 255, 255, .2) 75%,
+                          transparent 75%,
+                          transparent
+                       );
+                    background-size:         50px 50px;
+                    -webkit-animation: move 2s linear infinite;
+                       -moz-animation: move 2s linear infinite;
+                        -ms-animation: move 2s linear infinite;
+                            animation: move 2s linear infinite;
+                    }
+
+                    @-webkit-keyframes move {
+                        0% { background-position: 0 0; }
+                        100% { background-position: 50px 50px;}
+                        }
+                    @-moz-keyframes move {
+                        0% { background-position: 0 0; }
+                        100% { background-position: 50px 50px;}
+                        }
+                    @-o-keyframes move {
+                        0% { background-position: 0 0; }
+                        100% { background-position: 50px 50px;}
+                        }
+                    @keyframes move {
+                        0% { background-position: 0 0; }
+                        100% { background-position: 50px 50px;}
+                        }
+
+            .flatpopup-uploading .upload-bar {
+                opacity: 1;
+                }
+
+            .flatpopup-uploading .upload-bar__inner,
+            .flatpopup-uploading .upload-bar {
+                -webkit-transition-property: all;
+                   -moz-transition-property: all;
+                    -ms-transition-property: all;
+                        transition-property: all;
+                -webkit-transition-duration: .3s;
+                   -moz-transition-duration: .3s;
+                    -ms-transition-duration: .3s;
+                        transition-duration: .3s;
+                }
+            .flatpopup-uploading-complete .upload-bar {
+                opacity: 0;
+                -webkit-transition-property: opacity;
+                   -moz-transition-property: opacity;
+                    -ms-transition-property: opacity;
+                        transition-property: opacity;
+                -webkit-transition-duration: .3s;
+                   -moz-transition-duration: .3s;
+                    -ms-transition-duration: .3s;
+                        transition-duration: .3s;
+
+                }
+        .flatpopup__msg-text {
+            display: none;
+            margin: 1em 0;
+            }
+        .flatpopup-action-link {
+            white-space: nowrap;
+            border: 0;
+            background-color: transparent;
+            color: #00A3D9;
+            }
+        .b-flatbutton + .flatpopup-action-link {
+            margin-left: 4px;
+            font: 14px/1 "ProximaNovaSemibold",Tahoma,Arial,sans-serif;
+            font: 0.875em/1 normal normal 'ProximaNovaSemibold', Tahoma, Arial, sans-serif;
+            text-transform: uppercase;
+            }
+        .flatpopup-aside-link {
+            float: right;
+            }
+
+
+
+
+/* panel */
+.b-photouploader-panel {
+    margin: 0;
+    }
+.b-photouploader-panel:after {
+    content: "";
+    display: table;
+    border-collapse: collapse;
+    clear: both;
+    }
+/* upload */
+.b-photouploader-panel-upload {
+    margin: 0 0 15px;
+    }
+/* pictures */
+.b-photouploader-panel-pictures {
+    margin: 0;
+    }
+/* albums */
+.b-photouploader-panel-albums {
+    margin: 0;
+    }
+/* url */
+.b-photouploader-panel-url {
+    margin: 0 0 15px;
+    }
+/* dropbox login */
+.b-photouploader-panel-dropbox {
+    text-align: center;
+    }
+    .b-photouploader-panel-dropbox-intro {
+        width: 75%;
+        margin: 0 auto 1em;
+        line-height: 1.4;
+        }
+/* instagram login */
+.b-photouploader-panel-instalogin {
+    text-align: center;
+    }
+    .b-photouploader-panel-instalogin-intro {
+        width: 70%;
+        margin: 0 auto 1em;
+        text-align: left;
+        line-height: 1.4;
+        }
+
+
+
+/* by url */
+.b-photouploader-byurl {
+    margin: 0 0 0 110px;
+    padding: 0;
+    }
+.b-photouploader-byurl:after {
+    content: "";
+    display: table;
+    border-collapse: collapse;
+    clear: both;
+    }
+    .b-photouploader-byurl-picture {
+        position: relative;
+        left: -110px;
+        float: left;
+        width: 100px;
+        max-height: 100px;
+        margin: 0 -100px 0 0;
+        padding: 0;
+        box-shadow: 0 0 10px #BBB;
+        background: #FFF;
+        }
+        .b-photouploader-byurl-image {
+            max-width: 100px;
+            max-height: 100px;
+            margin: 0;
+            vertical-align: top;
+            }
+        .b-photouploader-byurl-sub {
+            display: block;
+            margin: 0;
+            padding: 10px;
+            font-size: 86%;
+            color: #999;
+            }
+    .b-photouploader-byurl-form {
+        margin: 0 0 1em;
+        }
+        .b-photouploader-byurl-label {
+            display: block;
+            margin: 0 0 0.5em;
+            }
+        .b-photouploader-byurl-br {
+            display: none;
+            }
+        .b-photouploader-byurl-src {
+            margin: 0;
+            width: 380px;
+            }
+        .b-photouploader-byurl-link {
+            margin: 0;
+            width: 250px;
+            }
+        .b-photouploader-byurl-note {
+            display: block;
+            margin: 0.5em 0 0;
+            font-size: 86%;
+            font-style: normal;
+            color: #666;
+            }
+
+
+
+/* separator */
+.b-photouploader-albumsettings-separator {
+    display: none;
+    }
+
+
+
+/* controls */
+.b-photouploader-panel-controls {
+    margin: 0 -15px;
+    padding: 15px;
+    border-top: 1px solid #FFF;
+    box-shadow: 0 -1px 0 #CCC;
+    }
+    .b-photouploader-panel-controls .b-photouploader-albumselector {
+        float: left;
+        width: 70%;
+        }
+        .b-photouploader-albumselector-item {
+            margin: 0 0 0.5em;
+            }
+            .b-photouploader-albumselector-input {
+                width: 280px;
+                }
+    .b-photouploader-panel-controls .b-photouploader-albumsettings {
+        float: left;
+        }
+        .b-photouploader-albumsettings-select {
+            margin: 0 1em 0 0;
+            }
+    .b-photouploader-panel-controls .b-photouploader-urlsettings {
+        margin: 0 0 1em;
+        }
+        .b-photouploader-urlsettings-label {
+            margin: 0 .5em 0 0;
+            }
+    .b-photouploader-panel-controls .b-photouploader-instasettings {
+        float: left;
+        width: 75%;
+        }
+        .b-photouploader-instasettings-label {
+            margin: 0 1em 0 0;
+            }
+        .b-photouploader-instasettings-annex {
+            display: block;
+            margin: 0 0 0 1.7em;
+            color: #999;
+            }
+    .b-photouploader-panel-controls .b-ljbutton {
+        float: right;
+        }
+    .b-photouploader-panel-controls .b-flatbutton {
+        float: right;
+        }
+    /* show old-design buttons and show new one (LJSUP-19180) */
+    .b-photouploader-panel-controls .b-ljbutton {
+        display: inline-block;
+        }
+    .b-photouploader-panel-controls .b-flatbutton {
+        display: none;
+        }
+    .s-schemius .b-photouploader-panel-controls .b-ljbutton {
+        display: none;
+        }
+    .s-schemius .b-photouploader-panel-controls .b-flatbutton {
+        display: inline-block;
+        }
+
+
+
+/* uploader */
+.b-photouploader-uploader {
+    margin: 0;
+    padding: 25px 15px;
+    border: 1px solid #BBB;
+    border-radius: 5px;
+    text-align: center;
+    line-height: 2;
+    color: #666;
+    }
+.drag-and-drop .b-photouploader-uploader {
+    box-shadow: inset 0 0 15px #526283;
+    border: 2px dashed #999;
+    border-radius: 0;
+    background: #FFF;
+    }
+    .b-photouploader-uploader-drop {
+        display: none;
+        margin: 0;
+        padding: 0;
+        color: #666;
+        }
+        .b-photouploader-uploader-drop STRONG {
+            font-size: 1.5em;
+            font-weight: normal;
+            color: #666;
+            }
+    .b-photouploader-uploader-nodrop {
+        margin: 0;
+        }
+        .b-photouploader-uploader-nodrop STRONG {
+            font-size: 1.5em;
+            font-weight: normal;
+            color: #666;
+            }
+    .drag-and-drop .b-photouploader-uploader-drop {
+        display: block;
+        }
+    .drag-and-drop .b-photouploader-uploader-nodrop {
+        display: none;
+        }
+    .b-photouploader-uploader-input {
+        color: #666;
+        }
+    .b-photouploader-uploader-list {
+        width: 40%;
+        margin: 5px auto;
+        padding: 0;
+        list-style-type: decimal;
+        text-align: left;
+        line-height: 1.2;
+        }
+        .b-photouploader-uploader-list-item {
+            margin: 0 0 0.5em;
+            padding: 0;
+            }
+
+
+
+/* pictures */
+.b-photouploader-pictures {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    }
+    /* item */
+    .b-photouploader-pictures-item {
+        position: relative;
+        display: inline-block;
+        width: 142px;
+        margin: 0 5px 5px 0;
+        padding: 10px;
+        vertical-align: top;
+        }
+        .b-photouploader-pictures-pic {
+            display: table-cell;
+            width: 132px;
+            height: 132px;
+            margin: 0;
+            padding: 5px;
+            vertical-align: middle;
+            box-shadow: 0 5px 10px #CCC;
+            background: #FFF;
+            text-align: center;
+            }
+            .b-photouploader-pictures-img {
+                max-width: 132px;
+                max-height: 132px;
+                vertical-align: top;
+                }
+        .b-photouploader-pictures-remove {
+            display: none;
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 1;
+            width: 21px;
+            height: 21px;
+            background: url(http://l-stat.livejournal.net/img/icons/remove.png?v=37651) no-repeat 0 0;
+            font: 0/0 a;
+            cursor: pointer;
+            }
+        .b-photouploader-pictures-title {
+            display: none;
+            overflow: hidden;
+            margin: 0;
+            padding: 5px 5px 0;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            text-align: center;
+            font-size: 90%;
+            font-weight: normal;
+            }
+    /* selected */
+    .b-photouploader-pictures-item.selected {
+        border-radius: 3px;
+        box-shadow: inset 0 0 4px #444;
+        background: #2C5188;
+        background: #2C5188 -moz-linear-gradient(top, #2C5188 0%, #2E8FED 100%);
+        background: #2C5188 -webkit-linear-gradient(top, #2C5188 0%,#2E8FED 100%);
+        background: #2C5188 -o-linear-gradient(top, #2C5188 0%,#2E8FED 100%);
+        background: #2C5188 linear-gradient(to bottom, #2C5188 0%,#2E8FED 100%);
+        color: #FFF;
+        }
+        .b-photouploader-pictures-item.selected .b-photouploader-pictures-pic {
+            box-shadow: 0 2px 4px #666;
+            }
+        .b-photouploader-pictures-item.selected .b-photouploader-pictures-title {
+            color: #FFF;
+            }
+/* pictures with remove button */
+.b-photouploader-pictures-withremove {
+    }
+    .b-photouploader-pictures-withremove .b-photouploader-pictures-remove {
+        display: block;
+        }
+/* pictures with title */
+.b-photouploader-pictures-withtitle {
+    }
+    .b-photouploader-pictures-withtitle .b-photouploader-pictures-title {
+        display: block;
+        }
+
+/* pictures with move pointer */
+.b-photouploader-pictures-withmove {
+    }
+    .b-photouploader-pictures-withmove .b-photouploader-pictures-pic {
+        cursor: move;
+        }
+
+
+
+/* nav */
+.b-photouploader-nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    width: 100%;
+    margin: 0;
+    padding: 10px 0 25px;
+    list-style: none;
+    background: -moz-linear-gradient(top, rgba(247,249,250,1) 0%, rgba(247,249,250,0) 100%);
+    background: -webkit-linear-gradient(top, rgba(247,249,250,1) 0%,rgba(247,249,250,0) 100%);
+    background: -o-linear-gradient(top, rgba(247,249,250,1) 0%,rgba(247,249,250,0) 100%);
+    background: linear-gradient(to bottom, rgba(247,249,250,1) 0%,rgba(247,249,250,0) 100%);
+    }
+    .b-photouploader-nav-item {
+        display: inline;
+        margin: 0;
+        padding: 0;
+        }
+    .b-photouploader-nav-item:before {
+        content: "/";
+        }
+    .b-photouploader-nav-item:first-child:before {
+        content: "";
+        }
+        .b-photouploader-nav-item A:link,
+        .b-photouploader-nav-item A:visited {
+            border-bottom: 1px dotted;
+            text-decoration: none;
+            color: #0051B7 !important;
+            }
+        .b-photouploader-nav-item A:hover,
+        .b-photouploader-nav-item A:active {
+            border-bottom: 1px dotted;
+            text-decoration: none;
+            color: #C00 !important;
+            }
+
+
+
+/* albums */
+.b-photouploader-albums {
+    position: relative;
+    }
+    .b-photouploader-albums-inner {
+        overflow: auto;
+        height: 250px;
+        margin: 0 -15px;
+        padding: 10px 15px 0;
+        background: #F7F9FA;
+        }
+/* albums with nav */
+.b-photouploader-albums-withnav {
+    }
+    .b-photouploader-albums-withnav .b-photouploader-albums-inner {
+        padding-top: 40px;
+        }
+/* loading */
+.b-photouploader-albums-loading {
+    }
+    .b-photouploader-albums-loading .b-photouploader-albums-inner:after {
+        content: " ";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 30px;
+        height: 30px;
+        margin: 0 0 0 -15px;
+        padding: 0;
+        background: url(http://l-stat.livejournal.net/img/preloader/preloader-blue-blue.gif?v=16423) no-repeat 0 0;
+        font: 0/0 a;
+        }
+
+.b-photouploader-albums-select {
+    max-width: 200px;
+    }
+
+.b-photouploader-search {
+    margin: 0 -15px 1px;
+    padding: 0 15px 15px;
+    border-bottom: 1px solid #CCC;
+    box-shadow: 0 1px 0 #FFF;
+    }
+    .b-photouploader-search-input {
+        width: 100%;
+        box-sizing: border-box;
+        }
+
+
+
+.b-photouploader-subhead {
+    margin: 0 0 0.5em;
+    font-weight: bold;
+    font-size: 1em;
+    }
+    .b-photouploader-subhead-annex {
+        font-weight: normal;
+        }
+.b-photouploader-subtext {
+    margin: 0 0 1em;
+    font-size: 1em;
+    line-height: 1.4;
+    }
+.b-photouploader-logout {
+    margin: 0;
+    }
+.b-photouploader .b-photouploader-logout:link,
+.b-photouploader .b-photouploader-logout:visited {
+    border-bottom: 1px dotted;
+    text-decoration: none;
+    color: #0051B7 !important;
+    }
+.b-photouploader .b-photouploader-logout:hover,
+.b-photouploader .b-photouploader-logout:active {
+    text-decoration: none;
+    color: #C00 !important;
+    }
+
+
+
+/* subhead at instagram panel */
+.b-photouploader-instahead {
+    margin: 0;
+    }
+.b-photouploader-instahead:after {
+    content: "";
+    display: table;
+    border-collapse: collapse;
+    clear: both;
+    }
+    .b-photouploader-instahead .b-photouploader-subhead {
+        float: left;
+        }
+    .b-photouploader-instahead .b-photouploader-logout {
+        float: right;
+        }
+
+
+
+.b-photouploader-instagram-signup:link {
+    display: inline-block;
+    position: relative;
+    margin: 0 0 1px;
+    padding: 0.5em 1.75em 0.5em 1em;
+    border: 1px solid #CCC;
+    border-right: 0.25em solid #00558D;
+    border-radius: 0.25em;
+    background: #F8F8F8;
+    text-shadow: 1px 1px #FFF;
+    text-decoration: none;
+    font-size: 1.5em;
+    color: #333;
+    }
+:root * > .b-photouploader-instagram-signup:before,
+:root * > .b-photouploader-instagram-signup:after {
+    content: ' ';
+    display: block;
+    position: absolute;
+    }
+.b-photouploader-instagram-signup:before {
+    top: 0;
+    right: 0;
+    width: 0.25em;
+    height: 100%;
+    background: #FBB03B;
+    border-left: 0.25em solid #D4145A;
+    border-right: 0.25em solid #00A99D;
+    }
+.b-photouploader-instagram-signup:after {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    border-radius: 0.25em;
+    padding-left: 0.25em;
+    box-shadow: inset 1px 1px 0px rgba(255,255,255,0.5), inset -1px -1px 0 rgba(0,0,0,0.1);
+    background: -moz-linear-gradient(top, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.2) 49%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 100%);
+    background: -webkit-linear-gradient(top, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.2) 49%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 100%);
+    background: linear-gradient(to bottom, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.2) 49%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 100%);
+    }
+.b-photouploader-instagram-signup,
+.b-photouploader-instagram-signup:before {
+    -webkit-transition-property: background, border;
+    -webkit-transition: 0.1s ease-in;
+    -moz-transition-property: background, border;
+    -moz-transition: 0.1s ease-in;
+    -o-transition-property: background, border;
+    -o-transition: 0.1s ease-in;
+    transition-property: background, border;
+    transition: 0.1s ease-in;
+    }
+.b-photouploader-instagram-signup:hover,
+.b-photouploader-instagram-signup:focus  {
+    background: #FFF;
+    }
+.b-photouploader-instagram-signup:hover {
+    border-right: 0.25em solid #09C;
+    }
+.b-photouploader-instagram-signup:hover:before {
+    background: #FC6;
+    border-left: 0.25em solid #F06;
+    border-right: 0.25em solid #0CC;
+    }
+.b-photouploader-instagram-signup:hover:after {
+    background: -moz-linear-gradient(top, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 49%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.05) 100%);
+    background: -webkit-linear-gradient(top, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 49%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.05) 100%);
+    background: linear-gradient(to bottom, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 49%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.05) 100%);
+    }
+.b-photouploader-instagram-signup:active {
+    margin: 1px 0 0;
+    }
+.b-popup .b-photouploader-instagram-signup:link,
+.b-popup .b-photouploader-instagram-signup:visited,
+.b-popup .b-photouploader-instagram-signup:hover,
+.b-popup .b-photouploader-instagram-signup:active {
+    border: 1px solid #CCC;
+    border-right: 0.25em solid #00558D;
+    text-decoration: none;
+    }
+
+
+
+@media all and (max-width: 650px) {
+
+    .b-photouploader {
+        width: auto;
+        }
+
+    /* separator */
+    .b-photouploader-albumsettings-separator {
+        display: block;
+        }
+
+    .b-photouploader-byurl {
+        margin-left: 0;
+        }
+        .b-photouploader-byurl-picture {
+            left: auto;
+            float: none;
+            width: 100%;
+            max-width: 380px;
+            margin: 0 auto 20px;
+            text-align: center;
+            }
+
+}
+

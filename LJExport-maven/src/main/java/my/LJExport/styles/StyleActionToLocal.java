@@ -1017,7 +1017,7 @@ public class StyleActionToLocal
             return null;
         }
     }
-    
+
     private String fixBadPasiveFileLinkUrl(String originalUrl) throws Exception
     {
         // &quot;http://static.gallery.ru/i/pleasewait.gif&quot;
@@ -1026,17 +1026,33 @@ public class StyleActionToLocal
             originalUrl = Util.stripStart(originalUrl, "&quot;");
             originalUrl = Util.stripTail(originalUrl, "&quot;");
         }
-        
+
         switch (originalUrl)
         {
         case "https:l-stat.livejournal.netimgcommunity_v3.svg?v=43924":
             return "https://l-stat.livejournal.net/img/community_v3.svg?v=43924";
-            
+
         case "https:l-stat.livejournal.netimgpreloaderpreloader-disc-blue-white.gif?v=39255":
             return "https://l-stat.livejournal.net/img/preloaderpreloader-disc-blue-white.gif?v=39255";
-            
+
+        case "https:l-stat.livejournal.netimgiconsremove.png?v=37651":
+            return "https://l-stat.livejournal.net/img/iconsremove.png?v=37651";
+
         default:
             break;
+        }
+        
+        if (originalUrl.startsWith("https:l-stat.livejournal.netimg"))
+        {
+            String fixedUrl = "https://l-stat.livejournal.net/img/" + Util.stripStart(originalUrl, "https:l-stat.livejournal.netimg"); 
+            if (errorMessageLog != null)
+            {
+                String nl = "\n";
+                errorMessageLog.append("------------------------------" + nl);
+                errorMessageLog.append(String.format("Bad URL: %s%s", originalUrl, nl));
+                errorMessageLog.append(String.format("Fixed:   %s%s", fixedUrl, nl));
+            }
+            originalUrl = fixedUrl;
         }
 
         return originalUrl;

@@ -142,7 +142,7 @@ public class MainMakeMonthlyPages
     {
         File fproot = new File(root);
 
-        List<Pair> pairs = new ArrayList<>();
+        List<Pair<Integer,String>> pairs = new ArrayList<>();
 
         for (File fp : fproot.listFiles())
         {
@@ -156,6 +156,7 @@ public class MainMakeMonthlyPages
                 if (!fn.endsWith(dotExtension))
                     continue;
             }
+            
             if (fp.isDirectory() != isDir)
                 continue;
 
@@ -164,6 +165,7 @@ public class MainMakeMonthlyPages
                 fnbase = Util.stripTail(fn, dotExtension);
 
             // eliminate non-numerics
+            // for example 1000-1.html or 1000.1.html
             int number;
             try
             {
@@ -174,7 +176,7 @@ public class MainMakeMonthlyPages
                 continue;
             }
 
-            pairs.add(new Pair(number, fnbase));
+            pairs.add(new Pair<Integer,String>(number, fnbase));
         }
 
         // Sort by number
@@ -182,19 +184,19 @@ public class MainMakeMonthlyPages
 
         // Collect sorted values
         List<String> list = new ArrayList<>();
-        for (Pair p : pairs)
+        for (Pair<Integer,String> p : pairs)
             list.add(p.fnbase + (dotExtension != null ? dotExtension : ""));
         return list;
     }
 
     /* ===================================================================== */
 
-    static class Pair
+    static private class Pair<TA,TB>
     {
-        int number;
-        String fnbase;
+        TA number;
+        TB fnbase;
 
-        Pair(int number, String fnbase)
+        Pair(TA number, TB fnbase)
         {
             this.number = number;
             this.fnbase = fnbase;

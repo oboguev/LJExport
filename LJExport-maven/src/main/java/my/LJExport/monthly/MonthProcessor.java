@@ -2,6 +2,7 @@ package my.LJExport.monthly;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBase;
@@ -11,6 +12,9 @@ import my.LJExport.readers.direct.PageParserDirectDreamwidthOrg;
 import my.LJExport.readers.direct.PageParserDirectNewStyle;
 import my.LJExport.readers.direct.PageParserDirectRossiaOrg;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.parallel.twostage.parser.ParserParallelWorkContext;
+import my.LJExport.runtime.parallel.twostage.parser.ParserStage1Processor;
+import my.LJExport.runtime.parallel.twostage.parser.ParserWorkContext;
 
 public class MonthProcessor
 {
@@ -21,6 +25,7 @@ public class MonthProcessor
     private final String month;
     private final String whichDir;
     private final boolean ljsearch;
+    private final int parallelism = 10;
 
     public MonthProcessor(String pagesMonthDir, List<String> pageFileNames, String monthlyFilePrefix, String year, String month,
             String whichDir, boolean ljsearch)
@@ -38,22 +43,50 @@ public class MonthProcessor
     {
         MonthCollectors mcs = new MonthCollectors(year, month, ljsearch);
 
-        for (String fn : pageFileNames)
+        if (Config.False)
         {
-            String pageFileFullPath = pagesMonthDir + File.separator + fn;
-            
+            for (String fn : pageFileNames)
+            {
+                String pageFileFullPath = pagesMonthDir + File.separator + fn;
+
+                try
+                {
+                    PageParserDirectBase parser = new PageParserDirectBasePassive();
+                    parser.rurl = Util.extractFileName(pageFileFullPath);
+                    parser.pageSource = Util.readFileAsString(pageFileFullPath);
+                    parser.parseHtml(parser.pageSource);
+
+                    processOneFile(mcs, pageFileFullPath, fn, parser);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error processing file " + pageFileFullPath, ex);
+                }
+            }
+        }
+        else
+        {
+            ParserParallelWorkContext ppwc = new ParserParallelWorkContext(pageFileNames, 
+                    new ParserStage1Processor(pagesMonthDir),
+                    parallelism);
+
             try
             {
-                PageParserDirectBase parser = new PageParserDirectBasePassive();
-                parser.rurl = Util.extractFileName(pageFileFullPath);
-                parser.pageSource = Util.readFileAsString(pageFileFullPath);
-                parser.parseHtml(parser.pageSource);
+                for (ParserWorkContext wcx : ppwc)
+                {
+                    // Util.out("Processing " + wcx.fullFilePath);
 
-                processOneFile(mcs, pageFileFullPath, fn, parser);
+                    Exception ex = wcx.getException();
+                    if (ex != null)
+                        throw new Exception("While processing " + wcx.fullFilePath, ex);
+
+                    Objects.requireNonNull(wcx.parser, "parser is null");
+                    processOneFile(mcs, wcx.fullFilePath, wcx.relativeFilePath, wcx.parser);
+                }
             }
-            catch (Exception ex)
+            finally
             {
-                throw new Exception("Error processing file " + pageFileFullPath, ex);
+                ppwc.close();
             }
         }
 
@@ -110,6 +143,5 @@ public class MonthProcessor
         {
             throw new Exception("Error processing file " + pageFileFullPath, ex);
         }
-
     }
 }

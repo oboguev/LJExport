@@ -123,7 +123,7 @@ public class MainDownloadPages
         Util.writeToFileSafe(fp.getCanonicalPath(), r.body);
     }
 
-    private Path rawPagePath(String which, int start)
+    public static Path rawPagePath(String which, int start)
     {
         return Paths.get(Config.DownloadRoot, Config.User, "raw-cc-pages", which, String.format("%05d.html", start));
     }

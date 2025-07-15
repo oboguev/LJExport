@@ -404,8 +404,8 @@ public class JSOUP
         List<Node> vel = new ArrayList<>();
         Element el;
 
-        @SuppressWarnings("unused")
-        String av;
+        // @SuppressWarnings("unused")
+        // String av;
 
         for (Node n : pageFlat)
         {
@@ -416,13 +416,18 @@ public class JSOUP
 
             el = (Element) n;
 
-            av = getAttribute(el, "class");
+            // av = getAttribute(el, "class");
 
             if (classContains(getAttribute(el, "class"), cls))
                 vel.add(el);
         }
 
         return vel;
+    }
+    
+    public static boolean hasClass(Element el, String cls) throws Exception
+    {
+        return classContains(getAttribute(el, "class"), cls);
     }
 
     public static List<Node> findElementsWithAllClasses(Node root, String tagname, Set<String> classes) throws Exception

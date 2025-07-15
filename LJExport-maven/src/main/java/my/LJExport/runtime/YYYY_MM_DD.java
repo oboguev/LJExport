@@ -24,6 +24,27 @@ public class YYYY_MM_DD
         return String.format("%04d-%02d-%02d", yyyy, mm, dd);
     }
 
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+
+        YYYY_MM_DD other = (YYYY_MM_DD) obj;
+        return yyyy == other.yyyy && mm == other.mm && dd == other.dd;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = Integer.hashCode(yyyy);
+        result = 31 * result + Integer.hashCode(mm);
+        result = 31 * result + Integer.hashCode(dd);
+        return result;
+    }
+
     private static final DateTimeFormatter ISO_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private static final DateTimeFormatter LONG_US_DATE_TIME = DateTimeFormatter.ofPattern("MMMM d yyyy, HH:mm", Locale.ENGLISH);
@@ -41,13 +62,13 @@ public class YYYY_MM_DD
     public static YYYY_MM_DD from(String text)
     {
         LocalDateTime dateTime = tryParse(text, ISO_DATE_TIME);
-        
+
         if (dateTime == null)
             dateTime = tryParse(text, LONG_US_DATE_TIME);
-        
+
         if (dateTime == null)
             throw new IllegalArgumentException("Unrecognized date/time syntax: " + text);
-        
+
         return new YYYY_MM_DD(
                 dateTime.getYear(),
                 dateTime.getMonthValue(),

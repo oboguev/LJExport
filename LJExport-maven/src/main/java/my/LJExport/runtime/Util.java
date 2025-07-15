@@ -421,7 +421,7 @@ public class Util
 
     public static String despace(String text) throws Exception
     {
-        text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ');
+        text = text.replace('\u00A0', ' ').replace('\n', ' ').replace('\r', ' ').replace('\t', ' ');
         return text.replaceAll("\\s+", " ").trim();
     }
 

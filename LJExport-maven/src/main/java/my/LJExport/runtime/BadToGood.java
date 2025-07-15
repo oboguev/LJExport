@@ -10,13 +10,14 @@ public final class BadToGood
 {
 
     private final Map<String, String> map = new HashMap<>();
+    private final Path directory;
 
     public BadToGood(String dir) throws IOException
     {
-        Path directory = Paths.get(dir);
+        directory = Paths.get(dir);
 
         DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.bad");
-        
+
         for (Path badPath : stream)
         {
             String fileName = badPath.getFileName().toString();
@@ -35,7 +36,7 @@ public final class BadToGood
         }
     }
 
-    public String good(String bad)
+    public synchronized String good(String bad)
     {
         return bad == null ? null : map.get(normalise(bad));
     }

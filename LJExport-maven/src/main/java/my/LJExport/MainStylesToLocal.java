@@ -36,6 +36,9 @@ public class MainStylesToLocal
     private static final boolean DryRun = true;
     
     private static final ErrorMessageLog errorMessageLog = new ErrorMessageLog(); 
+    
+    /* can be set in debugger */
+    public static volatile boolean forceExitNow = false; 
 
     public static void main(String[] args)
     {
@@ -44,6 +47,7 @@ public class MainStylesToLocal
             LimitProcessorUsage.limit();
             MemoryMonitor.startMonitor();
             // HttpWireTracing.enable();
+            
             do_users(Users);
             
             if (errorMessageLog.length() != 0)
@@ -91,12 +95,16 @@ public class MainStylesToLocal
             
             if (Main.isAborting())
                 break;
-
+            
             if (Config.False)
             {
                 Main.out(user);
                 continue;
             }
+
+            /* forced exit through debugger */
+            if (forceExitNow)
+                break;
 
             if (nuser++ != 0)
             {

@@ -129,9 +129,8 @@ public class MainStylesToLocal
 
             if (errorMessageLog.length() != 0)
             {
-                File fp = new File(Config.DownloadRoot).getCanonicalFile();
-                fp = fp.getParentFile();
-                fp = new File(fp, "MainStylesToLocal.log");
+                File fp = new File(Config.DownloadRoot).getCanonicalFile().getParentFile();
+                fp = new File(fp, "MainStylesToLocal.log").getCanonicalFile();
                 StringBuilder sb = new StringBuilder("Time: " + Util.timeNow() + "\n\n");
                 sb.append(errorMessageLog);
                 Util.writeToFileSafe(fp.getCanonicalPath(), sb.toString());

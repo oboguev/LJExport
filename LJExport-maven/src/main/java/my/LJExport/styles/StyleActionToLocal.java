@@ -1060,6 +1060,13 @@ public class StyleActionToLocal
             originalUrl = Util.stripStart(originalUrl, "&quot;");
             originalUrl = Util.stripTail(originalUrl, "&quot;");
         }
+        
+        // &apos;http://livejournalist.com/img/eye.gif?id=98561de2a6bb836f356d3c3e6757809f&s=1&n=865&apos;
+        if (originalUrl.startsWith("&apos;") && originalUrl.endsWith("&apos;") && !originalUrl.equals("&apos;"))
+        {
+            originalUrl = Util.stripStart(originalUrl, "&apos;");
+            originalUrl = Util.stripTail(originalUrl, "&apos;");
+        }
 
         switch (originalUrl)
         {

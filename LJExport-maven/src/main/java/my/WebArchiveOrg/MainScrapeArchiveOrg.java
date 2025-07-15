@@ -920,6 +920,6 @@ public class MainScrapeArchiveOrg
     private void loadStyles() throws Exception
     {
         StyleProcessor.processAllHtmlFiles(stylesCatalogDir, null, pagesDir, StyleProcessorAction.TO_LOCAL, 
-                null, ShowStyleProgress, false, new HtmlFileBatchProcessingContext(), null);
+                null, ShowStyleProgress, false, new HtmlFileBatchProcessingContext(), null, 0);
     }
 }

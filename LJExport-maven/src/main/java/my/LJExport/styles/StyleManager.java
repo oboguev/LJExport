@@ -277,7 +277,7 @@ public class StyleManager
     }
 
     public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl, boolean dryRun,
-            HtmlFileBatchProcessingContext batchContext, ErrorMessageLog errorMessageLog)
+            HtmlFileBatchProcessingContext batchContext, ErrorMessageLog errorMessageLog, PageParserDirectBasePassive parser)
             throws Exception
     {
         if (this.dryRun && !dryRun)
@@ -290,9 +290,12 @@ public class StyleManager
             String rurl = new File(htmlFilePath).getName();
             Thread.currentThread().setName("processing styles " + rurl);
 
-            PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
-            parser.pageSource = Util.readFileAsString(htmlFilePath);
-            parser.parseHtml();
+            if (parser == null)
+            {
+                parser = new PageParserDirectBasePassive();
+                parser.pageSource = Util.readFileAsString(htmlFilePath);
+                parser.parseHtml();
+            }
 
             boolean updated = false;
 

@@ -29,6 +29,9 @@ public class MainStylesRevertToRemote
     private static final boolean ShowStylesProgress = true;
     private static final boolean DryRun = false;
 
+    private static int ParallelismDefault = 20;
+    private static int ParallelismMonthly = 5;
+
     public static void main(String[] args)
     {
         try
@@ -112,11 +115,11 @@ public class MainStylesRevertToRemote
 
             HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
 
-            processDir("pages", batchContext);
-            processDir("reposts", batchContext);
-            processDir("monthly-pages", batchContext);
-            processDir("monthly-reposts", batchContext);
-            processDir("profile", batchContext);
+            processDir("pages", batchContext, ParallelismDefault);
+            processDir("reposts", batchContext, ParallelismDefault);
+            processDir("monthly-pages", batchContext, ParallelismMonthly);
+            processDir("monthly-reposts", batchContext, ParallelismMonthly);
+            processDir("profile", batchContext, ParallelismDefault);
 
             Main.out(">>> Completed reverting page styles back to server/remote for user " + Config.User);
 
@@ -133,7 +136,7 @@ public class MainStylesRevertToRemote
         }
     }
 
-    private void processDir(String which, HtmlFileBatchProcessingContext batchContextAll) throws Exception
+    private void processDir(String which, HtmlFileBatchProcessingContext batchContextAll, int parallelims) throws Exception
     {
         final String userRoot = Config.DownloadRoot + File.separator + Config.User;
         final String styleCatalogDir = userRoot + File.separator + "styles";
@@ -150,7 +153,7 @@ public class MainStylesRevertToRemote
 
         HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
         StyleProcessor.processAllHtmlFiles(styleCatalogDir, null, dir, StyleProcessorAction.REVERT, null, ShowStylesProgress, DryRun,
-                batchContext, null);
+                batchContext, null, parallelims);
 
         String remark = DryRun ? " (DRY RUN)" : "";
         Util.out(String.format(">>> Completed [%s] directory %s, files scanned: %d, updated in memory: %d, updated on disk: %d%s",

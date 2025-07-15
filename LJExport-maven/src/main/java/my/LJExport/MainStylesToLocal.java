@@ -25,8 +25,8 @@ import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
 public class MainStylesToLocal
 {
     private static final String ALL_USERS = "<all>";
-    private static final String AllUsersFromUser = "fritzmorgen";
- // private static final String AllUsersFromUser = null;
+    // private static final String AllUsersFromUser = "kot_begemott";
+    private static final String AllUsersFromUser = null;
 
     private static final String Users = ALL_USERS;
     // private static final String Users = "oboguev";
@@ -37,8 +37,8 @@ public class MainStylesToLocal
 
     private static final ErrorMessageLog errorMessageLog = new ErrorMessageLog();
 
-    /* can be set in debugger */
-    public static volatile boolean forceExitNow = false;
+    private static int ParallelismDefault = 20;
+    private static int ParallelismMonthly = 5;
 
     public static void main(String[] args)
     {
@@ -72,6 +72,9 @@ public class MainStylesToLocal
 
     private static void do_users(String users) throws Exception
     {
+        /* can be set in debugger */
+        boolean forceExitNow = false;
+
         if (users.equals(ALL_USERS))
         {
             List<String> list = EnumUsers.allUsers(AllUsersFromUser, EnumUsers.Options.DEFAULT);
@@ -103,6 +106,7 @@ public class MainStylesToLocal
             }
 
             /* forced exit through debugger */
+            Util.unused(forceExitNow);
             if (forceExitNow)
                 break;
 
@@ -122,6 +126,16 @@ public class MainStylesToLocal
             {
                 ThreadsControl.shutdownAfterUser();
             }
+
+            if (errorMessageLog.length() != 0)
+            {
+                File fp = new File(Config.DownloadRoot + File.separator).getCanonicalFile();
+                fp = fp.getParentFile();
+                fp = new File(fp, "MainStylesToLocal.log");
+                StringBuilder sb = new StringBuilder("Time: " + Util.timeNow() + "\n\n");
+                sb.append(errorMessageLog);
+                Util.writeToFileSafe(fp.getCanonicalPath(), sb.toString());
+            }
         }
 
         Main.do_logout();
@@ -140,11 +154,11 @@ public class MainStylesToLocal
 
             HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
 
-            processDir("pages", batchContext);
-            processDir("reposts", batchContext);
-            processDir("monthly-pages", batchContext);
-            processDir("monthly-reposts", batchContext);
-            processDir("profile", batchContext);
+            processDir("pages", batchContext, ParallelismDefault);
+            processDir("reposts", batchContext, ParallelismDefault);
+            processDir("monthly-pages", batchContext, ParallelismMonthly);
+            processDir("monthly-reposts", batchContext, ParallelismMonthly);
+            processDir("profile", batchContext, ParallelismDefault);
 
             Main.out(">>> Completed making HTML styles locally cached for user " + Config.User);
             String remark = DryRun ? " (DRY RUN)" : "";
@@ -161,7 +175,7 @@ public class MainStylesToLocal
         }
     }
 
-    private void processDir(String which, HtmlFileBatchProcessingContext batchContextAll) throws Exception
+    private void processDir(String which, HtmlFileBatchProcessingContext batchContextAll, int parallelism) throws Exception
     {
         final String userRoot = Config.DownloadRoot + File.separator + Config.User;
         final String styleCatalogDir = userRoot + File.separator + "styles";
@@ -183,7 +197,8 @@ public class MainStylesToLocal
         HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
         StyleProcessor.processAllHtmlFiles(styleCatalogDir, styleFallbackDir, dir, StyleProcessorAction.TO_LOCAL, null,
                 ShowStylesProgress, DryRun,
-                batchContext, errorMessageLog);
+                batchContext, errorMessageLog,
+                parallelism);
 
         String remark = DryRun ? " (DRY RUN)" : "";
         Util.out(String.format(">>> Completed [%s] directory %s, files scanned: %d, updated in memory: %d, updated on disk: %d%s",

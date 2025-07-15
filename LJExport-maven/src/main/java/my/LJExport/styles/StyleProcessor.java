@@ -1,11 +1,15 @@
 package my.LJExport.styles;
 
 import java.io.File;
+import java.util.Objects;
 
 import org.jsoup.nodes.Node;
 
 import my.LJExport.runtime.ErrorMessageLog;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.parallel.twostage.parser.ParserParallelWorkContext;
+import my.LJExport.runtime.parallel.twostage.parser.ParserStage1Processor;
+import my.LJExport.runtime.parallel.twostage.parser.ParserWorkContext;
 
 public class StyleProcessor
 {
@@ -26,14 +30,15 @@ public class StyleProcessor
             boolean showProgress,
             boolean dryRun,
             HtmlFileBatchProcessingContext batchContext,
-            ErrorMessageLog errorMessageLog) throws Exception
+            ErrorMessageLog errorMessageLog, int parallelism) throws Exception
     {
         StyleManager styleManager = new StyleManager(styleCatalogDir, styleFallbackDir, dryRun);
-        
+
         try
         {
             styleManager.init();
-            processAllHtmlFiles(styleManager, htmlPagesRootDir, action, baseURL, showProgress, dryRun, batchContext, errorMessageLog);
+            processAllHtmlFiles(styleManager, htmlPagesRootDir, action, baseURL, showProgress, dryRun, batchContext,
+                    errorMessageLog, parallelism);
         }
         finally
         {
@@ -47,7 +52,7 @@ public class StyleProcessor
             String baseURL,
             boolean showProgress,
             boolean dryRun,
-            HtmlFileBatchProcessingContext batchContext, ErrorMessageLog errorMessageLog) throws Exception
+            HtmlFileBatchProcessingContext batchContext, ErrorMessageLog errorMessageLog, int parallelism) throws Exception
     {
         while (htmlPagesRootDir.endsWith(File.separator))
             htmlPagesRootDir = Util.stripTail(htmlPagesRootDir, File.separator);
@@ -56,15 +61,45 @@ public class StyleProcessor
         if (!fp.exists() && fp.isDirectory())
             throw new Exception("Not a directory: " + fp.getCanonicalPath());
 
-        for (String relPath : Util.enumerateAnyHtmlFiles(htmlPagesRootDir))
+        if (parallelism <= 1)
         {
-            String path = htmlPagesRootDir + File.separator + relPath;
+            for (String relPath : Util.enumerateAnyHtmlFiles(htmlPagesRootDir))
+            {
+                String path = htmlPagesRootDir + File.separator + relPath;
 
-            if (showProgress)
-                Util.out("Processing styles for " + path);
-            
-            batchContext.scannedHtmlFiles.incrementAndGet();
-            styleManager.processHtmlFile(path, action, baseURL, dryRun, batchContext, errorMessageLog);
+                if (showProgress)
+                    Util.out("Processing styles for " + path);
+
+                batchContext.scannedHtmlFiles.incrementAndGet();
+                styleManager.processHtmlFile(path, action, baseURL, dryRun, batchContext, errorMessageLog, null);
+            }
+        }
+        else
+        {
+            ParserParallelWorkContext ppwc = new ParserParallelWorkContext(Util.enumerateAnyHtmlFiles(htmlPagesRootDir),
+                    new ParserStage1Processor(htmlPagesRootDir),
+                    parallelism);
+
+            try
+            {
+                for (ParserWorkContext wcx : ppwc)
+                {
+                    if (showProgress)
+                        Util.out("Processing styles for " + wcx.fullFilePath);
+
+                    Exception ex = wcx.getException();
+                    if (ex != null)
+                        throw new Exception("While processing " + wcx.fullFilePath, ex);
+                    
+                    batchContext.scannedHtmlFiles.incrementAndGet();
+                    Objects.requireNonNull(wcx.parser, "parser is null");
+                    styleManager.processHtmlFile(wcx.fullFilePath, action, baseURL, dryRun, batchContext, errorMessageLog, wcx.parser);
+                }
+            }
+            finally
+            {
+                ppwc.close();
+            }
         }
     }
 

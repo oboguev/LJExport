@@ -135,6 +135,7 @@ public class MainStylesToLocal
                 StringBuilder sb = new StringBuilder("Time: " + Util.timeNow() + "\n\n");
                 sb.append(errorMessageLog);
                 Util.writeToFileSafe(fp.getCanonicalPath(), sb.toString());
+                Util.out(">>> Wrote error message log to " + fp.getCanonicalPath());
             }
         }
 

@@ -3,7 +3,27 @@
 # Original remote link will be maintained for these CSS files/resources.
 #
 
+https://l-stat.livejournal.net/img/iconsremove.png?v=*
 https://l-stat.livejournal.net/img/icons/lock-16-gray.gif?v=1
 https://l-stat.livejournal.net/img/popup/splash/figure_frank.png
+https://l-stat.livejournal.net/img/preloaderpreloader-blue-blue.gif?v=*
+https://l-stat.livejournal.net/img/preloaderpreloader-disc-blue-white.gif?v=*
+
+http://livejournalist.com/img/eye.gif?id=*
+http://livejournalist.com/*
+
 http://booknik.ru/*
 http://kp.ua/test/img/result_bg2.gif
+http://baltinfo.ru/photo/new/t44122.jpg
+
+http://st0.vk.me/images/*
+http://cs412816.vk.me/*
+
+http://rutube.ru/img/*
+http://zn.ua/*
+http://www.politonline.ru/*
+http://rg.ru/i/*
+http://cdnmg.static2.rtr-vesti.ru/i/*
+http://russianli.com/site/templates/template1/images/*
+http://www.ridus.ru/assets/*
+

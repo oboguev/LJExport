@@ -903,10 +903,47 @@ public class StyleActionToLocal
     private String downloadAndRelinkPassiveFile(String originalUrl, String baseUrl, String relativeToFilePath,
             boolean forHtmlTagInlineStyle) throws Exception
     {
-        if (originalUrl == null || originalUrl.trim().isEmpty())
-            throw new Exception("Resuouce URL is missing or blank");
+        if (originalUrl == null)
+            throw new Exception("Resoruce URL is missing (null)");
+            
+        originalUrl = originalUrl.trim();
 
-        originalUrl = fixBadPasiveFileLinkUrl(originalUrl);  // ### blank in forhtml, trim
+        if (originalUrl.isEmpty())
+        {
+            String msg = "Resource URL is blank in file: " + relativeToFilePath;
+            
+            if (forHtmlTagInlineStyle)
+            {
+                Util.err(msg);
+                if (errorMessageLog != null)
+                    errorMessageLog.add(msg);
+                return null;
+            }
+            else
+            {
+                throw new Exception(msg);
+            }
+        }
+
+        originalUrl = fixBadPasiveFileLinkUrl(originalUrl);
+        originalUrl = originalUrl.trim();
+        
+        if (originalUrl.isEmpty())
+        {
+            String msg = "Resource URL is blank in file: " + relativeToFilePath;
+            
+            if (forHtmlTagInlineStyle)
+            {
+                Util.err(msg);
+                if (errorMessageLog != null)
+                    errorMessageLog.add(msg);
+                return null;
+            }
+            else
+            {
+                throw new Exception(msg);
+            }
+        }
 
         /* embedded data URL */
         if (originalUrl.toLowerCase().startsWith("data:"))

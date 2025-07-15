@@ -129,7 +129,7 @@ public class MainStylesToLocal
 
             if (errorMessageLog.length() != 0)
             {
-                File fp = new File(Config.DownloadRoot + File.separator).getCanonicalFile();
+                File fp = new File(Config.DownloadRoot).getCanonicalFile();
                 fp = fp.getParentFile();
                 fp = new File(fp, "MainStylesToLocal.log");
                 StringBuilder sb = new StringBuilder("Time: " + Util.timeNow() + "\n\n");

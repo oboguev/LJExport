@@ -105,6 +105,8 @@ public class StyleActionToLocal
     private final boolean isDownloadedFromWebArchiveOrg;
     private String currentHtmlFilePath;
 
+    private final String nl = "\n";
+
     /*
      * Constructor for StyleActionToLocal processor.
      */
@@ -409,7 +411,6 @@ public class StyleActionToLocal
             if (!txLog.isEmpty())
             {
                 StringBuilder sb = new StringBuilder();
-                final String nl = "\n";
                 sb.append("Operation on styles repository was aborted in the middle of a critical phase." + nl);
                 sb.append("Please check transaction log and take corrective action." + nl);
                 sb.append("Log file: " + txLog.getPath());
@@ -610,7 +611,8 @@ public class StyleActionToLocal
         }
     }
 
-    private String do_resolveCssDependencies(final String cssText, String hostingFilePath, String hostingFileURL, boolean isLocalHtmlFile) throws Exception
+    private String do_resolveCssDependencies(final String cssText, String hostingFilePath, String hostingFileURL,
+            boolean isLocalHtmlFile) throws Exception
     {
         if (cssHasNoExternalReferences(cssText))
             return null;
@@ -709,6 +711,27 @@ public class StyleActionToLocal
             if (crash)
             {
                 trace(String.format("004.a - failed to parse, crash exception"));
+
+                if ((isLocalHtmlFile || isLocalHtmlFile(hostingFilePath)) && dryRun && errorMessageLog != null
+                        && badCssMapper != null && cssGoodText == null)
+                {
+                    synchronized (badCssMapper)
+                    {
+                        String path = badCssMapper.nextFilePath("html-css", "bad", "tofix");
+                        Util.writeToFileSafe(path, cssText);
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("-------------------------------------" + nl);
+                        sb.append("Malformed CSS content in " + where + nl);
+                        if (hostingFileURL != null && ArchiveOrgUrl.isArchiveOrgUrl(hostingFileURL))
+                            sb.append("    archives " + ArchiveOrgUrl.extractArchivedUrlPart(hostingFileURL) + nl);
+                        sb.append("Saved to " + path);
+                        errorMessageLog.add(sb.toString());
+                        badCssMapper.addMapping(cssText, "");
+                    }
+
+                    return null;
+                }
+
                 throw new Exception("Failed to parse CSS content in " + where);
             }
             else
@@ -945,7 +968,6 @@ public class StyleActionToLocal
                 fn = linkDownloader.abs2rel(fn);
 
                 StringBuilder sb = new StringBuilder();
-                String nl = "\n";
 
                 sb.append("--------------------------------------------------------------------" + nl);
                 sb.append("Unable to download style passive resource:" + nl);
@@ -1038,20 +1060,23 @@ public class StyleActionToLocal
         case "https:l-stat.livejournal.netimgiconsremove.png?v=37651":
             return "https://l-stat.livejournal.net/img/iconsremove.png?v=37651";
 
+        case "https:l-stat.livejournal.netimgpreloaderpreloader-blue-blue.gif?v=16423":
+            return "https://l-stat.livejournal.net/img/preloaderpreloader-blue-blue.gif?v=16423";
+
         default:
             break;
         }
-        
+
         if (originalUrl.startsWith("https:l-stat.livejournal.netimg"))
         {
-            String fixedUrl = "https://l-stat.livejournal.net/img/" + Util.stripStart(originalUrl, "https:l-stat.livejournal.netimg"); 
+            String fixedUrl = "https://l-stat.livejournal.net/img/"
+                    + Util.stripStart(originalUrl, "https:l-stat.livejournal.netimg");
             if (errorMessageLog != null)
             {
-                String nl = "\n";
-                StringBuilder sb = new StringBuilder(); 
+                StringBuilder sb = new StringBuilder();
                 sb.append("------------------------------" + nl);
-                sb.append(String.format("Bad URL: %s%s", originalUrl, nl));
-                sb.append(String.format("Fixed:   %s%s", fixedUrl, nl));
+                sb.append(String.format("Bad URL:   %s%s", originalUrl, nl));
+                sb.append(String.format("Fixed to:  %s%s", fixedUrl, nl));
                 errorMessageLog.add(sb.toString());
             }
             originalUrl = fixedUrl;
@@ -1455,7 +1480,7 @@ public class StyleActionToLocal
 
         Util.noop();
     }
-    
+
     private boolean isLocalHtmlFile(String hostingFilePath)
     {
         if (hostingFilePath == null)

@@ -720,7 +720,6 @@ public class StyleActionToLocal
                         String path = badCssMapper.nextFilePath("html-css", "bad", "tofix");
                         Util.writeToFileSafe(path, cssText);
                         StringBuilder sb = new StringBuilder();
-                        sb.append("-------------------------------------" + nl);
                         sb.append("Malformed CSS content in " + where + nl);
                         if (hostingFileURL != null && ArchiveOrgUrl.isArchiveOrgUrl(hostingFileURL))
                             sb.append("    archives " + ArchiveOrgUrl.extractArchivedUrlPart(hostingFileURL) + nl);
@@ -779,7 +778,7 @@ public class StyleActionToLocal
                             CSSExpressionMemberTermURI uriTerm = (CSSExpressionMemberTermURI) member;
                             String originalUrl = uriTerm.getURIString();
                             /* this cannot be CSS but only image or similar file, hence no recursion */
-                            String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath);
+                            String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath, false);
                             if (newUrl != null)
                             {
                                 uriTerm.setURIString(urlEncodeLink(newUrl));
@@ -901,7 +900,8 @@ public class StyleActionToLocal
      * downloaded file, we do not need to enter it into resolvedCSS. Because we just download and keep
      * this file as a binary BLOB, and do not modify it -- unlike we do for CSS files.
      */
-    private String downloadAndRelinkPassiveFile(String originalUrl, String baseUrl, String relativeToFilePath) throws Exception
+    private String downloadAndRelinkPassiveFile(String originalUrl, String baseUrl, String relativeToFilePath,
+            boolean forHtmlTagInlineStyle) throws Exception
     {
         if (originalUrl == null || originalUrl.trim().isEmpty())
             throw new Exception("Resuouce URL is missing or blank");
@@ -925,9 +925,21 @@ public class StyleActionToLocal
         if (!lc.startsWith("http://") && !lc.startsWith("https://"))
         {
             if (dontDownloadCss != null && dontDownloadCss.matchLocal(absoluteUrl))
+            {
                 return null;
+            }
+            else if (forHtmlTagInlineStyle)
+            {
+                String msg = "Referenced passive style resource is not remote in file: " + relativeToFilePath + ", link was: " + absoluteUrl; 
+                Util.err(msg);
+                if (errorMessageLog != null)
+                    errorMessageLog.add(msg);
+                return null;
+            }
             else
+            {
                 throw new Exception("Referenced style resource is not remote: " + absoluteUrl);
+            }
         }
 
         String download_href = absoluteUrl;
@@ -969,13 +981,13 @@ public class StyleActionToLocal
 
                 StringBuilder sb = new StringBuilder();
 
-                sb.append("--------------------------------------------------------------------" + nl);
                 sb.append("Unable to download style passive resource:" + nl);
                 sb.append("    URL: " + absoluteUrl + nl);
                 sb.append("    FN: " + fn + nl);
                 if (!File.separator.equals("/"))
                     sb.append("    FN: " + fn.replace("/", File.separator));
 
+                Util.err("--------------------------------------------------------------------");
                 Util.err(sb.toString());
                 Util.err("--------------------------------------------------------------------");
 
@@ -1074,7 +1086,6 @@ public class StyleActionToLocal
             if (errorMessageLog != null)
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append("------------------------------" + nl);
                 sb.append(String.format("Bad URL:   %s%s", originalUrl, nl));
                 sb.append(String.format("Fixed to:  %s%s", fixedUrl, nl));
                 errorMessageLog.add(sb.toString());
@@ -1219,7 +1230,7 @@ public class StyleActionToLocal
                     String originalUrl = uriTerm.getURIString();
 
                     // inline styles can only reference images/fonts/etc.
-                    String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath);
+                    String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath, true);
 
                     if (newUrl != null && !newUrl.equals(originalUrl))
                     {

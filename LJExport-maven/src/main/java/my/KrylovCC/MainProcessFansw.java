@@ -243,8 +243,8 @@ public class MainProcessFansw
         append(sb, "  <br>");
         append(sb, "  <h1 style=\"text-align: center !important; margin: 0 auto !important;\">Ответы Константина Крылова на вопросы</h1></center>");
         append(sb, " </div>");
-        append(sb, " <body> ");
-        append(sb, "<html>");
+        append(sb, " </body> ");
+        append(sb, "</html>");
         
         PageParserDirectBase parser = new PageParserDirectBasePassive();
         parser.rurl = null;
@@ -259,9 +259,14 @@ public class MainProcessFansw
         for (QA qa : mc.qas)
         {
             append(body, dividerNodes);
+            
+            String dtHtml = String.format("<div class=\"dt2\">%s</div>", Util.despace(qa.dt.text()));
+            List<Node> dtNodes = JSOUP.parseBodyFragment(dtHtml);
+            
             append(body, qa.q);
             append(body, qa.a);
-            append(body, qa.dt);
+            // append(body, qa.dt);
+            append(body, dtNodes);
         }
         
         String fn = null;

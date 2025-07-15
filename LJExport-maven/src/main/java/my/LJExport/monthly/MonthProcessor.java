@@ -66,9 +66,7 @@ public class MonthProcessor
         }
         else
         {
-            ParserParallelWorkContext ppwc = new ParserParallelWorkContext(pageFileNames, 
-                    new ParserStage1Processor(pagesMonthDir),
-                    parallelism);
+            ParserParallelWorkContext ppwc = new ParserParallelWorkContext(pageFileNames, pagesMonthDir, parallelism);
 
             try
             {

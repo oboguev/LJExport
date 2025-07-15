@@ -168,10 +168,10 @@ public class DemoParserParallelWorkContext
         }
         else
         {
-            ParserParallelWorkContext ppwc = new ParserParallelWorkContext(Util.enumerateAnyHtmlFiles(htmlPagesRootDir), 
-                    new ParserStage1Processor(htmlPagesRootDir),
+            ParserParallelWorkContext ppwc = new ParserParallelWorkContext(Util.enumerateAnyHtmlFiles(htmlPagesRootDir),
+                    htmlPagesRootDir, 
                     parallelism);
-            
+
             try
             {
                 for (ParserWorkContext wcx : ppwc)

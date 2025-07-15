@@ -28,15 +28,20 @@ public class ParserParallelWorkContext extends ParallelWorkContext<String, Parse
         this.setExecutorService(executor);
     }
 
+    public ParserParallelWorkContext(List<String> relativeFilePaths, String rootDir, int parallelism)
+    {
+        this(relativeFilePaths, new ParserStage1Processor(rootDir), parallelism);
+    }
+
     private static ParserWorkContext createContext(String workItem)
     {
         return new ParserWorkContext(workItem);
     }
-    
+
     public void shutdown()
     {
         super.shutdown();
-        
+
         if (executor != null)
         {
             // Prevent new tasks from being submitted and discard queued tasks

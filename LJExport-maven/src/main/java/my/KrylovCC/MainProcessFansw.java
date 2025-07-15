@@ -201,7 +201,7 @@ public class MainProcessFansw
 
         for (QA qa : qas)
         {
-            if (last != null && Objects.equals(qa.ymd, last.ymd))
+            if (last != null && Objects.equals(day1(qa.ymd), day1(last.ymd)))
             {
                 last.qas.add(qa);
             }
@@ -215,8 +215,18 @@ public class MainProcessFansw
         }
     }
 
+    private YYYY_MM_DD day1(YYYY_MM_DD ymd)
+    {
+        if (ymd == null)
+            return null;
+        else
+
+            return new YYYY_MM_DD(ymd.yyyy, ymd.mm, 1);
+    }
+
     public void writeFiles(String rootDir) throws Exception
     {
+        copyout("krylov.cc/fansw", rootDir + File.separator, "index.html");
         copyout("krylov.cc/fansw", rootDir + File.separator + "images", "doubleruler.gif");
         copyout("krylov.cc/fansw", rootDir + File.separator + "images", "fansw.css");
         copyout("krylov.cc/fansw", rootDir + File.separator + "images", "favicon.ico");
@@ -228,7 +238,7 @@ public class MainProcessFansw
 
     public void writeMonthlyFile(String rootDir, MonthContent mc) throws Exception
     {
-        StringBuilder sb = new StringBuilder(); 
+        StringBuilder sb = new StringBuilder();
         append(sb, "<html>");
         append(sb, " <head>");
         append(sb, "  <title>Ответы Константина Крылова на вопросы</title>");
@@ -241,53 +251,77 @@ public class MainProcessFansw
         append(sb, "  <center><img src=\"images/kk.jpg\">");
         append(sb, "  <br>");
         append(sb, "  <br>");
-        append(sb, "  <h1 style=\"text-align: center !important; margin: 0 auto !important;\">Ответы Константина Крылова на вопросы</h1></center>");
+        append(sb,
+                "  <h1 style=\"text-align: center !important; margin: 0 auto !important;\">Ответы Константина Крылова на вопросы</h1></center>");
         append(sb, " </div>");
         append(sb, " </body> ");
         append(sb, "</html>");
-        
+
         PageParserDirectBase parser = new PageParserDirectBasePassive();
         parser.rurl = null;
         parser.pageSource = sb.toString();
         parser.parseHtml(parser.pageSource);
         Element body = parser.findBody();
-        
+
         // Parse the fragment into a list of nodes
-        final String dividerHtml = "<div class=\"doublegrayruler h20px\"></div>"; 
+        final String dividerHtml = "<div class=\"doublegrayruler h20px\"></div>";
         final List<Node> dividerNodes = JSOUP.parseBodyFragment(dividerHtml);
-        
+
         for (QA qa : mc.qas)
         {
             append(body, dividerNodes);
-            
+
             String dtHtml = String.format("<div class=\"dt2\">%s</div>", Util.despace(qa.dt.text()));
             List<Node> dtNodes = JSOUP.parseBodyFragment(dtHtml);
-            
+
             append(body, qa.q);
             append(body, qa.a);
             // append(body, qa.dt);
             append(body, dtNodes);
         }
-        
-        String fn = null;
-        if (mc.ymd != null)
+
+        append(body, dividerNodes);
+
+        MonthContent mc_prev = prev(monthlyContent, mc);
+        MonthContent mc_next = next(monthlyContent, mc);
+
+        if (mc_prev != null)
         {
-            fn = String.format("%04d-%02d.html", mc.ymd.yyyy, mc.ymd.mm);
+            String navHtml = String.format("<a class=\"partial-underline\" href=\"%s\">&lt;&lt;&lt; раньше</a>", filename(mc_prev));
+            List<Node> nodes = JSOUP.parseBodyFragment(navHtml);
+            append(body, nodes);
         }
-        else
+
+        if (mc_next != null)
         {
-            fn = "$-before-2010.06.14.html";
+            String navHtml = String.format("%s<a class=\"partial-underline\" href=\"%s\">дальше &gt;&gt;&gt;</a>",
+                    mc_prev != null ? "&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;" : "",
+                    filename(mc_next));
+            List<Node> nodes = JSOUP.parseBodyFragment(navHtml);
+            append(body, nodes);
         }
-        
+
         String html = JSOUP.emitHtml(parser.pageRoot);
-        
+
         File fp = new File(rootDir).getCanonicalFile();
         if (!fp.exists())
             fp.mkdirs();
-        fp = new File(fp, fn);
+        fp = new File(fp, filename(mc));
         Util.writeToFileSafe(fp.getCanonicalPath(), html);
     }
-    
+
+    private String filename(MonthContent mc)
+    {
+        if (mc.ymd != null)
+        {
+            return String.format("%04d-%02d.html", mc.ymd.yyyy, mc.ymd.mm);
+        }
+        else
+        {
+            return "$-before-2010.06.14.html";
+        }
+    }
+
     private void append(Element body, Node node)
     {
         body.appendChild(node.clone());
@@ -298,7 +332,7 @@ public class MainProcessFansw
         for (Node node : nodes)
             body.appendChild(node.clone());
     }
-    
+
     private void append(StringBuilder sb, String text)
     {
         sb.append(text);
@@ -310,8 +344,56 @@ public class MainProcessFansw
         File fp = new File(fileDir);
         if (!fp.exists())
             fp.mkdirs();
-        
+
         byte[] ba = Util.loadResourceAsBytes(resourceDir + "/" + fn);
         Util.writeToFileSafe(fileDir + File.separator + fn, ba);
+    }
+
+    /**
+     * Returns the element immediately preceding {@code p} in {@code monthlyContent},
+     * or {@code null} if {@code p} is the first element.
+     *
+     * @throws IllegalArgumentException if {@code p} is not present in the list
+     * @throws NullPointerException     if {@code monthlyContent} or {@code p} is {@code null}
+     */
+    public static MonthContent prev(List<MonthContent> monthlyContent, MonthContent p)
+    {
+        Objects.requireNonNull(monthlyContent, "monthlyContent must not be null");
+        Objects.requireNonNull(p, "p must not be null");
+
+        for (int i = 0, size = monthlyContent.size(); i < size; i++)
+        {
+            if (monthlyContent.get(i) == p)
+            {
+                // identity comparison
+                return (i == 0) ? null : monthlyContent.get(i - 1);
+            }
+        }
+
+        throw new IllegalArgumentException("Given element is not contained in the list");
+    }
+
+    /**
+     * Returns the element immediately following {@code p} in {@code monthlyContent},
+     * or {@code null} if {@code p} is the last element.
+     *
+     * @throws IllegalArgumentException if {@code p} is not present in the list
+     * @throws NullPointerException     if {@code monthlyContent} or {@code p} is {@code null}
+     */
+    public static MonthContent next(List<MonthContent> monthlyContent, MonthContent p)
+    {
+        Objects.requireNonNull(monthlyContent, "monthlyContent must not be null");
+        Objects.requireNonNull(p, "p must not be null");
+
+        for (int i = 0, size = monthlyContent.size(); i < size; i++)
+        {
+            if (monthlyContent.get(i) == p)
+            {
+                // identity comparison
+                return (i == size - 1) ? null : monthlyContent.get(i + 1);
+            }
+        }
+
+        throw new IllegalArgumentException("Given element is not contained in the list");
     }
 }

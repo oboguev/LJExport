@@ -994,3 +994,12 @@ figure.image figcaption {
     display: flex;
     justify-content: center
 }
+
+.partial-underline {
+  text-decoration: none;
+  background-image: linear-gradient(to top, black 1px, transparent 1px);
+  background-repeat: repeat-x;
+  background-position: 0 1.1em; /* Adjust depending on font */
+  background-size: 1ch 1em;
+  white-space: pre;
+}

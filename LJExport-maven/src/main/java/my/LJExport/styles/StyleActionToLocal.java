@@ -1184,7 +1184,17 @@ public class StyleActionToLocal
             return null;
 
         // 1. Parse “prop: value; …” into a declaration list.
-        CSSDeclarationList declList = CSSReaderDeclarationList.readFromString(inlineStyleText, ECSSVersion.CSS30);
+        CSSDeclarationList declList = null;
+
+        try
+        {
+            declList = CSSReaderDeclarationList.readFromString(inlineStyleText, ECSSVersion.CSS30);
+        }
+        catch (Exception ex)
+        {
+            Util.noop();
+        }
+
         if (declList == null)
         {
             // throw new Exception("Failed to parse inline style content");

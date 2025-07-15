@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import my.LJExport.runtime.EnumUsers;
+import my.LJExport.runtime.ErrorMessageLog;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.MemoryMonitor;
 import my.LJExport.runtime.Util;
@@ -34,7 +35,7 @@ public class MainStylesToLocal
     private static final boolean ShowStylesProgress = true;
     private static final boolean DryRun = true;
     
-    private static final StringBuilder errorMessageLog = new StringBuilder(); 
+    private static final ErrorMessageLog errorMessageLog = new ErrorMessageLog(); 
 
     public static void main(String[] args)
     {

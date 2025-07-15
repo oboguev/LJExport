@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.jsoup.nodes.Node;
 
+import my.LJExport.runtime.ErrorMessageLog;
 import my.LJExport.runtime.Util;
 
 public class StyleProcessor
@@ -25,7 +26,7 @@ public class StyleProcessor
             boolean showProgress,
             boolean dryRun,
             HtmlFileBatchProcessingContext batchContext,
-            StringBuilder errorMessageLog) throws Exception
+            ErrorMessageLog errorMessageLog) throws Exception
     {
         StyleManager styleManager = new StyleManager(styleCatalogDir, styleFallbackDir);
         
@@ -46,7 +47,7 @@ public class StyleProcessor
             String baseURL,
             boolean showProgress,
             boolean dryRun,
-            HtmlFileBatchProcessingContext batchContext, StringBuilder errorMessageLog) throws Exception
+            HtmlFileBatchProcessingContext batchContext, ErrorMessageLog errorMessageLog) throws Exception
     {
         while (htmlPagesRootDir.endsWith(File.separator))
             htmlPagesRootDir = Util.stripTail(htmlPagesRootDir, File.separator);

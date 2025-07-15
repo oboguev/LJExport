@@ -31,6 +31,7 @@ import com.helger.css.writer.CSSWriterSettings;
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.BadToGood;
+import my.LJExport.runtime.ErrorMessageLog;
 import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.RandomString;
 import my.LJExport.runtime.TxLog;
@@ -93,7 +94,7 @@ public class StyleActionToLocal
     private final BadToGood badCssMapper;
     private final StyleManager styleManager;
     private final boolean dryRun;
-    private final StringBuilder errorMessageLog;
+    private final ErrorMessageLog errorMessageLog;
 
     /* 
      * List (stack) of URLs of CSS/HTML files with styles being currently re-written,
@@ -119,7 +120,7 @@ public class StyleActionToLocal
             UrlSetMatcher dontDownloadCss,
             BadToGood badCssMapper,
             boolean dryRun,
-            StringBuilder errorMessageLog)
+            ErrorMessageLog errorMessageLog)
     {
         this.linkDownloader = linkDownloader;
         this.styleRepositoryLock = styleRepositoryLock;
@@ -600,7 +601,7 @@ public class StyleActionToLocal
         try
         {
             displayCssProgress(inprogress);
-            return do_resolveCssDependencies(cssText, hostingFilePath, hostingFileURL);
+            return do_resolveCssDependencies(cssText, hostingFilePath, hostingFileURL, isLocalHtmlFile);
         }
         finally
         {
@@ -609,7 +610,7 @@ public class StyleActionToLocal
         }
     }
 
-    private String do_resolveCssDependencies(final String cssText, String hostingFilePath, String hostingFileURL) throws Exception
+    private String do_resolveCssDependencies(final String cssText, String hostingFilePath, String hostingFileURL, boolean isLocalHtmlFile) throws Exception
     {
         if (cssHasNoExternalReferences(cssText))
             return null;
@@ -629,7 +630,7 @@ public class StyleActionToLocal
         trace("---------------------------------------");
         trace(String.format("001 - starting for file %s url %s", hostingFilePath, hostingFileURL));
 
-        if (hostingFilePath != null && hostingFilePath.endsWith(".html"))
+        if (isLocalHtmlFile || isLocalHtmlFile(hostingFilePath))
         {
             /*
              * Try to translate via cache
@@ -699,7 +700,7 @@ public class StyleActionToLocal
 
             boolean crash = true;
 
-            if (hostingFilePath == null || !hostingFilePath.endsWith(".html"))
+            if (!isLocalHtmlFile && !isLocalHtmlFile(hostingFilePath))
                 crash = true;
 
             if (!cssHasNoExternalImportReferences(cssText))
@@ -956,11 +957,10 @@ public class StyleActionToLocal
                 Util.err(sb.toString());
                 Util.err("--------------------------------------------------------------------");
 
-                if (relativeToFilePath != null && relativeToFilePath.endsWith(".html") && dryRun && errorMessageLog != null)
+                if (isLocalHtmlFile(relativeToFilePath) && dryRun && errorMessageLog != null)
                 {
                     /* debug-time, to collect them all, use only for DryRun */
-                    errorMessageLog.append(sb);
-                    errorMessageLog.append(nl);
+                    errorMessageLog.add(sb.toString());
                     return null;
                 }
 
@@ -1048,9 +1048,11 @@ public class StyleActionToLocal
             if (errorMessageLog != null)
             {
                 String nl = "\n";
-                errorMessageLog.append("------------------------------" + nl);
-                errorMessageLog.append(String.format("Bad URL: %s%s", originalUrl, nl));
-                errorMessageLog.append(String.format("Fixed:   %s%s", fixedUrl, nl));
+                StringBuilder sb = new StringBuilder(); 
+                sb.append("------------------------------" + nl);
+                sb.append(String.format("Bad URL: %s%s", originalUrl, nl));
+                sb.append(String.format("Fixed:   %s%s", fixedUrl, nl));
+                errorMessageLog.add(sb.toString());
             }
             originalUrl = fixedUrl;
         }
@@ -1452,5 +1454,13 @@ public class StyleActionToLocal
         Util.unused(modifiedCss);
 
         Util.noop();
+    }
+    
+    private boolean isLocalHtmlFile(String hostingFilePath)
+    {
+        if (hostingFilePath == null)
+            return false;
+        String lc = hostingFilePath.toLowerCase();
+        return lc.endsWith(".html") || lc.endsWith(".htm");
     }
 }

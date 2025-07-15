@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.BadToGood;
+import my.LJExport.runtime.ErrorMessageLog;
 import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.LJExportInformation;
 import my.LJExport.runtime.TxLog;
@@ -274,7 +275,7 @@ public class StyleManager
     }
 
     public void processHtmlFile(String htmlFilePath, StyleProcessorAction action, String htmlPageUrl, boolean dryRun,
-            HtmlFileBatchProcessingContext batchContext, StringBuilder errorMessageLog)
+            HtmlFileBatchProcessingContext batchContext, ErrorMessageLog errorMessageLog)
             throws Exception
     {
         String threadName = Thread.currentThread().getName();

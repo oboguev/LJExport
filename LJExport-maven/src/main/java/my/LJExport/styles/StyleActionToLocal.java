@@ -905,13 +905,13 @@ public class StyleActionToLocal
     {
         if (originalUrl == null)
             throw new Exception("Resoruce URL is missing (null)");
-            
+
         originalUrl = originalUrl.trim();
 
         if (originalUrl.isEmpty())
         {
             String msg = "Resource URL is blank in file: " + relativeToFilePath;
-            
+
             if (forHtmlTagInlineStyle)
             {
                 Util.err(msg);
@@ -927,11 +927,11 @@ public class StyleActionToLocal
 
         originalUrl = fixBadPasiveFileLinkUrl(originalUrl);
         originalUrl = originalUrl.trim();
-        
+
         if (originalUrl.isEmpty())
         {
             String msg = "Resource URL is blank in file: " + relativeToFilePath;
-            
+
             if (forHtmlTagInlineStyle)
             {
                 Util.err(msg);
@@ -967,7 +967,8 @@ public class StyleActionToLocal
             }
             else if (forHtmlTagInlineStyle)
             {
-                String msg = "Referenced passive style resource is not remote in file: " + relativeToFilePath + ", link was: " + absoluteUrl; 
+                String msg = "Referenced passive style resource is not remote, in file: " + relativeToFilePath + ", link was: "
+                        + absoluteUrl;
                 Util.err(msg);
                 if (errorMessageLog != null)
                     errorMessageLog.add(msg);
@@ -1097,7 +1098,7 @@ public class StyleActionToLocal
             originalUrl = Util.stripStart(originalUrl, "&quot;");
             originalUrl = Util.stripTail(originalUrl, "&quot;");
         }
-        
+
         // &apos;http://livejournalist.com/img/eye.gif?id=98561de2a6bb836f356d3c3e6757809f&s=1&n=865&apos;
         if (originalUrl.startsWith("&apos;") && originalUrl.endsWith("&apos;") && !originalUrl.equals("&apos;"))
         {
@@ -1127,6 +1128,7 @@ public class StyleActionToLocal
         {
             String fixedUrl = "https://l-stat.livejournal.net/img/"
                     + Util.stripStart(originalUrl, "https:l-stat.livejournal.netimg");
+
             if (errorMessageLog != null)
             {
                 StringBuilder sb = new StringBuilder();
@@ -1134,6 +1136,22 @@ public class StyleActionToLocal
                 sb.append(String.format("Fixed to:  %s%s", fixedUrl, nl));
                 errorMessageLog.add(sb.toString());
             }
+
+            originalUrl = fixedUrl;
+        }
+
+        if (originalUrl.startsWith("//"))
+        {
+            String fixedUrl = "https:" + originalUrl;
+
+            if (errorMessageLog != null)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.append(String.format("Bad URL:   %s%s", originalUrl, nl));
+                sb.append(String.format("Fixed to:  %s%s", fixedUrl, nl));
+                errorMessageLog.add(sb.toString());
+            }
+
             originalUrl = fixedUrl;
         }
 

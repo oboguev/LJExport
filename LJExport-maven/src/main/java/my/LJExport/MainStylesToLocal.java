@@ -25,8 +25,8 @@ import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
 public class MainStylesToLocal
 {
     private static final String ALL_USERS = "<all>";
-    // private static final String AllUsersFromUser = "fat_yankey";
-    private static final String AllUsersFromUser = null;
+    private static final String AllUsersFromUser = "fritzmorgen";
+ // private static final String AllUsersFromUser = null;
 
     private static final String Users = ALL_USERS;
     // private static final String Users = "oboguev";
@@ -49,22 +49,22 @@ public class MainStylesToLocal
             // HttpWireTracing.enable();
 
             do_users(Users);
-
-            if (errorMessageLog.length() != 0)
-            {
-                Util.err("");
-                Util.err("************** STYLE RESOURCE ERRORS ************** ");
-                Util.err("");
-                Util.err(errorMessageLog.toString());
-                Util.err("");
-                Util.err("************** END OF STYLE RESOURCE ERRORS ************** ");
-            }
         }
         catch (Exception ex)
         {
             Util.err("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
             Main.emergency_logout();
+        }
+
+        if (errorMessageLog.length() != 0)
+        {
+            Util.err("");
+            Util.err("************** STYLE RESOURCE ERRORS ************** ");
+            Util.err("");
+            Util.err(errorMessageLog.toString());
+            Util.err("");
+            Util.err("************** END OF STYLE RESOURCE ERRORS ************** ");
         }
 
         Main.playCompletionSound();

@@ -28,17 +28,17 @@ public class MainStylesToLocal
     // private static final String AllUsersFromUser = "fat_yankey";
     private static final String AllUsersFromUser = null;
 
-    // private static final String Users = ALL_USERS;
-    private static final String Users = "oboguev";
+    private static final String Users = ALL_USERS;
+    // private static final String Users = "oboguev";
     // private static final String Users = "nationalism.org";
 
     private static final boolean ShowStylesProgress = true;
     private static final boolean DryRun = true;
-    
-    private static final ErrorMessageLog errorMessageLog = new ErrorMessageLog(); 
-    
+
+    private static final ErrorMessageLog errorMessageLog = new ErrorMessageLog();
+
     /* can be set in debugger */
-    public static volatile boolean forceExitNow = false; 
+    public static volatile boolean forceExitNow = false;
 
     public static void main(String[] args)
     {
@@ -47,9 +47,9 @@ public class MainStylesToLocal
             LimitProcessorUsage.limit();
             MemoryMonitor.startMonitor();
             // HttpWireTracing.enable();
-            
+
             do_users(Users);
-            
+
             if (errorMessageLog.length() != 0)
             {
                 Util.err("");
@@ -92,10 +92,10 @@ public class MainStylesToLocal
             user = user.trim().replace("\t", "").replace(" ", "");
             if (user.equals(""))
                 continue;
-            
+
             if (Main.isAborting())
                 break;
-            
+
             if (Config.False)
             {
                 Main.out(user);
@@ -166,7 +166,7 @@ public class MainStylesToLocal
         final String userRoot = Config.DownloadRoot + File.separator + Config.User;
         final String styleCatalogDir = userRoot + File.separator + "styles";
         final String dir = userRoot + File.separator + which;
-        
+
         String styleFallbackDir = null;
         if (!Config.User.contains("."))
             styleFallbackDir = Config.DownloadRoot + File.separator + "@livejournal-styles";
@@ -181,7 +181,8 @@ public class MainStylesToLocal
         Util.out(String.format(">>> Scanning [%s] directory %s", Config.User, which));
 
         HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
-        StyleProcessor.processAllHtmlFiles(styleCatalogDir, styleFallbackDir, dir, StyleProcessorAction.TO_LOCAL, null, ShowStylesProgress, DryRun,
+        StyleProcessor.processAllHtmlFiles(styleCatalogDir, styleFallbackDir, dir, StyleProcessorAction.TO_LOCAL, null,
+                ShowStylesProgress, DryRun,
                 batchContext, errorMessageLog);
 
         String remark = DryRun ? " (DRY RUN)" : "";

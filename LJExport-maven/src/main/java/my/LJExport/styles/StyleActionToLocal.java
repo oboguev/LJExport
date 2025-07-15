@@ -906,7 +906,7 @@ public class StyleActionToLocal
         if (originalUrl == null || originalUrl.trim().isEmpty())
             throw new Exception("Resuouce URL is missing or blank");
 
-        originalUrl = fixBadPasiveFileLinkUrl(originalUrl);
+        originalUrl = fixBadPasiveFileLinkUrl(originalUrl);  // ### blank in forhtml, trim
 
         /* embedded data URL */
         if (originalUrl.toLowerCase().startsWith("data:"))

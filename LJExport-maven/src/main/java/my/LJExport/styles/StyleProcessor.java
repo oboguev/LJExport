@@ -28,7 +28,7 @@ public class StyleProcessor
             HtmlFileBatchProcessingContext batchContext,
             ErrorMessageLog errorMessageLog) throws Exception
     {
-        StyleManager styleManager = new StyleManager(styleCatalogDir, styleFallbackDir);
+        StyleManager styleManager = new StyleManager(styleCatalogDir, styleFallbackDir, dryRun);
         
         try
         {

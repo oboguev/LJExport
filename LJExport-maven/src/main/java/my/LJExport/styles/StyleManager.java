@@ -31,6 +31,7 @@ public class StyleManager
 {
     private final String styleCatalogDir;
     private final String fallbackStyleDir;
+    private final boolean dryRun;
 
     private String styleDir;
     private LinkDownloader linkDownloader = new LinkDownloader();
@@ -56,10 +57,10 @@ public class StyleManager
 
     public StyleManager(String styleCatalogDir) throws Exception
     {
-        this(styleCatalogDir, null);
+        this(styleCatalogDir, null, false);
     }
 
-    public StyleManager(String styleCatalogDir, String fallbackStyleDir) throws Exception
+    public StyleManager(String styleCatalogDir, String fallbackStyleDir, boolean dryRun) throws Exception
     {
         while (styleCatalogDir.endsWith(File.separator))
             styleCatalogDir = Util.stripTail(styleCatalogDir, File.separator);
@@ -74,6 +75,7 @@ public class StyleManager
             throw new Exception("Unable to create directory: " + styleCatalogDir);
 
         this.styleCatalogDir = styleCatalogDir;
+        this.dryRun = dryRun;
 
         this.isDownloadedFromWebArchiveOrg = LJExportInformation
                 .load()
@@ -243,7 +245,7 @@ public class StyleManager
 
             fpx = new File(fpfall, "replace-css");
             if (fpx.exists() && fpx.isDirectory())
-                badCssMapper = new BadToGood(fpx.getCanonicalPath());
+                badCssMapper = new BadToGood(fpx.getCanonicalPath(), dryRun);
         }
 
         styleRepositoryLock = new IntraInterprocessLock(styleDir + File.separator + "repository.lock");
@@ -278,6 +280,9 @@ public class StyleManager
             HtmlFileBatchProcessingContext batchContext, ErrorMessageLog errorMessageLog)
             throws Exception
     {
+        if (this.dryRun && !dryRun)
+            throw new Exception("Cannot execute wet-run on a dry-run style manager");
+        
         String threadName = Thread.currentThread().getName();
 
         try

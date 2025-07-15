@@ -15,7 +15,7 @@ public final class BadToGood
     private final Map<String, String> source = new HashMap<>();
     private final Path directory;
 
-    public BadToGood(String dir) throws IOException
+    public BadToGood(String dir, boolean useToFix) throws IOException
     {
         directory = Paths.get(dir);
 
@@ -24,7 +24,7 @@ public final class BadToGood
         for (Path badPath : stream)
         {
             String fileName = badPath.getFileName().toString();
-            String base = fileName.substring(0, fileName.length() - 4); // remove ".bad"
+            String base = fileName.substring(0, fileName.length() - ".bad".length()); // remove ".bad"
             Path goodPath = directory.resolve(base + ".good");
 
             String bad = normalise(readFile(badPath));
@@ -34,6 +34,24 @@ public final class BadToGood
             if (previous != null)
                 throw new IllegalStateException("Duplicate bad value encountered in " + base + ".bad, same as " + source.get(bad));
             source.put(bad, badPath.getFileName().toString());
+        }
+        
+        if (useToFix)
+        {
+            stream = Files.newDirectoryStream(directory, "*.tofix");
+            
+            for (Path tofixPath : stream)
+            {
+                String fileName = tofixPath.getFileName().toString();
+                String base = fileName.substring(0, fileName.length() - ".tofix".length()); // remove ".tofix"
+
+                String bad = normalise(readFile(tofixPath));
+
+                String previous = map.put(bad, "");
+                if (previous != null)
+                    throw new IllegalStateException("Duplicate bad value encountered in " + base + ".tofix, same as " + source.get(bad));
+                source.put(bad, tofixPath.getFileName().toString());
+            }
         }
     }
 

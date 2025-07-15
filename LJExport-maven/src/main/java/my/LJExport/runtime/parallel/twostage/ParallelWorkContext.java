@@ -40,7 +40,7 @@ public class ParallelWorkContext<I, WC extends WorkContext<I>>
     private final List<I> items;
     private final Function<I, WC> contextFactory;
     private final Stage1Processor<WC> stage1;
-    private final ExecutorService executor;
+    private /*final*/ ExecutorService executor;
     private final boolean ownExecutor;
     private final int maxInFlight;
 
@@ -68,7 +68,7 @@ public class ParallelWorkContext<I, WC extends WorkContext<I>>
         Objects.requireNonNull(workItems, "workItems");
         Objects.requireNonNull(contextFactory, "contextFactory");
         Objects.requireNonNull(stage1, "stage1");
-        Objects.requireNonNull(executor, "executor");
+        // Objects.requireNonNull(executor, "executor");
         if (maxInFlight <= 0)
         {
             throw new IllegalArgumentException("maxInFlight must be > 0");
@@ -107,6 +107,11 @@ public class ParallelWorkContext<I, WC extends WorkContext<I>>
                 Executors.newFixedThreadPool(parallelism),
                 parallelism,
                 true);
+    }
+    
+    public void setExecutorService(ExecutorService executor)
+    {
+        this.executor = executor;
     }
     
     /* =============================================================================================== */
@@ -181,6 +186,8 @@ public class ParallelWorkContext<I, WC extends WorkContext<I>>
     /** Schedules tasks until {@code inFlight.size() == maxInFlight} or no more items. */
     private void scheduleUntilFull()
     {
+        Objects.requireNonNull(executor, "executor");
+
         while (!shutdownRequested && inFlight.size() < maxInFlight && nextIndex < items.size())
         {
             final I item = items.get(nextIndex++);

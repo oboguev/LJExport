@@ -34,6 +34,9 @@ public class EnumUsers
                 if (user.contains(".") || user.contains("-"))
                     continue;
             }
+            
+            if (user.startsWith("@"))
+                continue;
 
             File fpPages = new File(fp, "pages");
             if (!fpPages.exists() || !fpPages.isDirectory())

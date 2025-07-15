@@ -177,7 +177,7 @@ public class MainProcessFB
 
     public void writeFiles(String rootDir) throws Exception
     {
-        // copyout("krylov.cc/fb", rootDir + File.separator, "index.html");
+        copyout("krylov.cc/fb", rootDir + File.separator, "index.html");
         copyout("krylov.cc/fb", rootDir + File.separator + "images", "doubleruler.gif");
         copyout("krylov.cc/fb", rootDir + File.separator + "images", "fb.css");
         copyout("krylov.cc/fb", rootDir + File.separator + "images", "favicon.ico");

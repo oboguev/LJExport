@@ -44,10 +44,20 @@ public class MainMakeMonthlyPages
                 users = String.join(",", list);
             }
 
-            String question = "Если вы применяете локальное сохранение стилей CSS, не забудьте перед построением месячных лент " +
-                    "предварительно выполнить программу MainStylesToLocal для привязки загруженных файлов с записями к сохранённым на диск стилям " + 
-                    "вместо стилей на сервере.";
-            String response = UIDialogQuestion.askQuestion(question, "Отменить", "Продолжить", "Отменить");
+            String response = "Отменить";
+            try
+            {
+                String question = "Если вы применяете локальное сохранение стилей CSS, не забудьте перед построением " +
+                        "месячных лент предварительно выполнить программу MainStylesToLocal для привязки загруженных " +
+                        "файлов HTML с записями к сохранённым на диск стилям вместо стилей на сервере.";
+
+                response = UIDialogQuestion.askQuestion(question, "Отменить", "Продолжить", "Отменить");
+            }
+            catch (Exception ex)
+            {
+                Util.out(">>> Диалог закрыт, отмена операции");
+                return;
+            }
             if (!response.equals("Продолжить"))
             {
                 Util.out(">>> Отмена");

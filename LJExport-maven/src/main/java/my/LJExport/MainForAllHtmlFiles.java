@@ -45,6 +45,8 @@ public class MainForAllHtmlFiles
             // HttpWireTracing.enable();
 
             do_users(Users);
+
+            Util.out(String.format(">>> Completed all files"));
         }
         catch (Exception ex)
         {
@@ -190,7 +192,8 @@ public class MainForAllHtmlFiles
     private void processHtmlFile(String fullFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
             List<Node> pageFlat) throws Exception
     {
-        listAwayLinks(fullFilePath, relativeFilePath, parser, pageFlat);
+        // listAwayLinks(fullFilePath, relativeFilePath, parser, pageFlat);
+        unwrapAwayLinks(fullFilePath, relativeFilePath, parser, pageFlat);
     }
 
     @SuppressWarnings("unused")

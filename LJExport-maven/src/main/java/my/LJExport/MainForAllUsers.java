@@ -33,6 +33,8 @@ public class MainForAllUsers
             // HttpWireTracing.enable();
 
             do_users(Users);
+
+            Util.out(String.format(">>> Completed all users"));
         }
         catch (Exception ex)
         {

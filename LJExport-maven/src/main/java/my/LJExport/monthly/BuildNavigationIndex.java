@@ -36,9 +36,8 @@ import my.LJExport.runtime.Util;
  *
  * <p>The filenames must follow the strict pattern <code>YYYY-MM.html</code>.</p>
  */
-public final class BuildNavigationIndex
+public class BuildNavigationIndex
 {
-
     private static final Pattern YEAR_DIR_PATTERN = Pattern.compile("^\\d{4}$");
     private static final Pattern MONTH_FILE_PATTERN = Pattern.compile("^(\\d{4})-(\\d{2})\\.html$");
 
@@ -131,7 +130,8 @@ public final class BuildNavigationIndex
         {
             String fname = String.format("%04d-%02d.html", year, m);
             String label = String.format("%04d %02d", year, m);
-            sb.append(String.format("<a class=\"partial-underline\" href=\"%s\">%s</a><br>\n", fname, label));
+            sb.append("&nbsp;&nbsp;&nbsp;&nbsp;")
+                    .append(String.format("<a class=\"partial-underline\" href=\"%s\">%s</a><br>\n", fname, label));
         }
 
         sb.append("</body>\n</html>\n");
@@ -153,7 +153,7 @@ public final class BuildNavigationIndex
 
             sb.append("<a class=\"partial-underline\" href=\"")
                     .append(year).append("/index.html\"><b>")
-                    .append(year).append("</b></a><br>\n\n");
+                    .append(year).append("</b></a><br><br>\n");
 
             for (int m : months)
             {
@@ -183,7 +183,6 @@ public final class BuildNavigationIndex
             "  white-space: pre;\n" +
             "  color: #228B22;\n" +
             "}\n" +
-            // -----------------------------
             "a.partial-underline:visited {\n" +
             "  color: #003300;\n" +
             "}\n" +

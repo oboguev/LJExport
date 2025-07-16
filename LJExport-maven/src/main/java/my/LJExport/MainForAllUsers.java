@@ -21,8 +21,8 @@ public class MainForAllUsers
 
     private static final String Users = ALL_USERS;
     // private static final String Users = "oboguev";
-    // private static final String Users = "nationalism.org";
     // private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
+    // private static final String Users = "d_olshansky.ljsearch";
 
     public static void main(String[] args)
     {

@@ -77,7 +77,7 @@ public class StyleProcessor
         else
         {
             ParserParallelWorkContext ppwc = new ParserParallelWorkContext(Util.enumerateAnyHtmlFiles(htmlPagesRootDir),
-                    new ParserStage1Processor(htmlPagesRootDir),
+                    htmlPagesRootDir,
                     parallelism);
 
             try

@@ -4,6 +4,7 @@ import java.io.File;
 
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.parallel.twostage.Stage1Processor;
 
 public class ParserStage1Processor implements Stage1Processor<ParserWorkContext>
@@ -35,6 +36,7 @@ public class ParserStage1Processor implements Stage1Processor<ParserWorkContext>
             parser.parseHtml(parser.pageSource);
             
             ctx.parser = parser;
+            ctx.pageFlat = JSOUP.flatten(parser.pageRoot);
         }
         finally
         {

@@ -19,6 +19,7 @@ public class ParserArchiveOrg extends PageParserDirectBasePassive
 
         for (Node n : JSOUP.findElements(pageRoot, "meta"))
         {
+            // ### also handle <meta charset="UTF-8">
             String heq = JSOUP.getAttribute(n, "http-equiv");
             if (heq != null && heq.equalsIgnoreCase("Content-Type"))
                 JSOUP.removeElement(pageRoot, n);
@@ -30,7 +31,7 @@ public class ParserArchiveOrg extends PageParserDirectBasePassive
         meta.attr("content", "text/html; charset=utf-8");
         findHead().appendChild(meta);
     }
-    
+
     public void resolveAbsoluteURLs(String finalURL) throws Exception
     {
         if (finalURL != null && finalURL.length() != 0)
@@ -44,6 +45,7 @@ public class ParserArchiveOrg extends PageParserDirectBasePassive
     {
         for (Node n : JSOUP.findElements(pageRoot, "meta"))
         {
+            // ### also handle <meta charset="UTF-8">
             String heq = JSOUP.getAttribute(n, "http-equiv");
             String content = JSOUP.getAttribute(n, "content");
             if (heq != null && heq.equalsIgnoreCase("Content-Type") && content != null)

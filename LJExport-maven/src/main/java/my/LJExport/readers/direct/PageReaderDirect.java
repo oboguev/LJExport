@@ -116,12 +116,16 @@ public class PageReaderDirect implements PageReader, PageContentSource
                     PageParserDirectBase.CHECK_HAS_COMMENTS |
                     PageParserDirectBase.REMOVE_SCRIPTS |
                     PageParserDirectBase.EXTRACT_COMMENTS_JSON);
+            
+            parser.unwrapAwayLinks();
         }
         else
         {
             parser.removeJunk(PageParserDirectBase.COUNT_PAGES |
                     PageParserDirectBase.CHECK_HAS_COMMENTS |
                     PageParserDirectBase.REMOVE_SCRIPTS);
+
+            parser.unwrapAwayLinks();
         }
 
         Node firstPageRoot = parser.pageRoot;

@@ -31,7 +31,7 @@ public class MainForAllHtmlFiles
     // private static final String Users = "oboguev";
     // private static final String Users = "nationalism.org";
     // private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
-    
+
     private static int ParallelismDefault = 20;
     private static int ParallelismMonthly = 5;
     private static final boolean ShowProgress = false;
@@ -132,15 +132,15 @@ public class MainForAllHtmlFiles
             Config.User = user;
             Config.mangleUser();
             Config.autoconfigureSite();
-            
+
             Util.out(">>> Processing for user " + Config.User);
-            
+
             processDir("pages", ParallelismDefault);
             processDir("reposts", ParallelismDefault);
             processDir("monthly-pages", ParallelismMonthly);
             processDir("monthly-reposts", ParallelismMonthly);
             processDir("profile", ParallelismDefault);
-         }
+        }
         finally
         {
             ThreadsControl.shutdownAfterUser();
@@ -161,7 +161,7 @@ public class MainForAllHtmlFiles
         }
 
         Util.out(String.format(">>> Processing [%s] directory %s", Config.User, which));
-        
+
         ParserParallelWorkContext ppwc = new ParserParallelWorkContext(Util.enumerateAnyHtmlFiles(htmlPagesRootDir),
                 htmlPagesRootDir,
                 parallelism);
@@ -176,7 +176,7 @@ public class MainForAllHtmlFiles
                 Exception ex = wcx.getException();
                 if (ex != null)
                     throw new Exception("While processing " + wcx.fullFilePath, ex);
-                
+
                 Objects.requireNonNull(wcx.parser, "parser is null");
                 processHtmlFile(wcx.fullFilePath, wcx.relativeFilePath, wcx.parser, wcx.pageFlat);
             }
@@ -185,14 +185,17 @@ public class MainForAllHtmlFiles
         {
             ppwc.close();
         }
-     }
-
-    private void processHtmlFile(String fullFilePath, String relativeFilePath, PageParserDirectBasePassive parser, List<Node> pageFlat) throws Exception
-    {
-        processAwayLinks(fullFilePath, relativeFilePath, parser, pageFlat);
     }
 
-    private void processAwayLinks(String fullFilePath, String relativeFilePath, PageParserDirectBasePassive parser, List<Node> pageFlat) throws Exception
+    private void processHtmlFile(String fullFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
+            List<Node> pageFlat) throws Exception
+    {
+        listAwayLinks(fullFilePath, relativeFilePath, parser, pageFlat);
+    }
+
+    @SuppressWarnings("unused")
+    private void listAwayLinks(String fullFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
+            List<Node> pageFlat) throws Exception
     {
         final String prefix = "https://www.livejournal.com/away?to=";
 
@@ -205,6 +208,40 @@ public class MainForAllHtmlFiles
                 String decoded_href = URLDecoder.decode(href, StandardCharsets.UTF_8.toString());
                 Util.out("AWAY: " + decoded_href);
             }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private void unwrapAwayLinks(String fullFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
+            List<Node> pageFlat) throws Exception
+    {
+        final String prefix = "https://www.livejournal.com/away?to=";
+
+        boolean updated = false;
+
+        for (Node n : JSOUP.findElements(pageFlat, "a"))
+        {
+            String href = JSOUP.getAttribute(n, "href");
+            if (href != null && href.startsWith(prefix))
+            {
+                String original_href = href;
+                
+                href = href.substring(prefix.length());
+                String decoded_href = URLDecoder.decode(href, StandardCharsets.UTF_8.toString());
+
+                JSOUP.updateAttribute(n, "href", decoded_href);
+
+                if (JSOUP.getAttribute(n, "original-href") == null)
+                    JSOUP.setAttribute(n, "original-href", original_href);
+
+                updated = true;
+            }
+        }
+
+        if (updated)
+        {
+            String html = JSOUP.emitHtml(parser.pageRoot);
+            Util.writeToFileSafe(fullFilePath, html);
         }
     }
 }

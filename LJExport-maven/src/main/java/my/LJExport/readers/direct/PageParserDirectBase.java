@@ -1,5 +1,7 @@
 package my.LJExport.readers.direct;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -1151,5 +1153,36 @@ public abstract class PageParserDirectBase
     public String extractDateTimeString() throws Exception
     {
         throw new Exception("Not implemented");
+    }
+
+    /* ============================================================== */
+    
+    public boolean unwrapAwayLinks() throws Exception
+    {
+        final String prefix = "https://www.livejournal.com/away?to=";
+
+        boolean updated = false;
+
+        for (Node n : JSOUP.findElements(pageRoot, "a"))
+        {
+            String href = JSOUP.getAttribute(n, "href");
+            
+            if (href != null && href.startsWith(prefix))
+            {
+                String original_href = href;
+                
+                href = href.substring(prefix.length());
+                String decoded_href = URLDecoder.decode(href, StandardCharsets.UTF_8.toString());
+
+                JSOUP.updateAttribute(n, "href", decoded_href);
+
+                if (JSOUP.getAttribute(n, "original-href") == null)
+                    JSOUP.setAttribute(n, "original-href", original_href);
+
+                updated = true;
+            }
+        }
+        
+        return updated;
     }
 }

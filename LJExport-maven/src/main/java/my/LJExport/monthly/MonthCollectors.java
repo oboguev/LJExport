@@ -217,6 +217,9 @@ public class MonthCollectors
                         LinkDownloader.LINK_REFERENCE_PREFIX_PAGES,
                         LinkDownloader.LINK_REFERENCE_PREFIX_MONTHLY_PAGES);
                 
+                // ### all three kinds: link tag / style tag / style=
+                // ### only processs tags with generated-by or style-altered-by
+                // ### before running display UI dialog asking about Styles
                 // ### StyleProcessor.relocaleLocalHtmlStyleReferences(mc.parser.pageRoot, -1);
                 
             }

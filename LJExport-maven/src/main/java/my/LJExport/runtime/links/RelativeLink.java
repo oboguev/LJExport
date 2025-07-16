@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 
 import my.LJExport.runtime.Util;
+import static my.LJExport.runtime.FilePath.canonicalFile;
 
 public class RelativeLink
 {
@@ -90,12 +91,12 @@ public class RelativeLink
     {
         // Resolve canonical paths
         File linkFile = null;
-        File loadedFile = null; 
-        
+        File loadedFile = null;
+
         try
         {
-            linkFile = new File(linkPath).getCanonicalFile();
-            loadedFile = new File(loadedFilePath).getCanonicalFile();
+            linkFile = canonicalFile(new File(linkPath));
+            loadedFile = canonicalFile(new File(loadedFilePath));
         }
         catch (Exception ex)
         {
@@ -109,7 +110,7 @@ public class RelativeLink
         // Resolve and normalize common root
         if (commonRoot != null)
         {
-            File rootFile = new File(commonRoot).getCanonicalFile();
+            File rootFile = canonicalFile(new File(commonRoot));
 
             if (!isSubpath(linkFile, rootFile) || !isSubpath(loadedFile, rootFile))
                 throw new IllegalArgumentException("Both linkPath and loadedFilePath must be within the commonRoot.");

@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1417,6 +1418,10 @@ public class StyleActionToLocal
         if (style == null || style.isEmpty())
             return true;
 
+        String lc = style.toLowerCase(Locale.ROOT);
+        if (!lc.contains("url"))
+            return true;
+
         // Remove embedded data URLs first
         String clean = EMBEDDED_DATA_URL.matcher(style).replaceAll(" ");
 
@@ -1449,6 +1454,24 @@ public class StyleActionToLocal
     {
         if (cssText == null || cssText.isEmpty())
             return true; // trivially safe
+        
+        // Fast-path shortcut
+        String lc = cssText.toLowerCase(Locale.ROOT);
+
+        boolean mayHaveUrl = lc.contains("url");
+        boolean mayHaveImport = lc.contains("import");
+
+        if (!mayHaveUrl && !mayHaveImport)
+            return true;
+
+        // Clean up @important noise before checking for real @import
+        if (mayHaveImport) {
+            lc = lc.replaceAll("!\\s*important", " ");
+            if (!lc.contains("import"))
+                mayHaveImport = false;
+        }
+
+        // Expensive logic only if needed        
 
         // 1. Remove comments – they cannot introduce live references
         String clean = COMMENTS.matcher(cssText).replaceAll("");
@@ -1457,9 +1480,10 @@ public class StyleActionToLocal
         clean = EMBEDDED_DATA_URL.matcher(clean).replaceAll(" ");
 
         // 3. Look for either url(…) or @import.  Finding either => external ref
-        if (URL_FUNCTION.matcher(clean).find())
+        if (mayHaveUrl && URL_FUNCTION.matcher(clean).find())
             return false;
-        if (IMPORT_DIRECTIVE.matcher(clean).find())
+        
+        if ((mayHaveImport && IMPORT_DIRECTIVE.matcher(clean).find()))
             return false;
 
         return true; // guaranteed clean

@@ -29,7 +29,7 @@ public class MainMakeMonthlyPages
     // private static String Users = "elcour,meast_ru";
     // private static String Users = "udod99.lj-rossia-org";
     // private static String Users = "harmfulgrumpy.dreamwidth-org";
-    private static String Users = "kirovtanin";
+    private static String Users = "maxim_sokolov";
 
     public static void main(String[] args)
     {
@@ -48,7 +48,7 @@ public class MainMakeMonthlyPages
             for (String user : users.split(","))
             {
                 user = user.trim();
-                
+
                 if (user.length() != 0)
                 {
                     if (Config.False)
@@ -128,6 +128,8 @@ public class MainMakeMonthlyPages
             }
         }
 
+        new BuildNavigationIndex(monthlyPagesDir).buildNavigation();
+
         Main.out(String.format(">>> Completed processing monthly %s for user %s", whichDir, Config.User));
     }
 
@@ -142,7 +144,7 @@ public class MainMakeMonthlyPages
     {
         File fproot = new File(root);
 
-        List<Pair<Integer,String>> pairs = new ArrayList<>();
+        List<Pair<Integer, String>> pairs = new ArrayList<>();
 
         for (File fp : fproot.listFiles())
         {
@@ -156,7 +158,7 @@ public class MainMakeMonthlyPages
                 if (!fn.endsWith(dotExtension))
                     continue;
             }
-            
+
             if (fp.isDirectory() != isDir)
                 continue;
 
@@ -176,7 +178,7 @@ public class MainMakeMonthlyPages
                 continue;
             }
 
-            pairs.add(new Pair<Integer,String>(number, fnbase));
+            pairs.add(new Pair<Integer, String>(number, fnbase));
         }
 
         // Sort by number
@@ -184,14 +186,14 @@ public class MainMakeMonthlyPages
 
         // Collect sorted values
         List<String> list = new ArrayList<>();
-        for (Pair<Integer,String> p : pairs)
+        for (Pair<Integer, String> p : pairs)
             list.add(p.fnbase + (dotExtension != null ? dotExtension : ""));
         return list;
     }
 
     /* ===================================================================== */
 
-    static private class Pair<TA,TB>
+    static private class Pair<TA, TB>
     {
         TA number;
         TB fnbase;

@@ -13,7 +13,6 @@ import my.LJExport.readers.direct.PageParserDirectNewStyle;
 import my.LJExport.readers.direct.PageParserDirectRossiaOrg;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.parallel.twostage.parser.ParserParallelWorkContext;
-import my.LJExport.runtime.parallel.twostage.parser.ParserStage1Processor;
 import my.LJExport.runtime.parallel.twostage.parser.ParserWorkContext;
 
 public class MonthProcessor

@@ -29,7 +29,7 @@ public class MainMakeMonthlyPages
     // private static String Users = "elcour,meast_ru";
     // private static String Users = "udod99.lj-rossia-org";
     // private static String Users = "harmfulgrumpy.dreamwidth-org";
-    private static String Users = "maxim_sokolov";
+    private static String Users = "malorus";
 
     public static void main(String[] args)
     {

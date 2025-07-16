@@ -9,6 +9,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.ui.UIDialogQuestion;
 
 /*
  * Создать помесячные страницы с записями
@@ -43,6 +44,16 @@ public class MainMakeMonthlyPages
                 users = String.join(",", list);
             }
 
+            String question = "Если вы применяете локальное сохранение стилей CSS, не забудьте перед построением месячных лент " +
+                    "выполнить программу MainStylesToLocal для привязки загруженных файлов с записями к сохранённым на диск стилям " + 
+                    "вместо стилей на сервере.";
+            String response = UIDialogQuestion.askQuestion(question, "Отменить", "Продолжить", "Отменить");
+            if (!response.equals("Продолжить"))
+            {
+                Util.out(">>> Отмена");
+                return;
+            }
+
             boolean divider = false;
 
             for (String user : users.split(","))
@@ -71,7 +82,7 @@ public class MainMakeMonthlyPages
                     }
                 }
             }
-            
+
             Main.out("");
             Main.out(">>> Completed for all requested users");
         }

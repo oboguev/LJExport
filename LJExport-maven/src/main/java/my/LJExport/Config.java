@@ -7,10 +7,10 @@ import java.util.List;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 
 import my.LJExport.calendar.YYYY_MM;
-import my.LJExport.runtime.ConfigUI;
 import my.LJExport.runtime.PasswordStorage;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.TrustAnySSL;
+import my.LJExport.runtime.ui.UIDialogPassword;
 
 public class Config
 {
@@ -107,6 +107,7 @@ public class Config
     public static int UnloadablePagesAllowed;
     public static boolean RandomizeLoadOrder = true;
     public static final int StableIntevral = 3000;
+    public static boolean ScrapingArchiveOrg = false;
 
     public static boolean UseFiddler = false;
     public static final String FiddlerTrustStore = null;
@@ -177,7 +178,7 @@ public class Config
 
         if (UseFiddler && FiddlerTrustStore != null && FidlerTrustStorePassword == null)
         {
-            FidlerTrustStorePassword = ConfigUI.promptPassword("Enter password for Fiddler trust store");
+            FidlerTrustStorePassword = UIDialogPassword.promptPassword("Enter password for Fiddler trust store");
             if (FidlerTrustStorePassword == null)
                 throw new Exception("Unable to get password");
 
@@ -209,7 +210,7 @@ public class Config
     {
         if (UseLogin && LoginPassword == null)
         {
-            LoginPassword = ConfigUI.promptPassword("Enter password for [" + LoginUser + "] at " + Site);
+            LoginPassword = UIDialogPassword.promptPassword("Enter password for [" + LoginUser + "] at " + Site);
             if (LoginPassword == null)
                 throw new Exception("Unable to get password");
         }
@@ -248,12 +249,12 @@ public class Config
 
     public static boolean isLiveJournal()
     {
-        if (isRossiaOrg() || isDreamwidthOrg())
+        if (isRossiaOrg() || isDreamwidthOrg() || Config.ScrapingArchiveOrg)
             return false;
-        if (Config.User == null || Config.User.length() == 0 || Config.User.contains(".") || Config.User.contains("-"))
+        else if (Config.User == null || Config.User.length() == 0 || Config.User.contains(".") || Config.User.contains("-"))
             return false;
-        // ### archive.org
-        return true;
+        else
+            return true;
     }
 
     public static void autoconfigureSite() throws Exception

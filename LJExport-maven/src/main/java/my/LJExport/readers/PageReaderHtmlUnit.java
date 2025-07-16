@@ -93,14 +93,14 @@ public class PageReaderHtmlUnit implements PageReader
         context.webClient = new WebClient(Config.HtmlUnitBrowserVersion);
         new IncorrectnessListenerX(context.webClient);
         new HTMLParserListenerX(context.webClient);
-        // ### cookie manager (per-thread)
-        // ### set cache (per-thread)
+        // TODO: cookie manager (per-thread)
+        // TODOset cache (per-thread)
         return context;
     }
 
     public PageReaderHtmlUnit(String rurl, String fileDir, Context context)
     {
-        rurl = "2532366.html"; // ###
+        rurl = "2532366.html"; // TODO
         // rurl = "2532366.html"; // test: colonelcassad
         // rurl = "5182367.html"; // test: oboguev (private)
         this.rurl = rurl;

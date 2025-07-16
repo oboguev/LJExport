@@ -75,6 +75,7 @@ public class MainScrapeArchiveOrg
     {
         try
         {
+            Config.ScrapingArchiveOrg = true;
             MainScrapeArchiveOrg self = new MainScrapeArchiveOrg(ArchiveOrgWebRoot, DownloadRoot);
             self.do_main();
         }

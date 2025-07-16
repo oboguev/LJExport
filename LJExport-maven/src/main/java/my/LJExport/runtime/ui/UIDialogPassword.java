@@ -1,4 +1,4 @@
-package my.LJExport.runtime;
+package my.LJExport.runtime.ui;
 
 // http://docs.oracle.com/javase/tutorial/uiswing
 // http://help.eclipse.org/kepler/index.jsp?topic=%2Forg.eclipse.wb.doc.user%2Fhtml%2Findex.html
@@ -13,7 +13,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.SwingUtilities;
 
-public class ConfigUI
+import my.LJExport.runtime.Util;
+
+public class UIDialogPassword
 {
     public static String promptPassword(String prompt) throws Exception
     {

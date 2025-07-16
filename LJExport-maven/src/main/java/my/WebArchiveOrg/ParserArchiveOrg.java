@@ -19,9 +19,18 @@ public class ParserArchiveOrg extends PageParserDirectBasePassive
 
         for (Node n : JSOUP.findElements(pageRoot, "meta"))
         {
-            // ### also handle <meta charset="UTF-8">
+            boolean remove = false;
+
             String heq = JSOUP.getAttribute(n, "http-equiv");
             if (heq != null && heq.equalsIgnoreCase("Content-Type"))
+                remove = true;
+
+            // <meta charset="UTF-8">
+            String charset = JSOUP.getAttribute(n, "charset");
+            if (charset != null)
+                remove = true;
+
+            if (remove)
                 JSOUP.removeElement(pageRoot, n);
         }
 
@@ -43,19 +52,45 @@ public class ParserArchiveOrg extends PageParserDirectBasePassive
 
     public String extractCharset() throws Exception
     {
+        String result = null;
+
         for (Node n : JSOUP.findElements(pageRoot, "meta"))
         {
-            // ### also handle <meta charset="UTF-8">
+            // also handle <meta charset="UTF-8">
             String heq = JSOUP.getAttribute(n, "http-equiv");
             String content = JSOUP.getAttribute(n, "content");
+            String charset = JSOUP.getAttribute(n, "charset");
+
             if (heq != null && heq.equalsIgnoreCase("Content-Type") && content != null)
             {
-                String charset = Web.extractCharsetFromContentType(content);
-                if (charset != null)
-                    return charset;
+                String cs = Web.extractCharsetFromContentType(content);
+                if (cs != null)
+                    result = foundCharset(result, cs);
+            }
+            else if (charset != null)
+            {
+                result = foundCharset(result, charset);
             }
         }
 
         return null;
+    }
+
+    private String foundCharset(String old, String found) throws Exception
+    {
+        if (old == null)
+        {
+            return found;
+        }
+        else if (found == null)
+        {
+            return old;
+        }
+        else
+        {
+            if (!old.equalsIgnoreCase(found))
+                throw new Exception(String.format("Conflicting META charset settings: %s and %s", old, found));
+            return old;
+        }
     }
 }

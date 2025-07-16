@@ -828,6 +828,11 @@ public class StyleActionToLocal
 
             return modifiedCss;
         }
+        else if (cssGoodText != null)
+        {
+            trace(String.format("005.b - finishing with verbatim replacement of bad -> good text"));
+            return cssGoodText;
+        }
         else
         {
             trace(String.format("005.x - finishing with no update"));
@@ -956,6 +961,9 @@ public class StyleActionToLocal
         String lc = absoluteUrl.toLowerCase();
         if (lc.startsWith("data:"))
             return null;
+        
+        if (Config.isLiveJournal() && lc.equals("/img/userinfo_v3.svg?v="))
+            absoluteUrl = "https://l-stat.livejournal.net" + absoluteUrl;
 
         /*
          * Resource is expected to be remote

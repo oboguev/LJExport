@@ -246,6 +246,16 @@ public class Config
         return Config.Site.equals("dreamwidth.org");
     }
 
+    public static boolean isLiveJournal()
+    {
+        if (isRossiaOrg() || isDreamwidthOrg())
+            return false;
+        if (Config.User == null || Config.User.length() == 0 || Config.User.contains(".") || Config.User.contains("-"))
+            return false;
+        // ### archive.org
+        return true;
+    }
+
     public static void autoconfigureSite() throws Exception
     {
         if (AutoconfigureSite)

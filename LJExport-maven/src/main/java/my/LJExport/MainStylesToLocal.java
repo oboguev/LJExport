@@ -182,8 +182,10 @@ public class MainStylesToLocal
         final String dir = userRoot + File.separator + which;
 
         String styleFallbackDir = null;
-        if (!Config.User.contains("."))
+        if (Config.isLiveJournal())
             styleFallbackDir = Config.DownloadRoot + File.separator + "@livejournal-styles";
+        else
+            Util.err(String.format("Processing NOT for LiveJournal, user %s, site %s", Config.User, Config.Site));
 
         if (!which.equals("pages"))
         {

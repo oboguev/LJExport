@@ -34,7 +34,8 @@ public class MainForAllUsers
 
             do_users(Users);
 
-            Util.out(String.format(">>> Completed all users"));
+            Util.out("");
+            Util.out(">>> Completed for all requested users");
         }
         catch (Exception ex)
         {

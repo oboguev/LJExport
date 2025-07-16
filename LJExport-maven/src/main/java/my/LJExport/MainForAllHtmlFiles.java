@@ -46,7 +46,8 @@ public class MainForAllHtmlFiles
 
             do_users(Users);
 
-            Util.out(String.format(">>> Completed all files"));
+            Util.out("");
+            Util.out(">>> Completed for all requested users and their files");
         }
         catch (Exception ex)
         {
@@ -180,7 +181,7 @@ public class MainForAllHtmlFiles
                     throw new Exception("While processing " + wcx.fullFilePath, ex);
 
                 Objects.requireNonNull(wcx.parser, "parser is null");
-                processHtmlFile(wcx.fullFilePath, wcx.relativeFilePath, wcx.parser, wcx.pageFlat);
+                processHtmlFile(wcx.fullFilePath, wcx.relativeFilePath, wcx.parser, wcx.parser.getCachedPageFlat());
             }
         }
         finally

@@ -1148,7 +1148,7 @@ public class StyleActionToLocal
             if (errorMessageLog != null)
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append(String.format("Bad URL:   %s%s", originalUrl, nl));
+                sb.append(String.format("Bad URL:         %s%s", originalUrl, nl));
                 sb.append(String.format("Fixed to:  %s%s", fixedUrl, nl));
                 errorMessageLog.add(sb.toString());
             }

@@ -28,8 +28,8 @@ public class MainStylesToLocal
     // private static final String AllUsersFromUser = "kot_begemott";
     private static final String AllUsersFromUser = null;
 
-    // private static final String Users = ALL_USERS;
-    private static final String Users = "oboguev";
+    private static final String Users = ALL_USERS;
+    // private static final String Users = "oboguev";
     // private static final String Users = "nationalism.org";
 
     private static final boolean ShowStylesProgress = true;

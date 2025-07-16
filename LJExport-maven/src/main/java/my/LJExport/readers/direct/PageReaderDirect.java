@@ -233,6 +233,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
     {
         parser.pageSource = null;
         parser.pageRoot = null;
+        parser.resetCache();
 
         /*
          * Try to load from manual-save override location.
@@ -262,6 +263,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
             sb.append("&page=" + npage);
 
         parser.pageRoot = null;
+        parser.resetCache();
         lastReadPageSource = null;
 
         parser.pageSource = lastReadPageSource = load(sb.toString(), finalUrl);

@@ -66,6 +66,10 @@ public abstract class PageParserDirectBase
         this.rurl = other.rurl;
         this.rid = other.rid;
         this.commentsJson = other.commentsJson;
+
+        this.cachedPageFlat = other.cachedPageFlat;
+        this.cachedHead = other.cachedHead;
+        this.cachedBody = other.cachedBody;
     }
 
     protected String getPageSource() throws Exception
@@ -91,6 +95,10 @@ public abstract class PageParserDirectBase
     public String rurl;
     public String rid;
 
+    private List<Node> cachedPageFlat;
+    private Element cachedHead;
+    private Element cachedBody;
+
     public void resetParser()
     {
         npages = -1;
@@ -101,6 +109,8 @@ public abstract class PageParserDirectBase
 
         rurl = null;
         rid = null;
+
+        resetCache();
     }
 
     private String linkReferencePrefix = LinkDownloader.LINK_REFERENCE_PREFIX_PAGES;
@@ -122,27 +132,68 @@ public abstract class PageParserDirectBase
         Main.err(s);
     }
 
-    public void parseHtml(String html) throws Exception
-    {
-        this.pageSource = html;
-        this.pageRoot = JSOUP.parseHtml(html);
-    }
-
     public void parseHtml() throws Exception
     {
         parseHtml(this.pageSource);
     }
 
+    public void parseHtml(String html) throws Exception
+    {
+        resetCache();
+        this.pageSource = html;
+        this.pageRoot = JSOUP.parseHtml(html);
+        evalCache();
+    }
+
     public void parseHtmlWithBaseUrl(String baseUrl) throws Exception
     {
+        resetCache();
         this.pageRoot = JSOUP.parseHtml(this.pageSource, baseUrl);
+        evalCache();
     }
 
     public void parseHtmlWithBaseUrl(String html, String baseUrl) throws Exception
     {
+        resetCache();
         this.pageSource = html;
         this.pageRoot = JSOUP.parseHtml(html, baseUrl);
+        evalCache();
     }
+
+    public void resetCache()
+    {
+        cachedPageFlat = null;
+        cachedHead = null;
+        cachedBody = null;
+    }
+
+    public void evalCache() throws Exception
+    {
+        resetCache();
+        this.cachedPageFlat = JSOUP.flatten(pageRoot);
+        this.cachedHead = findHead();
+        this.cachedBody = getBodyTag();
+    }
+
+    public List<Node> getCachedPageFlat() throws Exception
+    {
+        if (cachedPageFlat != null)
+            return cachedPageFlat;
+        else
+            return JSOUP.flatten(pageRoot);
+    }
+
+    protected Element getCachedHead()
+    {
+        return cachedHead;
+    }
+
+    protected Element getCachedBody()
+    {
+        return cachedBody;
+    }
+
+    /* ============================================================== */
 
     public boolean isBadGatewayPage(String html) throws Exception
     {
@@ -876,7 +927,11 @@ public abstract class PageParserDirectBase
 
     public Element getBodyTag() throws Exception
     {
-        List<Node> bodies = JSOUP.findElements(pageRoot, "body");
+        Element body = getCachedBody();
+        if (body != null)
+            return body;
+
+        List<Node> bodies = JSOUP.findElements(getCachedPageFlat(), "body");
         if (bodies.size() != 1)
             throw new Exception("Unable to locate the BODY tag");
         return (Element) bodies.get(0);
@@ -988,10 +1043,14 @@ public abstract class PageParserDirectBase
 
     public Element findHead() throws Exception
     {
-        List<Node> heads = JSOUP.findElements(pageRoot, "head");
+        Element head = getCachedHead();
+        if (head != null)
+            return head;
+
+        List<Node> heads = JSOUP.findElements(getCachedPageFlat(), "head");
         if (heads.size() != 1)
             throw new Exception("Unable to locate the HEAD tag");
-        Element head = (Element) heads.get(0);
+        head = (Element) heads.get(0);
         return head;
     }
 
@@ -1149,14 +1208,14 @@ public abstract class PageParserDirectBase
     }
 
     /* ============================================================== */
-    
+
     public String extractDateTimeString() throws Exception
     {
         throw new Exception("Not implemented");
     }
 
     /* ============================================================== */
-    
+
     public boolean unwrapAwayLinks() throws Exception
     {
         final String prefix = "https://www.livejournal.com/away?to=";
@@ -1166,11 +1225,11 @@ public abstract class PageParserDirectBase
         for (Node n : JSOUP.findElements(pageRoot, "a"))
         {
             String href = JSOUP.getAttribute(n, "href");
-            
+
             if (href != null && href.startsWith(prefix))
             {
                 String original_href = href;
-                
+
                 href = href.substring(prefix.length());
                 String decoded_href = URLDecoder.decode(href, StandardCharsets.UTF_8.toString());
 
@@ -1182,7 +1241,7 @@ public abstract class PageParserDirectBase
                 updated = true;
             }
         }
-        
+
         return updated;
     }
 }

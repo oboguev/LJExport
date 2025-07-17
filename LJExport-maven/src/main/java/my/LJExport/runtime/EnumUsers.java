@@ -48,6 +48,7 @@ public class EnumUsers
         // known non-user directories with different content and layout
         users.remove("@debug");
         users.remove("@temp");
+        users.remove("@admin");
         users.remove("colonelcassad.my_comments");
         users.remove("d_olshansky.comments");
         users.remove("d_olshansky.ljsearch");

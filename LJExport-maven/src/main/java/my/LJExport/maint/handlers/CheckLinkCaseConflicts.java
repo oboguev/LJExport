@@ -10,17 +10,20 @@ import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 
+/*
+ * Check for case conflicts in link file names.
+ */
 public class CheckLinkCaseConflicts extends MaintenanceHandler 
 {
     @Override
-    protected void beginUsers()
+    protected void beginUsers() throws Exception
     {
         Util.out(">>> Checking link case conflicts");
         super.beginUsers("Checking link case conflicts");
     }
 
     @Override
-    protected void endUsers()
+    protected void endUsers() throws Exception
     {
         super.endUsers();
     }

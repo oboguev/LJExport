@@ -17,6 +17,7 @@ import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.ErrorMessageLog;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.MemoryMonitor;
+import my.LJExport.runtime.TxLog;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
@@ -45,6 +46,7 @@ public class Maintenance
 
     protected static final String nl = "\n";
     protected static final ErrorMessageLog errorMessageLog = new ErrorMessageLog();
+    protected static TxLog txLog;
 
     public static void main(String[] args)
     {
@@ -52,6 +54,13 @@ public class Maintenance
         {
             LimitProcessorUsage.limit();
             MemoryMonitor.startMonitor();
+
+            txLog = new TxLog(Config.DownloadRoot + File.separator + "@admin" + File.separator + "transaction.log");
+            txLog.open();
+            txLog.writeLine(" ");
+            txLog.writeLine("==========================================================");
+            txLog.writeLine(" Maintenance started at " + Util.timeNow());
+
             // HttpWireTracing.enable();
 
             do_users(Users, new CountFiles());
@@ -65,6 +74,10 @@ public class Maintenance
             Util.err("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
             Main.emergency_logout();
+        }
+        finally
+        {
+            Util.safeClose(txLog);
         }
 
         if (errorMessageLog.length() != 0)
@@ -195,12 +208,12 @@ public class Maintenance
 
     /* ================================================= */
 
-    protected void beginUsers()
+    protected void beginUsers() throws Exception
     {
         beginUsers("Processing HTML files");
     }
 
-    protected void beginUsers(String title)
+    protected void beginUsers(String title) throws Exception
     {
         if (consoleProgress == null)
         {
@@ -211,7 +224,7 @@ public class Maintenance
         stageProcessedFileCount = 0;
     }
 
-    protected void endUsers()
+    protected void endUsers() throws Exception
     {
         if (consoleProgress != null)
         {
@@ -220,27 +233,27 @@ public class Maintenance
         }
     }
 
-    protected void beginUser()
+    protected void beginUser() throws Exception
     {
         Util.out(">>>     Processing user " + Config.User);
     }
 
-    protected void endUser()
+    protected void endUser() throws Exception
     {
     }
 
-    protected boolean onEnumFiles(String which, List<String> enumeratedFiles)
+    protected boolean onEnumFiles(String which, List<String> enumeratedFiles) throws Exception
     {
         Util.out(String.format(">>>         Processing [%s] directory %s", Config.User, which));
         return true;
     }
 
-    protected boolean isParallel()
+    protected boolean isParallel() throws Exception
     {
         return true;
     }
 
-    protected void printDivider()
+    protected void printDivider() throws Exception
     {
         Util.out("");
         Util.out("=====================================================================================");

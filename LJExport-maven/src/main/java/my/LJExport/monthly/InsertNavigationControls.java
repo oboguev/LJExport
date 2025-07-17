@@ -129,7 +129,7 @@ public class InsertNavigationControls
             navDiv.appendChild(new Element(Tag.valueOf("a"), "")
                     .addClass("ljexport-partial-underline")
                     .attr("href", prev.file.getName())
-                    .text("<<< раньше к " + prev.displayLabel()));
+                    .text("◄ раньше к " + prev.displayLabel()));
             needDivider = true;
         }
 
@@ -149,7 +149,7 @@ public class InsertNavigationControls
             navDiv.appendChild(new Element(Tag.valueOf("a"), "")
                     .addClass("ljexport-partial-underline")
                     .attr("href", next.file.getName())
-                    .text("дальше к " + next.displayLabel() + " >>>"));
+                    .text("дальше к " + next.displayLabel() + " ►"));
         }
 
         body.appendChild(navDiv);

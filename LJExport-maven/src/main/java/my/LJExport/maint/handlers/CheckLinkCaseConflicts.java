@@ -36,8 +36,6 @@ public class CheckLinkCaseConflicts extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, "img"))
         {
             String href = JSOUP.getAttribute(n, "src");
-            if (href == null || !href.startsWith("../"))
-                continue;
             
             LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
             if (linkInfo == null)

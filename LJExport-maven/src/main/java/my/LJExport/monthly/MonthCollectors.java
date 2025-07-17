@@ -209,7 +209,11 @@ public class MonthCollectors
             File fp = new File(monthlyFilePath).getCanonicalFile();
             fp = fp.getParentFile();
             if (!fp.exists())
+            {
                 fp.mkdirs();
+                if (!fp.exists())
+                    throw new Exception("Unable to create directory " + fp.getCanonicalPath());
+            }
 
             if (!ljsearch)
             {

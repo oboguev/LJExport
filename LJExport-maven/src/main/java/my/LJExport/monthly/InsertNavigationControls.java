@@ -9,6 +9,7 @@ import org.jsoup.nodes.Node;
 import org.jsoup.parser.Tag;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -84,7 +85,7 @@ public class InsertNavigationControls
 
     private void insertNavigation(MonthEntry current, MonthEntry prev, MonthEntry next) throws Exception
     {
-        Util.out("    " + current);
+        Util.out("    Inserting navigation for " + current);
 
         String html = Util.readFileAsString(current.file.getAbsolutePath());
         PageParserDirectBase parser = new PageParserDirectBasePassive();
@@ -101,7 +102,6 @@ public class InsertNavigationControls
         Element navDiv = new Element(Tag.valueOf("div"), "")
                 .attr("id", "ljexport-monthly-navigation")
                 .attr("style", "text-align: center; margin-bottom: 2em; font-size: 140%;");
-        
 
         // Вставляем <style> внутрь div
         Element style = new Element(Tag.valueOf("style"), "").text(
@@ -128,7 +128,7 @@ public class InsertNavigationControls
         {
             navDiv.appendChild(new Element(Tag.valueOf("a"), "")
                     .addClass("ljexport-partial-underline")
-                    .attr("href", prev.file.getName())
+                    .attr("href", computeRelativeHref(current.file, prev.file))
                     .text("◄ раньше к " + prev.displayLabel()));
             needDivider = true;
         }
@@ -148,7 +148,7 @@ public class InsertNavigationControls
             navDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;");
             navDiv.appendChild(new Element(Tag.valueOf("a"), "")
                     .addClass("ljexport-partial-underline")
-                    .attr("href", next.file.getName())
+                    .attr("href", computeRelativeHref(current.file, next.file))
                     .text("дальше к " + next.displayLabel() + " ►"));
         }
 
@@ -157,6 +157,22 @@ public class InsertNavigationControls
         String updatedHtml = JSOUP.emitHtml(parser.pageRoot);
         Util.writeToFileSafe(current.file.getAbsolutePath(), updatedHtml);
         Util.noop();
+    }
+
+    private static String computeRelativeHref(File from, File to)
+    {
+        try
+        {
+            Path fromPath = from.getParentFile().toPath().toAbsolutePath().normalize();
+            Path toPath = to.toPath().toAbsolutePath().normalize();
+            Path relPath = fromPath.relativize(toPath);
+            return relPath.toString().replace(File.separatorChar, '/');
+        }
+        catch (Exception e)
+        {
+            // fallback: just file name (may fail, but avoids crash)
+            return to.getName();
+        }
     }
 
     private static class MonthEntry implements Comparable<MonthEntry>

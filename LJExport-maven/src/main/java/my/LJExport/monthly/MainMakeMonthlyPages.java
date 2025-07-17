@@ -22,7 +22,7 @@ public class MainMakeMonthlyPages
     private static final String AllUsersFromUser = null;
     // private static final String AllUsersFromUser = "olegnemen";
 
-    private static final String Users = ALL_USERS;
+    // private static final String Users = ALL_USERS;
     // private static String Users = "alex_vergin,asriyan,blog_10101,hokma,sergeytsvetkov";
     // private static String Users = "alex_vergin";
     // private static String Users = "amfora,colonelcassad,fluffyduck2,genby,kot_begemott,lasido,sergeytsvetkov,von_hoffmann";
@@ -30,7 +30,7 @@ public class MainMakeMonthlyPages
     // private static String Users = "elcour,meast_ru";
     // private static String Users = "udod99.lj-rossia-org";
     // private static String Users = "harmfulgrumpy.dreamwidth-org";
-    // private static String Users = "malorus";
+    private static String Users = "oboguev";
 
     public static void main(String[] args)
     {

@@ -12,10 +12,13 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -824,7 +827,38 @@ public class Util
         else
         {
             // Delete file or empty directory
-            return root.delete();
+            if (!root.exists())
+                return true;
+
+            try
+            {
+                Files.delete(root.toPath());
+                return true;
+            }
+            catch (DirectoryNotEmptyException ex)
+            {
+                Util.err(String.format("Unable to delete %s, directory is not empty", root.getCanonicalPath()));
+                return false;
+            }
+            catch (AccessDeniedException ex)
+            {
+                Util.err(String.format("Unable to delete %s, access denied", root.getCanonicalPath()));
+                return false;
+            }
+            catch (NoSuchFileException ex)
+            {
+                if (!root.exists())
+                    return true;
+                Util.err(String.format("Unable to delete %s, no such file, cause: %s", root.getCanonicalPath(), ex.getLocalizedMessage()));
+                return false;
+            }
+            catch (IOException ex)
+            {
+                // This gives the actual reason
+                // ex.printStackTrace();
+                Util.err(String.format("Unable to delete %s, cause: %s", root.getCanonicalPath(), ex.getLocalizedMessage()));
+                return false;
+            }
         }
     }
 

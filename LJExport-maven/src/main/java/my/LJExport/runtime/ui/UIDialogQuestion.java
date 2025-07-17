@@ -10,7 +10,6 @@ import javax.swing.UIManager;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.WindowAdapter;

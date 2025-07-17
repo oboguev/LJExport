@@ -44,12 +44,14 @@ public class LinkDownloader
     private FileBackedMap href2file = new FileBackedMap();
     private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private String linksDir;
+    
+    public static final String LinkMapFileName = "map-href-file.txt";
 
     public synchronized void init(String linksDir) throws Exception
     {
         close();
         href2file.close();
-        href2file.init(linksDir + File.separator + "map-href-file.txt");
+        href2file.init(linksDir + File.separator + LinkMapFileName);
         failedSet.clear();
         this.linksDir = linksDir;
     }

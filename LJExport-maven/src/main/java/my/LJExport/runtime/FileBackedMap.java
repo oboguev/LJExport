@@ -1,6 +1,8 @@
 package my.LJExport.runtime;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +24,7 @@ public class FileBackedMap
     private ExclusiveFileAccess efa;
 
     public static final String SEPARATOR = "----";
-    private final String nl = Util.isWindowsOS() ? "\r\n" : "\n";
+    private static final String nl = Util.isWindowsOS() ? "\r\n" : "\n";
 
     public synchronized void init(String path) throws IOException
     {
@@ -85,7 +87,7 @@ public class FileBackedMap
 
         initialized = true;
     }
-    
+
     public String getPath() throws Exception
     {
         return file.getCanonicalPath();
@@ -158,5 +160,70 @@ public class FileBackedMap
             throw new RuntimeException("Link file path is not within links storage");
         s = s.substring(filePathPrefix.length());
         return s.replace(File.separator, "/");
+    }
+
+    /* ================================================================================ */
+
+    public static class LinkMapEntry
+    {
+        public String key;
+        public String value;
+
+        public LinkMapEntry(String key, String value)
+        {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
+    public static List<LinkMapEntry> readMapFile(String path) throws Exception
+    {
+        List<LinkMapEntry> list = new ArrayList<>();
+
+        String content = Util.readFileAsString(new File(path).getCanonicalPath());
+        content = content.replace("\r\n", "\n");
+        List<String> lines = new ArrayList<>(Arrays.asList(content.split("\n")));
+
+        while (lines.size() >= 3)
+        {
+            String key = lines.remove(0);
+            String value = lines.remove(0);
+            String separator = lines.remove(0);
+
+            if (key.trim().length() == 0 && value.trim().length() == 0 && separator.trim().length() == 0)
+                continue;
+
+            if (!separator.trim().equals(SEPARATOR))
+                throw new IOException("Invalid file format");
+            key = key.trim();
+            value = value.trim();
+            list.add(new LinkMapEntry(key, value));
+        }
+
+        while (lines.size() != 0)
+        {
+            String s = lines.remove(0);
+            if (s.trim().length() != 0)
+                throw new IOException("Invalid file format");
+        }
+
+        return list;
+    }
+
+    public static String recomposeMapFile(List<LinkMapEntry> list) throws Exception
+    {
+        StringBuilder sb = new StringBuilder();
+        
+        for (LinkMapEntry e : list)
+        {
+            sb.append(e.key)
+            .append(nl)
+            .append(e.value)
+            .append(nl)
+            .append(SEPARATOR)
+            .append(nl);
+        }
+
+        return sb.toString();
     }
 }

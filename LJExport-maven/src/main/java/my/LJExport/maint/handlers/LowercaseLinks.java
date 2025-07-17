@@ -10,8 +10,11 @@ import java.util.Set;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.runtime.FileBackedMap;
+import my.LJExport.runtime.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.links.LinkDownloader;
 
 /*
  * Lowercase link file and dir names in:
@@ -155,12 +158,34 @@ public class LowercaseLinks extends MaintenanceHandler
 
         Files.move(new File(indir, fn).toPath(), new File(indir, tname).toPath(), StandardCopyOption.ATOMIC_MOVE);
         Files.move(new File(indir, tname).toPath(), new File(indir, lcfn).toPath(), StandardCopyOption.ATOMIC_MOVE);
+        txLog.writeLine("renamed OK");
     }
 
     /* =================================================================================== */
 
     private void lowercaseLinksMap() throws Exception
     {
-        // ###
+        String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+        boolean update = false;
+
+        List<LinkMapEntry> list = FileBackedMap.readMapFile(mapFilePath);
+        
+        for (LinkMapEntry e : list)
+        {
+            String lc = e.value.toLowerCase();
+            if (!lc.equals(e.value))
+            {
+                e.value = lc;
+                update = true;
+            }
+        }
+        
+        if (update)
+        {
+            txLog.writeLine("updating links map " + mapFilePath);
+            String content = FileBackedMap.recomposeMapFile(list);
+            Util.writeToFileVerySafe(mapFilePath, content);
+            txLog.writeLine("updated OK");
+        }
     }
 }

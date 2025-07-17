@@ -36,10 +36,10 @@ import my.LJExport.runtime.Util;
  *
  * <p>The filenames must follow the strict pattern <code>YYYY-MM.html</code>.</p>
  */
-public class BuildNavigationIndex
+public final class BuildNavigationIndex
 {
     private static final Pattern YEAR_DIR_PATTERN = Pattern.compile("^\\d{4}$");
-    private static final Pattern MONTH_FILE_PATTERN = Pattern.compile("^(\\d{4})-(\\d{2})\\.html$");
+    private static final Pattern MONTH_FILE_PATTERN = Pattern.compile("^(\\d{4})-(\\d{2})(?:-(\\d+))?\\.html$");
 
     private final Path rootDir;
 
@@ -51,9 +51,9 @@ public class BuildNavigationIndex
 
     public void buildNavigation() throws Exception
     {
-        Map<Integer, SortedSet<Integer>> monthsByYear = scanDirectoryTree();
+        Map<Integer, SortedMap<Integer, List<String>>> filesByYearAndMonth = scanDirectoryTree();
 
-        for (Map.Entry<Integer, SortedSet<Integer>> e : monthsByYear.entrySet())
+        for (Map.Entry<Integer, SortedMap<Integer, List<String>>> e : filesByYearAndMonth.entrySet())
         {
             int year = e.getKey();
             Path yearDir = rootDir.resolve(Integer.toString(year));
@@ -61,18 +61,18 @@ public class BuildNavigationIndex
             Util.writeToFileSafe(yearDir.resolve("index.html").toString(), content);
         }
 
-        String rootContent = buildRootIndexHtml(monthsByYear);
+        String rootContent = buildRootIndexHtml(filesByYearAndMonth);
         Util.writeToFileSafe(rootDir.resolve("index.html").toString(), rootContent);
     }
 
-    private Map<Integer, SortedSet<Integer>> scanDirectoryTree() throws Exception
+    private Map<Integer, SortedMap<Integer, List<String>>> scanDirectoryTree() throws Exception
     {
         if (!Files.isDirectory(rootDir))
         {
             throw new IllegalArgumentException("rootDir does not exist or is not a directory: " + rootDir);
         }
 
-        Map<Integer, SortedSet<Integer>> result = new TreeMap<>();
+        Map<Integer, SortedMap<Integer, List<String>>> result = new TreeMap<>();
 
         try (DirectoryStream<Path> years = Files.newDirectoryStream(rootDir))
         {
@@ -93,7 +93,8 @@ public class BuildNavigationIndex
                 {
                     for (Path file : files)
                     {
-                        Matcher m = MONTH_FILE_PATTERN.matcher(file.getFileName().toString());
+                        String fileName = file.getFileName().toString();
+                        Matcher m = MONTH_FILE_PATTERN.matcher(fileName);
                         if (!m.matches())
                         {
                             continue;
@@ -108,15 +109,26 @@ public class BuildNavigationIndex
                         {
                             continue;
                         }
-                        result.computeIfAbsent(year, y -> new TreeSet<>()).add(month);
+                        result.computeIfAbsent(year, y -> new TreeMap<>())
+                                .computeIfAbsent(month, mth -> new ArrayList<>())
+                                .add(fileName);
                     }
                 }
             }
         }
+
+        for (SortedMap<Integer, List<String>> monthMap : result.values())
+        {
+            for (List<String> files : monthMap.values())
+            {
+                files.sort(Comparator.naturalOrder());
+            }
+        }
+
         return result;
     }
 
-    private static String buildYearIndexHtml(int year, SortedSet<Integer> months)
+    private static String buildYearIndexHtml(int year, SortedMap<Integer, List<String>> monthFiles)
     {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<title>")
@@ -126,41 +138,53 @@ public class BuildNavigationIndex
 
         sb.append("<h1>").append(year).append("</h1>\n\n");
 
-        for (int m : months)
+        for (Map.Entry<Integer, List<String>> e : monthFiles.entrySet())
         {
-            String fname = String.format("%04d-%02d.html", year, m);
-            String label = String.format("%04d %02d", year, m);
-            sb.append("&nbsp;&nbsp;&nbsp;&nbsp;")
-                    .append(String.format("<a class=\"partial-underline\" href=\"%s\">%s</a><br>\n", fname, label));
+            int month = e.getKey();
+            List<String> files = e.getValue();
+            for (String fname : files)
+            {
+                int part = extractPartSuffix(fname);
+                String label = String.format("%04d %02d%s", year, month, (files.size() > 1 ? " часть " + part : ""));
+                sb.append("&nbsp;&nbsp;&nbsp;&nbsp;")
+                        .append(String.format("<a class=\"partial-underline\" href=\"%s\">%s</a><br>\n", fname, label));
+            }
         }
 
         sb.append("</body>\n</html>\n");
         return sb.toString();
     }
 
-    private String buildRootIndexHtml(Map<Integer, SortedSet<Integer>> monthsByYear)
+    private String buildRootIndexHtml(Map<Integer, SortedMap<Integer, List<String>>> filesByYearAndMonth)
     {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Archive index</title>\n")
                 .append(STYLE_BLOCK)
                 .append("</head>\n<body>\n");
 
-        for (Iterator<Map.Entry<Integer, SortedSet<Integer>>> it = monthsByYear.entrySet().iterator(); it.hasNext();)
+        for (Iterator<Map.Entry<Integer, SortedMap<Integer, List<String>>>> it = filesByYearAndMonth.entrySet().iterator(); it
+                .hasNext();)
         {
-            Map.Entry<Integer, SortedSet<Integer>> entry = it.next();
+            Map.Entry<Integer, SortedMap<Integer, List<String>>> entry = it.next();
             int year = entry.getKey();
-            SortedSet<Integer> months = entry.getValue();
+            SortedMap<Integer, List<String>> monthFiles = entry.getValue();
 
             sb.append("<a class=\"partial-underline\" href=\"")
                     .append(year).append("/index.html\"><b>")
                     .append(year).append("</b></a><br><br>\n");
 
-            for (int m : months)
+            for (Map.Entry<Integer, List<String>> e : monthFiles.entrySet())
             {
-                String path = String.format("%04d/%04d-%02d.html", year, year, m);
-                String label = String.format("%04d %02d", year, m);
-                sb.append("&nbsp;&nbsp;&nbsp;&nbsp;")
-                        .append(String.format("<a class=\"partial-underline\" href=\"%s\">%s</a><br>\n", path, label));
+                int month = e.getKey();
+                List<String> files = e.getValue();
+                for (String fname : files)
+                {
+                    int part = extractPartSuffix(fname);
+                    String path = String.format("%04d/%s", year, fname);
+                    String label = String.format("%04d %02d%s", year, month, (files.size() > 1 ? " часть " + part : ""));
+                    sb.append("&nbsp;&nbsp;&nbsp;&nbsp;")
+                            .append(String.format("<a class=\"partial-underline\" href=\"%s\">%s</a><br>\n", path, label));
+                }
             }
 
             if (it.hasNext())
@@ -171,6 +195,23 @@ public class BuildNavigationIndex
 
         sb.append("</body>\n</html>\n");
         return sb.toString();
+    }
+
+    private static int extractPartSuffix(String filename)
+    {
+        int lastDash = filename.lastIndexOf('-');
+        int dot = filename.lastIndexOf('.');
+        if (lastDash >= 0 && dot > lastDash)
+        {
+            try
+            {
+                return Integer.parseInt(filename.substring(lastDash + 1, dot));
+            }
+            catch (NumberFormatException ignored)
+            {
+            }
+        }
+        return 1;
     }
 
     private static final String STYLE_BLOCK = "<style>\n" +

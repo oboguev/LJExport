@@ -217,7 +217,6 @@ public class MonthCollectors
                         LinkDownloader.LINK_REFERENCE_PREFIX_PAGES,
                         LinkDownloader.LINK_REFERENCE_PREFIX_MONTHLY_PAGES);
                 
-                // ### before running display UI dialog asking about Styles
                 // ### only relocate relative links pointing to ....../styles/style.2* 
                 // ### StyleProcessor.relocaleLocalHtmlStyleReferences(mc.parser.pageRoot, -1);
                 

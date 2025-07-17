@@ -3,7 +3,7 @@ package my.LJExport.maint.handlers;
 import java.io.File;
 
 import my.LJExport.Config;
-import my.LJExport.maint.Maintenance;
+import my.LJExport.maintenance.Maintenance;
 import my.LJExport.runtime.FilePath;
 
 public abstract class MaintenanceHandler extends Maintenance

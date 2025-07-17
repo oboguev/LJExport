@@ -2,7 +2,7 @@ package my.LJExport.maint.handlers;
 
 import java.util.List;
 
-import my.LJExport.maint.Maintenance;
+import my.LJExport.maintenance.Maintenance;
 import my.LJExport.runtime.Util;
 
 public class CountFiles extends MaintenanceHandler 

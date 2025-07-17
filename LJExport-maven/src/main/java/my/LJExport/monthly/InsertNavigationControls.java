@@ -24,12 +24,12 @@ public class InsertNavigationControls
     public static final String DIVIDER = "<div style=\"height: 7px;border: 1;box-shadow: inset 0 9px 9px -3px" + nl +
             "      rgba(11, 99, 184, 0.8);-webkit-border-radius:" + nl +
             "      5px;-moz-border-radius: 5px;-ms-border-radius:" + nl +
-            "      5px;-o-border-radius: 5px;border-radius: 5px;\">";
+            "      5px;-o-border-radius: 5px;border-radius: 5px;\"></div>";
 
     public InsertNavigationControls(String monthlyRootDir, String dividerHtml)
     {
         this.rootDir = new File(monthlyRootDir);
-        this.dividerHtml = dividerHtml;
+        this.dividerHtml = dividerHtml + "<br>";
     }
 
     public void insertContols() throws Exception
@@ -85,7 +85,7 @@ public class InsertNavigationControls
     private void insertNavigation(MonthEntry current, MonthEntry prev, MonthEntry next) throws Exception
     {
         Util.out("    " + current);
-        
+
         String html = Util.readFileAsString(current.file.getAbsolutePath());
         PageParserDirectBase parser = new PageParserDirectBasePassive();
         parser.parseHtml(html);
@@ -98,7 +98,10 @@ public class InsertNavigationControls
         for (Node n : JSOUP.findElements(parser.pageRoot, "div", "id", "ljexport-monthly-navigation"))
             JSOUP.removeElement(parser.pageRoot, n);
 
-        Element navDiv = new Element(Tag.valueOf("div"), "").attr("id", "ljexport-monthly-navigation");
+        Element navDiv = new Element(Tag.valueOf("div"), "")
+                .attr("id", "ljexport-monthly-navigation")
+                .attr("style", "text-align: center; margin-bottom: 2em; font-size: 140%;");
+        
 
         // Вставляем <style> внутрь div
         Element style = new Element(Tag.valueOf("style"), "").text(
@@ -146,13 +149,14 @@ public class InsertNavigationControls
             navDiv.appendChild(new Element(Tag.valueOf("a"), "")
                     .addClass("ljexport-partial-underline")
                     .attr("href", next.file.getName())
-                    .text("дальше к " + next.displayLabel() + ">>>"));
+                    .text("дальше к " + next.displayLabel() + " >>>"));
         }
 
         body.appendChild(navDiv);
 
         String updatedHtml = JSOUP.emitHtml(parser.pageRoot);
         Util.writeToFileSafe(current.file.getAbsolutePath(), updatedHtml);
+        Util.noop();
     }
 
     private static class MonthEntry implements Comparable<MonthEntry>
@@ -181,7 +185,7 @@ public class InsertNavigationControls
                 return year + " " + month + " части " + part;
             }
         }
-        
+
         @Override
         public String toString()
         {

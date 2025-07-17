@@ -5,7 +5,7 @@ import java.util.List;
 import my.LJExport.maint.Maintenance;
 import my.LJExport.runtime.Util;
 
-public class CountFiles extends Maintenance
+public class CountFiles extends MaintenanceHandler 
 {
     private int totalFileCount = 0;
     

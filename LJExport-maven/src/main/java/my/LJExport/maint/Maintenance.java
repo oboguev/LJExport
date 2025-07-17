@@ -11,6 +11,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.maint.handlers.CheckLinkCaseConflicts;
 import my.LJExport.maint.handlers.CountFiles;
+import my.LJExport.maint.handlers.MaintenanceHandler;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.ErrorMessageLog;
@@ -41,7 +42,7 @@ public class Maintenance
     public static int TotalFileCount = 0;
     private static ConsoleProgress consoleProgress = null;
     private static int stageProcessedFileCount = 0;
-    
+
     protected static final String nl = "\n";
     protected static final ErrorMessageLog errorMessageLog = new ErrorMessageLog();
 
@@ -79,17 +80,17 @@ public class Maintenance
         Main.playCompletionSound();
     }
 
-    private static void do_users(String users, Maintenance handler) throws Exception
+    private static void do_users(String users, MaintenanceHandler handler) throws Exception
     {
         do_users(users, handler, null);
     }
 
-    private static void do_users(String users, Class<? extends Maintenance> clz) throws Exception
+    private static void do_users(String users, Class<? extends MaintenanceHandler> clz) throws Exception
     {
         do_users(users, null, clz);
     }
 
-    private static void do_users(String users, Maintenance handler, Class<? extends Maintenance> clz) throws Exception
+    private static void do_users(String users, MaintenanceHandler handler, Class<? extends MaintenanceHandler> clz) throws Exception
     {
         /* can be set in debugger */
         boolean forceExitNow = false;
@@ -109,7 +110,7 @@ public class Maintenance
             RateLimiter.LJ_IMAGES.setRateLimit(100);
         }
 
-        Maintenance exec = null;
+        MaintenanceHandler exec = null;
 
         StringTokenizer st = new StringTokenizer(users, ", \t\r\n");
         int nuser = 0;
@@ -148,7 +149,7 @@ public class Maintenance
                 if (nuser != 0)
                     exec.printDivider();
 
-                exec.do_user(user);
+                ((Maintenance) exec).do_user(user);
             }
             finally
             {
@@ -206,7 +207,7 @@ public class Maintenance
             consoleProgress = new ConsoleProgress(title);
             consoleProgress.begin();
         }
-        
+
         stageProcessedFileCount = 0;
     }
 

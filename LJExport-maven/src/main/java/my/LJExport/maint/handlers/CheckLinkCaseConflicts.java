@@ -1,27 +1,25 @@
 package my.LJExport.maint.handlers;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.jsoup.nodes.Node;
 
-import my.LJExport.Config;
-import my.LJExport.maint.Maintenance;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
-import my.LJExport.runtime.FilePath;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 
-public class CheckLinkCaseConflicts extends Maintenance
+public class CheckLinkCaseConflicts extends MaintenanceHandler 
 {
+    @Override
     protected void beginUsers()
     {
         Util.out(">>> Checking link case conflicts");
         super.beginUsers("Checking link case conflicts");
     }
 
+    @Override
     protected void endUsers()
     {
         super.endUsers();
@@ -29,25 +27,20 @@ public class CheckLinkCaseConflicts extends Maintenance
 
     private Map<String, String> lc2xc = new HashMap<>();
 
-    protected void processHtmlFile(String fullFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
+    @Override
+    protected void processHtmlFile(String fullHtmlFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
             List<Node> pageFlat) throws Exception
     {
-        super.processHtmlFile(fullFilePath, relativeFilePath, parser, pageFlat);
-
-        final String linkDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "links";
-        final String linkDirSep = linkDir + File.separator;
+        super.processHtmlFile(fullHtmlFilePath, relativeFilePath, parser, pageFlat);
 
         for (Node n : JSOUP.findElements(pageFlat, "img"))
         {
             String href = JSOUP.getAttribute(n, "src");
             if (href == null || !href.startsWith("../"))
                 continue;
-
-            File fp = new File(fullFilePath);
-            fp = new File(fp, ("../" + href).replace("/", File.separator));
-            fp = FilePath.canonicalFile(fp);
-            String linkFullFilePath = fp.toString();
-            if (!linkFullFilePath.startsWith(linkDirSep))
+            
+            LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
+            if (linkInfo == null)
                 continue;
 
             String xc = href;

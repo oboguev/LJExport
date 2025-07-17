@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import my.LJExport.monthly.BuildNavigationIndex;
+import my.LJExport.monthly.InsertNavigationControls;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.MemoryMonitor;
@@ -125,7 +126,8 @@ public class MainForAllUsers
             Config.autoconfigureSite();
 
             // do_user_actual(user);
-            do_user_monthly_index_html(user);
+            // do_user_monthly_index_html(user);
+            do_user_monthly_insert_nav_controls(user);
         }
         finally
         {
@@ -163,4 +165,29 @@ public class MainForAllUsers
 
         new BuildNavigationIndex(monthlyRootDir).buildNavigation();
     }
+
+    /* ======================================================================= */
+
+    @SuppressWarnings("unused")
+    private void do_user_monthly_insert_nav_controls(String user) throws Exception
+    {
+        Util.out(">>> Inserting monthly navigation controls for user " + Config.User);
+        do_user_monthly_insert_nav_controls(user, "monthly-pages");
+        do_user_monthly_insert_nav_controls(user, "monthly-reposts");
+    }
+    
+    private void do_user_monthly_insert_nav_controls(String user, String which) throws Exception
+    {
+        String monthlyRootDir = Config.DownloadRoot + File.separator + Config.User + File.separator + which;
+        File fp = new File(monthlyRootDir).getCanonicalFile();
+
+        if (!fp.exists())
+        {
+            if (which.equals("monthly-pages"))
+                Util.err("User " + user + "has no monthly-pages");
+            return;
+        }
+        
+        new InsertNavigationControls(monthlyRootDir, InsertNavigationControls.DIVIDER).insertContols();
+   }
 }

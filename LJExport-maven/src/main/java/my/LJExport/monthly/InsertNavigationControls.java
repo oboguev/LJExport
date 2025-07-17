@@ -26,9 +26,9 @@ public class InsertNavigationControls
             "      5px;-moz-border-radius: 5px;-ms-border-radius:" + nl +
             "      5px;-o-border-radius: 5px;border-radius: 5px;\">";
 
-    public InsertNavigationControls(String rootDir, String dividerHtml)
+    public InsertNavigationControls(String monthlyRootDir, String dividerHtml)
     {
-        this.rootDir = new File(rootDir);
+        this.rootDir = new File(monthlyRootDir);
         this.dividerHtml = dividerHtml;
     }
 
@@ -84,6 +84,8 @@ public class InsertNavigationControls
 
     private void insertNavigation(MonthEntry current, MonthEntry prev, MonthEntry next) throws Exception
     {
+        Util.out("    " + current);
+        
         String html = Util.readFileAsString(current.file.getAbsolutePath());
         PageParserDirectBase parser = new PageParserDirectBasePassive();
         parser.parseHtml(html);
@@ -177,6 +179,19 @@ public class InsertNavigationControls
             else
             {
                 return year + " " + month + " части " + part;
+            }
+        }
+        
+        @Override
+        public String toString()
+        {
+            if (part == 0)
+            {
+                return year + "-" + month;
+            }
+            else
+            {
+                return year + "-" + month + "-" + part;
             }
         }
 

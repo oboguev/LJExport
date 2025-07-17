@@ -136,6 +136,10 @@ public class Maintenance
             if (forceExitNow)
                 break;
 
+            Config.User = user;
+            Config.mangleUser();
+            Config.autoconfigureSite();
+
             try
             {
                 if (handler != null)
@@ -173,10 +177,6 @@ public class Maintenance
     {
         try
         {
-            Config.User = user;
-            Config.mangleUser();
-            Config.autoconfigureSite();
-
             beginUser();
 
             processDir("pages", ParallelismDefault);

@@ -77,7 +77,7 @@ public class Config
 
     public enum WebMethod
     {
-        BASIC, SELENIUM, HTML_UNIT, DIRECT
+        SELENIUM, HTML_UNIT, DIRECT
     };
 
     public static final WebMethod Method = Config.WebMethod.DIRECT;

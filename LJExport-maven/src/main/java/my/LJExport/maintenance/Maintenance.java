@@ -158,7 +158,7 @@ public class Maintenance
                 if (handler != null)
                     exec = handler;
                 else
-                    exec = clz.newInstance();
+                    exec = clz.getDeclaredConstructor().newInstance();
 
                 if (nuser == 0)
                     exec.beginUsers();

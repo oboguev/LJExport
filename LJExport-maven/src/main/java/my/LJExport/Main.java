@@ -19,7 +19,6 @@ import my.LJExport.Config.WebMethod;
 import my.LJExport.calendar.Calendar;
 import my.LJExport.profile.ReadProfile;
 import my.LJExport.readers.PageReader;
-import my.LJExport.readers.PageReaderBasic;
 import my.LJExport.readers.PageReaderHtmlUnit;
 import my.LJExport.readers.PageReaderSelenium;
 import my.LJExport.readers.direct.PageReaderDirect;
@@ -276,7 +275,6 @@ public class Main
                 // Web.shutdown();
                 break;
 
-            case BASIC:
             case DIRECT:
                 break;
             }
@@ -290,7 +288,6 @@ public class Main
                 out(">>> Launching slave browsers");
                 break;
 
-            case BASIC:
             case DIRECT:
             case HTML_UNIT:
                 break;
@@ -357,7 +354,6 @@ public class Main
                 Web.shutdown();
                 break;
 
-            case BASIC:
             case DIRECT:
                 do_logout();
                 Web.shutdown();
@@ -648,7 +644,6 @@ public class Main
                     return;
                 break;
 
-            case BASIC:
             case DIRECT:
                 break;
             }
@@ -693,10 +688,6 @@ public class Main
 
                 case HTML_UNIT:
                     reader = new PageReaderHtmlUnit(rurl, pageDir, htmlUnitContext);
-                    break;
-
-                case BASIC:
-                    reader = new PageReaderBasic(rurl, pageDir);
                     break;
 
                 case DIRECT:

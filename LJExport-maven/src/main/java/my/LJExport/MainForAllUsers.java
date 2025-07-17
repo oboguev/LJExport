@@ -163,7 +163,7 @@ public class MainForAllUsers
             return;
         }
 
-        new BuildNavigationIndex(monthlyRootDir).buildNavigation();
+        new BuildNavigationIndex(monthlyRootDir, BuildNavigationIndex.DIVIDER).buildNavigation();
     }
 
     /* ======================================================================= */

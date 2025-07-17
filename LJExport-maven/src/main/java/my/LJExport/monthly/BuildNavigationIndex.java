@@ -41,21 +41,33 @@ public final class BuildNavigationIndex {
     private static final Pattern YEAR_DIR_PATTERN = Pattern.compile("^\\d{4}$");
     private static final Pattern MONTH_FILE_PATTERN = Pattern.compile("^(\\d{4})-(\\d{2})(?:-(\\d+))?\\.html$");
     private static final String PART_SPACER = "&nbsp;&nbsp;&nbsp;";
+    
+    private static final String nl = "\n";
+    public static final String DIVIDER = "<div style=\"height: 7px;border: 1;box-shadow: inset 0 9px 9px -3px" + nl +
+            "      rgba(11, 99, 184, 0.8);-webkit-border-radius:" + nl +
+            "      5px;-moz-border-radius: 5px;-ms-border-radius:" + nl +
+            "      5px;-o-border-radius: 5px;border-radius: 5px;\"></div>";
 
     private final Path rootDir;
+    private final String dividerHtml;
 
-    public BuildNavigationIndex(String rootDir) {
+    public BuildNavigationIndex(String rootDir, String dividerHtml) {
         Objects.requireNonNull(rootDir, "rootDir must not be null");
         this.rootDir = Paths.get(rootDir);
+        this.dividerHtml = "<br>" + dividerHtml;
     }
 
     public void buildNavigation() throws Exception {
         Map<Integer, SortedMap<Integer, List<String>>> filesByYearAndMonth = scanDirectoryTree();
+        List<Integer> allYears = new ArrayList<>(filesByYearAndMonth.keySet());
 
-        for (Map.Entry<Integer, SortedMap<Integer, List<String>>> e : filesByYearAndMonth.entrySet()) {
-            int year = e.getKey();
+        for (int i = 0; i < allYears.size(); i++) {
+            int year = allYears.get(i);
+            Integer prevYear = (i > 0) ? allYears.get(i - 1) : null;
+            Integer nextYear = (i < allYears.size() - 1) ? allYears.get(i + 1) : null;
+
             Path yearDir = rootDir.resolve(Integer.toString(year));
-            String content = buildYearIndexHtml(year, e.getValue());
+            String content = buildYearIndexHtml(year, filesByYearAndMonth.get(year), prevYear, nextYear);
             Util.writeToFileSafe(yearDir.resolve("index.html").toString(), content);
         }
 
@@ -117,10 +129,10 @@ public final class BuildNavigationIndex {
         if (files.size() != 1) return false;
         String name = files.get(0);
         Matcher m = MONTH_FILE_PATTERN.matcher(name);
-        return m.matches() && m.group(3) == null; // no -N suffix
+        return m.matches() && m.group(3) == null;
     }
 
-    private static String buildYearIndexHtml(int year, SortedMap<Integer, List<String>> monthFiles) {
+    private String buildYearIndexHtml(int year, SortedMap<Integer, List<String>> monthFiles, Integer prevYear, Integer nextYear) {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<title>")
           .append(year).append("</title>\n")
@@ -154,56 +166,28 @@ public final class BuildNavigationIndex {
             sb.append("<br>\n");
         }
 
-        sb.append("</body>\n</html>\n");
-        return sb.toString();
-    }
-
-    private String buildRootIndexHtml(Map<Integer, SortedMap<Integer, List<String>>> filesByYearAndMonth) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Archive index</title>\n")
-          .append(STYLE_BLOCK)
-          .append("</head>\n<body>\n");
-
-        for (Iterator<Map.Entry<Integer, SortedMap<Integer, List<String>>>> it = filesByYearAndMonth.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Integer, SortedMap<Integer, List<String>>> entry = it.next();
-            int year = entry.getKey();
-            SortedMap<Integer, List<String>> monthFiles = entry.getValue();
-
-            sb.append("<a class=\"partial-underline\" href=\"")
-              .append(year).append("/index.html\"><b>")
-              .append(year).append("</b></a><br><br>\n");
-
-            for (Map.Entry<Integer, List<String>> e : monthFiles.entrySet()) {
-                int month = e.getKey();
-                List<String> files = e.getValue();
-                if (files.isEmpty()) continue;
-
-                if (isSingleUnsplitFile(files)) {
-                    String path = String.format("%04d/%s", year, files.get(0));
-                    String label = String.format("%04d %02d", year, month);
-                    sb.append("&nbsp;&nbsp;&nbsp;&nbsp;<a class=\"partial-underline\" href=\"")
-                      .append(path).append("\">").append(label).append("</a><br>\n");
-                    continue;
-                }
-
-                int part1 = extractPartSuffix(files.get(0));
-                String path1 = String.format("%04d/%s", year, files.get(0));
-                String label = String.format("%04d %02d%sчасть %d", year, month, PART_SPACER, part1);
-                sb.append("&nbsp;&nbsp;&nbsp;&nbsp;<a class=\"partial-underline\" href=\"")
-                  .append(path1).append("\">").append(label).append("</a>");
-
-                for (int i = 1; i < files.size(); i++) {
-                    int sqn = extractPartSuffix(files.get(i));
-                    String subpath = String.format("%04d/%s", year, files.get(i));
-                    sb.append(PART_SPACER)
-                      .append(String.format("<a class=\"partial-underline\" href=\"%s\">часть %d</a>", subpath, sqn));
-                }
-                sb.append("<br>\n");
+        // Add navigation section if applicable
+        if (dividerHtml != null && (prevYear != null || nextYear != null)) {
+            sb.append("<div id=\"ljexport-yearly-navigation\" style=\"text-align: center; margin-bottom: 2em; font-size: 140%;\">\n");
+            sb.append("<style>a.ljexport-partial-underline { text-decoration: none; background-image: linear-gradient(to top, black 1px, transparent 1px); background-repeat: repeat-x; background-position: 0 1.1em; background-size: 1ch 1em; white-space: pre; color: #228B22; } a.ljexport-partial-underline:visited { color: #003300; }</style>\n");
+            sb.append(dividerHtml).append("<br>\n");
+            boolean needSep = false;
+            if (prevYear != null) {
+                sb.append("<a class=\"ljexport-partial-underline\" href=\"../")
+                  .append(prevYear).append("/index.html\">◄ раньше к ").append(prevYear).append("</a>");
+                needSep = true;
             }
-
-            if (it.hasNext()) {
-                sb.append("<br>\n");
+            if (prevYear != null || nextYear != null) {
+                if (needSep) sb.append(PART_SPACER).append("|").append(PART_SPACER);
+                sb.append("<a class=\"ljexport-partial-underline\" href=\"../index.html\">оглавление лет</a>");
+                needSep = true;
             }
+            if (nextYear != null) {
+                if (needSep) sb.append(PART_SPACER).append("|").append(PART_SPACER);
+                sb.append("<a class=\"ljexport-partial-underline\" href=\"../")
+                  .append(nextYear).append("/index.html\">дальше к ").append(nextYear).append(" ►</a>");
+            }
+            sb.append("\n</div>\n");
         }
 
         sb.append("</body>\n</html>\n");
@@ -236,4 +220,47 @@ public final class BuildNavigationIndex {
             "  color: #003300;\n" +
             "}\n" +
             "</style>\n";
+
+    private String buildRootIndexHtml(Map<Integer, SortedMap<Integer, List<String>>> filesByYearAndMonth) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Index</title>\n")
+          .append(STYLE_BLOCK)
+          .append("</head>\n<body>\n");
+
+        for (Map.Entry<Integer, SortedMap<Integer, List<String>>> yearEntry : filesByYearAndMonth.entrySet()) {
+            int year = yearEntry.getKey();
+            sb.append("<h2 style=\"margin:0;padding:0;\"><a class=\"partial-underline\" href=\"")
+              .append(year).append("/index.html\">" + year + "</a></h2>\n<br>\n");
+
+            SortedMap<Integer, List<String>> months = yearEntry.getValue();
+            for (Map.Entry<Integer, List<String>> monthEntry : months.entrySet()) {
+                int month = monthEntry.getKey();
+                List<String> files = monthEntry.getValue();
+
+                if (files.isEmpty()) continue;
+
+                if (isSingleUnsplitFile(files)) {
+                    String label = String.format("%04d %02d", year, month);
+                    sb.append("&nbsp;&nbsp;&nbsp;&nbsp;<a class=\"partial-underline\" href=\"")
+                      .append(year).append("/").append(files.get(0)).append("\">").append(label).append("</a><br>\n");
+                } else {
+                    int part1 = extractPartSuffix(files.get(0));
+                    String label = String.format("%04d %02d%sчасть %d", year, month, PART_SPACER, part1);
+                    sb.append("&nbsp;&nbsp;&nbsp;&nbsp;<a class=\"partial-underline\" href=\"")
+                      .append(year).append("/").append(files.get(0)).append("\">").append(label).append("</a>");
+
+                    for (int i = 1; i < files.size(); i++) {
+                        int sqn = extractPartSuffix(files.get(i));
+                        sb.append(PART_SPACER)
+                          .append(String.format("<a class=\"partial-underline\" href=\"%s/%s\">часть %d</a>", year, files.get(i), sqn));
+                    }
+                    sb.append("<br>\n");
+                }
+            }
+            sb.append("<br>\n");
+        }
+
+        sb.append("</body>\n</html>\n");
+        return sb.toString();
+    }
 }

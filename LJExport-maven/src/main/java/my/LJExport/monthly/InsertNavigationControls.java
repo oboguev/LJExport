@@ -1,6 +1,7 @@
 package my.LJExport.monthly;
 
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
@@ -85,7 +86,7 @@ public class InsertNavigationControls
 
     private void insertNavigation(MonthEntry current, MonthEntry prev, MonthEntry next) throws Exception
     {
-        Util.out("    Inserting navigation for " + current);
+        Util.out(String.format("    Inserting navigation for [%s] %s", Config.User, current.toString()));
 
         String html = Util.readFileAsString(current.file.getAbsolutePath());
         PageParserDirectBase parser = new PageParserDirectBasePassive();

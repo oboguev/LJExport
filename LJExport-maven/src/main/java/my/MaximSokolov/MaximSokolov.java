@@ -17,10 +17,10 @@ import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.readers.direct.PageParserDirectClassic;
 import my.LJExport.readers.direct.PageParserDirectNewStyle;
-import my.LJExport.runtime.ConsoleProgress;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.YYYY_MM_DD;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.ui.ConsoleProgress;
 
 public class MaximSokolov
 {

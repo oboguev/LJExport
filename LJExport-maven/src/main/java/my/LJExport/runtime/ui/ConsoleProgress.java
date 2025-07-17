@@ -1,4 +1,4 @@
-package my.LJExport.runtime;
+package my.LJExport.runtime.ui;
 
 import javax.swing.*;
 import java.awt.*;
@@ -71,8 +71,17 @@ public class ConsoleProgress
         });
     }
 
+    private String last_msg = null;
+    private Double last_pct = null;
+
     public void update(String msg, double pct)
     {
+        if (last_msg != null && last_msg.equals(msg) && last_pct != null && Math.abs(pct - last_pct) < 0.1)
+            return;
+
+        last_msg = msg;
+        last_pct = pct;
+
         SwingUtilities.invokeLater(() ->
         {
             if (messageLabel != null && progressBar != null)
@@ -86,6 +95,9 @@ public class ConsoleProgress
 
     public void end()
     {
+        last_msg = null;
+        last_pct = null;
+
         SwingUtilities.invokeLater(() ->
         {
             if (dialog != null)

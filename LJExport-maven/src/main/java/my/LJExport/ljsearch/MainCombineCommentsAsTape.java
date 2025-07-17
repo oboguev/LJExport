@@ -18,9 +18,9 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
-import my.LJExport.runtime.ConsoleProgress;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.ui.ConsoleProgress;
 
 /*
  * Склеить отдельные файлы комментариев LJSearch (ljsear.ch) в ленты

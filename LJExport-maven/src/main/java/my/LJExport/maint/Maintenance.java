@@ -13,6 +13,7 @@ import my.LJExport.maint.handlers.CheckLinkCaseConflicts;
 import my.LJExport.maint.handlers.CountFiles;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
+import my.LJExport.runtime.ErrorMessageLog;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.MemoryMonitor;
 import my.LJExport.runtime.Util;
@@ -40,6 +41,9 @@ public class Maintenance
     public static int TotalFileCount = 0;
     private static ConsoleProgress consoleProgress = null;
     private static int stageProcessedFileCount = 0;
+    
+    protected static final String nl = "\n";
+    protected static final ErrorMessageLog errorMessageLog = new ErrorMessageLog();
 
     public static void main(String[] args)
     {
@@ -60,6 +64,16 @@ public class Maintenance
             Util.err("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
             Main.emergency_logout();
+        }
+
+        if (errorMessageLog.length() != 0)
+        {
+            Util.err("");
+            Util.err("************** LOGGED ERRORS ************** ");
+            Util.err("");
+            Util.err(errorMessageLog.toString());
+            Util.err("");
+            Util.err("************** END OF LOGGED ERRORS ************** ");
         }
 
         Main.playCompletionSound();

@@ -8,6 +8,11 @@ public class ErrorMessageLog
     private Set<String> contains = new HashSet<>();
     private StringBuilder sb = new StringBuilder();
 
+    public synchronized void add(StringBuilder sb)
+    {
+        add(sb.toString());
+    }
+
     public synchronized void add(String s)
     {
         if (!contains.contains(s))
@@ -17,10 +22,10 @@ public class ErrorMessageLog
                 sb.append("--------------------------------------------------------------------");
                 sb.append("\n");
             }
-            
+
             sb.append(s);
             sb.append("\n");
-            
+
             contains.add(s);
         }
     }

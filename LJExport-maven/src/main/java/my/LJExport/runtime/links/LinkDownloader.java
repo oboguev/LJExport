@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -188,7 +189,7 @@ public class LinkDownloader
                     throw ex;
                 }
 
-                if (f.exists())
+                if (f.exists()) // ### what if isDir
                 {
                     actual_filename = FilePath.getFilePathActualCase(actual_filename);
                     filename.set(actual_filename);
@@ -293,7 +294,7 @@ public class LinkDownloader
                          */
                         actual_filename = adjustExtension(actual_filename, r);
                         filename.set(actual_filename);
-                        
+
                         /*
                          * Store file. Take care of collisions with existing file.
                          * May update filename.
@@ -358,29 +359,41 @@ public class LinkDownloader
 
     private void storeFile(AtomicReference<String> filename, Web.Response r, String href_noanchor) throws Exception
     {
+        boolean dowrite = true;
+
         String actual_filename = filename.get();
+        File fp = new File(actual_filename).getCanonicalFile();
 
-        // ### check if file (actual_filename) exists and is a dir
-        // ### if so change actual_filename to old-path\x-uuid.ext
+        if (fp.exists())
+        {
+            if (fp.isDirectory() || fp.isFile() && !isSameContent(fp.getCanonicalPath(), r.binaryBody))
+            {
+                // change actual_filename to old-path\x-uuid.ext
+            }
+            else
+            {
+                // file already exists and is a regular file with identical content
+                actual_filename = FilePath.getFilePathActualCase(actual_filename);
+                dowrite = false;
+            }
+        }
 
-        // ### if file already exists and is a regular file with different content
-        // ### if so change actual_filename to old-path\x-uuid.ext
+        filename.set(actual_filename);
 
-        // ### if file already exists and is a regular file with identical content
-        // ### change actual_filename to case of existing file
-        // ### FilePath.getActualCasePath
-        // ### bugcheck compareIgnoreCase
-        // ### and no need to write
-
-        Util.writeToFileSafe(actual_filename, r.binaryBody);
+        if (dowrite)
+            Util.writeToFileSafe(actual_filename, r.binaryBody);
 
         synchronized (href2file)
         {
             if (null == href2file.getAnyUrlProtocol(href_noanchor))
                 href2file.put(href_noanchor, actual_filename);
         }
+    }
 
-        filename.set(actual_filename);
+    private boolean isSameContent(String filepath, byte[] content) throws Exception
+    {
+        byte[] ba = Util.readFileAsByteArray(filepath);
+        return Arrays.equals(ba, content);
     }
 
     /* ======================================================================== */

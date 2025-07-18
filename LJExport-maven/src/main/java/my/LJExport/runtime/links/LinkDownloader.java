@@ -223,11 +223,11 @@ public class LinkDownloader
 
                     Web.Response r = null;
 
+                    /*
+                     * Try to download from an override source
+                     */
                     if (downloadSource != null)
                     {
-                        /*
-                         * Try to download from an override source
-                         */
                         byte[] binaryBody = downloadSource.load(final_href_noanchor, abs2rel(actual_filename));
                         if (binaryBody != null)
                         {
@@ -237,6 +237,9 @@ public class LinkDownloader
                         }
                     }
 
+                    /*
+                     * Actual web load
+                     */
                     if (r == null)
                     {
                         try
@@ -265,6 +268,9 @@ public class LinkDownloader
 
                     try
                     {
+                        /*
+                         * If path cannot be created, redirect to catch-all directory
+                         */
                         try
                         {
                             Util.mkdir(f.getAbsoluteFile().getParent());
@@ -283,13 +289,16 @@ public class LinkDownloader
                         }
 
                         /*
-                         * Adjust filename extension based on file actual content
-                         * and Content-Type header
+                         * Adjust filename extension based on file actual content and Content-Type header
                          */
                         actual_filename = adjustExtension(actual_filename, r);
                         filename.set(actual_filename);
+                        
+                        /*
+                         * Store file. Take care of collisions with existing file.
+                         * May update filename.
+                         */
                         Web.Response final_r = r;
-
                         Util.NamedFileLocks.interlock(actual_filename.toLowerCase(), () ->
                         {
                             storeFile(filename, final_r, final_href_noanchor);
@@ -829,18 +838,22 @@ public class LinkDownloader
 
     /* ======================================================================================= */
 
+    /*
+     * Adjust filename extension based on file actual content
+     * and Content-Type header
+     */
     private String adjustExtension(String filepath, Web.Response r) throws Exception
     {
         String filename = new File(filepath).getName();
         String fnExt = getFileExtension(filename);
 
-        String contextExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
+        String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
 
         String headerExt = null;
         if (r.contentType != null)
             headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase());
 
-        String finalExt = contextExt;
+        String finalExt = contentExt;
         if (finalExt == null)
             finalExt = headerExt;
         if (finalExt == null)
@@ -850,7 +863,7 @@ public class LinkDownloader
         {
             return filepath;
         }
-        else if (finalExt != null)
+        else if (finalExt != null && finalExt.length() != 0)
         {
             return filepath + "." + finalExt;
         }

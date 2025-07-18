@@ -284,7 +284,7 @@ public class LinkDownloader
                         // ### 2. header
                         // ### 3. existing extension
                         
-                        // ### if file already exists, compare content:
+                        // ### if file already exists (or there is case-clash), compare content:
                         // ### identical -> no need to write
                         // ### differs -> change actual_filename to old-path\x-uuid.ext
 

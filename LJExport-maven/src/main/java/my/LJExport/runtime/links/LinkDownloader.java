@@ -704,12 +704,6 @@ public class LinkDownloader
         fn = URLCodec.decodeMixed(fn);
 
         /*
-         * If reserved file name, mangle it
-         */
-        if (Util.isReservedFileName(fn, true))
-            return "x-" + Util.uuid() + "_" + fn;
-
-        /*
          * Encode reserved characters to URL representation
          */
         fn = URLCodec.encodeFilename(fn);
@@ -717,6 +711,12 @@ public class LinkDownloader
         /* Fix dangerous trailing . or space (Windows will strip them silently) */
         fn = escapeTrailingDotsAndSpaces(fn);
         fn = escapeLeadingSpacesAndUnicode(fn);
+
+        /*
+         * If reserved file name, mangle it
+         */
+        if (Util.isReservedFileName(fn, true))
+            return "x-" + Util.uuid() + "_" + fn;
 
         /*
          * If name is too long

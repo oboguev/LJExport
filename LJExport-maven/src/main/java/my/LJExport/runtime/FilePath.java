@@ -1,6 +1,11 @@
 package my.LJExport.runtime;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -111,5 +116,42 @@ public class FilePath
         }
 
         return new File(sb.toString());
+    }
+
+    /*
+     * If file already exists, but have different path name case 
+     * (in Windows or even in Linux on case-insensitive file volume such as NTFS)
+     * then return file path in actual case existing in file system.
+     * 
+     * If file does exist, just return the argument.  
+     */
+    public static Path getActualCasePath(Path path) throws Exception
+    {
+        path = path.toRealPath(LinkOption.NOFOLLOW_LINKS); // resolves symlinks, . and ..
+
+        Path parent = path.getParent();
+        if (parent == null)
+            return path; // root
+
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(parent))
+        {
+            for (Path entry : stream)
+            {
+                if (entry.getFileName().toString().equalsIgnoreCase(path.getFileName().toString()))
+                {
+                    Path result = getActualCasePath(parent).resolve(entry.getFileName());
+
+                    String px = path.toAbsolutePath().toString();
+                    String rx = result.toAbsolutePath().toString();
+                    if (!px.equalsIgnoreCase(rx))
+                        throw new Exception("Internal consistencey check failed");
+
+                    return result;
+                }
+            }
+        }
+
+        // fallback
+        return path;
     }
 }

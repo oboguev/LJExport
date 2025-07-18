@@ -289,6 +289,7 @@ public class LinkDownloader
 
                         // ### if file already exists and is a regular file with identical content
                         // ### change actual_filename to case of existing file
+                        // ### FilePath.getActualCasePath
                         // ### bugcheck compareIgnoreCase
                         // ### and no need to write
 

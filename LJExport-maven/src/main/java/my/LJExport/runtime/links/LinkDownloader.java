@@ -46,7 +46,7 @@ public class LinkDownloader
     private FileBackedMap href2file = new FileBackedMap();
     private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private String linksDir;
-    private final NamedLocks urlLocks = new NamedLocks(); 
+    private final NamedLocks urlLocks = new NamedLocks();
 
     public static final String LinkMapFileName = "map-href-file.txt";
 
@@ -287,26 +287,13 @@ public class LinkDownloader
                          * and Content-Type header
                          */
                         actual_filename = adjustExtension(actual_filename, r);
-
-                        // ### check if file (actual_filename) exists and is a dir
-                        // ### if so change actual_filename to old-path\x-uuid.ext
-
-                        // ### if file already exists and is a regular file with different content
-                        // ### if so change actual_filename to old-path\x-uuid.ext
-
-                        // ### if file already exists and is a regular file with identical content
-                        // ### change actual_filename to case of existing file
-                        // ### FilePath.getActualCasePath
-                        // ### bugcheck compareIgnoreCase
-                        // ### and no need to write
-
-                        Util.writeToFileSafe(actual_filename, r.binaryBody);
-                        synchronized (href2file)
-                        {
-                            if (null == href2file.getAnyUrlProtocol(final_href_noanchor))
-                                href2file.put(final_href_noanchor, actual_filename);
-                        }
                         filename.set(actual_filename);
+                        Web.Response final_r = r;
+
+                        Util.NamedFileLocks.interlock(actual_filename.toLowerCase(), () ->
+                        {
+                            storeFile(filename, final_r, final_href_noanchor);
+                        });
                     }
                     catch (Exception ex)
                     {
@@ -338,112 +325,10 @@ public class LinkDownloader
                 // error is not network-related, such as NullPointerException
                 throw new RuntimeException(ex.getLocalizedMessage(), ex);
             }
-            else if (host != null && r != null && r.code != 204 && r.code != 404)
+            else
             {
-                if (host.contains("imgprx.livejournal.net"))
-                {
-                    Util.noop();
-                }
+                examineException(host, r, ex);
 
-                if (host.contains("l-stat.livejournal.net"))
-                {
-                    Util.noop();
-                }
-
-                if (host.contains("ic.pics.livejournal.com") && r.code != 403 && r.code != 412 && r.code != 415)
-                {
-                    if (r.code == 504)
-                    {
-                        Util.noop();
-                    }
-                    else
-                    {
-                        Util.noop();
-                    }
-                }
-
-                if (host.equals("pics.livejournal.com") && r.code != 415)
-                {
-                    if (r.code == 504)
-                    {
-                        Util.noop();
-                    }
-                    else
-                    {
-                        Util.noop();
-                    }
-                }
-
-                if (host.contains("archive.org"))
-                {
-                    Util.noop();
-                }
-            }
-            else if (host != null & r == null)
-            {
-                if (host.contains("l-stat.livejournal.net"))
-                {
-                    Util.noop();
-                }
-
-                if (host.contains("imgprx.livejournal.net"))
-                {
-                    Util.noop();
-                }
-
-                if (host.contains("ic.pics.livejournal.com"))
-                {
-                    if (isCircularRedirect(ex))
-                    {
-                        Util.noop();
-                    }
-                    else
-                    {
-                        Util.noop();
-                    }
-                }
-
-                if (host.equals("pics.livejournal.com"))
-                {
-                    if (isCircularRedirect(ex))
-                    {
-                        Util.noop();
-                    }
-                    else
-                    {
-                        Util.noop();
-                    }
-                }
-
-                if (host.equals("l-userpic.livejournal.com"))
-                {
-                    Util.noop();
-                }
-
-                if (host.endsWith(".us.archive.org") && ex instanceof HttpHostConnectException)
-                {
-                    // ignore
-                }
-                else if (host.endsWith(".us.archive.org") && ex instanceof UnknownHostException)
-                {
-                    // ignore
-                }
-                else if (host.contains("archive.org"))
-                {
-                    Util.noop();
-                }
-                else if (ex instanceof SocketTimeoutException)
-                {
-                    Util.noop();
-                }
-                else if (isCircularRedirect(ex))
-                {
-                    Util.noop();
-                }
-                else
-                {
-                    Util.noop();
-                }
             }
 
             // Main.err("Unable to download external link " + download_href, ex);
@@ -457,6 +342,148 @@ public class LinkDownloader
         finally
         {
             Thread.currentThread().setName(threadName);
+        }
+    }
+
+    /* ======================================================================== */
+
+    private void storeFile(AtomicReference<String> filename, Web.Response r, String href_noanchor) throws Exception
+    {
+        String actual_filename = filename.get();
+
+        // ### check if file (actual_filename) exists and is a dir
+        // ### if so change actual_filename to old-path\x-uuid.ext
+
+        // ### if file already exists and is a regular file with different content
+        // ### if so change actual_filename to old-path\x-uuid.ext
+
+        // ### if file already exists and is a regular file with identical content
+        // ### change actual_filename to case of existing file
+        // ### FilePath.getActualCasePath
+        // ### bugcheck compareIgnoreCase
+        // ### and no need to write
+
+        Util.writeToFileSafe(actual_filename, r.binaryBody);
+
+        synchronized (href2file)
+        {
+            if (null == href2file.getAnyUrlProtocol(href_noanchor))
+                href2file.put(href_noanchor, actual_filename);
+        }
+
+        filename.set(actual_filename);
+    }
+
+    /* ======================================================================== */
+
+    private void examineException(String host, Web.Response r, Exception ex)
+    {
+        if (host != null && r != null && r.code != 204 && r.code != 404)
+        {
+            if (host.contains("imgprx.livejournal.net"))
+            {
+                Util.noop();
+            }
+
+            if (host.contains("l-stat.livejournal.net"))
+            {
+                Util.noop();
+            }
+
+            if (host.contains("ic.pics.livejournal.com") && r.code != 403 && r.code != 412 && r.code != 415)
+            {
+                if (r.code == 504)
+                {
+                    Util.noop();
+                }
+                else
+                {
+                    Util.noop();
+                }
+            }
+
+            if (host.equals("pics.livejournal.com") && r.code != 415)
+            {
+                if (r.code == 504)
+                {
+                    Util.noop();
+                }
+                else
+                {
+                    Util.noop();
+                }
+            }
+
+            if (host.contains("archive.org"))
+            {
+                Util.noop();
+            }
+        }
+        else if (host != null & r == null)
+        {
+            if (host.contains("l-stat.livejournal.net"))
+            {
+                Util.noop();
+            }
+
+            if (host.contains("imgprx.livejournal.net"))
+            {
+                Util.noop();
+            }
+
+            if (host.contains("ic.pics.livejournal.com"))
+            {
+                if (isCircularRedirect(ex))
+                {
+                    Util.noop();
+                }
+                else
+                {
+                    Util.noop();
+                }
+            }
+
+            if (host.equals("pics.livejournal.com"))
+            {
+                if (isCircularRedirect(ex))
+                {
+                    Util.noop();
+                }
+                else
+                {
+                    Util.noop();
+                }
+            }
+
+            if (host.equals("l-userpic.livejournal.com"))
+            {
+                Util.noop();
+            }
+
+            if (host.endsWith(".us.archive.org") && ex instanceof HttpHostConnectException)
+            {
+                // ignore
+            }
+            else if (host.endsWith(".us.archive.org") && ex instanceof UnknownHostException)
+            {
+                // ignore
+            }
+            else if (host.contains("archive.org"))
+            {
+                Util.noop();
+            }
+            else if (ex instanceof SocketTimeoutException)
+            {
+                Util.noop();
+            }
+            else if (isCircularRedirect(ex))
+            {
+                Util.noop();
+            }
+            else
+            {
+                Util.noop();
+            }
         }
     }
 

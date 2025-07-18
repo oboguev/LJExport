@@ -26,6 +26,8 @@ import my.LJExport.runtime.links.RelativeLink;
  */
 public class ResolveLinkCaseDifferences extends MaintenanceHandler
 {
+    private static boolean DryRun = true;   // ###
+    
     @Override
     protected void beginUsers() throws Exception
     {
@@ -92,8 +94,9 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             if (!relpath.equals(e.value))
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append("Changing LinksDir map " + e.value + nl);
-                sb.append("                   to " + relpath);
+                sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
+                sb.append(String.format("          %s            to  %s", spaces(Config.User), relpath));
+                
                 trace(sb.toString());
                 
                 e.value = relpath;
@@ -101,7 +104,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             }
         }
         
-        if (update && Config.False) // ###
+        if (update && !DryRun)
         {
             txLog.writeLine("updating links map " + mapFilePath);
             String content = FileBackedMap.recomposeMapFile(list);
@@ -123,7 +126,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         updated |= process(fullHtmlFilePath, relativeFilePath, parser, pageFlat, "a", "href");
         updated |= process(fullHtmlFilePath, relativeFilePath, parser, pageFlat, "img", "src");
 
-        if (updated && Config.False) // ###
+        if (updated && !DryRun)
         {
             String html = JSOUP.emitHtml(parser.pageRoot);
             Util.writeToFileSafe(fullHtmlFilePath, html);
@@ -176,8 +179,8 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
             StringBuilder sb = new StringBuilder();
 
-            sb.append("Changing " + original_href + nl);
-            sb.append("      to " + newref);
+            sb.append(String.format("Changing [%s] HTML  %s", Config.User, original_href));
+            sb.append(String.format("          %s    to  %s", spaces(Config.User), newref));
 
             trace(sb.toString());
 
@@ -237,11 +240,19 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
         return sb.toString();
     }
-    
+
     private void trace(String msg)
     {
         errorMessageLog.add(msg);
         Util.err(msg);
+    }
+    
+    private String spaces(String s)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (char c : s.toCharArray())
+            sb.append(' ');
+        return sb.toString();
     }
 
     private void throwException(String msg) throws Exception

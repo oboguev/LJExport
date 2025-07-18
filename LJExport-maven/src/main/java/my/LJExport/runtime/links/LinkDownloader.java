@@ -23,6 +23,7 @@ import my.LJExport.Config;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Util.UnableCreateDirectoryException;
 import my.LJExport.runtime.file.FileBackedMap;
+import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
@@ -189,7 +190,7 @@ public class LinkDownloader
 
                 if (f.exists())
                 {
-                    // ### may be different case
+                    actual_filename = FilePath.getFilePathActualCase(actual_filename);
                     filename.set(actual_filename);
                     synchronized (href2file)
                     {

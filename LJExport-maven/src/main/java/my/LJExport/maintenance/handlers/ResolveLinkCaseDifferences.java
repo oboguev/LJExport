@@ -9,8 +9,11 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
 
 /*
@@ -42,17 +45,62 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
     protected void beginUser() throws Exception
     {
         super.beginUser();
+        build_lc2ac();
+        scanAndUpateLinkMapFile();
+    }
 
+    private void build_lc2ac() throws Exception
+    {
         for (String fp : Util.enumerateFilesAndDirectories(linkDir))
         {
             fp = linkDir + File.separator + fp;
             lc2ac.put(fp.toLowerCase(), fp);
         }
-
-        // ### edit map file to strip trailing dots and spaces in componentes
-        // ../../../links/www.etnosy.ru/sites/default/files/bookshelf./evr.gif
-        // sanitizePath
     }
+
+    private void scanAndUpateLinkMapFile() throws Exception
+    {
+        // edit map file to strip trailing dots and spaces in componentes
+        // ../../../links/www.etnosy.ru/sites/default/files/bookshelf./evr.gif
+        
+        String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+        boolean update = false;
+
+        List<LinkMapEntry> list = FileBackedMap.readMapFile(mapFilePath);
+        
+        for (LinkMapEntry e : list)
+        {
+            String relpath = e.value;
+            relpath = sanitizePath(relpath);
+            
+            // check file exists in repository and in the same case
+            String xp = linkDir + File.separator + relpath;
+            String ac = lc2ac.get(xp.toLowerCase());
+            if (ac == null || !ac.equals(xp))
+                throwException("Mismatch between link repository map file and repository files");
+            
+            if (!relpath.equals(e.value))
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Changing LinksDir map " + e.value + nl);
+                sb.append("                   to " + relpath);
+                trace(sb.toString());
+                
+                e.value = relpath;
+                update = true;
+            }
+        }
+        
+        if (update && Config.False) // ###
+        {
+            txLog.writeLine("updating links map " + mapFilePath);
+            String content = FileBackedMap.recomposeMapFile(list);
+            Util.writeToFileVerySafe(mapFilePath, content);
+            txLog.writeLine("updated OK");
+        }
+    }
+
+    /* ===================================================================================================== */
 
     @Override
     protected void processHtmlFile(String fullHtmlFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
@@ -121,8 +169,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             sb.append("Changing " + original_href + nl);
             sb.append("      to " + newref);
 
-            errorMessageLog.add(sb);
-            Util.err(sb.toString());
+            trace(sb.toString());
 
             JSOUP.updateAttribute(n, attr, newref);
             updated = true;
@@ -130,6 +177,8 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
         return updated;
     }
+
+    /* ===================================================================================================== */
 
     private String sanitizePath(String path) throws Exception
     {
@@ -177,6 +226,12 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         }
 
         return sb.toString();
+    }
+    
+    private void trace(String msg)
+    {
+        errorMessageLog.add(msg);
+        Util.err(msg);
     }
 
     private void throwException(String msg) throws Exception

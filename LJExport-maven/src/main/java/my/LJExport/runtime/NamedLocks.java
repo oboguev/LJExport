@@ -2,7 +2,6 @@ package my.LJExport.runtime;
 
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
-// import java.util.function.Supplier;
 
 public class NamedLocks
 {
@@ -18,16 +17,14 @@ public class NamedLocks
         int refCount = 0;
     }
 
-    private static final ConcurrentHashMap<String, RefCountedLock> lockMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, RefCountedLock> lockMap = new ConcurrentHashMap<>();
 
-    public static void interlock(String name, CheckedRunnable lambda) throws Exception
+    public void interlock(String name, CheckedRunnable lambda) throws Exception
     {
         RefCountedLock refLock = lockMap.compute(name, (key, existing) ->
         {
             if (existing == null)
-            {
                 existing = new RefCountedLock();
-            }
             existing.refCount++;
             return existing;
         });

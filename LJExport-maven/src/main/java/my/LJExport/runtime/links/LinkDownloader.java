@@ -45,6 +45,7 @@ public class LinkDownloader
     private FileBackedMap href2file = new FileBackedMap();
     private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private String linksDir;
+    private final NamedLocks urlLocks = new NamedLocks(); 
 
     public static final String LinkMapFileName = "map-href-file.txt";
 
@@ -164,7 +165,7 @@ public class LinkDownloader
 
             Thread.currentThread().setName(threadName + " downloading " + href + " namelock wait");
 
-            NamedLocks.interlock(href_noanchor.toLowerCase(), () ->
+            urlLocks.interlock(href_noanchor.toLowerCase(), () ->
             {
                 if (failedSet.contains(final_download_href_noanchor))
                     throw new AlreadyFailedException();

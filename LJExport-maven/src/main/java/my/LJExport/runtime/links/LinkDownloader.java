@@ -111,7 +111,7 @@ public class LinkDownloader
     {
         String href = name_href;
         String href_noanchor = Util.stripAnchor(href);
-        String fn = buildFilePath(linksDir, href);
+        String fn = buildFilePath(linksDir, href_noanchor);
         String afn = href2file.getAnyUrlProtocol(href_noanchor);
         if (afn != null)
             fn = afn;
@@ -151,7 +151,7 @@ public class LinkDownloader
             if (failedSet.contains(download_href_noanchor))
                 return null;
 
-            filename.set(buildFilePath(linksDir, href));
+            filename.set(buildFilePath(linksDir, href_noanchor));
 
             // Main.out(">>> Downloading: " + href + " -> " + filename.get());
 

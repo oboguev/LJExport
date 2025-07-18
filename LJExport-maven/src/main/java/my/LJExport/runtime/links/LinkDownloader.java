@@ -280,11 +280,17 @@ public class LinkDownloader
                         }
 
                         actual_filename = adjustExtension(actual_filename, r);
+                        
+                        // ### check if file (actual_filename) exists and is a dir
+                        // ### if so change actual_filename to old-path\x-uuid.ext
 
-                        // ### if file already exists (or there is case-clash), compare content:
-                        // ### identical -> no need to write
-                        // ### can be dir rather than regular file
-                        // ### differs -> change actual_filename to old-path\x-uuid.ext
+                        // ### if file already exists and is a regular file with different content
+                        // ### if so change actual_filename to old-path\x-uuid.ext
+
+                        // ### if file already exists and is a regular file with identical content
+                        // ### change actual_filename to case of existing file
+                        // ### bugcheck compareIgnoreCase
+                        // ### and no need to write
 
                         Util.writeToFileSafe(actual_filename, r.binaryBody);
                         synchronized (href2file)

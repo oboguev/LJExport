@@ -18,6 +18,7 @@ import my.LJExport.runtime.links.LinkDownloader;
 
 /*
  * Lowercase link file and dir names in:
+ * 
  *   - link repository
  *   - link repository map file
  *   - HTML files properties A.HREF and IMG.SRC 

@@ -164,7 +164,7 @@ public class LinkDownloader
 
             Thread.currentThread().setName(threadName + " downloading " + href + " namelock wait");
 
-            NamedLocks.interlock(href_noanchor, () ->
+            NamedLocks.interlock(href_noanchor.toLowerCase(), () ->
             {
                 if (failedSet.contains(final_download_href_noanchor))
                     throw new AlreadyFailedException();
@@ -668,7 +668,10 @@ public class LinkDownloader
             }
         }
 
-        return path.toString();
+        /*
+         * Change to lower case so files can be transported between OS'es
+         */
+        return path.toString().toLowerCase();
     }
 
     private static final int MaxPathComponentLength = 80;

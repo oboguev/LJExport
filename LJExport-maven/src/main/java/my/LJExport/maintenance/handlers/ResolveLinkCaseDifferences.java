@@ -179,7 +179,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
             StringBuilder sb = new StringBuilder();
 
-            sb.append(String.format("Changing [%s] HTML  %s", Config.User, original_href));
+            sb.append(String.format("Changing [%s] HTML  %s" + nl, Config.User, original_href));
             sb.append(String.format("          %s    to  %s", spaces(Config.User), newref));
 
             trace(sb.toString());

@@ -251,7 +251,10 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
     {
         StringBuilder sb = new StringBuilder();
         for (char c : s.toCharArray())
+        {
             sb.append(' ');
+            Util.unused(c);
+        }
         return sb.toString();
     }
 

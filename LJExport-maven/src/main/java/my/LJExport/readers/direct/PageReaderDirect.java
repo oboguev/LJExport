@@ -16,11 +16,11 @@ import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.readers.PageReader;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
-import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;
+import my.LJExport.runtime.lj.LJUtil;
 
 public class PageReaderDirect implements PageReader, PageContentSource
 {

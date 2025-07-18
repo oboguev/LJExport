@@ -1,4 +1,4 @@
-package my.LJExport.runtime;
+package my.LJExport.runtime.lj;
 
 import java.io.File;
 import java.io.FileInputStream;

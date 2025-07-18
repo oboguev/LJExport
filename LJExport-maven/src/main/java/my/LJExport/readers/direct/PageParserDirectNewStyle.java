@@ -18,9 +18,9 @@ import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.HasNoComments;
-import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.lj.LJUtil;
 
 // examples: https://sergeytsvetkov.livejournal.com/2721896.html
 //           https://genby.livejournal.com/982965.html

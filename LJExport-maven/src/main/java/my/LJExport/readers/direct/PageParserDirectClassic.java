@@ -18,9 +18,9 @@ import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
 import my.LJExport.runtime.HasNoComments;
-import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.lj.LJUtil;
 
 public class PageParserDirectClassic extends PageParserDirectBase
 {

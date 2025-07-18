@@ -9,9 +9,9 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
-import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.FileBackedMap.LinkMapEntry;
+import my.LJExport.runtime.file.FileBackedMap;
+import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;

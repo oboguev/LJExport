@@ -6,10 +6,10 @@ import org.apache.http.HttpStatus;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
-import my.LJExport.runtime.LJUtil;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.lj.LJUtil;
 
 public class Calendar
 {

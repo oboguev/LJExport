@@ -1,4 +1,4 @@
-package my.LJExport.runtime;
+package my.LJExport.runtime.password;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -10,6 +10,7 @@ import java.util.Set;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.runtime.Util;
 
 public class PasswordStorage
 {

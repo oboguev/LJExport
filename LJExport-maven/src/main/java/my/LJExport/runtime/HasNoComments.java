@@ -2,6 +2,8 @@ package my.LJExport.runtime;
 
 import java.util.Set;
 
+import my.LJExport.runtime.lj.LJUtil;
+
 public class HasNoComments
 {
     private static Set<String> hasNoComments;

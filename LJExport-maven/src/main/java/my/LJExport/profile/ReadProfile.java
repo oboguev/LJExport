@@ -28,13 +28,13 @@ import my.LJExport.readers.direct.PageParserDirectDreamwidthOrg;
 import my.LJExport.readers.direct.PageParserDirectRossiaOrg;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.runtime.CaseCollisions;
-import my.LJExport.runtime.LJUtil;
-import my.LJExport.runtime.SafeFileName;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.file.SafeFileName;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.lj.LJUtil;
 
 /*
  * Загрузить страницы профиля пользователя.

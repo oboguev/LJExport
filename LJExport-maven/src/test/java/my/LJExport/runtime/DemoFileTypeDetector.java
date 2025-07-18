@@ -1,5 +1,7 @@
 package my.LJExport.runtime;
 
+import my.LJExport.runtime.file.FileTypeDetector;
+
 public class DemoFileTypeDetector
 {
     public static void main(String[] args)

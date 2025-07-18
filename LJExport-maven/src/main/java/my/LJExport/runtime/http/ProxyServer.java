@@ -24,7 +24,7 @@ import org.littleshoot.proxy.impl.ThreadPoolConfiguration;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
-import my.LJExport.runtime.LJUtil;
+import my.LJExport.runtime.lj.LJUtil;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;

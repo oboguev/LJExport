@@ -1,10 +1,11 @@
 package my.LJExport.runtime.links;
 
+import static my.LJExport.runtime.file.FilePath.canonicalFile;
+
 import java.io.File;
 import java.nio.file.Path;
 
 import my.LJExport.runtime.Util;
-import static my.LJExport.runtime.FilePath.canonicalFile;
 
 public class RelativeLink
 {

@@ -1,6 +1,7 @@
-package my.LJExport.runtime;
+package my.LJExport.runtime.lj;
 
 import my.LJExport.Config;
+import my.LJExport.runtime.Util;
 
 public class LJUtil
 {

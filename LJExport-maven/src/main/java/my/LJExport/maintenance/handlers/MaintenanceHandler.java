@@ -4,7 +4,7 @@ import java.io.File;
 
 import my.LJExport.Config;
 import my.LJExport.maintenance.Maintenance;
-import my.LJExport.runtime.FilePath;
+import my.LJExport.runtime.file.FilePath;
 
 public abstract class MaintenanceHandler extends Maintenance
 {

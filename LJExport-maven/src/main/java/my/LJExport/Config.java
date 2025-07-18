@@ -7,9 +7,9 @@ import java.util.List;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 
 import my.LJExport.calendar.YYYY_MM;
-import my.LJExport.runtime.PasswordStorage;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.TrustAnySSL;
+import my.LJExport.runtime.password.PasswordStorage;
 import my.LJExport.runtime.ui.UIDialogPassword;
 
 public class Config

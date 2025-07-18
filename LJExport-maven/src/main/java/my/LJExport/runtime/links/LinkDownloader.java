@@ -20,13 +20,13 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.conn.HttpHostConnectException;
 
 import my.LJExport.Config;
-import my.LJExport.runtime.FileBackedMap;
-import my.LJExport.runtime.FileTypeDetector;
-import my.LJExport.runtime.NamedLocks;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Util.UnableCreateDirectoryException;
+import my.LJExport.runtime.file.FileBackedMap;
+import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.synch.NamedLocks;
 import my.LJExport.runtime.url.URLCodec;
 
 public class LinkDownloader

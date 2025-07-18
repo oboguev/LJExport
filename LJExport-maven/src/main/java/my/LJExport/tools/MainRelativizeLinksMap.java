@@ -5,8 +5,8 @@ import java.util.List;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
-import my.LJExport.runtime.FileBackedMap;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.file.FileBackedMap;
 
 /*
  * Преобразовать файл map-href-file.txt 

@@ -46,6 +46,7 @@ import java.util.regex.Pattern;
 import org.json.JSONObject;
 
 import my.LJExport.Config;
+import my.LJExport.runtime.synch.NamedLocks;
 
 import org.json.JSONArray;
 
@@ -148,7 +149,7 @@ public class Util
      * If yes, strip the prefix, store the result in @sb and return @true.
      * If no, return @false and the value of @sb is unpredictable.
      */
-    static boolean beginsWithPath(String url, String path, StringBuilder sb) throws Exception
+    public static boolean beginsWithPath(String url, String path, StringBuilder sb) throws Exception
     {
         if (url.equalsIgnoreCase(path))
         {
@@ -195,6 +196,8 @@ public class Util
         fos.close();
     }
 
+    public static final NamedLocks NamedFileLocks = new NamedLocks();
+
     public static void writeToFileSafe(String path, String content) throws Exception
     {
         writeToFileSafe(path, content.getBytes(StandardCharsets.UTF_8));
@@ -202,12 +205,20 @@ public class Util
 
     public static void writeToFileSafe(String path, byte[] content) throws Exception
     {
-        File f = new File(path).getAbsoluteFile().getCanonicalFile();
-        File ft = new File(path + staticTempExtension()).getAbsoluteFile().getCanonicalFile();
-        if (ft.exists())
-            ft.delete();
-        writeToFile(ft.getCanonicalPath(), content);
-        Files.move(ft.toPath(), f.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        String threadName = Thread.currentThread().getName();
+        Thread.currentThread().setName(threadName + " waiting filelock");
+
+        NamedFileLocks.interlock(path.toLowerCase(), () ->
+        {
+            Thread.currentThread().setName(threadName);
+
+            File f = new File(path).getAbsoluteFile().getCanonicalFile();
+            File ft = new File(path + staticTempExtension()).getAbsoluteFile().getCanonicalFile();
+            if (ft.exists())
+                ft.delete();
+            writeToFile(ft.getCanonicalPath(), content);
+            Files.move(ft.toPath(), f.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        });
     }
 
     public static String readFileAsString(String path) throws Exception
@@ -261,71 +272,79 @@ public class Util
      * For most desktop/server deployments on ext4, APFS, NTFS or XFS with proper power-loss protection, the method is
      * the practical upper bound of crash-resilient file replacement one can achieve with Java.
      */
-    public static void writeToFileVerySafe(String path, String content) throws IOException
+    public static void writeToFileVerySafe(String path, String content) throws Exception
     {
         writeToFileVerySafe(path, content.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static void writeToFileVerySafe(String path, byte[] content) throws IOException
+    public static void writeToFileVerySafe(String path, byte[] content) throws Exception
     {
-        // --- Sanity checks ---------------------------------------------------
-        Path target = Paths.get(path).toAbsolutePath().normalize();
-        if (!target.isAbsolute())
-            throw new IllegalArgumentException("Target path must be absolute");
-        Path dir = target.getParent();
-        if (dir == null)
-            throw new IOException("Target must reside in a directory");
+        String threadName = Thread.currentThread().getName();
+        Thread.currentThread().setName(threadName + " waiting filelock");
 
-        Path tmp = dir.resolve(target.getFileName() + Util.staticTempExtension());
-
-        // --- 1. Remove any stale temp file ----------------------------------
-        Files.deleteIfExists(tmp);
-
-        // --- 2. Write & fsync the temp file ---------------------------------
-        try (FileChannel fc = FileChannel.open(tmp,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.WRITE,
-                StandardOpenOption.TRUNCATE_EXISTING))
+        NamedFileLocks.interlock(path.toLowerCase(), () ->
         {
-            ByteBuffer buf = ByteBuffer.wrap(content);
-            while (buf.hasRemaining())
-                fc.write(buf);
-            fc.force(true); // data + metadata
-        }
-        catch (IOException e)
-        {
-            // Clean up on failure
+            Thread.currentThread().setName(threadName);
+
+            // --- Sanity checks ---------------------------------------------------
+            Path target = Paths.get(path).toAbsolutePath().normalize();
+            if (!target.isAbsolute())
+                throw new IllegalArgumentException("Target path must be absolute");
+            Path dir = target.getParent();
+            if (dir == null)
+                throw new IOException("Target must reside in a directory");
+
+            Path tmp = dir.resolve(target.getFileName() + Util.staticTempExtension());
+
+            // --- 1. Remove any stale temp file ----------------------------------
             Files.deleteIfExists(tmp);
-            throw e;
-        }
 
-        // --- 3. Atomically replace the target -------------------------------
-        try
-        {
-            Files.move(tmp, target,
-                    StandardCopyOption.ATOMIC_MOVE,
-                    StandardCopyOption.REPLACE_EXISTING);
-        }
-        catch (AtomicMoveNotSupportedException | UnsupportedOperationException ex)
-        {
-            // Windows before JDK 16 cannot combine ATOMIC_MOVE + REPLACE_EXISTING.
-            // Fallback: delete target first, then atomic-move.
-            Files.deleteIfExists(target);
-            Files.move(tmp, target, StandardCopyOption.ATOMIC_MOVE);
-        }
-
-        // --- 4. fsync the directory so the rename itself is durable ---------
-        try
-        {
-            try (FileChannel dirFc = FileChannel.open(dir, StandardOpenOption.READ))
+            // --- 2. Write & fsync the temp file ---------------------------------
+            try (FileChannel fc = FileChannel.open(tmp,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.TRUNCATE_EXISTING))
             {
-                dirFc.force(true); // metadata only would suffice, but true is portable
+                ByteBuffer buf = ByteBuffer.wrap(content);
+                while (buf.hasRemaining())
+                    fc.write(buf);
+                fc.force(true); // data + metadata
             }
-        }
-        catch (IOException | UnsupportedOperationException e)
-        {
-            // On Windows: expected — skip directory fsync
-        }
+            catch (IOException e)
+            {
+                // Clean up on failure
+                Files.deleteIfExists(tmp);
+                throw e;
+            }
+
+            // --- 3. Atomically replace the target -------------------------------
+            try
+            {
+                Files.move(tmp, target,
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+            }
+            catch (AtomicMoveNotSupportedException | UnsupportedOperationException ex)
+            {
+                // Windows before JDK 16 cannot combine ATOMIC_MOVE + REPLACE_EXISTING.
+                // Fallback: delete target first, then atomic-move.
+                Files.deleteIfExists(target);
+                Files.move(tmp, target, StandardCopyOption.ATOMIC_MOVE);
+            }
+
+            // --- 4. fsync the directory so the rename itself is durable ---------
+            try
+            {
+                try (FileChannel dirFc = FileChannel.open(dir, StandardOpenOption.READ))
+                {
+                    dirFc.force(true); // metadata only would suffice, but true is portable
+                }
+            }
+            catch (IOException | UnsupportedOperationException e)
+            {
+                // On Windows: expected — skip directory fsync
+            }
+        });
     }
 
     public static String stripProtocol(String url) throws Exception
@@ -630,7 +649,7 @@ public class Util
     {
         if (extensions == null)
             return true;
-        
+
         for (String ext : extensions)
         {
             if (fn.toLowerCase().endsWith(ext.toLowerCase()))
@@ -639,7 +658,7 @@ public class Util
 
         return false;
     }
-    
+
     public static List<String> enumerateFilesAndDirectories(String root) throws Exception
     {
         Set<String> fset = new HashSet<String>();
@@ -663,7 +682,7 @@ public class Util
         File[] xlist = xrf.listFiles();
         if (xlist == null)
             throw new Exception("Unable to enumerate files under " + xroot);
-        
+
         for (File xf : xlist)
         {
             if (subpath == null)
@@ -680,7 +699,6 @@ public class Util
             }
         }
     }
-    
 
     public static String getFileDirectory(String filepath) throws Exception
     {
@@ -739,7 +757,7 @@ public class Util
                 // COM3
                 if (fn.equalsIgnoreCase(reserved))
                     return true;
-                
+
                 // COM3.txt
                 if (fn.toLowerCase().startsWith(reserved.toLowerCase() + "."))
                     return true;
@@ -899,7 +917,8 @@ public class Util
             {
                 if (!root.exists())
                     return true;
-                Util.err(String.format("Unable to delete %s, no such file, cause: %s", root.getCanonicalPath(), ex.getLocalizedMessage()));
+                Util.err(String.format("Unable to delete %s, no such file, cause: %s", root.getCanonicalPath(),
+                        ex.getLocalizedMessage()));
                 return false;
             }
             catch (IOException ex)

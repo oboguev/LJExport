@@ -9,9 +9,7 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
-// import my.LJExport.maint.handlers.CheckLinkCaseConflicts;
 import my.LJExport.maint.handlers.CountFiles;
-import my.LJExport.maint.handlers.LowercaseLinks;
 import my.LJExport.maint.handlers.MaintenanceHandler;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
@@ -26,6 +24,9 @@ import my.LJExport.runtime.parallel.twostage.parser.ParserParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.parser.ParserWorkContext;
 import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.runtime.ui.ConsoleProgress;
+
+//import my.LJExport.maint.handlers.CheckLinkCaseConflicts;
+//import my.LJExport.maint.handlers.LowercaseLinks;
 
 public class Maintenance
 {
@@ -66,7 +67,7 @@ public class Maintenance
 
             do_users(Users, new CountFiles());
             // do_users(Users, CheckLinkCaseConflicts.class);
-            do_users(Users, LowercaseLinks.class);
+            // do_users(Users, LowercaseLinks.class);
 
             Util.out("");
             Util.out(">>> Completed for all requested users and their files");
@@ -100,6 +101,7 @@ public class Maintenance
         do_users(users, handler, null);
     }
 
+    @SuppressWarnings("unused")
     private static void do_users(String users, Class<? extends MaintenanceHandler> clz) throws Exception
     {
         do_users(users, null, clz);

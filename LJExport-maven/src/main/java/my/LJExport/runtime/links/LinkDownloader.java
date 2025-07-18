@@ -221,6 +221,9 @@ public class LinkDownloader
 
                     if (downloadSource != null)
                     {
+                        /*
+                         * Try to download from an override source
+                         */
                         byte[] binaryBody = downloadSource.load(final_href_noanchor, abs2rel(actual_filename));
                         if (binaryBody != null)
                         {
@@ -274,6 +277,16 @@ public class LinkDownloader
                             f = new File(actual_filename).getCanonicalFile();
                             Util.mkdir(f.getAbsoluteFile().getParent());
                         }
+                        
+                        // ### change or add extension
+                        // ### check and edit actual_filename
+                        // ### 1. actual byte content
+                        // ### 2. header
+                        // ### 3. existing extension
+                        
+                        // ### if file already exists, compare content:
+                        // ### identical -> no need to write
+                        // ### differs -> change actual_filename to old-path\x-uuid.ext
 
                         Util.writeToFileSafe(actual_filename, r.binaryBody);
                         synchronized (href2file)
@@ -667,10 +680,7 @@ public class LinkDownloader
             }
         }
 
-        /*
-         * Change to lower case so files can be transported between OS'es
-         */
-        return path.toString().toLowerCase();
+        return path.toString();
     }
 
     private static final int MaxPathComponentLength = 80;

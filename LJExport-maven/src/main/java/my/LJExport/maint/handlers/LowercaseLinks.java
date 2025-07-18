@@ -22,6 +22,8 @@ import my.LJExport.runtime.links.LinkDownloader;
  *   - link repository
  *   - link repository map file
  *   - HTML files properties A.HREF and IMG.SRC 
+ *   
+ * Do NOT actually use it !!!  
  */
 public class LowercaseLinks extends MaintenanceHandler
 {

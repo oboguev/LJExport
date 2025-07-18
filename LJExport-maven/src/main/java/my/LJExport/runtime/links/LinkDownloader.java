@@ -21,6 +21,7 @@ import org.apache.http.conn.HttpHostConnectException;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.FileBackedMap;
+import my.LJExport.runtime.FileTypeDetector;
 import my.LJExport.runtime.NamedLocks;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Util.UnableCreateDirectoryException;
@@ -277,15 +278,12 @@ public class LinkDownloader
                             f = new File(actual_filename).getCanonicalFile();
                             Util.mkdir(f.getAbsoluteFile().getParent());
                         }
-                        
-                        // ### change or add extension
-                        // ### check and edit actual_filename
-                        // ### 1. actual byte content
-                        // ### 2. header
-                        // ### 3. existing extension
-                        
+
+                        actual_filename = adjustExtension(actual_filename, r);
+
                         // ### if file already exists (or there is case-clash), compare content:
                         // ### identical -> no need to write
+                        // ### can be dir rather than regular file
                         // ### differs -> change actual_filename to old-path\x-uuid.ext
 
                         Util.writeToFileSafe(actual_filename, r.binaryBody);
@@ -768,5 +766,38 @@ public class LinkDownloader
     public static class AlreadyFailedException extends Exception
     {
         private static final long serialVersionUID = 1L;
+    }
+
+    /* ======================================================================================= */
+
+    private String adjustExtension(String filepath, Web.Response r) throws Exception
+    {
+        String filename = new File(filepath).getName();
+        String fnExt = getFileExtension(filename);
+
+        String contextExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
+
+        String headerExt = null;
+        if (r.contentType != null)
+            headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase());
+
+        String finalExt = contextExt;
+        if (finalExt == null)
+            finalExt = headerExt;
+        if (finalExt == null)
+            finalExt = fnExt;
+
+        if (finalExt != null && fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, finalExt))
+        {
+            return filepath;
+        }
+        else if (finalExt != null)
+        {
+            return filepath + "." + finalExt;
+        }
+        else
+        {
+            return filepath;
+        }
     }
 }

@@ -279,6 +279,10 @@ public class LinkDownloader
                             Util.mkdir(f.getAbsoluteFile().getParent());
                         }
 
+                        /*
+                         * Adjust filename extension based on file actual content
+                         * and Content-Type header
+                         */
                         actual_filename = adjustExtension(actual_filename, r);
                         
                         // ### check if file (actual_filename) exists and is a dir

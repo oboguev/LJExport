@@ -735,7 +735,7 @@ public class LinkDownloader
         return fn;
     }
 
-    private static String escapeTrailingDotsAndSpaces(String s)
+    public static String escapeTrailingDotsAndSpaces(String s)
     {
         int i = s.length();
 
@@ -759,7 +759,7 @@ public class LinkDownloader
         return c == '.' || c == ' ' || c == '\u0009' || c == '\u00A0' || (c >= '\u2000' && c <= '\u200F');
     }
 
-    private static String escapeLeadingSpacesAndUnicode(String s)
+    public static String escapeLeadingSpacesAndUnicode(String s)
     {
         int i = 0;
         while (i < s.length() && isProblematicLeadingChar(s.charAt(i)))

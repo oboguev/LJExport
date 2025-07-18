@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.links.LinkDownloader;
 
 /*
  * Generate safe file name
@@ -21,6 +22,10 @@ public class SafeFileName
         return composeFileName(seed, suffix, null);
     }
     
+    /*
+     * @suffic is ".html" or similar
+     * @isGuid is output-only boolean
+     */
     public static String composeFileName(String seed, String suffix, MutableBoolean isGuid)
     {
         if (isGuid != null)
@@ -35,6 +40,7 @@ public class SafeFileName
         for (int i = 0; i < seed.length(); i++)
         {
             char ch = seed.charAt(i);
+            
             if (ILLEGAL_CHARS.indexOf(ch) >= 0 || ch <= 31)
             {
                 // Control characters and illegal symbols are encoded
@@ -49,8 +55,18 @@ public class SafeFileName
                 sb.append(ch);
             }
         }
-
+        
         String result = sb.toString();
+        
+        /* Fix dangerous trailing . or space (Windows will strip them silently) */
+        result = LinkDownloader.escapeTrailingDotsAndSpaces(result);
+        result = LinkDownloader.escapeLeadingSpacesAndUnicode(result);
+
+        /*
+         * If reserved file name, mangle it
+         */
+        if (Util.isReservedFileName(result, true))
+            result = "x-" + Util.uuid() + "_" + result;
 
         // Check total length
         if ((result + suffix).length() > MAX_FILENAME_LENGTH)

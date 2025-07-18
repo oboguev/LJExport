@@ -1,4 +1,4 @@
-package my.LJExport.maint.handlers;
+package my.LJExport.maintenance.handlers;
 
 import java.io.File;
 
@@ -22,14 +22,15 @@ public abstract class MaintenanceHandler extends Maintenance
 
     protected LinkInfo linkInfo(String fullHtmlFilePath, String href)
     {
+        return linkInfo(fullHtmlFilePath, href, true);
+    }
+
+    protected LinkInfo linkInfo(String fullHtmlFilePath, String href, boolean preprocess)
+    {
+        if (preprocess)
+            href = preprocesHref(href);
+        
         if (href == null)
-            return null;
-
-        href = href.trim();
-        if (href.startsWith(FileProtocol))
-            href = href.substring(FileProtocol.length());
-
-        if (href.isEmpty() || !href.startsWith("../"))
             return null;
 
         File fp = new File(fullHtmlFilePath);
@@ -48,5 +49,20 @@ public abstract class MaintenanceHandler extends Maintenance
             info.linkRelativeUnixPath = info.linkRelativeFilePath.replace(File.separatorChar, '/');
             return info;
         }
+    }
+
+    protected String preprocesHref(String href)
+    {
+        if (href == null)
+            return null;
+
+        href = href.trim();
+        if (href.startsWith(FileProtocol))
+            href = href.substring(FileProtocol.length());
+
+        if (href.isEmpty() || !href.startsWith("../"))
+            return null;
+
+        return href;
     }
 }

@@ -9,8 +9,7 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
-import my.LJExport.maint.handlers.CountFiles;
-import my.LJExport.maint.handlers.MaintenanceHandler;
+import my.LJExport.maintenance.handlers.*;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.ErrorMessageLog;
@@ -25,17 +24,14 @@ import my.LJExport.runtime.parallel.twostage.parser.ParserWorkContext;
 import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.runtime.ui.ConsoleProgress;
 
-//import my.LJExport.maint.handlers.CheckLinkCaseConflicts;
-//import my.LJExport.maint.handlers.LowercaseLinks;
-
 public class Maintenance
 {
     private static final String ALL_USERS = "<all>";
     // private static final String AllUsersFromUser = "kot_begemott";
     private static final String AllUsersFromUser = null;
 
-    // private static final String Users = ALL_USERS;
-    private static final String Users = "oboguev";
+    private static final String Users = ALL_USERS;
+    // private static final String Users = "oboguev";
     // private static final String Users = "nationalism.org";
     // private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
 
@@ -67,7 +63,7 @@ public class Maintenance
 
             do_users(Users, new CountFiles());
             // do_users(Users, CheckLinkCaseConflicts.class);
-            // do_users(Users, LowercaseLinks.class);
+            do_users(Users, ResolveLinkCaseDifferences.class);
 
             Util.out("");
             Util.out(">>> Completed for all requested users and their files");

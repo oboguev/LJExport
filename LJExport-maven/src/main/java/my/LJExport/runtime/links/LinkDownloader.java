@@ -284,7 +284,7 @@ public class LinkDownloader
                          * and Content-Type header
                          */
                         actual_filename = adjustExtension(actual_filename, r);
-                        
+
                         // ### check if file (actual_filename) exists and is a dir
                         // ### if so change actual_filename to old-path\x-uuid.ext
 
@@ -698,7 +698,7 @@ public class LinkDownloader
     {
         /*
          * Unpack %xx sequences -> unicode.
-         * Somtimes it has double encoding.
+         * Sometimes it has double encoding.
          */
         String fn = URLCodec.decodeMixed(component);
         fn = URLCodec.decodeMixed(fn);
@@ -706,7 +706,7 @@ public class LinkDownloader
         /*
          * If reserved file name, mangle it
          */
-        if (Util.isReservedFileName(fn))
+        if (Util.isReservedFileName(fn, true))
             return "x-" + Util.uuid() + "_" + fn;
 
         /*
@@ -716,6 +716,7 @@ public class LinkDownloader
 
         /* Fix dangerous trailing . or space (Windows will strip them silently) */
         fn = escapeTrailingDotsAndSpaces(fn);
+        fn = escapeLeadingSpacesAndUnicode(fn);
 
         /*
          * If name is too long
@@ -736,18 +737,8 @@ public class LinkDownloader
     {
         int i = s.length();
 
-        while (i > 0)
-        {
-            char c = s.charAt(i - 1);
-            if (c == '.' || c == ' ')
-            {
-                i--;
-            }
-            else
-            {
-                break;
-            }
-        }
+        while (i > 0 && isProblematicTrailingChar(s.charAt(i - 1)))
+            i--;
 
         if (i == s.length())
             return s;
@@ -757,11 +748,38 @@ public class LinkDownloader
 
         StringBuilder out = new StringBuilder(s.substring(0, i));
         for (int j = i; j < s.length(); j++)
-        {
-            char c = s.charAt(j);
-            out.append(String.format("%%%02X", (int) c)); // %2E, %20
-        }
+            out.append(String.format("%%%02X", (int) s.charAt(j)));
         return out.toString();
+    }
+
+    private static boolean isProblematicTrailingChar(char c)
+    {
+        return c == '.' || c == ' ' || c == '\u0009' || c == '\u00A0' || (c >= '\u2000' && c <= '\u200F');
+    }
+
+    private static String escapeLeadingSpacesAndUnicode(String s)
+    {
+        int i = 0;
+        while (i < s.length() && isProblematicLeadingChar(s.charAt(i)))
+            i++;
+
+        if (i == 0)
+            return s;
+
+        if (i == s.length())
+            return "x-" + Util.uuid(); // string was entirely invisible chars
+
+        StringBuilder out = new StringBuilder();
+        for (int j = 0; j < i; j++)
+            out.append(String.format("%%%02X", (int) s.charAt(j)));
+        out.append(s.substring(i));
+
+        return out.toString();
+    }
+
+    private static boolean isProblematicLeadingChar(char c)
+    {
+        return c == ' ' || c == '\u0009' || c == '\u00A0' || (c >= '\u2000' && c <= '\u200F');
     }
 
     public static String getFileExtension(String fn)

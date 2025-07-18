@@ -628,6 +628,9 @@ public class Util
 
     private static boolean enumerateFilesMatches(String fn, Set<String> extensions)
     {
+        if (extensions == null)
+            return true;
+        
         for (String ext : extensions)
         {
             if (fn.toLowerCase().endsWith(ext.toLowerCase()))
@@ -636,6 +639,48 @@ public class Util
 
         return false;
     }
+    
+    public static List<String> enumerateFilesAndDirectories(String root) throws Exception
+    {
+        Set<String> fset = new HashSet<String>();
+        File f = new File(root);
+        if (!f.exists() || !f.isDirectory())
+            throw new Exception("Directory " + root + " does not exist");
+        enumerateFilesAndDirectories(fset, root, null);
+        List<String> list = new ArrayList<>(fset);
+        Collections.sort(list);
+        return list;
+    }
+
+    private static void enumerateFilesAndDirectories(Set<String> fset, String root, String subpath) throws Exception
+    {
+        String xroot = root;
+
+        if (subpath != null)
+            xroot += File.separator + subpath;
+
+        File xrf = new File(xroot);
+        File[] xlist = xrf.listFiles();
+        if (xlist == null)
+            throw new Exception("Unable to enumerate files under " + xroot);
+        
+        for (File xf : xlist)
+        {
+            if (subpath == null)
+                fset.add(xf.getName());
+            else
+                fset.add(subpath + File.separator + xf.getName());
+
+            if (xf.isDirectory())
+            {
+                if (subpath == null)
+                    enumerateFilesAndDirectories(fset, root, xf.getName());
+                else
+                    enumerateFilesAndDirectories(fset, root, subpath + File.separator + xf.getName());
+            }
+        }
+    }
+    
 
     public static String getFileDirectory(String filepath) throws Exception
     {
@@ -682,16 +727,21 @@ public class Util
         return File.separatorChar == '\\';
     }
 
-    public static boolean isReservedFileName(String fn)
+    public static boolean isReservedFileName(String fn, boolean anyos)
     {
         if (fn.equals(".") || fn.equals(".."))
             return true;
 
-        if (isWindowsOS())
+        if (isWindowsOS() || anyos)
         {
             for (String reserved : WINDOWS_RESERVED_NAMES)
             {
-                if (reserved.equalsIgnoreCase(fn))
+                // COM3
+                if (fn.equalsIgnoreCase(reserved))
+                    return true;
+                
+                // COM3.txt
+                if (fn.toLowerCase().startsWith(reserved.toLowerCase() + "."))
                     return true;
             }
         }

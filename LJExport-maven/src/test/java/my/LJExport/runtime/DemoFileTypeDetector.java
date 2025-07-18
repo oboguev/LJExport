@@ -1,5 +1,6 @@
 package my.LJExport.runtime;
 
+import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.file.FileTypeDetector;
 
 public class DemoFileTypeDetector
@@ -10,6 +11,9 @@ public class DemoFileTypeDetector
         {
             test("c:\\@\\1.png");
             test("c:\\@downloads\\test-octet-stream.bin");
+
+            test2("c:\\qqq\\aaa.bbb");
+            test2("c:\\qqq\\aaa.zzz");
         }
         catch (Exception ex)
         {
@@ -24,5 +28,11 @@ public class DemoFileTypeDetector
         String mime = FileTypeDetector.mimeTypeFromActualFileContent(ba); // image/png
         String ext = FileTypeDetector.fileExtensionFromActualFileContent(ba); // .png
         Util.unused(mime, ext);
+    }
+
+    private static void test2(String path) throws Exception
+    {
+        String xpath = FilePath.getFilePathActualCase(path);
+        Util.unused(xpath);
     }
 }

@@ -5,6 +5,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -122,9 +123,9 @@ public class FilePath
      * (in Windows or even in Linux on case-insensitive file volume such as NTFS)
      * then return file path in actual case existing in file system.
      * 
-     * If file does exist, just return the argument.  
+     * If file does not exist, throws NoSuchFileException (from toRealPath).  
      */
-    public static Path getActualCasePath(Path path) throws Exception
+    public static Path getFilePathActualCase(Path path) throws Exception
     {
         path = path.toRealPath(LinkOption.NOFOLLOW_LINKS); // resolves symlinks, . and ..
 
@@ -138,7 +139,7 @@ public class FilePath
             {
                 if (entry.getFileName().toString().equalsIgnoreCase(path.getFileName().toString()))
                 {
-                    Path result = getActualCasePath(parent).resolve(entry.getFileName());
+                    Path result = getFilePathActualCase(parent).resolve(entry.getFileName());
 
                     String px = path.toAbsolutePath().toString();
                     String rx = result.toAbsolutePath().toString();
@@ -152,5 +153,13 @@ public class FilePath
 
         // fallback
         return path;
+    }
+
+    public static String getFilePathActualCase(String path) throws Exception
+    {
+        String rpath = getFilePathActualCase(Paths.get(path)).toString();
+        if (!rpath.equalsIgnoreCase(path))
+            throw new Exception("Internal consistencey check failed");
+        return rpath;
     }
 }

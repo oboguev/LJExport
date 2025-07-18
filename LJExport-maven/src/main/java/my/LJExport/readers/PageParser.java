@@ -732,7 +732,7 @@ public abstract class PageParser
             if (Main.linkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
                 String referer = LJUtil.recordPageURL(rurl);
-                String newref = Main.linkDownloader.download(href, referer, LinkDownloader.LINK_REFERENCE_PREFIX_PAGES);
+                String newref = Main.linkDownloader.download(href, referer, tag.equals("img"), LinkDownloader.LINK_REFERENCE_PREFIX_PAGES);
                 if (newref != null)
                 {
                     JSOUP.updateAttribute(n, attr, newref);

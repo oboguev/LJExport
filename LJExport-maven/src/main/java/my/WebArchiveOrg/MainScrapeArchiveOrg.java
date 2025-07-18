@@ -808,7 +808,7 @@ public class MainScrapeArchiveOrg
         for (String name_href : Util.read_list(PreloadResourcesList))
         {
             String download_href = ArchiveOrgUrl.getLatestCaptureUrl(name_href);
-            String newref = Main.linkDownloader.download(name_href, download_href, null, "");
+            String newref = Main.linkDownloader.download(name_href, download_href, null, true, "");
             if (newref == null)
             {
                 Util.err("Failed to download " + name_href);
@@ -894,7 +894,7 @@ public class MainScrapeArchiveOrg
         if (!Main.linkDownloader.shouldDownload(naming_href, attr.equalsIgnoreCase("href")))
             return false;
 
-        String newref = Main.linkDownloader.download(naming_href, download_href, null, "");
+        String newref = Main.linkDownloader.download(naming_href, download_href, null, true, "");
 
         if (newref == null)
         {

@@ -176,6 +176,7 @@ public class LowercaseLinks extends MaintenanceHandler
             String lc = e.value.toLowerCase();
             if (!lc.equals(e.value))
             {
+                trace(String.format("Changing map %s => %s", e.value, lc));
                 e.value = lc;
                 update = true;
             }
@@ -188,5 +189,10 @@ public class LowercaseLinks extends MaintenanceHandler
             Util.writeToFileVerySafe(mapFilePath, content);
             txLog.writeLine("updated OK");
         }
+    }
+    
+    private void trace(String msg)
+    {
+        Util.err(msg);
     }
 }

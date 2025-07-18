@@ -416,11 +416,11 @@ public abstract class PageParserDirectBase
 
                 if (ThreadsControl.useLinkDownloadThreads())
                 {
-                    fpDownload.add(new AsyncDownloadExternalLinks(n, attr, href, referer, linkReferencePrefix));
+                    fpDownload.add(new AsyncDownloadExternalLinks(n, tag, attr, href, referer, linkReferencePrefix));
                 }
                 else
                 {
-                    String newref = Main.linkDownloader.download(href, referer, linkReferencePrefix);
+                    String newref = Main.linkDownloader.download(href, referer, tag.equals("img"), linkReferencePrefix);
                     if (newref != null)
                     {
                         JSOUP.updateAttribute(n, attr, newref);
@@ -438,6 +438,7 @@ public abstract class PageParserDirectBase
     {
         // in
         private final Node n;
+        private final String tag;
         private final String attr;
         private final String href;
         private final String referer;
@@ -447,9 +448,10 @@ public abstract class PageParserDirectBase
         private String newref;
         private Exception ex;
 
-        public AsyncDownloadExternalLinks(Node n, String attr, String href, String referer, String linkReferencePrefix)
+        public AsyncDownloadExternalLinks(Node n, String tag, String attr, String href, String referer, String linkReferencePrefix)
         {
             this.n = n;
+            this.tag = tag;
             this.attr = attr;
             this.href = href;
             this.referer = referer;
@@ -464,7 +466,7 @@ public abstract class PageParserDirectBase
             try
             {
                 Thread.currentThread().setName("webload");
-                newref = Main.linkDownloader.download(href, referer, linkReferencePrefix);
+                newref = Main.linkDownloader.download(href, referer, tag.equals("img"), linkReferencePrefix);
             }
             catch (Exception ex)
             {

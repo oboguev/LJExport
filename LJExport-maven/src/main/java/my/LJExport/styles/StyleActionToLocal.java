@@ -438,14 +438,14 @@ public class StyleActionToLocal
             }
 
             /*
-             * Download file to local repository (residing in local file system).
+             * Download CSS file to local repository (residing in local file system).
              * Returns path relative to repository root, with url-encoded path components.
              */
-            newref = linkDownloader.download(naming_href, download_href, null, "", downloadSource);
+            newref = linkDownloader.download(naming_href, download_href, null, false, "", downloadSource);
             if (newref == null && !naming_href.equals(download_href))
             {
                 download_href = ArchiveOrgUrl.getLatestCaptureUrl(naming_href);
-                newref = linkDownloader.download(naming_href, download_href, null, "", downloadSource);
+                newref = linkDownloader.download(naming_href, download_href, null, false, "", downloadSource);
                 // TODO: add alias download_href if does not exist -> newref (decodePathCopmonents first)
                 // TODO: add alias cssFileURL if does not exist -> newref (decodePathCopmonents first)
             }
@@ -1006,11 +1006,11 @@ public class StyleActionToLocal
          * Download file to local repository (residing in local file system).
          * Returns path relative to repository root, with url-encoded path components.
          */
-        String rel = linkDownloader.download(naming_href, download_href, null, "", downloadSource);
+        String rel = linkDownloader.download(naming_href, download_href, null, true, "", downloadSource);
         if (rel == null && !naming_href.equals(download_href))
         {
             download_href = ArchiveOrgUrl.getLatestCaptureUrl(naming_href);
-            rel = linkDownloader.download(naming_href, download_href, null, "", downloadSource);
+            rel = linkDownloader.download(naming_href, download_href, null, true, "", downloadSource);
             // TODO: add alias download_href if does not exist -> rel (decodePathCopmonents first)
             // TODO: add alias absoluteUrl if does not exist -> rel (decodePathCopmonents first)
         }

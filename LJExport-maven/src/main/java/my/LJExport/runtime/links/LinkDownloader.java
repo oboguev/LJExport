@@ -44,7 +44,7 @@ public class LinkDownloader
     private FileBackedMap href2file = new FileBackedMap();
     private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private String linksDir;
-    
+
     public static final String LinkMapFileName = "map-href-file.txt";
 
     public synchronized void init(String linksDir) throws Exception
@@ -87,9 +87,9 @@ public class LinkDownloader
         return rel.replace(File.separator, "/");
     }
 
-    public String download(String href, String referer, String linkReferencePrefix)
+    public String download(String href, String referer, boolean wantFileTypeExtension, String linkReferencePrefix)
     {
-        return download(href, href, referer, linkReferencePrefix);
+        return download(href, href, referer, wantFileTypeExtension, linkReferencePrefix);
     }
 
     /*
@@ -101,12 +101,12 @@ public class LinkDownloader
      * download_href is archived url such as https://web.archive.org/web/20160528141306/http:/nationalism.org/library/science/politics/golosov/golosov-cpcs-2002.pdf
      * and name_href is http://nationalism.org/library/science/politics/golosov/golosov-cpcs-2002.pdf
      */
-    public String download(String name_href, String download_href, String referer,
+    public String download(String name_href, String download_href, String referer, boolean wantFileTypeExtension,
             String linkReferencePrefix)
     {
-        return download(name_href, download_href, referer, linkReferencePrefix, null);
+        return download(name_href, download_href, referer, wantFileTypeExtension, linkReferencePrefix, null);
     }
-    
+
     public String adviseFileName(String name_href) throws Exception
     {
         String href = name_href;
@@ -118,8 +118,7 @@ public class LinkDownloader
         return fn;
     }
 
-    
-    public String download(String name_href, String download_href, String referer,
+    public String download(String name_href, String download_href, String referer, boolean wantFileTypeExtension,
             String linkReferencePrefix, DownloadSource downloadSource)
     {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);
@@ -717,7 +716,7 @@ public class LinkDownloader
     private static String escapeTrailingDotsAndSpaces(String s)
     {
         int i = s.length();
-        
+
         while (i > 0)
         {
             char c = s.charAt(i - 1);
@@ -730,7 +729,7 @@ public class LinkDownloader
                 break;
             }
         }
-        
+
         if (i == s.length())
             return s;
 

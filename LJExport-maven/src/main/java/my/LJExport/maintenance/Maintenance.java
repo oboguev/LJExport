@@ -11,6 +11,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.maint.handlers.CheckLinkCaseConflicts;
 import my.LJExport.maint.handlers.CountFiles;
+import my.LJExport.maint.handlers.LowercaseLinks;
 import my.LJExport.maint.handlers.MaintenanceHandler;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
@@ -32,8 +33,8 @@ public class Maintenance
     // private static final String AllUsersFromUser = "kot_begemott";
     private static final String AllUsersFromUser = null;
 
-    private static final String Users = ALL_USERS;
-    // private static final String Users = "oboguev";
+    // private static final String Users = ALL_USERS;
+    private static final String Users = "oboguev";
     // private static final String Users = "nationalism.org";
     // private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
 
@@ -64,7 +65,8 @@ public class Maintenance
             // HttpWireTracing.enable();
 
             do_users(Users, new CountFiles());
-            do_users(Users, CheckLinkCaseConflicts.class);
+            // do_users(Users, CheckLinkCaseConflicts.class);
+            do_users(Users, LowercaseLinks.class);
 
             Util.out("");
             Util.out(">>> Completed for all requested users and their files");
@@ -268,7 +270,7 @@ public class Maintenance
         if (consoleProgress != null)
         {
             double pct = (100.0 * stageProcessedFileCount) / TotalFileCount;
-            consoleProgress.update("Processing for user " + Config.User, pct);
+            consoleProgress.update("Processing user " + Config.User, pct);
         }
 
         stageProcessedFileCount++;

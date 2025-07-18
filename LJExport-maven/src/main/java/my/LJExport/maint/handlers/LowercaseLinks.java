@@ -91,6 +91,7 @@ public class LowercaseLinks extends MaintenanceHandler
         {
             String html = JSOUP.emitHtml(parser.pageRoot);
             Util.writeToFileSafe(fullHtmlFilePath, html);
+            trace("Updated HTML file " + fullHtmlFilePath);
         }
     }
 
@@ -157,6 +158,10 @@ public class LowercaseLinks extends MaintenanceHandler
         sb.append("                  via " + tname);
         txLog.writeLine(sb.toString());
 
+        trace(String.format("Renaming LinksDir file %s => %s", 
+                new File(indir, fn).toPath().toString(), 
+                new File(indir, lcfn).toPath().toString()));
+        
         Files.move(new File(indir, fn).toPath(), new File(indir, tname).toPath(), StandardCopyOption.ATOMIC_MOVE);
         Files.move(new File(indir, tname).toPath(), new File(indir, lcfn).toPath(), StandardCopyOption.ATOMIC_MOVE);
         txLog.writeLine("renamed OK");
@@ -176,7 +181,7 @@ public class LowercaseLinks extends MaintenanceHandler
             String lc = e.value.toLowerCase();
             if (!lc.equals(e.value))
             {
-                trace(String.format("Changing map %s => %s", e.value, lc));
+                trace(String.format("Changing LinksDir map %s => %s", e.value, lc));
                 e.value = lc;
                 update = true;
             }

@@ -189,7 +189,7 @@ public class LinkDownloader
                     throw ex;
                 }
 
-                if (f.exists()) // ### what if isDir
+                if (f.exists() && !f.isDirectory())
                 {
                     actual_filename = FilePath.getFilePathActualCase(actual_filename);
                     filename.set(actual_filename);

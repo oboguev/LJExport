@@ -369,6 +369,12 @@ public class LinkDownloader
             if (fp.isDirectory() || fp.isFile() && !isSameContent(fp.getCanonicalPath(), r.binaryBody))
             {
                 // change actual_filename to old-path\x-uuid.ext
+                String ext = getFileExtension(fp.getName());
+                String fn = "x-" + Util.uuid();
+                if (ext != null && ext.length() != 0 && ext.length() <= 4)
+                    fn += "." + ext;
+                fp = new File(fp.getParentFile(), fn).getCanonicalFile();
+                actual_filename = fp.getCanonicalPath();
             }
             else
             {

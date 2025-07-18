@@ -74,10 +74,20 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             relpath = sanitizePath(relpath);
             
             // check file exists in repository and in the same case
-            String xp = linkDir + File.separator + relpath;
+            String xp = linkDir + File.separator + relpath.replace("/", File.separator);
             String ac = lc2ac.get(xp.toLowerCase());
-            if (ac == null || !ac.equals(xp))
+            
+            if (ac == null)
+                throwException("File is missing in links repository");
+            
+            if (!ac.startsWith(linkDir + File.separator))
+                throwException("File is outside of links repository");
+            
+            if (!ac.equalsIgnoreCase(xp))
                 throwException("Mismatch between link repository map file and repository files");
+
+            relpath = Util.stripStart(ac, linkDir + File.separator);
+            relpath = relpath.replace(File.separator, "/");
             
             if (!relpath.equals(e.value))
             {

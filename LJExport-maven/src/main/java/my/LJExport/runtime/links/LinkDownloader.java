@@ -188,6 +188,7 @@ public class LinkDownloader
 
                 if (f.exists())
                 {
+                    // ### may be different case
                     filename.set(actual_filename);
                     synchronized (href2file)
                     {

@@ -61,9 +61,17 @@ public class Maintenance
 
             // HttpWireTracing.enable();
 
+            //
+            // Sequence:
+            //   0. CheckLinkCaseConflicts [optional]
+            //   1. ResolveLinkCaseDifferences 
+            //   2. FixDirectoryLinks
+            //   3. FixFileFormats
+            //
             do_users(Users, new CountFiles());
             // do_users(Users, CheckLinkCaseConflicts.class);
             do_users(Users, ResolveLinkCaseDifferences.class);
+            // do_users(Users, FixDirectoryLinks.class);
 
             Util.out("");
             Util.out(">>> Completed for all requested users and their files");

@@ -161,13 +161,22 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             if (linkInfo == null)
                 continue;
 
-            File fp = new File(linkInfo.linkFullFilePath);
-            if (!fp.exists())
-                continue;
-
             String actualLinkFullFilePath = lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
             if (actualLinkFullFilePath == null)
-                throwException("Unexpected: link file is not present in the map");
+            {
+                String msg = String.format("Link file [%s] is not present in the repository map, href=[%s], file=[%s]", 
+                        Config.User, original_href, linkInfo.linkFullFilePath);
+                
+                if (DryRun)
+                {
+                    trace(msg);
+                    continue;
+                }
+                else
+                {
+                    throwException(msg);
+                }
+            }
 
             String newref = RelativeLink.fileRelativeLink(actualLinkFullFilePath, fullHtmlFilePath, Config.DownloadRoot);
 

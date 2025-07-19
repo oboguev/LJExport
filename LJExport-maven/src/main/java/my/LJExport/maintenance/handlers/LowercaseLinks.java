@@ -77,7 +77,7 @@ public class LowercaseLinks extends MaintenanceHandler
                 String lc = href.toLowerCase();
                 if (!lc.equals(href))
                 {
-                    JSOUP.updateAttribute(n, "src", lc);  // ###
+                    updateLinkAttribute(n, "src", lc); 
                     update = true;
                 }
             }
@@ -92,7 +92,7 @@ public class LowercaseLinks extends MaintenanceHandler
                 String lc = href.toLowerCase();
                 if (!lc.equals(href))
                 {
-                    JSOUP.updateAttribute(n, "href", lc);  // ###
+                    updateLinkAttribute(n, "href", lc);
                     update = true;
                 }
             }

@@ -200,7 +200,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
             trace(sb.toString());
 
-            JSOUP.updateAttribute(n, attr, newref);  // ###
+            updateLinkAttribute(n, attr, newref);
             updated = true;
         }
 

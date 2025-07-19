@@ -161,7 +161,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
             String newref = this.alreadyRenamed.get(href.toLowerCase());
             if (newref != null)
             {
-                JSOUP.updateAttribute(n, attr, newref);  // ###
+                updateLinkAttribute(n, attr, newref);
                 updated = true;
 
                 changeLinksMap(href_original, newref, false);
@@ -221,7 +221,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
                  * Fix link
                  */
                 newref = href + "/" + onlyFile.get();
-                JSOUP.updateAttribute(n, attr, newref);  // ###
+                updateLinkAttribute(n, attr, newref);
                 updated = true;
                 txLog.writeLine(String.format("Changed HTML %s.%s: %s => %s", tag, attr, href_original, newref));
                 

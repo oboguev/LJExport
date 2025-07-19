@@ -164,7 +164,7 @@ public class FixFileExtensions extends MaintenanceHandler
             String newref = this.alreadyRenamed.get(href.toLowerCase());
             if (newref != null)
             {
-                JSOUP.updateAttribute(n, attr, newref); // ###
+                updateLinkAttribute(n, attr, newref);
                 updated = true;
 
                 changeLinksMap(href_original, newref, false);
@@ -283,7 +283,7 @@ public class FixFileExtensions extends MaintenanceHandler
             /*
              * Fix link
              */
-            JSOUP.updateAttribute(n, attr, newref);  // ###
+            updateLinkAttribute(n, attr, newref);
             updated = true;
 
             alreadyRenamed.put(href.toLowerCase(), newref);

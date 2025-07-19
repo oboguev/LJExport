@@ -24,8 +24,7 @@ import my.LJExport.runtime.links.LinkDownloader;
  * than implied by extension, then adjust the link.
  * Adjust repository map file as well.
  * 
- * Execute AFTER FixLinkEncoding
- *     and AFTER ResolveLinkCaseDifferences
+ * Execute AFTER ResolveLinkCaseDifferences
  *     and AFTER FixDirectoryLinks.
  */
 public class FixFileExtensions extends MaintenanceHandler

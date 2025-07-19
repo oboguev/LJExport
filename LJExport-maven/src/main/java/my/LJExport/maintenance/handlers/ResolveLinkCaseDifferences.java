@@ -26,8 +26,6 @@ import my.LJExport.runtime.links.RelativeLink.InvalidNestedPathException;
  * Also eliminate trailing dots and spaces in path components such as:
  *     ../../../links/www.etnosy.ru/sites/default/files/bookshelf./evr.gif
  *     ../../../links/www.etnosy.ru/sites/default/files/bookshelf /evr.gif
- *     
- * Execute AFTER FixLinkEncoding
  */
 public class ResolveLinkCaseDifferences extends MaintenanceHandler
 {
@@ -114,7 +112,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             {
                 StringBuilder sb = new StringBuilder();
                 sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
-                sb.append(String.format("          %s            to  %s", spaces(Config.User), relpath));
+                sb.append(String.format("          %s            to  %s" + nl, spaces(Config.User), relpath));
 
                 trace(sb.toString());
 
@@ -165,29 +163,18 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             if (href == null)
                 continue;
 
+            if (handleIncompleteOnlineURLs(n, tag, attr, href))
             {
-                // #######
-                if (href.startsWith("../../img/userinfo.gif?"))
-                {
-                    trace("LJ URL: " + href);
-                    continue;
-                }
-                if (href.startsWith("../../img/community.gif?"))
-                {
-                    trace("LJ URL: " + href);
-                    continue;
-                }
-                if (href.equals("../images/line_sm.gif"))
-                {
-                    trace("LJ URL: " + href);
-                    continue;
-                }
+                updated = true;
+                continue;
             }
 
             if (!isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
 
             href = variants(href, fullHtmlFilePath);
+            if (href == null)
+                continue;
 
             // strip trailing dots and spaces in path components
             // ../../../links/www.etnosy.ru/sites/default/files/bookshelf./evr.gif
@@ -224,7 +211,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             sb.append(String.format("Changing [%s] HTML  %s" + nl, Config.User, original_href));
             sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newref));
             sb.append(String.format("          %s    in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
-            sb.append(String.format("          %s   for  %s", spaces(Config.User), actualLinkFullFilePath));
+            sb.append(String.format("          %s   for  %s" + nl, spaces(Config.User), actualLinkFullFilePath));
 
             trace(sb.toString());
 
@@ -286,7 +273,15 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
         // return null;
         if (exlist.size() == 0)
+        {
+            if (href.contains("../links/imgprx.livejournal.net/"))
+            {
+                trace("Ignore missing URL: " + href);
+                return null;
+            }
+
             throwException("No link repository file for " + href);
+        }
 
         // priorities: h2 -> h4 ->  h1 ->  h3 -> h5
 
@@ -383,5 +378,53 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
     private void throwException(String msg) throws Exception
     {
         throw new Exception(msg);
+    }
+
+    /* ===================================================================================================== */
+
+    private boolean handleIncompleteOnlineURLs(Node n, String tag, String attr, String href) throws Exception
+    {
+        if (handleIncompleteStart(n, tag, attr, href, "../../img/", "https://www.livejournal.com/img/"))
+            return true;
+
+        if (handleIncompleteStart(n, tag, attr, href, "../../../img/", "https://www.livejournal.com/img/"))
+            return true;
+
+        if (handleIncompleteStart(n, tag, attr, href, "../../palimg/", "https://www.livejournal.com/palimg/"))
+            return true;
+
+        if (handleIncompleteStart(n, tag, attr, href, "../wp-content/uploads/", "https://unknown.host/wp-content/uploads/"))
+            return true;
+
+        if (handleIncompleteExact(n, tag, attr, href, "../images/line_sm.gif", "https://unknown.host/images/line_sm.gif"))
+            return true;
+
+        return false;
+    }
+
+    private boolean handleIncompleteStart(Node n, String tag, String attr, String href, String matchPrefix, String replaceWith)
+            throws Exception
+    {
+        if (!href.startsWith(matchPrefix))
+            return false;
+        
+        String newref = replaceWith + Util.stripStart(href, matchPrefix);
+        trace(String.format("Changing [%s] HTML incomplete URL: %s => %s" + nl, Config.User, href, newref));
+        updateLinkAttribute(n, attr, newref);
+
+        return true;
+    }
+
+    private boolean handleIncompleteExact(Node n, String tag, String attr, String href, String match, String replaceWith)
+            throws Exception
+    {
+        if (!href.equals(match))
+            return false;
+        
+        String newref = replaceWith;
+        trace(String.format("Changing [%s] HTML incomplete URL: %s => %s" + nl, Config.User, href, newref));
+        updateLinkAttribute(n, attr, newref);
+
+        return true;
     }
 }

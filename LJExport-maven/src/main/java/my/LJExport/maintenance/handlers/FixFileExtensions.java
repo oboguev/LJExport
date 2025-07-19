@@ -219,9 +219,9 @@ public class FixFileExtensions extends MaintenanceHandler
                 tail = tail.toLowerCase();
                 
                 if (!newLinkFullFilePath.toLowerCase().endsWith(tail))
-                    throw new Exception("Internal error check");
+                    throwException("Internal error check");
                 if (!newref.toLowerCase().endsWith(tail))
-                    throw new Exception("Internal error check");
+                    throwException("Internal error check");
                 
                 newLinkFullFilePath = newLinkFullFilePath.substring(0, newLinkFullFilePath.length() - tail.length());
                 newref = newref.substring(0, newref.length() - tail.length());
@@ -230,7 +230,12 @@ public class FixFileExtensions extends MaintenanceHandler
             newLinkFullFilePath += "." + contentExtension;
             newref += "." + contentExtension;
             
-            // ### check if target file already exists on disk -> exception
+            /*
+             * Check for conflicts
+             */
+            if (new File(newLinkFullFilePath).exists())
+                throwException("Target file already exists on disk: " + newLinkFullFilePath);
+            
             // ### check if target file already exists in map -> exception
             
             // ### txLog renaming file

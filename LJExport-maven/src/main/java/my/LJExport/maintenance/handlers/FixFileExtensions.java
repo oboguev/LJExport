@@ -245,19 +245,34 @@ public class FixFileExtensions extends MaintenanceHandler
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("Renaming [%s] from  %s" + nl, Config.User, linkInfo.linkFullFilePath));
             sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newLinkFullFilePath));
-            
+            sb.append(String.format("    link  %s  from  %s" + nl, spaces(Config.User), href));
+            sb.append(String.format("          %s    to  %s", spaces(Config.User), newref));
+
             trace(sb.toString());
             txLog.writeLine(sb.toString());
-            
-            boolean replaceExisting = false;
-            Util.renameFile(linkInfo.linkFullFilePath, newLinkFullFilePath, replaceExisting);
-            txLog.writeLine("Renamed OK");
 
-            // ### fix link
-            // ### updated = true
+            if (!DryRun)
+            {
+                boolean replaceExisting = false;
+                Util.renameFile(linkInfo.linkFullFilePath, newLinkFullFilePath, replaceExisting);
+                txLog.writeLine("Renamed OK");
+            }
+            else
+            {
+                txLog.writeLine("Dry-run fake renamed OK");
+            }
 
-            // ### fix map
-            // ### updatedMap = true
+            /*
+             * Fix link
+             */
+            JSOUP.updateAttribute(n, attr, newref);
+            updated = true;
+
+            /*
+             * Fix map
+             */
+            // ###
+            updatedMap = true;
 
             // ### what if ALREADY renamed previous???
         }

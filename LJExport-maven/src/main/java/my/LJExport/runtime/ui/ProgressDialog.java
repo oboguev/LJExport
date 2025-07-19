@@ -11,6 +11,8 @@ public class ProgressDialog
     private JLabel headerLabel;
     private JLabel messageLabel;
     private JProgressBar progressBar;
+    private long startTime = -1;
+    private JLabel etaLabel;
 
     public ProgressDialog(String headerText)
     {
@@ -53,7 +55,17 @@ public class ProgressDialog
             progressBar.setStringPainted(true);
             panel.add(progressBar);
 
+            etaLabel = new JLabel("ETA: <estimating>");
+            // Create a flow panel with left alignment to hold ETA label
+            JPanel etaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            etaPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            etaPanel.add(etaLabel);
+
+            // Add spacing and etaPanel to the main layout
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
+            panel.add(etaPanel);
             dialog.add(panel, BorderLayout.CENTER);
+            dialog.pack();
 
             dialog.setLocationRelativeTo(null);
             dialog.setAlwaysOnTop(true);
@@ -79,6 +91,10 @@ public class ProgressDialog
         if (last_msg != null && last_msg.equals(msg) && last_pct != null && Math.abs(pct - last_pct) < 0.1)
             return;
 
+        boolean pctReset = (last_pct == null || pct == 0 || pct < last_pct);
+        if (pctReset)
+            startTime = System.currentTimeMillis();
+
         last_msg = msg;
         last_pct = pct;
 
@@ -89,6 +105,19 @@ public class ProgressDialog
                 messageLabel.setText(msg);
                 int value = (int) Math.max(0, Math.min(100, pct));
                 progressBar.setValue(value);
+
+                if (pct < 1.0)
+                {
+                    etaLabel.setText("ETA: <estimating>");
+                }
+                else
+                {
+                    long now = System.currentTimeMillis();
+                    long elapsed = now - startTime;
+                    double remainingRatio = (100.0 - pct) / pct;
+                    long etaMillis = (long) (elapsed * remainingRatio);
+                    etaLabel.setText("ETA: " + formatDuration(etaMillis));
+                }
             }
         });
     }
@@ -107,5 +136,21 @@ public class ProgressDialog
                 dialog = null;
             }
         });
+    }
+
+    private static String formatDuration(long millis)
+    {
+        long totalSeconds = millis / 1000;
+        long seconds = totalSeconds % 60;
+        long minutes = (totalSeconds / 60) % 60;
+        long hours = (totalSeconds / 3600) % 24;
+        long days = totalSeconds / (3600 * 24);
+
+        if (days > 0)
+            return String.format("%d days and %02d:%02d:%02d", days, hours, minutes, seconds);
+        else if (hours > 0)
+            return String.format("%d:%02d:%02d", hours, minutes, seconds);
+        else
+            return String.format("%d:%02d", minutes, seconds);
     }
 }

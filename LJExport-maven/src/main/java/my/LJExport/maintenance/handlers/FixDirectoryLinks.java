@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.jsoup.nodes.Node;
 
@@ -99,7 +100,8 @@ public class FixDirectoryLinks extends MaintenanceHandler
             if (null != file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase()))
                 continue;
 
-            if (null != dir_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase()))
+            String ac = dir_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
+            if (ac == null)
             {
                 String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
                         Config.User, href, linkInfo.linkFullFilePath);
@@ -115,8 +117,12 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 }
             }
 
+            if (!ac.equals(linkInfo.linkFullFilePath))
+                throwException("Mismatching link case");
+
             File fp = new File(linkInfo.linkFullFilePath).getCanonicalFile();
-            int count = countContainedFiles(fp);
+            AtomicReference<String> onlyFile = new AtomicReference<>();
+            int count = countContainedFiles(fp, onlyFile);
 
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("[%s] %s.%s => [%d] %s", Config.User, tag, attr, count, linkInfo.linkFullFilePath));
@@ -128,12 +134,14 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 // ### throwException("Multiple files in linked directory " + linkInfo.linkFullFilePath);
                 continue;
             }
-
-            if (count == 1)
+            
+            if (count == 1 && !DryRun)
             {
-                // ###
-                // ### JSOUP.updateAttribute(n, attr, newref);
+                String newref = href + "/" + onlyFile.get();
+                JSOUP.updateAttribute(n, attr, newref);
                 updated = true;
+
+                // ### update map
             }
         }
 
@@ -142,15 +150,21 @@ public class FixDirectoryLinks extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
-    private int countContainedFiles(File fp)
+    private int countContainedFiles(File fp, AtomicReference<String> onlyFile)
     {
         int count = 0;
 
         for (File fpx : fp.listFiles())
         {
             if (fpx.isFile())
+            {
+                onlyFile.set(fpx.getName());
                 count++;
+            }
         }
+
+        if (count != 1)
+            onlyFile.set(null);
 
         return count;
     }

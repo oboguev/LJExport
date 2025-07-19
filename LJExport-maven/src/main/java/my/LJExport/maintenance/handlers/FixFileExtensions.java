@@ -271,10 +271,17 @@ public class FixFileExtensions extends MaintenanceHandler
             /*
              * Fix map
              */
-            // ###
-            updatedMap = true;
+            List<LinkMapEntry> list = relpath2entry.get(href.toLowerCase());
+            if (list == null || list.size() == 0)
+                throwException("Old link is missing in the map");
 
-            // ### what if ALREADY renamed previous???
+            for (LinkMapEntry e : list)
+            {
+                e.value = newref;
+                updatedMap = true;
+            }
+
+            // ### what if ALREADY renamed previous??? -> then change only HTML
         }
 
         return updated;

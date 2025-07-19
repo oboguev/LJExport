@@ -196,11 +196,13 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
             if (newref.equals(original_href))
                 continue;
-
+            
             StringBuilder sb = new StringBuilder();
 
             sb.append(String.format("Changing [%s] HTML  %s" + nl, Config.User, original_href));
-            sb.append(String.format("          %s    to  %s", spaces(Config.User), newref));
+            sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newref));
+            sb.append(String.format("          %s    in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
+            sb.append(String.format("          %s   for  %s", spaces(Config.User), actualLinkFullFilePath));
 
             trace(sb.toString());
 
@@ -240,16 +242,16 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         for (String h : list)
         {
             String relativeToRepository = null;
-            
+
             try
             {
-                relativeToRepository = relativeToLinkRepository(h, fullHtmlFilePath); 
+                relativeToRepository = relativeToLinkRepository(h, fullHtmlFilePath);
             }
             catch (InvalidNestedPathException ex)
             {
                 continue;
             }
-            
+
             if (relativeToRepository != null && href_exists(relativeToRepository))
                 exlist.add(h);
         }
@@ -271,7 +273,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         String abs = RelativeLink.resolveFileRelativeLink(fullHtmlFilePath, href, this.linkDir);
         if (abs == null)
             throw new Exception("Internal error");
-        
+
         String prefix = this.linkDir + File.separator;
         if (!abs.startsWith(prefix))
             throw new Exception("Link is not within the repository");

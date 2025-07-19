@@ -179,18 +179,87 @@ public class FixFileExtensions extends MaintenanceHandler
             if (!ac.equals(linkInfo.linkFullFilePath))
                 throwException("Mismatching link case");
 
+            /*
+             * Detect implied file extension from actual file content 
+             */
             byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
             String contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content);
             if (contentExtension == null || contentExtension.length() == 0)
                 continue;
-
-            // ###
+            
+            /*
+             * Get extension from file name 
+             */
+            File fp = new File(linkInfo.linkFullFilePath);
+            String fnExt =  getFileExtension(fp.getName());
+            if (fnExt != null && (fnExt.length() == 0 || fnExt.length() > 4))
+                fnExt = null;
+            
+            /*
+             * If it is not one of common media extensions, disregard it  
+             */
+            if (fnExt != null && !FileTypeDetector.commonExtensions().contains(fnExt))
+                fnExt = null;
+            
+            /*
+             * If it is equivalent to detected file content, do not make any change  
+             */
+            if (fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, contentExtension))
+                continue;
+            
+            /*
+             * Strip file extension if existed and append new extension
+             */
+            String newLinkFullFilePath = linkInfo.linkFullFilePath;
+            String newref = href;
+            
+            if (fnExt != null)
+            {
+                String tail = "." + fnExt;
+                tail = tail.toLowerCase();
+                
+                if (!newLinkFullFilePath.toLowerCase().endsWith(tail))
+                    throw new Exception("Internal error check");
+                if (!newref.toLowerCase().endsWith(tail))
+                    throw new Exception("Internal error check");
+                
+                newLinkFullFilePath = newLinkFullFilePath.substring(0, newLinkFullFilePath.length() - tail.length());
+                newref = newref.substring(0, newref.length() - tail.length());
+            }
+            
+            newLinkFullFilePath += "." + contentExtension;
+            newref += "." + contentExtension;
+            
+            // ### check if target file already exists on disk -> exception
+            // ### check if target file already exists in map -> exception
+            
+            // ### txLog renaming file
+            // ### rename file linkInfo.linkFullFilePath -> newname
+            // ### txLog complete
+            
+            // ### fix link
+            // ### updated = true
+            
+            // ### fix map
+            // ### updatedMap = true
+            
+            // ### what if ALREADY renamed previous???
         }
 
         return updated;
     }
 
     /* ===================================================================================================== */
+
+    private String getFileExtension(String fn)
+    {
+        int dotIndex = fn.lastIndexOf('.');
+        // no extension or dot is at the end
+        if (dotIndex == -1 || dotIndex == fn.length() - 1)
+            return null;
+        else
+            return fn.substring(dotIndex + 1);
+    }
 
     private void trace(String msg)
     {

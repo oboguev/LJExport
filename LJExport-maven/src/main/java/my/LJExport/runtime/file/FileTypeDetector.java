@@ -3,13 +3,17 @@ package my.LJExport.runtime.file;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypes;
+
+import my.LJExport.Config;
 
 // image/png => png
 // application/octet-stream => null
@@ -75,7 +79,8 @@ public class FileTypeDetector
     /* ==================================================================================== */
 
     private static final Map<String, String> canonicalExtensionMap = new HashMap<>();
-    
+    private static final Set<String> commonExtensions;
+
     static
     {
         // Image formats
@@ -119,16 +124,42 @@ public class FileTypeDetector
         canonicalExtensionMap.put("flv", "flv");
         canonicalExtensionMap.put("f4v", "flv");
         canonicalExtensionMap.put("webm", "webm");
+
+        commonExtensions = makeCommonExtensions();
     }
 
     public static boolean isEquivalentExtensions(String ext1, String ext2)
     {
         if (ext1 == null || ext2 == null)
             return false;
+
         ext1 = ext1.toLowerCase(Locale.ROOT);
         ext2 = ext2.toLowerCase(Locale.ROOT);
+        if (ext1.equals(ext2))
+            return true;
+
         String norm1 = canonicalExtensionMap.get(ext1);
         String norm2 = canonicalExtensionMap.get(ext2);
         return norm1 != null && norm2 != null && norm1.equals(norm2);
+    }
+
+    /* ==================================================================================== */
+
+    public static Set<String> commonExtensions()
+    {
+        return commonExtensions;
+    }
+
+    private static Set<String> makeCommonExtensions()
+    {
+        Set<String> xs = new HashSet<>();
+
+        xs.addAll(canonicalExtensionMap.keySet());
+        xs.addAll(canonicalExtensionMap.values());
+        xs.addAll(Config.DownloadFileTypes);
+        xs.add("bmp");
+        xs.add("svg");
+
+        return xs;
     }
 }

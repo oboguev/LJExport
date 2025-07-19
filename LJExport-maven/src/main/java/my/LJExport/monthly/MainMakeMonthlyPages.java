@@ -30,7 +30,8 @@ public class MainMakeMonthlyPages
     // private static String Users = "elcour,meast_ru";
     // private static String Users = "udod99.lj-rossia-org";
     // private static String Users = "harmfulgrumpy.dreamwidth-org";
-    private static String Users = "oboguev";
+    // private static String Users = "oboguev";
+    private static String Users = "roineroyce";
 
     public static void main(String[] args)
     {

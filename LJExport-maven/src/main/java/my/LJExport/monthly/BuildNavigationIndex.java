@@ -174,7 +174,7 @@ public final class BuildNavigationIndex {
             boolean needSep = false;
             if (prevYear != null) {
                 sb.append("<a class=\"ljexport-partial-underline\" href=\"../")
-                  .append(prevYear).append("/index.html\">◄ раньше к ").append(prevYear).append("</a>");
+                  .append(prevYear).append("/index.html\">◄  раньше к ").append(prevYear).append("</a>");
                 needSep = true;
             }
             if (prevYear != null || nextYear != null) {
@@ -185,7 +185,7 @@ public final class BuildNavigationIndex {
             if (nextYear != null) {
                 if (needSep) sb.append(PART_SPACER).append("|").append(PART_SPACER);
                 sb.append("<a class=\"ljexport-partial-underline\" href=\"../")
-                  .append(nextYear).append("/index.html\">дальше к ").append(nextYear).append(" ►</a>");
+                  .append(nextYear).append("/index.html\">дальше к ").append(nextYear).append("  ►</a>");
             }
             sb.append("\n</div>\n");
         }

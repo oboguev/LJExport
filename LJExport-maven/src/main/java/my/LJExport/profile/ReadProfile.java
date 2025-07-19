@@ -631,6 +631,8 @@ public class ReadProfile
                     // album had been loaded previosly
                     do_load = false;
                 }
+                
+                // ### duplicate album names (https://roineroyce.livejournal.com)
 
                 if (do_load)
                     loadImageAlbum(href, fp.getCanonicalFile(), title);
@@ -688,7 +690,7 @@ public class ReadProfile
     private void loadImageAlbum(String href, File fp, String title) throws Exception
     {
         PageParserDirectBase parser = prepareImagesPage(href, Config.User + " - Pictures - " + title);
-        combinePagerPages(parser.pageRoot, "picture album " + title);
+        combinePagerPages(parser.pageRoot, "picture album [" + title + "]");
 
         parser.setLinkReferencePrefix(LinkDownloader.LINK_REFERENCE_PREFIX_PROFILE_DOWN_1);
         parser.downloadExternalLinks(parser.pageRoot, AbsoluteLinkBase.User);
@@ -737,7 +739,7 @@ public class ReadProfile
                 if (!fp.exists())
                 {
                     if (nimage >= 10)
-                        Main.out(String.format("    Loading album %s image %d of %d", albumTitle, nimage, total));
+                        Main.out(String.format("    Loading album [%s] image %d of %d", albumTitle, nimage, total));
 
                     PageParserDirectBase parser = prepareImagesPage(href, Config.User + " - Pictures - " + albumTitle);
                     deletePagers(parser.pageRoot);

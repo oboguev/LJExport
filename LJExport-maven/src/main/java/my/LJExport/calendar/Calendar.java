@@ -116,15 +116,23 @@ public class Calendar
 
     private static boolean isYearUrl(String s) throws Exception
     {
-        return s.length() == 4 && Character.isDigit(s.charAt(0)) && Character.isDigit(s.charAt(1))
-               && Character.isDigit(s.charAt(2)) && Character.isDigit(s.charAt(3));
+        return s.length() == 4 &&
+                Character.isDigit(s.charAt(0)) &&
+                Character.isDigit(s.charAt(1)) &&
+                Character.isDigit(s.charAt(2)) &&
+                Character.isDigit(s.charAt(3));
     }
 
     private static boolean isMonthUrl(String s) throws Exception
     {
-        return s.length() == 7 && Character.isDigit(s.charAt(0)) && Character.isDigit(s.charAt(1))
-               && Character.isDigit(s.charAt(2)) && Character.isDigit(s.charAt(3)) && s.charAt(4) == '/'
-               && Character.isDigit(s.charAt(5)) && Character.isDigit(s.charAt(6));
+        return s.length() == 7 &&
+                Character.isDigit(s.charAt(0)) &&
+                Character.isDigit(s.charAt(1)) &&
+                Character.isDigit(s.charAt(2)) &&
+                Character.isDigit(s.charAt(3)) &&
+                s.charAt(4) == '/' &&
+                Character.isDigit(s.charAt(5)) &&
+                Character.isDigit(s.charAt(6));
     }
 
     private static boolean isLoadableYear(String s) throws Exception
@@ -184,7 +192,7 @@ public class Calendar
         if (Config.User.charAt(0) == '_' && Util.lastChar(Config.User) == '_')
             return "http://users." + Config.Site + "/" + Config.User + "/" + yyyy + "/";
         else
-            return LJUtil.userBase()  + "/calendar/" + yyyy;
+            return LJUtil.userBase() + "/calendar/" + yyyy;
     }
 
     private static String url_yyyy_mm(String yyyy_mm) throws Exception

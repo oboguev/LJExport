@@ -90,7 +90,7 @@ public class MonthCollectors
             {
                 Element article = parser.findMainArticle();
 
-                if (Config.True)
+                if (Util.True)
                 {
                     Element parent = (Element) article.parent();
 

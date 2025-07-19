@@ -13,7 +13,6 @@ import org.jsoup.nodes.Node;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
-import my.LJExport.Config;
 import my.LJExport.readers.Comment;
 import my.LJExport.readers.CommentsTree;
 import my.LJExport.readers.PageContentSource;
@@ -361,7 +360,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
                 tname = tdir + "anon-comment-without-subject.txt";
             }
 
-            if (Config.True || vars.get("userpic") == null || vars.get("userpic").trim().length() == 0)
+            if (Util.True || vars.get("userpic") == null || vars.get("userpic").trim().length() == 0)
                 vars.put("userpic", Comment.ANONYMOUS_USER_USERPIC);
         }
         else

@@ -1,7 +1,7 @@
 package my.LJExport.monthly;
 
-import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.runtime.Util;
 
 /*
  * Создать помесячные страницы с записями в папке загруженной с LJSearch (https://ljsear.ch).
@@ -25,7 +25,7 @@ public class MainMakeLJSearchMonthlyPages extends MainMakeMonthlyPages
                 user = user.trim();
                 if (user.length() != 0)
                 {
-                    if (Config.False)
+                    if (Util.False)
                     {
                         Main.out(user);
                     }

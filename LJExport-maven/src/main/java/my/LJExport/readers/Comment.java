@@ -11,7 +11,7 @@ import java.util.Objects;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import my.LJExport.Config;
+import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 
 public class Comment
@@ -394,7 +394,7 @@ public class Comment
         if (f1 == null && f2 == null)
             return null;
 
-        if (Config.True)
+        if (Util.True)
         {
             if (f1 == null || f2 == null)
                 throwRuntimeException("Comment data merge: diverging field " + fname);

@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
-import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.readers.direct.PageParserDirectClassic;
@@ -42,7 +41,7 @@ public class MonthProcessor
     {
         MonthCollectors mcs = new MonthCollectors(year, month, ljsearch);
 
-        if (Config.False)
+        if (Util.False)
         {
             for (String fn : pageFileNames)
             {
@@ -95,7 +94,7 @@ public class MonthProcessor
     {
         try
         {
-            if (Config.False
+            if (Util.False
                     && pageFileFullPath.equals("F:\\WINAPPS\\LJExport\\journals\\harmfulgrumpy\\pages\\2016\\01\\288850.html"))
             {
                 Util.noop();

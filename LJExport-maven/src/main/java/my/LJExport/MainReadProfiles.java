@@ -77,7 +77,7 @@ public class MainReadProfiles
             if (Main.isAborting())
                 break;
 
-            if (Config.False)
+            if (Util.False)
             {
                 Main.out(user);
                 continue;

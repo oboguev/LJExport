@@ -15,7 +15,6 @@ import com.helger.css.decl.ICSSExpressionMember;
 import com.helger.css.reader.CSSReader;
 import com.helger.css.writer.CSSWriter;
 
-import my.LJExport.Config;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 
@@ -192,7 +191,7 @@ public class StyleActionRelocate
                             }
                         }
                     }
-                    if (changed && Config.False)
+                    if (changed && Util.False)
                     {
                         // Optionally log which declaration was updated
                         System.out.println("Updated declaration: " + declaration.getProperty());

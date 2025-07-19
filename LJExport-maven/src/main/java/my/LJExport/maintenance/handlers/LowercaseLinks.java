@@ -9,7 +9,6 @@ import java.util.Set;
 
 import org.jsoup.nodes.Node;
 
-import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileBackedMap;
@@ -31,7 +30,7 @@ public class LowercaseLinks extends MaintenanceHandler
     @Override
     protected void beginUsers() throws Exception
     {
-        if (Config.True)
+        if (Util.True)
         {
             /*
              * Use ResolveLinkCaseDifferences instead

@@ -73,7 +73,7 @@ public class MainMakeMonthlyPages
 
                 if (user.length() != 0)
                 {
-                    if (Config.False)
+                    if (Util.False)
                     {
                         Main.out(user);
                     }

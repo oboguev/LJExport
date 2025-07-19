@@ -61,7 +61,7 @@ public class MainForAllUsers
 
         Config.init("");
 
-        if (Config.False)
+        if (Util.False)
         {
             Web.init();
             Main.do_login();
@@ -81,7 +81,7 @@ public class MainForAllUsers
             if (Main.isAborting())
                 break;
 
-            if (Config.False)
+            if (Util.False)
             {
                 Main.out(user);
                 continue;
@@ -110,7 +110,7 @@ public class MainForAllUsers
             }
         }
 
-        if (Config.False)
+        if (Util.False)
         {
             Main.do_logout();
             Web.shutdown();

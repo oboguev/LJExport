@@ -47,7 +47,6 @@ import java.util.regex.Pattern;
 
 import org.json.JSONObject;
 
-import my.LJExport.Config;
 import my.LJExport.runtime.synch.NamedLocks;
 
 import org.json.JSONArray;
@@ -613,6 +612,10 @@ public class Util
             xs.add(s);
         return xs;
     }
+    
+    /* development aids */
+    public static boolean True = true;
+    public static boolean False = false;
 
     public static void noop()
     {
@@ -953,7 +956,7 @@ public class Util
             }
         }
 
-        if (Config.False)
+        if (Util.False)
         {
             out("Pseudo-deleting " + root.getCanonicalPath());
             return true;

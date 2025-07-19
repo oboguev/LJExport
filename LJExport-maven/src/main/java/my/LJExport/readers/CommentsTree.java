@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import my.LJExport.Config;
+import my.LJExport.runtime.Util;
 
 public class CommentsTree
 {
@@ -34,7 +34,7 @@ public class CommentsTree
             {
                 if (c.parent == null && c.thread == null)
                     continue;
-                if (Config.False && c.parent != null && c.thread != null && c.parent.equals(c.thread))
+                if (Util.False && c.parent != null && c.thread != null && c.parent.equals(c.thread))
                     continue;
             }
 
@@ -70,7 +70,7 @@ public class CommentsTree
             {
                 for (Comment cc : c.cChildren)
                 {
-                    if (Config.False && !cc.isDeleted())
+                    if (Util.False && !cc.isDeleted())
                         throwRuntimeException("Deleted comment has un-deleted child comments");
                 }
 
@@ -177,7 +177,7 @@ public class CommentsTree
             {
                 if (c.parent == null && c.thread == null)
                     continue;
-                if (Config.False && c.parent != null && c.thread != null && c.parent.equals(c.thread))
+                if (Util.False && c.parent != null && c.thread != null && c.parent.equals(c.thread))
                     continue;
             }
 
@@ -223,7 +223,7 @@ public class CommentsTree
             {
                 for (Comment cc : c.cChildren)
                 {
-                    if (Config.False && !cc.isDeleted())
+                    if (Util.False && !cc.isDeleted())
                         throwRuntimeException("Deleted comment has un-deleted child comments");
                 }
 

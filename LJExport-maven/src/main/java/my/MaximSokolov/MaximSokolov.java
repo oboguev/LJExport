@@ -38,7 +38,7 @@ public class MaximSokolov
         {
             String[] users = { "maxim_sokolov", "maxim_sokolov2", "m_yu_sokolov" };
 
-            if (Config.False)
+            if (Util.False)
             {
                 for (String user : users)
                     do_user(user);

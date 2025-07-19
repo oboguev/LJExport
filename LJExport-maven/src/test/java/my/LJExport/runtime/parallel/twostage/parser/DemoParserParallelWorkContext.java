@@ -81,7 +81,7 @@ public class DemoParserParallelWorkContext
             if (Main.isAborting())
                 break;
 
-            if (Config.False)
+            if (Util.False)
             {
                 Main.out(user);
                 continue;
@@ -151,7 +151,7 @@ public class DemoParserParallelWorkContext
 
         Util.out(String.format(">>> Scanning [%s] directory %s", Config.User, which));
 
-        if (Config.False)
+        if (Util.False)
         {
             for (String relPath : Util.enumerateAnyHtmlFiles(htmlPagesRootDir))
             {

@@ -789,7 +789,7 @@ public class StyleActionToLocal
                         }
                     }
 
-                    if (changed && Config.False)
+                    if (changed && Util.False)
                     {
                         // Optionally log which declaration was updated
                         System.out.println("Updated declaration: " + declaration.getProperty());
@@ -864,14 +864,14 @@ public class StyleActionToLocal
     private boolean isSameURL(URI uri1, URI uri2)
     {
         // Compare scheme and host case-insensitively
-        if (Config.False && !equalsIgnoreCase(uri1.getScheme(), uri2.getScheme()))
+        if (Util.False && !equalsIgnoreCase(uri1.getScheme(), uri2.getScheme()))
             return false;
 
         if (!equalsIgnoreCase(uri1.getHost(), uri2.getHost()))
             return false;
 
         // Compare port (default ports need normalization if desired)
-        if (Config.False && uri1.getPort() != uri2.getPort())
+        if (Util.False && uri1.getPort() != uri2.getPort())
             return false;
 
         // Compare path, query, and fragment case-sensitively

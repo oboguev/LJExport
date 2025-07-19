@@ -21,7 +21,6 @@ import org.jsoup.parser.Parser;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
 
-import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.Util;
 
@@ -128,7 +127,7 @@ public class JSOUP
         /*
          * Verification
          */
-        if (Config.False)
+        if (Util.False)
         {
             List<Node> v2 = flatten_2(el);
 
@@ -148,7 +147,7 @@ public class JSOUP
                 throw new Exception("Bug in flatten #3");
         }
         
-        if (Config.True)
+        if (Util.True)
         {
             List<Node> v2 = flatten_2(el);
             

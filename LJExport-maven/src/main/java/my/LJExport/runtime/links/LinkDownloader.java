@@ -605,7 +605,7 @@ public class LinkDownloader
                 return false;
 
             String host = url.getHost();
-            if (Config.False)
+            if (Util.False)
             {
                 // counters
                 // https://xc3.services.livejournal.com/ljcounter
@@ -622,7 +622,7 @@ public class LinkDownloader
             }
 
             // sergeytsvetkov has plenty of duplicate book cover images in avatars.dzeninfra.ru
-            if (Config.False && Config.User.equals("sergeytsvetkov") && host != null && host.equals("avatars.dzeninfra.ru"))
+            if (Util.False && Config.User.equals("sergeytsvetkov") && host != null && host.equals("avatars.dzeninfra.ru"))
                 return false;
 
             String path = url.getPath();

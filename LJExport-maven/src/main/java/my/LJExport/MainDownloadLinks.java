@@ -120,7 +120,7 @@ public class MainDownloadLinks
             if (Main.isAborting())
                 break;
 
-            if (Config.False)
+            if (Util.False)
             {
                 Main.out(user);
                 continue;
@@ -170,7 +170,7 @@ public class MainDownloadLinks
             Main.linkDownloader.init(linksDir);
 
             pageFiles = enumerateHtmlFiles("pages", true);
-            if (Config.True)
+            if (Util.True)
             {
                 pageFiles.addAll(enumerateHtmlFiles("profile", false));
                 pageFiles.addAll(enumerateHtmlFiles("reposts", false));
@@ -276,7 +276,7 @@ public class MainDownloadLinks
                 PageParserDirectBase parser = new PageParserDirectBasePassive();
                 parser.rurl = Util.extractFileName(pageFileFullPath);
 
-                if (Config.False)
+                if (Util.False)
                 {
                     if (!parser.rurl.equals("253432.html"))
                         continue;

@@ -767,7 +767,7 @@ public class PageParserDirectClassic extends PageParserDirectBase
             else
                 tname = tdir + "anon-comment-without-subject.txt";
 
-            if (Config.True || vars.get("userpic") == null || vars.get("userpic").trim().length() == 0)
+            if (Util.True || vars.get("userpic") == null || vars.get("userpic").trim().length() == 0)
                 vars.put("userpic", Comment.ANONYMOUS_USER_USERPIC);
         }
         else

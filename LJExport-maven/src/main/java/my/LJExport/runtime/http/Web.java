@@ -82,7 +82,7 @@ public class Web
 
         private void setFinalUrl(HttpUriRequest request, HttpClientContext context, String url) throws Exception
         {
-            if (Config.False)
+            if (Util.False)
             {
                 HttpRequest finalRequest = context.getRequest();
                 if (finalRequest instanceof HttpUriRequest)
@@ -910,7 +910,7 @@ public class Web
         if (input == null)
             throw new IllegalArgumentException("Input stream must not be null");
 
-        if (Config.False)
+        if (Util.False)
         {
             return IOUtils.toByteArray(input);
 

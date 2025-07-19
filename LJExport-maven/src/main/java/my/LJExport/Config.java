@@ -280,10 +280,10 @@ public class Config
                 Config.LoginSite = Config.Site = Config.DefaultSite = "livejournal.com";
                 Config.UseLogin = true;
 
-                if (Config.False && Config.DownloadRoot.endsWith(".dreamwidth-org"))
+                if (Util.False && Config.DownloadRoot.endsWith(".dreamwidth-org"))
                     Config.DownloadRoot = Util.stripTail(Config.DownloadRoot, ".dreamwidth-org");
 
-                if (Config.False && Config.DownloadRoot.endsWith(".lj-rossia-org"))
+                if (Util.False && Config.DownloadRoot.endsWith(".lj-rossia-org"))
                     Config.DownloadRoot = Util.stripTail(Config.DownloadRoot, ".lj-rossia-org");
             }
         }

@@ -50,7 +50,7 @@ public class MainCombineCommentsAsTape
 
     private static void do_main() throws Exception
     {
-        if (Config.False)
+        if (Util.False)
         {
             do_main(CommentsRootDir);
         }

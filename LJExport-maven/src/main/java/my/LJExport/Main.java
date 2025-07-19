@@ -834,7 +834,7 @@ public class Main
      */
     private static boolean skipPage(String rurl) throws Exception
     {
-        if (Config.False && Config.User.equals("colonelcassad"))
+        if (Util.False && Config.User.equals("colonelcassad"))
         {
             if (rurl.equals("1109403.html") ||
                     rurl.equals("2412676.html"))
@@ -842,14 +842,14 @@ public class Main
                 return true;
             }
         }
-        else if (Config.False && Config.User.equals("miguel_kud"))
+        else if (Util.False && Config.User.equals("miguel_kud"))
         {
             if (rurl.equals("32069.html"))
             {
                 return true;
             }
         }
-        else if (Config.False && Config.User.equals("dmitrij_sergeev"))
+        else if (Util.False && Config.User.equals("dmitrij_sergeev"))
         {
             // import just this one record
             if (!rurl.equals("407503.html"))

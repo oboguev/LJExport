@@ -144,7 +144,7 @@ public class Maintenance
 
         Config.init("");
 
-        if (Config.False)
+        if (Util.False)
         {
             Web.init();
             Main.do_login();
@@ -166,7 +166,7 @@ public class Maintenance
             if (Main.isAborting())
                 break;
 
-            if (Config.False)
+            if (Util.False)
             {
                 Main.out(user);
                 continue;
@@ -207,7 +207,7 @@ public class Maintenance
         if (exec != null)
             exec.endUsers();
 
-        if (Config.False)
+        if (Util.False)
         {
             Main.do_logout();
             Web.shutdown();

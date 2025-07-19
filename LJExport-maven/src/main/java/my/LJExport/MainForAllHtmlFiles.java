@@ -72,7 +72,7 @@ public class MainForAllHtmlFiles
 
         Config.init("");
 
-        if (Config.False)
+        if (Util.False)
         {
             Web.init();
             Main.do_login();
@@ -92,7 +92,7 @@ public class MainForAllHtmlFiles
             if (Main.isAborting())
                 break;
 
-            if (Config.False)
+            if (Util.False)
             {
                 Main.out(user);
                 continue;
@@ -121,7 +121,7 @@ public class MainForAllHtmlFiles
             }
         }
 
-        if (Config.False)
+        if (Util.False)
         {
             Main.do_logout();
             Web.shutdown();

@@ -45,7 +45,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
     {
         parser = new PageParserDirectClassic(this);
 
-        if (Config.False)
+        if (Util.False)
         {
             // rurl = "19518.html";   // test: roineroyce
             // rurl = "88279.html";   // test: nilsky_nikolay
@@ -70,7 +70,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
     @Override
     public void readPage() throws Exception
     {
-        if (Config.False && !parser.rurl.equals("938840.html"))
+        if (Util.False && !parser.rurl.equals("938840.html"))
             return;
         
         // process page 1 completely but without comments yet
@@ -190,7 +190,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
 
             while (null != (cload = commentTree.findFirstUnloadedOrToExpandComment()))
             {
-                if (Config.False)
+                if (Util.False)
                 {
                     Main.out(String.format("Expanding page=%d [call %d] thread %s, remaining %d of %d",
                             npage,

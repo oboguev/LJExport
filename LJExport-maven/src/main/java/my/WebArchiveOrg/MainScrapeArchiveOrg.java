@@ -114,7 +114,7 @@ public class MainScrapeArchiveOrg
 
     private void do_main() throws Exception
     {
-        boolean production = Config.True;
+        boolean production = Util.True;
 
         LimitProcessorUsage.limit();
         Util.out(">>> Start time: " + Util.timeNow());
@@ -123,37 +123,37 @@ public class MainScrapeArchiveOrg
         p.setProperty(LJExportInformation.IsDownloadedFromWebArchiveOrg, "true");
         LJExportInformation.save(p);
 
-        if (production || Config.False)
+        if (production || Util.False)
         {
             // donwload HTML files from archive.org
             scrape("");
         }
 
-        if (production || Config.False)
+        if (production || Util.False)
         {
             // diagnostic
             lookupDoubleArchiveLinks("a", "href");
             lookupDoubleArchiveLinks("img", "src");
         }
 
-        if (production || Config.False)
+        if (production || Util.False)
         {
             // remap intra-page html links ("a") to local files
             remapRelativePageLinks();
         }
 
-        if (production || Config.False)
+        if (production || Util.False)
         {
             preloadExternalResources();
         }
 
-        if (production || Config.False)
+        if (production || Util.False)
         {
             // download images. pdfs etc. and remap links (a, img)
             loadExternalResources();
         }
 
-        if (production || Config.False)
+        if (production || Util.False)
         {
             loadStyles();
         }
@@ -667,7 +667,7 @@ public class MainScrapeArchiveOrg
 
         JSOUP.updateAttribute(an, "href", newref);
 
-        if (Config.False)
+        if (Util.False)
         {
             Util.out(loadedFileRelPath);
             Util.out(linkRelPath);

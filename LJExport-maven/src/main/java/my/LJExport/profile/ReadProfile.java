@@ -544,11 +544,11 @@ public class ReadProfile
         File fpImagesDir = new File(fpProfileDir, "picture-albums").getCanonicalFile();
         if (fpImagesDir.exists())
         {
-            if (Config.False)
+            if (Util.False)
             {
                 Util.deleteDirectoryTree(fpImagesDir.getCanonicalPath());
             }
-            else if (Config.False)
+            else if (Util.False)
             {
                 Util.deleteFilesInDirectory(fpImagesDir.getCanonicalPath(), "*.html");
             }

@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import my.LJExport.Config;
 import my.LJExport.runtime.Util;
 
 /*
@@ -34,7 +33,7 @@ public class FileBackedMap
 
         file = new File(path).getCanonicalFile();
 
-        if (Config.False)
+        if (Util.False)
         {
             /* efa constructor will create file if it does not exist */
             if (!file.exists())

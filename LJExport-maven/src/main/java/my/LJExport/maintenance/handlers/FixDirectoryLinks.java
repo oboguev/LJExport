@@ -93,7 +93,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
         linkMapEntries = FileBackedMap.readMapFile(mapFilePath);
 
         relpath2entry = new HashMap<>();
-        
+
         for (LinkMapEntry e : linkMapEntries)
         {
             String relpath = e.value;
@@ -180,6 +180,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
             {
                 if (!DryRun)
                     throwException("Multiple files in linked directory " + linkInfo.linkFullFilePath);
+                trace("Multiple files in linked directory " + linkInfo.linkFullFilePath);
                 Util.noop(); // ###
                 continue;
             }
@@ -190,11 +191,16 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 JSOUP.updateAttribute(n, attr, newref);
                 updated = true;
                 txLog.writeLine(String.format("Changed HTML %s.%s: %s => %s", tag, attr, href, newref));
-                
-                
-                
-                // ### update map
-                // ### all entries pointing to href (case-insens) change to newref 
+
+                List<LinkMapEntry> list = relpath2entry.get(href.toLowerCase());
+                if (list == null || list.size() == 0)
+                    throwException("Old link is missing in the map");
+
+                for (LinkMapEntry e : list)
+                {
+                    e.value = newref;
+                    updatedMap = true;
+                }
             }
         }
 

@@ -34,6 +34,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
     {
         Util.out(">>> Resolve divergences between HTML link upper/lower case and repository filename case");
         super.beginUsers("Resolving link upper/lower case divergences");
+        txLog.writeLine(String.format("Executing ResolveLinkCaseDifferences in %s mode", DryRun ? "DRY" : "WET"));
     }
 
     @Override

@@ -33,6 +33,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
     {
         Util.out(">>> Fix links pointing to directories");
         super.beginUsers("Fix links pointing to directories");
+        txLog.writeLine(String.format("Executing FixDirectoryLinks in %s mode", DryRun ? "DRY" : "WET"));
     }
 
     @Override

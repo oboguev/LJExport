@@ -36,6 +36,7 @@ public class FixFileExtensions extends MaintenanceHandler
     {
         Util.out(">>> Fix linked file extensions");
         super.beginUsers("Fix linked file extensions");
+        txLog.writeLine(String.format("Executing FixFileExtensions in %s mode", DryRun ? "DRY" : "WET"));
     }
 
     @Override

@@ -164,7 +164,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
             if (href == null)
                 continue;
-            
+
             {
                 // #######
                 if (href.startsWith("../../img/userinfo.gif?"))
@@ -174,10 +174,10 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
                 if (href.equals("../images/line_sm.gif"))
                     continue;
             }
-            
+
             if (!isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
-            
+
             href = variants(href, fullHtmlFilePath);
 
             // strip trailing dots and spaces in path components
@@ -209,7 +209,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
             if (newref.equals(original_href))
                 continue;
-            
+
             StringBuilder sb = new StringBuilder();
 
             sb.append(String.format("Changing [%s] HTML  %s" + nl, Config.User, original_href));
@@ -275,9 +275,20 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         // return null;
         if (exlist.size() == 0)
             throwException("No link repository file for " + href);
-        else
-            throwException("Multpiple link repository file mappings for " + href);
 
+        // priorities: h2 -> h4 ->  h1 ->  h3
+
+        if (exlist.contains(h2))
+            return h2;
+        if (exlist.contains(h4))
+            return h4;
+
+        if (exlist.contains(h1))
+            return h1;
+        if (exlist.contains(h3))
+            return h3;
+
+        throwException("Internal error");
         return null;
     }
 
@@ -285,11 +296,11 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
     {
         String abs = RelativeLink.resolveFileRelativeLink(fullHtmlFilePath, href, this.linkDir);
         if (abs == null)
-            throw new Exception("Internal error");
+            throwException("Internal error");
 
         String prefix = this.linkDir + File.separator;
         if (!abs.startsWith(prefix))
-            throw new Exception("Link is not within the repository");
+            throwException("Link is not within the repository");
 
         String result = abs.substring(prefix.length());
         result = result.replace(File.separatorChar, '/');

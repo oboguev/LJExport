@@ -3,7 +3,7 @@ package my.LJExport.runtime.ui;
 import javax.swing.*;
 import java.awt.*;
 
-public class ConsoleProgress
+public class ProgressDialog
 {
     private final String headerText;
 
@@ -12,7 +12,7 @@ public class ConsoleProgress
     private JLabel messageLabel;
     private JProgressBar progressBar;
 
-    public ConsoleProgress(String headerText)
+    public ProgressDialog(String headerText)
     {
         this.headerText = headerText;
     }

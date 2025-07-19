@@ -64,10 +64,11 @@ public class Maintenance
 
             //
             // Sequence:
-            //   0. CheckLinkCaseConflicts [optional]
-            //   1. ResolveLinkCaseDifferences 
-            //   2. FixDirectoryLinks [test a_bugaev, ночная москва -- check links map file, review txlog]
-            //   3. FixFileExtensions
+            //   1. FixLinkEncoding
+            //   2. CheckLinkCaseConflicts [optional]
+            //   3. ResolveLinkCaseDifferences 
+            //   4. FixDirectoryLinks [test a_bugaev, ночная москва -- check links map file, review txlog]
+            //   5. FixFileExtensions
             //
             do_users(Users, new CountFiles());
             // do_users(Users, CheckLinkCaseConflicts.class);

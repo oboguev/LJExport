@@ -22,7 +22,8 @@ import my.LJExport.runtime.links.LinkDownloader;
  * If this directory has a single file, redirect the link to this file.
  * Adjust repository map file as well.
  * 
- * Execute AFTER ResolveLinkCaseDifferences.
+ * Execute AFTER FixLinkEncoding
+ *     and AFTER ResolveLinkCaseDifferences.
  */
 public class FixDirectoryLinks extends MaintenanceHandler
 {

@@ -24,6 +24,8 @@ import my.LJExport.runtime.links.RelativeLink;
  * Also eliminate trailing dots and spaces in path components such as:
  *     ../../../links/www.etnosy.ru/sites/default/files/bookshelf./evr.gif
  *     ../../../links/www.etnosy.ru/sites/default/files/bookshelf /evr.gif
+ *     
+ * Execute AFTER FixLinkEncoding
  */
 public class ResolveLinkCaseDifferences extends MaintenanceHandler
 {
@@ -34,7 +36,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
     {
         Util.out(">>> Resolve divergences between HTML link upper/lower case and repository filename case");
         super.beginUsers("Resolving link upper/lower case divergences");
-        txLog.writeLine(String.format("Executing ResolveLinkCaseDifferences in %s mode", DryRun ? "DRY" : "WET"));
+        txLog.writeLine(String.format("Executing ResolveLinkCaseDifferences in %s mode", DryRun ? "DRY RUN" : "WET RUN"));
     }
 
     @Override
@@ -183,8 +185,6 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
                 }
             }
             
-            // ### check present in repo map
-
             String newref = RelativeLink.fileRelativeLink(actualLinkFullFilePath, fullHtmlFilePath, Config.DownloadRoot);
 
             if (newref.equals(original_href))

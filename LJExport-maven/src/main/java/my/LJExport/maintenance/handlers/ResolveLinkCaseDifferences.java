@@ -162,9 +162,22 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             String href = getLinkAttribute(n, attr);
             String original_href = href;
 
-            if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
+            if (href == null)
                 continue;
-
+            
+            {
+                // #######
+                if (href.startsWith("../../img/userinfo.gif?"))
+                    continue;
+                if (href.startsWith("../../img/community.gif?"))
+                    continue;
+                if (href.equals("../images/line_sm.gif"))
+                    continue;
+            }
+            
+            if (!isLinksRepositoryReference(fullHtmlFilePath, href))
+                continue;
+            
             href = variants(href, fullHtmlFilePath);
 
             // strip trailing dots and spaces in path components

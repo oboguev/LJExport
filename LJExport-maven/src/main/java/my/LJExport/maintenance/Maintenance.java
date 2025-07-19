@@ -30,7 +30,8 @@ public class Maintenance
     // private static final String AllUsersFromUser = "kot_begemott";
     private static final String AllUsersFromUser = null;
 
-    private static final String Users = ALL_USERS;
+    // private static final String Users = ALL_USERS;
+    private static final String Users = "1981dn";
     // private static final String Users = "oboguev";
     // private static final String Users = "nationalism.org";
     // private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
@@ -77,7 +78,7 @@ public class Maintenance
             // do_users(Users, FixFileExtensions.class);
 
             txLog.writeLineSafe("");
-            txLog.writeLineSafe("Maintenance COMPLETED at "+ Util.timeNow());
+            txLog.writeLineSafe("Maintenance COMPLETED at " + Util.timeNow());
             txLog.writeLineSafe("");
             txLog.writeLineSafe("===========================================================================================");
 
@@ -89,11 +90,11 @@ public class Maintenance
             Util.err("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
             Main.emergency_logout();
-            
+
             if (txLog != null && txLog.isOpen())
             {
                 txLog.writeLineSafe("");
-                txLog.writeLineSafe("*************** ABORTED at "+ Util.timeNow());
+                txLog.writeLineSafe("*************** ABORTED at " + Util.timeNow());
                 txLog.writeLineSafe("Exception: " + ex.getMessage());
                 txLog.writeLineSafe("");
                 txLog.writeLineSafe(Util.getStackTraceAsString(ex));

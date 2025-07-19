@@ -156,7 +156,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
             String href = getLinkAttribute(n, attr);
             String href_original = href;
             
-            if (href == null)
+            if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
 
             String newref = this.alreadyRenamed.get(href.toLowerCase());

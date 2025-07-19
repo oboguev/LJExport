@@ -1,6 +1,7 @@
 package my.LJExport.maintenance.handlers;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
+import my.LJExport.runtime.links.RelativeLink.InvalidNestedPathException;
 
 /*
  * Scan HTML files and check that A.HREF and IMG.SRC links have the same case
@@ -29,8 +31,8 @@ import my.LJExport.runtime.links.RelativeLink;
  */
 public class ResolveLinkCaseDifferences extends MaintenanceHandler
 {
-    private static boolean DryRun = true;   // ###
-    
+    private static boolean DryRun = true; // ###
+
     @Override
     protected void beginUsers() throws Exception
     {
@@ -45,7 +47,8 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         super.endUsers();
     }
 
-    private Map<String, String> lc2ac = new HashMap<>();
+    private Map<String, String> filedir_lc2ac = new HashMap<>();
+    private Map<String, String> href_lc2ac = new HashMap<>();
 
     @Override
     protected void beginUser() throws Exception
@@ -59,59 +62,67 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
     {
         for (String fp : Util.enumerateFilesAndDirectories(linkDir))
         {
+            String relpath = fp.replace(File.separatorChar, '/');
+            href_lc2ac.put(relpath.toLowerCase(), relpath);
+
             fp = linkDir + File.separator + fp;
-            lc2ac.put(fp.toLowerCase(), fp);
+            filedir_lc2ac.put(fp.toLowerCase(), fp);
         }
+    }
+
+    private boolean href_exists(String href)
+    {
+        return href_lc2ac.containsKey(href.toLowerCase());
     }
 
     private void scanAndUpateLinkMapFile() throws Exception
     {
         // edit map file to strip trailing dots and spaces in componentes
         // ../../../links/www.etnosy.ru/sites/default/files/bookshelf./evr.gif
-        
+
         String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
         boolean update = false;
 
         List<LinkMapEntry> list = FileBackedMap.readMapFile(mapFilePath);
-        
+
         for (LinkMapEntry e : list)
         {
             String relpath = e.value;
-            
+
             if (relpath.contains("\\") || relpath.endsWith("/"))
                 throwException("Invalid map entry");
-            
+
             relpath = sanitizePath(relpath);
-            
+
             // check file exists in repository and in the same case
             String xp = linkDir + File.separator + relpath.replace("/", File.separator);
-            String ac = lc2ac.get(xp.toLowerCase());
-            
+            String ac = filedir_lc2ac.get(xp.toLowerCase());
+
             if (ac == null)
                 throwException("File is missing in links repository");
-            
+
             if (!ac.startsWith(linkDir + File.separator))
                 throwException("File is outside of links repository");
-            
+
             if (!ac.equalsIgnoreCase(xp))
                 throwException("Mismatch between link repository map file and repository files");
 
             relpath = Util.stripStart(ac, linkDir + File.separator);
             relpath = relpath.replace(File.separator, "/");
-            
+
             if (!relpath.equals(e.value))
             {
                 StringBuilder sb = new StringBuilder();
                 sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
                 sb.append(String.format("          %s            to  %s", spaces(Config.User), relpath));
-                
+
                 trace(sb.toString());
-                
+
                 e.value = relpath;
                 update = true;
             }
         }
-        
+
         if (update && !DryRun)
         {
             txLog.writeLine("updating links map " + mapFilePath);
@@ -151,29 +162,25 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             String href = getLinkAttribute(n, attr);
             String original_href = href;
 
-            if (href == null)
+            if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
+
+            href = variants(href, fullHtmlFilePath);
 
             // strip trailing dots and spaces in path components
             // ../../../links/www.etnosy.ru/sites/default/files/bookshelf./evr.gif
-            boolean sanitized = false;
-            {
-                String pre = href;
-                href = sanitizePath(href);
-                if (!href.equals(pre))
-                    sanitized = true;
-            }
+            // href = sanitizePath(href);
 
             LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
             if (linkInfo == null)
                 continue;
 
-            String actualLinkFullFilePath = lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
+            String actualLinkFullFilePath = filedir_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
             if (actualLinkFullFilePath == null)
             {
-                String msg = String.format("Link file [%s] is not present in the repository, href=[%s], file=[%s]", 
+                String msg = String.format("Link file [%s] is not present in the repository, href=[%s], file=[%s]",
                         Config.User, original_href, linkInfo.linkFullFilePath);
-                
+
                 if (DryRun)
                 {
                     trace(msg);
@@ -184,14 +191,11 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
                     throwException(msg);
                 }
             }
-            
+
             String newref = RelativeLink.fileRelativeLink(actualLinkFullFilePath, fullHtmlFilePath, Config.DownloadRoot);
 
             if (newref.equals(original_href))
                 continue;
-
-            if (!newref.equalsIgnoreCase(original_href) && !sanitized)
-                throwException("Unexpected link path (mismatch)");
 
             StringBuilder sb = new StringBuilder();
 
@@ -205,6 +209,78 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         }
 
         return updated;
+    }
+
+    /*
+     * Older LinkDownloaded did not encode file names to HREF.
+     * Try to recover it.  
+     */
+    private String variants(String href, String fullHtmlFilePath) throws Exception
+    {
+        // String expected = RelativeLink.resolveFileRelativeLink(fullHtmlFilePath, href, this.linkDir);
+        // Util.unused(expected);
+
+        String h1 = href;
+        String h2 = sanitizePath(href);
+        String h3 = LinkDownloader.encodePathComponents(href);
+        String h4 = sanitizePath(LinkDownloader.encodePathComponents(href));
+
+        List<String> list = new ArrayList<>();
+
+        list.add(h1);
+
+        if (!list.contains(h2))
+            list.add(h2);
+        if (!list.contains(h3))
+            list.add(h3);
+        if (!list.contains(h4))
+            list.add(h4);
+
+        List<String> exlist = new ArrayList<>();
+        for (String h : list)
+        {
+            String relativeToRepository = null;
+            
+            try
+            {
+                relativeToRepository = relativeToLinkRepository(h, fullHtmlFilePath); 
+            }
+            catch (InvalidNestedPathException ex)
+            {
+                continue;
+            }
+            
+            if (relativeToRepository != null && href_exists(relativeToRepository))
+                exlist.add(h);
+        }
+
+        if (exlist.size() == 1)
+            return exlist.get(0);
+
+        // return null;
+        if (exlist.size() == 0)
+            throwException("No link repository file for " + href);
+        else
+            throwException("Multpiple link repository file mappings for " + href);
+
+        return null;
+    }
+
+    private String relativeToLinkRepository(String href, String fullHtmlFilePath) throws Exception
+    {
+        String abs = RelativeLink.resolveFileRelativeLink(fullHtmlFilePath, href, this.linkDir);
+        if (abs == null)
+            throw new Exception("Internal error");
+        
+        String prefix = this.linkDir + File.separator;
+        if (!abs.startsWith(prefix))
+            throw new Exception("Link is not within the repository");
+
+        String result = abs.substring(prefix.length());
+        result = result.replace(File.separatorChar, '/');
+
+        return result;
+
     }
 
     /* ===================================================================================================== */
@@ -262,7 +338,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         errorMessageLog.add(msg);
         Util.err(msg);
     }
-    
+
     private void throwException(String msg) throws Exception
     {
         throw new Exception(msg);

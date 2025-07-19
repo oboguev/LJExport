@@ -71,6 +71,10 @@ public class LowercaseLinks extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, "img"))
         {
             String href = getLinkAttribute(n, "src");
+            
+            if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
+                continue;
+            
             LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
             if (linkInfo != null)
             {
@@ -86,6 +90,10 @@ public class LowercaseLinks extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, "a"))
         {
             String href = getLinkAttribute(n, "href");
+            
+            if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
+                continue;
+            
             LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
             if (linkInfo != null)
             {

@@ -1,6 +1,8 @@
 package my.LJExport.maintenance.handlers;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jsoup.nodes.Node;
 
@@ -10,11 +12,13 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.links.RelativeLink;
 
 public abstract class MaintenanceHandler extends Maintenance
 {
     protected final String linkDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "links";
     protected final String linkDirSep = linkDir + File.separator;
+    protected final List<String> validNonLinkRoots = validNonLinkRoots();
 
     private static final String FileProtocol = "file://";
 
@@ -66,7 +70,6 @@ public abstract class MaintenanceHandler extends Maintenance
         if (href != null)
             href = LinkDownloader.decodePathComponents(href);
         return href;
-
     }
 
     protected void updateLinkAttribute(Node n, String attrname, String newref) throws Exception
@@ -87,5 +90,62 @@ public abstract class MaintenanceHandler extends Maintenance
             return null;
 
         return href;
+    }
+
+    private List<String> validNonLinkRoots()
+    {
+        List<String> list = new ArrayList<>();
+
+        list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "profile");
+        list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "pages");
+        list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "reposts");
+        list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "monthly-pages");
+        list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "monthly-reposts");
+        list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "styles");
+
+        return list;
+    }
+
+    protected boolean isLinksRepositoryReference(String fullHtmlFilePath, String href) throws Exception
+    {
+        String href_root = firstRoot(href);
+        String abs_root = RelativeLink.resolveFileRelativeLink(fullHtmlFilePath, href_root);
+
+        for (String root : this.validNonLinkRoots)
+        {
+            if (abs_root.equals(root) && href.endsWith(".html"))
+                return false;
+        }
+
+        if (!abs_root.equals(this.linkDir))
+            throw new Exception("Path escapes links root directory");
+
+        return true;
+    }
+
+    private String firstRoot(String href)
+    {
+        if (href == null || href.isEmpty())
+            throw new IllegalArgumentException("href must not be null or empty");
+
+        String[] parts = href.split("/");
+        StringBuilder result = new StringBuilder();
+
+        for (String part : parts)
+        {
+            if (part.isEmpty())
+                continue; // ignore repeated slashes
+            if (part.equals(".") || part.equals(".."))
+            {
+                result.append(part).append("/");
+            }
+            else
+            {
+                result.append(part);
+                return result.toString();
+            }
+        }
+
+        throw new IllegalArgumentException("No root component found in href: " + href);
     }
 }

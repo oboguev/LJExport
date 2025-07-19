@@ -95,26 +95,40 @@ public class FixDirectoryLinks extends MaintenanceHandler
             if (linkInfo == null)
                 continue;
 
-            File fp = new File(linkInfo.linkFullFilePath).getCanonicalFile();
-            
-            // ### via map
-            
-            if (!fp.exists() || !fp.isDirectory())
+            // regular file?
+            if (null != file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase()))
                 continue;
-            
+
+            if (null != dir_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase()))
+            {
+                String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
+                        Config.User, href, linkInfo.linkFullFilePath);
+
+                if (DryRun)
+                {
+                    trace(msg);
+                    continue;
+                }
+                else
+                {
+                    throwException(msg);
+                }
+            }
+
+            File fp = new File(linkInfo.linkFullFilePath).getCanonicalFile();
             int count = countContainedFiles(fp);
 
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("[%s] %s.%s => [%d] %s", Config.User, tag, attr, count, linkInfo.linkFullFilePath));
             trace(sb.toString());
-            
+
             if (count != 1)
             {
                 Util.noop();
                 // ### throwException("Multiple files in linked directory " + linkInfo.linkFullFilePath);
                 continue;
             }
-            
+
             if (count == 1)
             {
                 // ###
@@ -131,13 +145,13 @@ public class FixDirectoryLinks extends MaintenanceHandler
     private int countContainedFiles(File fp)
     {
         int count = 0;
-        
+
         for (File fpx : fp.listFiles())
         {
             if (fpx.isFile())
                 count++;
         }
-        
+
         return count;
     }
 

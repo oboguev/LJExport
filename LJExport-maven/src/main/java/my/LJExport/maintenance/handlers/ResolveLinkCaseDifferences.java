@@ -146,7 +146,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
-            String href = JSOUP.getAttribute(n, attr);  // ###
+            String href = getLinkAttribute(n, attr);
             String original_href = href;
 
             if (href == null)

@@ -152,7 +152,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
 
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
-            String href = JSOUP.getAttribute(n, attr);  // ###
+            String href = getLinkAttribute(n, attr);
             String href_original = href;
             
             if (href == null)

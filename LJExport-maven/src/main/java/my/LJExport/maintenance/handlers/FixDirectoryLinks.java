@@ -69,6 +69,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
             Util.writeToFileVerySafe(mapFilePath, content);
             txLog.writeLine("updated OK");
         }
+
         txLog.writeLine("Completed user " + Config.User);
     }
 
@@ -85,6 +86,17 @@ public class FixDirectoryLinks extends MaintenanceHandler
             fp = linkDir + File.separator + fp;
             dir_lc2ac.put(fp.toLowerCase(), fp);
         }
+
+        /*
+         * consistency validation
+         */
+        for (String fn : file_lc2ac.keySet())
+            if (dir_lc2ac.containsKey(fn))
+                throwException("Error enumerating files and directories");
+
+        for (String fn : dir_lc2ac.keySet())
+            if (file_lc2ac.containsKey(fn))
+                throwException("Error enumerating files and directories");
     }
 
     private void loadLinkMapFile() throws Exception

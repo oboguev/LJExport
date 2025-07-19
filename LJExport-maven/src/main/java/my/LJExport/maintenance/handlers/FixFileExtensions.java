@@ -158,7 +158,6 @@ public class FixFileExtensions extends MaintenanceHandler
             String href = JSOUP.getAttribute(n, attr);  // ###
             String href_original = href;
 
-            href = preprocesHref(href);
             if (href == null)
                 continue;
 
@@ -174,7 +173,7 @@ public class FixFileExtensions extends MaintenanceHandler
                 continue;
             }
 
-            LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href, false);
+            LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
             if (linkInfo == null)
                 continue;
 

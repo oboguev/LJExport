@@ -149,7 +149,6 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             String href = JSOUP.getAttribute(n, attr);  // ###
             String original_href = href;
 
-            href = preprocesHref(href);
             if (href == null)
                 continue;
 
@@ -163,7 +162,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
                     sanitized = true;
             }
 
-            LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href, false);
+            LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
             if (linkInfo == null)
                 continue;
 

@@ -9,6 +9,7 @@ import my.LJExport.maintenance.Maintenance;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.links.LinkDownloader;
 
 public abstract class MaintenanceHandler extends Maintenance
 {
@@ -26,14 +27,6 @@ public abstract class MaintenanceHandler extends Maintenance
 
     protected LinkInfo linkInfo(String fullHtmlFilePath, String href)
     {
-        return linkInfo(fullHtmlFilePath, href, true);
-    }
-
-    protected LinkInfo linkInfo(String fullHtmlFilePath, String href, boolean preprocess)
-    {
-        if (preprocess)
-            href = preprocesHref(href);
-        
         if (href == null)
             return null;
 
@@ -55,21 +48,6 @@ public abstract class MaintenanceHandler extends Maintenance
         }
     }
 
-    protected String preprocesHref(String href)
-    {
-        if (href == null)
-            return null;
-
-        href = href.trim();
-        if (href.startsWith(FileProtocol))
-            href = href.substring(FileProtocol.length());
-
-        if (href.isEmpty() || !href.startsWith("../"))
-            return null;
-
-        return href;
-    }
-
     protected String spaces(String s)
     {
         StringBuilder sb = new StringBuilder();
@@ -84,14 +62,30 @@ public abstract class MaintenanceHandler extends Maintenance
     protected String getLinkAttribute(Node n, String name) throws Exception
     {
         String href = JSOUP.getAttribute(n, name);
-        // ###
+        href = preprocesHref(href);
+        if (href != null)
+            href = LinkDownloader.decodePathComponents(href);
         return href;
-        
+
     }
 
-    protected void updateLinkAttribute(Node n, String attrname, String value) throws Exception
+    protected void updateLinkAttribute(Node n, String attrname, String newref) throws Exception
     {
-        // ###
-        JSOUP.updateAttribute(n, attrname, value);
+        JSOUP.updateAttribute(n, attrname, LinkDownloader.encodePathComponents(newref));
+    }
+
+    private String preprocesHref(String href)
+    {
+        if (href == null)
+            return null;
+
+        href = href.trim();
+        if (href.startsWith(FileProtocol))
+            href = href.substring(FileProtocol.length());
+
+        if (href.isEmpty() || !href.startsWith("../"))
+            return null;
+
+        return href;
     }
 }

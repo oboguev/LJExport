@@ -73,6 +73,10 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         for (LinkMapEntry e : list)
         {
             String relpath = e.value;
+            
+            if (relpath.contains("\\") || relpath.endsWith("/"))
+                throwException("Invalid map entry");
+            
             relpath = sanitizePath(relpath);
             
             // check file exists in repository and in the same case

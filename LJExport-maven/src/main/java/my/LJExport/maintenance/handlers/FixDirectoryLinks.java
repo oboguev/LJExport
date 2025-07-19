@@ -1,6 +1,7 @@
 package my.LJExport.maintenance.handlers;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,10 @@ import org.jsoup.nodes.Node;
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.file.FileBackedMap;
+import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.links.LinkDownloader;
 
 /*
  * Fix IMG.SRC and A.HREF links pointing to a directory.
@@ -40,23 +44,32 @@ public class FixDirectoryLinks extends MaintenanceHandler
     private Map<String, String> file_lc2ac = new HashMap<>();
     private Map<String, String> dir_lc2ac = new HashMap<>();
     private boolean updatedMap = false;
+    private List<LinkMapEntry> linkMapEntries;
+    private Map<String, List<LinkMapEntry>> relpath2entry;
 
     @Override
     protected void beginUser() throws Exception
     {
+        txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
         build_lc2ac();
         updatedMap = false;
-        // ###loadLinkMapFile()
+        loadLinkMapFile();
     }
 
     @Override
     protected void endUser() throws Exception
     {
-        if (updatedMap)
+        if (updatedMap && !DryRun)
         {
-            // ###saveLinkMapFile() if was changed
+            String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+
+            txLog.writeLine("updating links map " + mapFilePath);
+            String content = FileBackedMap.recomposeMapFile(linkMapEntries);
+            Util.writeToFileVerySafe(mapFilePath, content);
+            txLog.writeLine("updated OK");
         }
+        txLog.writeLine("Completed user " + Config.User);
     }
 
     private void build_lc2ac() throws Exception
@@ -71,6 +84,30 @@ public class FixDirectoryLinks extends MaintenanceHandler
         {
             fp = linkDir + File.separator + fp;
             dir_lc2ac.put(fp.toLowerCase(), fp);
+        }
+    }
+
+    private void loadLinkMapFile() throws Exception
+    {
+        String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+        linkMapEntries = FileBackedMap.readMapFile(mapFilePath);
+
+        relpath2entry = new HashMap<>();
+        
+        for (LinkMapEntry e : linkMapEntries)
+        {
+            String relpath = e.value;
+
+            if (relpath.contains("\\") || relpath.endsWith("/"))
+                throwException("Invalid map entry");
+
+            List<LinkMapEntry> list = relpath2entry.get(relpath.toLowerCase());
+            if (list == null)
+            {
+                list = new ArrayList<LinkMapEntry>();
+                relpath2entry.put(relpath.toLowerCase(), list);
+            }
+            list.add(e);
         }
     }
 
@@ -141,8 +178,9 @@ public class FixDirectoryLinks extends MaintenanceHandler
 
             if (count != 1)
             {
-                Util.noop();
-                // ### throwException("Multiple files in linked directory " + linkInfo.linkFullFilePath);
+                if (!DryRun)
+                    throwException("Multiple files in linked directory " + linkInfo.linkFullFilePath);
+                Util.noop(); // ###
                 continue;
             }
 
@@ -151,7 +189,10 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 String newref = href + "/" + onlyFile.get();
                 JSOUP.updateAttribute(n, attr, newref);
                 updated = true;
-
+                txLog.writeLine(String.format("Changed HTML %s.%s: %s => %s", tag, attr, href, newref));
+                
+                
+                
                 // ### update map
                 // ### all entries pointing to href (case-insens) change to newref 
             }

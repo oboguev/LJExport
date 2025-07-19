@@ -4,6 +4,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -1447,5 +1449,13 @@ public class Util
 
         // 6. Everything that remains are name elements separated by ‘/’.
         return p.split("/").length;
+    }
+
+    public static String getStackTraceAsString(Throwable ex)
+    {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+        return sw.toString();
     }
 }

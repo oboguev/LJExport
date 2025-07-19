@@ -83,6 +83,11 @@ public final class TxLog implements Closeable
             Files.createDirectories(parent);
 
     }
+    
+    public boolean isOpen()
+    {
+        return channel != null && lock != null && writer != null;
+    }
 
     public void open() throws Exception
     {
@@ -141,6 +146,30 @@ public final class TxLog implements Closeable
     public synchronized void writeLine(String s) throws IOException
     {
         writeText(s + System.lineSeparator());
+    }
+
+    public synchronized void writeLineSafe(String s) 
+    {
+        try
+        {
+            writeLine(s);
+        }
+        catch (Exception ex)
+        {
+            Util.noop();
+        }
+    }
+    
+    public synchronized void writeTextSafe(String s) 
+    {
+        try
+        {
+            writeText(s);
+        }
+        catch (Exception ex)
+        {
+            Util.noop();
+        }
     }
 
     /**

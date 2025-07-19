@@ -55,9 +55,10 @@ public class Maintenance
 
             txLog = new TxLog(Config.DownloadRoot + File.separator + "@admin" + File.separator + "transaction.log");
             txLog.open();
-            txLog.writeLine(" ");
-            txLog.writeLine("==========================================================");
-            txLog.writeLine(" Maintenance started at " + Util.timeNow());
+            txLog.writeLine("");
+            txLog.writeLine("===========================================================================================");
+            txLog.writeLine("Maintenance started at " + Util.timeNow());
+            txLog.writeLine("");
 
             // HttpWireTracing.enable();
 
@@ -74,6 +75,11 @@ public class Maintenance
             // do_users(Users, FixDirectoryLinks.class);
             // do_users(Users, FixFileExtensions.class);
 
+            txLog.writeLineSafe("");
+            txLog.writeLineSafe("Maintenance COMPLETED at "+ Util.timeNow());
+            txLog.writeLineSafe("");
+            txLog.writeLineSafe("===========================================================================================");
+
             Util.out("");
             Util.out(">>> Completed for all requested users and their files");
         }
@@ -82,6 +88,17 @@ public class Maintenance
             Util.err("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
             Main.emergency_logout();
+            
+            if (txLog != null && txLog.isOpen())
+            {
+                txLog.writeLineSafe("");
+                txLog.writeLineSafe("*************** ABORTED at "+ Util.timeNow());
+                txLog.writeLineSafe("Exception: " + ex.getMessage());
+                txLog.writeLineSafe("");
+                txLog.writeLineSafe(Util.getStackTraceAsString(ex));
+                txLog.writeLineSafe("");
+                txLog.writeLineSafe("===========================================================================================");
+            }
         }
         finally
         {

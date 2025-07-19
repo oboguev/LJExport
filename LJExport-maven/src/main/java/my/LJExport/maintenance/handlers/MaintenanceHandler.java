@@ -4,6 +4,7 @@ import java.io.File;
 
 import my.LJExport.Config;
 import my.LJExport.maintenance.Maintenance;
+import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FilePath;
 
 public abstract class MaintenanceHandler extends Maintenance
@@ -64,5 +65,16 @@ public abstract class MaintenanceHandler extends Maintenance
             return null;
 
         return href;
+    }
+
+    protected String spaces(String s)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (char c : s.toCharArray())
+        {
+            sb.append(' ');
+            Util.unused(c);
+        }
+        return sb.toString();
     }
 }

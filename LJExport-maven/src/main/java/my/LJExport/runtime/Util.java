@@ -221,6 +221,28 @@ public class Util
         });
     }
 
+    public static void renameFile(String from, String to, boolean replaceExisting) throws Exception
+    {
+        String threadName = Thread.currentThread().getName();
+        Thread.currentThread().setName(threadName + " waiting filelock");
+
+        NamedFileLocks.interlock(from.toLowerCase(), () ->
+        {
+            NamedFileLocks.interlock(to.toLowerCase(), () ->
+            {
+                Thread.currentThread().setName(threadName);
+
+                File xfrom = new File(from).getCanonicalFile();
+                File xto = new File(to).getCanonicalFile();
+
+                if (replaceExisting)
+                    Files.move(xfrom.toPath(), xto.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                else
+                    Files.move(xfrom.toPath(), xto.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            });
+        });
+    }
+
     public static String readFileAsString(String path) throws Exception
     {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
@@ -700,7 +722,6 @@ public class Util
         }
     }
 
-
     public static List<String> enumerateDirectories(String root) throws Exception
     {
         Set<String> fset = new HashSet<String>();
@@ -742,9 +763,7 @@ public class Util
             }
         }
     }
-    
-    
-    
+
     public static String getFileDirectory(String filepath) throws Exception
     {
         File d = new File(filepath).getParentFile().getAbsoluteFile();

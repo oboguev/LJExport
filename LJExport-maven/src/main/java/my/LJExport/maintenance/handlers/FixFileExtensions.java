@@ -186,68 +186,79 @@ public class FixFileExtensions extends MaintenanceHandler
             String contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content);
             if (contentExtension == null || contentExtension.length() == 0)
                 continue;
-            
+
             /*
              * Get extension from file name 
              */
             File fp = new File(linkInfo.linkFullFilePath);
-            String fnExt =  getFileExtension(fp.getName());
+            String fnExt = getFileExtension(fp.getName());
             if (fnExt != null && (fnExt.length() == 0 || fnExt.length() > 4))
                 fnExt = null;
-            
+
             /*
              * If it is not one of common media extensions, disregard it  
              */
             if (fnExt != null && !FileTypeDetector.commonExtensions().contains(fnExt))
                 fnExt = null;
-            
+
             /*
              * If it is equivalent to detected file content, do not make any change  
              */
             if (fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, contentExtension))
                 continue;
-            
+
             /*
              * Strip file extension if existed and append new extension
              */
             String newLinkFullFilePath = linkInfo.linkFullFilePath;
             String newref = href;
-            
+
             if (fnExt != null)
             {
                 String tail = "." + fnExt;
                 tail = tail.toLowerCase();
-                
+
                 if (!newLinkFullFilePath.toLowerCase().endsWith(tail))
                     throwException("Internal error check");
                 if (!newref.toLowerCase().endsWith(tail))
                     throwException("Internal error check");
-                
+
                 newLinkFullFilePath = newLinkFullFilePath.substring(0, newLinkFullFilePath.length() - tail.length());
                 newref = newref.substring(0, newref.length() - tail.length());
             }
-            
+
             newLinkFullFilePath += "." + contentExtension;
             newref += "." + contentExtension;
-            
+
             /*
              * Check for conflicts
              */
             if (new File(newLinkFullFilePath).exists())
                 throwException("Target file already exists on disk: " + newLinkFullFilePath);
+
+            if (relpath2entry.containsKey(newref.toLowerCase()))
+                throwException("Target file already exists in repository map: " + newref);
+
+            /*
+             * Log
+             */
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("Renaming [%s] from  %s" + nl, Config.User, linkInfo.linkFullFilePath));
+            sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newLinkFullFilePath));
             
-            // ### check if target file already exists in map -> exception
+            trace(sb.toString());
+            txLog.writeLine(sb.toString());
             
-            // ### txLog renaming file
-            // ### rename file linkInfo.linkFullFilePath -> newname
-            // ### txLog complete
-            
+            boolean replaceExisting = false;
+            Util.renameFile(linkInfo.linkFullFilePath, newLinkFullFilePath, replaceExisting);
+            txLog.writeLine("Renamed OK");
+
             // ### fix link
             // ### updated = true
-            
+
             // ### fix map
             // ### updatedMap = true
-            
+
             // ### what if ALREADY renamed previous???
         }
 

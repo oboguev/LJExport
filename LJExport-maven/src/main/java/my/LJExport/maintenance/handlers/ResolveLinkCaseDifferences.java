@@ -260,17 +260,6 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         Util.err(msg);
     }
     
-    private String spaces(String s)
-    {
-        StringBuilder sb = new StringBuilder();
-        for (char c : s.toCharArray())
-        {
-            sb.append(' ');
-            Util.unused(c);
-        }
-        return sb.toString();
-    }
-
     private void throwException(String msg) throws Exception
     {
         throw new Exception(msg);

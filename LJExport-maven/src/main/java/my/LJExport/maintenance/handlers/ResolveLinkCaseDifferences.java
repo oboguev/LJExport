@@ -168,11 +168,20 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             {
                 // #######
                 if (href.startsWith("../../img/userinfo.gif?"))
+                {
+                    trace("LJ URL: " + href);
                     continue;
+                }
                 if (href.startsWith("../../img/community.gif?"))
+                {
+                    trace("LJ URL: " + href);
                     continue;
+                }
                 if (href.equals("../images/line_sm.gif"))
+                {
+                    trace("LJ URL: " + href);
                     continue;
+                }
             }
 
             if (!isLinksRepositoryReference(fullHtmlFilePath, href))
@@ -239,6 +248,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         String h2 = sanitizePath(href);
         String h3 = LinkDownloader.encodePathComponents(href);
         String h4 = sanitizePath(LinkDownloader.encodePathComponents(href));
+        String h5 = href + "_xxx.jpeg";
 
         List<String> list = new ArrayList<>();
 
@@ -250,6 +260,8 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             list.add(h3);
         if (!list.contains(h4))
             list.add(h4);
+        if (!list.contains(h5))
+            list.add(h5);
 
         List<String> exlist = new ArrayList<>();
         for (String h : list)
@@ -276,7 +288,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         if (exlist.size() == 0)
             throwException("No link repository file for " + href);
 
-        // priorities: h2 -> h4 ->  h1 ->  h3
+        // priorities: h2 -> h4 ->  h1 ->  h3 -> h5
 
         if (exlist.contains(h2))
             return h2;
@@ -287,6 +299,9 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             return h1;
         if (exlist.contains(h3))
             return h3;
+
+        if (exlist.contains(h5))
+            return h5;
 
         throwException("Internal error");
         return null;

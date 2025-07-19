@@ -222,9 +222,13 @@ public class Maintenance
 
             processDir("pages", ParallelismDefault);
             processDir("reposts", ParallelismDefault);
-            processDir("monthly-pages", ParallelismMonthly);
-            processDir("monthly-reposts", ParallelismMonthly);
             processDir("profile", ParallelismDefault);
+
+            if (Util.False)
+            {
+                processDir("monthly-pages", ParallelismMonthly);
+                processDir("monthly-reposts", ParallelismMonthly);
+            }
 
             endUser();
         }

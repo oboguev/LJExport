@@ -65,7 +65,7 @@ public class Maintenance
             // Sequence:
             //   0. CheckLinkCaseConflicts [optional]
             //   1. ResolveLinkCaseDifferences 
-            //   2. FixDirectoryLinks
+            //   2. FixDirectoryLinks [test a_bugaev, ночная москва]
             //   3. FixFileFormats
             //
             do_users(Users, new CountFiles());

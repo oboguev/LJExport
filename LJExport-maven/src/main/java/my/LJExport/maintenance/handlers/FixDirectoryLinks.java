@@ -39,13 +39,24 @@ public class FixDirectoryLinks extends MaintenanceHandler
 
     private Map<String, String> file_lc2ac = new HashMap<>();
     private Map<String, String> dir_lc2ac = new HashMap<>();
+    private boolean updatedMap = false;
 
     @Override
     protected void beginUser() throws Exception
     {
         super.beginUser();
         build_lc2ac();
+        updatedMap = false;
         // ###loadLinkMapFile()
+    }
+
+    @Override
+    protected void endUser() throws Exception
+    {
+        if (updatedMap)
+        {
+            // ###saveLinkMapFile() if was changed
+        }
     }
 
     private void build_lc2ac() throws Exception
@@ -134,7 +145,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 // ### throwException("Multiple files in linked directory " + linkInfo.linkFullFilePath);
                 continue;
             }
-            
+
             if (count == 1 && !DryRun)
             {
                 String newref = href + "/" + onlyFile.get();
@@ -142,6 +153,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 updated = true;
 
                 // ### update map
+                // ### all entries pointing to href (case-insens) change to newref 
             }
         }
 

@@ -12,13 +12,14 @@ public class CountFiles extends MaintenanceHandler
     @Override
     protected void beginUsers()
     {
-        Util.out(">>> Counting all files for all users");
+        Util.out(">>> Counting all HTML files for all users");
     }
 
     @Override
     protected void endUsers()
     {
         Maintenance.TotalFileCount = totalFileCount;
+        Util.out(">>>     Found " + totalFileCount + " files");
     }
 
     @Override

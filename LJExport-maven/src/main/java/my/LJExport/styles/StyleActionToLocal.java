@@ -458,7 +458,7 @@ public class StyleActionToLocal
                 throw new Exception("Failed to download style URL: " + cssFileURL);
             }
 
-            newref = linkDownloader.decodePathCopmonents(newref);
+            newref = LinkDownloader.decodePathComponents(newref);
 
             /* convert to absolute path*/
             String cssFilePath = linkDownloader.rel2abs(newref);
@@ -1050,7 +1050,7 @@ public class StyleActionToLocal
         }
 
         /* Full local file path name */
-        rel = linkDownloader.decodePathCopmonents(rel);
+        rel = LinkDownloader.decodePathComponents(rel);
         String abs = linkDownloader.rel2abs(rel);
 
         /* File path relative to the referencing resource (both must reside within DownloadRoot)  */

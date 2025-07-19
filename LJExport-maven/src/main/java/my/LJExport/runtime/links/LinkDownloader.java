@@ -318,7 +318,7 @@ public class LinkDownloader
             Thread.currentThread().setName(threadName);
 
             String newref = abs2rel(filename.get());
-            newref = linkReferencePrefix + encodePathCopmonents(newref);
+            newref = linkReferencePrefix + encodePathComponents(newref);
             return newref;
         }
         catch (Exception ex)
@@ -520,7 +520,7 @@ public class LinkDownloader
         return ex instanceof ClientProtocolException && ex.getCause() instanceof CircularRedirectException;
     }
 
-    public String encodePathCopmonents(String ref)
+    public static String encodePathComponents(String ref)
     {
         StringBuilder sb = new StringBuilder();
 
@@ -537,7 +537,7 @@ public class LinkDownloader
         return sb.toString();
     }
 
-    public String decodePathCopmonents(String ref)
+    public static String decodePathComponents(String ref)
     {
         StringBuilder sb = new StringBuilder();
 

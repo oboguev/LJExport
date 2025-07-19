@@ -70,14 +70,14 @@ public class LowercaseLinks extends MaintenanceHandler
 
         for (Node n : JSOUP.findElements(pageFlat, "img"))
         {
-            String href = JSOUP.getAttribute(n, "src");
+            String href = JSOUP.getAttribute(n, "src");  // ###
             LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
             if (linkInfo != null)
             {
                 String lc = href.toLowerCase();
                 if (!lc.equals(href))
                 {
-                    JSOUP.updateAttribute(n, "src", lc);
+                    JSOUP.updateAttribute(n, "src", lc);  // ###
                     update = true;
                 }
             }
@@ -85,14 +85,14 @@ public class LowercaseLinks extends MaintenanceHandler
 
         for (Node n : JSOUP.findElements(pageFlat, "a"))
         {
-            String href = JSOUP.getAttribute(n, "href");
+            String href = JSOUP.getAttribute(n, "href");  // ###
             LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
             if (linkInfo != null)
             {
                 String lc = href.toLowerCase();
                 if (!lc.equals(href))
                 {
-                    JSOUP.updateAttribute(n, "href", lc);
+                    JSOUP.updateAttribute(n, "href", lc);  // ###
                     update = true;
                 }
             }

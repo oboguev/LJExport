@@ -155,7 +155,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
-            String href = JSOUP.getAttribute(n, attr);
+            String href = JSOUP.getAttribute(n, attr);  // ###
             String href_original = href;
 
             href = preprocesHref(href);
@@ -165,7 +165,7 @@ public class FixFileExtensions extends MaintenanceHandler
             String newref = this.alreadyRenamed.get(href.toLowerCase());
             if (newref != null)
             {
-                JSOUP.updateAttribute(n, attr, newref);
+                JSOUP.updateAttribute(n, attr, newref); // ###
                 updated = true;
 
                 changeLinksMap(href_original, newref, false);
@@ -284,7 +284,7 @@ public class FixFileExtensions extends MaintenanceHandler
             /*
              * Fix link
              */
-            JSOUP.updateAttribute(n, attr, newref);
+            JSOUP.updateAttribute(n, attr, newref);  // ###
             updated = true;
 
             alreadyRenamed.put(href.toLowerCase(), newref);

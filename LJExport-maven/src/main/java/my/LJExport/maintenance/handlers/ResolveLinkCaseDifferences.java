@@ -146,7 +146,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
-            String href = JSOUP.getAttribute(n, attr);
+            String href = JSOUP.getAttribute(n, attr);  // ###
             String original_href = href;
 
             href = preprocesHref(href);
@@ -170,7 +170,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             String actualLinkFullFilePath = lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
             if (actualLinkFullFilePath == null)
             {
-                String msg = String.format("Link file [%s] is not present in the repository map, href=[%s], file=[%s]", 
+                String msg = String.format("Link file [%s] is not present in the repository, href=[%s], file=[%s]", 
                         Config.User, original_href, linkInfo.linkFullFilePath);
                 
                 if (DryRun)
@@ -183,6 +183,8 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
                     throwException(msg);
                 }
             }
+            
+            // ### check present in repo map
 
             String newref = RelativeLink.fileRelativeLink(actualLinkFullFilePath, fullHtmlFilePath, Config.DownloadRoot);
 
@@ -199,7 +201,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
             trace(sb.toString());
 
-            JSOUP.updateAttribute(n, attr, newref);
+            JSOUP.updateAttribute(n, attr, newref);  // ###
             updated = true;
         }
 

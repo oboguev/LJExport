@@ -2,10 +2,13 @@ package my.LJExport.maintenance.handlers;
 
 import java.io.File;
 
+import org.jsoup.nodes.Node;
+
 import my.LJExport.Config;
 import my.LJExport.maintenance.Maintenance;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FilePath;
+import my.LJExport.runtime.html.JSOUP;
 
 public abstract class MaintenanceHandler extends Maintenance
 {
@@ -76,5 +79,19 @@ public abstract class MaintenanceHandler extends Maintenance
             Util.unused(c);
         }
         return sb.toString();
+    }
+
+    protected String getLinkAttribute(Node n, String name) throws Exception
+    {
+        String href = JSOUP.getAttribute(n, name);
+        // ###
+        return href;
+        
+    }
+
+    protected void updateLinkAttribute(Node n, String attrname, String value) throws Exception
+    {
+        // ###
+        JSOUP.updateAttribute(n, attrname, value);
     }
 }

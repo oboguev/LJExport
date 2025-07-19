@@ -17,12 +17,13 @@ import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
 
 /*
- * Scan HTML file and check that A.HREF and IMG.SRC links have the same case
- * as files in the links repository.
- * If they differ, fix link case in the HTML file to match link case.
+ * Scan HTML files and check that A.HREF and IMG.SRC links have the same case
+ * as actual files in the links repository.
+ * If cases differ, fix link case in the HTML file to match link case.
  * 
  * Also eliminate trailing dots and spaces in path components such as:
  *     ../../../links/www.etnosy.ru/sites/default/files/bookshelf./evr.gif
+ *     ../../../links/www.etnosy.ru/sites/default/files/bookshelf /evr.gif
  */
 public class ResolveLinkCaseDifferences extends MaintenanceHandler
 {

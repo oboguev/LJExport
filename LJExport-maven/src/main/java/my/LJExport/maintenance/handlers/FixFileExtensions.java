@@ -49,6 +49,7 @@ public class FixFileExtensions extends MaintenanceHandler
     private boolean updatedMap = false;
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
+    private Map<String, String> alreadyRenamed = new HashMap<>();
 
     @Override
     protected void beginUser() throws Exception
@@ -154,8 +155,25 @@ public class FixFileExtensions extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
             String href = JSOUP.getAttribute(n, attr);
+            String href_original = href;
 
-            LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href, true);
+            href = preprocesHref(href);
+            if (href == null)
+                continue;
+
+            String newref = this.alreadyRenamed.get(href.toLowerCase());
+            if (newref != null)
+            {
+                JSOUP.updateAttribute(n, attr, newref);
+                updated = true;
+
+                changeLinksMap(href_original, newref, false);
+                changeLinksMap(href, newref, false);
+
+                continue;
+            }
+
+            LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href, false);
             if (linkInfo == null)
                 continue;
 
@@ -163,7 +181,7 @@ public class FixFileExtensions extends MaintenanceHandler
             if (ac == null)
             {
                 String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
-                        Config.User, href, linkInfo.linkFullFilePath);
+                        Config.User, href_original, linkInfo.linkFullFilePath);
 
                 if (DryRun)
                 {
@@ -211,7 +229,7 @@ public class FixFileExtensions extends MaintenanceHandler
              * Strip file extension if existed and append new extension
              */
             String newLinkFullFilePath = linkInfo.linkFullFilePath;
-            String newref = href;
+            newref = href;
 
             if (fnExt != null)
             {
@@ -245,7 +263,7 @@ public class FixFileExtensions extends MaintenanceHandler
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("Renaming [%s] from  %s" + nl, Config.User, linkInfo.linkFullFilePath));
             sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newLinkFullFilePath));
-            sb.append(String.format("    link  %s  from  %s" + nl, spaces(Config.User), href));
+            sb.append(String.format("    link  %s  from  %s" + nl, spaces(Config.User), href_original));
             sb.append(String.format("          %s    to  %s", spaces(Config.User), newref));
 
             trace(sb.toString());
@@ -268,23 +286,30 @@ public class FixFileExtensions extends MaintenanceHandler
             JSOUP.updateAttribute(n, attr, newref);
             updated = true;
 
+            alreadyRenamed.put(href.toLowerCase(), newref);
+            alreadyRenamed.put(href_original.toLowerCase(), newref);
+
             /*
              * Fix map
              */
-            List<LinkMapEntry> list = relpath2entry.get(href.toLowerCase());
-            if (list == null || list.size() == 0)
-                throwException("Old link is missing in the map");
-
-            for (LinkMapEntry e : list)
-            {
-                e.value = newref;
-                updatedMap = true;
-            }
-
-            // ### what if ALREADY renamed previous??? -> then change only HTML
+            changeLinksMap(href_original, newref, true);
+            changeLinksMap(href, newref, false);
         }
 
         return updated;
+    }
+    
+    private void changeLinksMap(String href, String newref, boolean required) throws Exception
+    {
+        List<LinkMapEntry> list = relpath2entry.get(href.toLowerCase());
+        if (required && (list == null || list.size() == 0))
+            throwException("Old link is missing in the map");
+
+        for (LinkMapEntry e : list)
+        {
+            e.value = newref;
+            updatedMap = true;
+        }
     }
 
     /* ===================================================================================================== */

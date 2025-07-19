@@ -5,137 +5,106 @@ import java.awt.*;
 
 public class ProgressDialog
 {
-    private final String headerText;
+    private final JDialog dialog;
+    private final JLabel topLabel;
+    private final JLabel midLabel;
+    private final JProgressBar progressBar;
+    private final JLabel etaLabel;
 
-    private JDialog dialog;
-    private JLabel headerLabel;
-    private JLabel messageLabel;
-    private JProgressBar progressBar;
+    private String last_msg;
+    private Double last_pct;
     private long startTime = -1;
-    private JLabel etaLabel;
 
-    public ProgressDialog(String headerText)
+    public ProgressDialog(String title)
     {
-        this.headerText = headerText;
+        dialog = new JDialog((Frame) null, "Progress", true);
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.setResizable(false);
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = GridBagConstraints.RELATIVE;
+        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.weightx = 1.0;
+
+        // Centered top label
+        topLabel = new JLabel(title, SwingConstants.CENTER);
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(topLabel, gbc);
+
+        // Centered mid label
+        midLabel = new JLabel(" ", SwingConstants.CENTER);
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(midLabel, gbc);
+
+        // Wide progress bar
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setStringPainted(true);
+        progressBar.setPreferredSize(new Dimension(300, 20)); // enforce width
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(progressBar, gbc);
+
+        // Left-aligned ETA label
+        etaLabel = new JLabel("ETA: <estimating>");
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add(etaLabel, gbc);
+
+        dialog.getContentPane().add(panel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
     }
 
     public void begin()
     {
-        SwingUtilities.invokeLater(() ->
-        {
-            JFrame frame = new JFrame();
-            frame.setUndecorated(true);
-            frame.setType(Window.Type.UTILITY);
-            frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-
-            dialog = new JDialog(frame, "Progress", false);
-            dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-            dialog.setSize(450, 120);
-            dialog.setLayout(new BorderLayout());
-
-            JPanel panel = new JPanel();
-            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-            panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-            headerLabel = new JLabel(headerText, SwingConstants.CENTER);
-            headerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            panel.add(headerLabel);
-
-            panel.add(Box.createVerticalStrut(10));
-
-            messageLabel = new JLabel("Starting...", SwingConstants.CENTER);
-            messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            panel.add(messageLabel);
-
-            panel.add(Box.createVerticalStrut(10));
-
-            progressBar = new JProgressBar(0, 100);
-            progressBar.setStringPainted(true);
-            panel.add(progressBar);
-
-            etaLabel = new JLabel("ETA: <estimating>");
-            // Create a flow panel with left alignment to hold ETA label
-            JPanel etaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-            etaPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            etaPanel.add(etaLabel);
-
-            // Add spacing and etaPanel to the main layout
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(etaPanel);
-            dialog.add(panel, BorderLayout.CENTER);
-            dialog.pack();
-
-            dialog.setLocationRelativeTo(null);
-            dialog.setAlwaysOnTop(true);
-            dialog.setVisible(true);
-            dialog.toFront();
-            dialog.requestFocus();
-
-            SwingUtilities.invokeLater(() ->
-            {
-                if (dialog != null)
-                {
-                    dialog.setAlwaysOnTop(false);
-                }
-            });
-        });
-    }
-
-    private String last_msg = null;
-    private Double last_pct = null;
-
-    public void update(String msg, double pct)
-    {
-        if (last_msg != null && last_msg.equals(msg) && last_pct != null && Math.abs(pct - last_pct) < 0.1)
-            return;
-
-        boolean pctReset = (last_pct == null || pct == 0 || pct < last_pct);
-        if (pctReset)
-            startTime = System.currentTimeMillis();
-
-        last_msg = msg;
-        last_pct = pct;
-
-        SwingUtilities.invokeLater(() ->
-        {
-            if (messageLabel != null && progressBar != null)
-            {
-                messageLabel.setText(msg);
-                int value = (int) Math.max(0, Math.min(100, pct));
-                progressBar.setValue(value);
-
-                if (pct < 1.0)
-                {
-                    etaLabel.setText("ETA: <estimating>");
-                }
-                else
-                {
-                    long now = System.currentTimeMillis();
-                    long elapsed = now - startTime;
-                    double remainingRatio = (100.0 - pct) / pct;
-                    long etaMillis = (long) (elapsed * remainingRatio);
-                    etaLabel.setText("ETA: " + formatDuration(etaMillis));
-                }
-            }
-        });
+        SwingUtilities.invokeLater(() -> dialog.setVisible(true));
     }
 
     public void end()
     {
-        last_msg = null;
-        last_pct = null;
+        SwingUtilities.invokeLater(dialog::dispose);
+    }
 
+    public void update(String top, String msg, double pct)
+    {
         SwingUtilities.invokeLater(() ->
         {
-            if (dialog != null)
+            if (top != null)
+                topLabel.setText(top);
+            midLabel.setText(msg);
+
+            if (last_msg != null && last_msg.equals(msg) && last_pct != null && Math.abs(pct - last_pct) < 0.1)
+                return;
+
+            if (last_pct == null || pct == 0 || pct < last_pct)
+                startTime = System.currentTimeMillis();
+
+            last_msg = msg;
+            last_pct = pct;
+
+            int percent = (int) Math.round(pct);
+            progressBar.setValue(percent);
+
+            if (pct < 1.0)
             {
-                dialog.setVisible(false);
-                dialog.dispose();
-                dialog = null;
+                etaLabel.setText("ETA: <estimating>");
+            }
+            else
+            {
+                long now = System.currentTimeMillis();
+                long elapsed = now - startTime;
+                double remainingRatio = (100.0 - pct) / pct;
+                long etaMillis = (long) (elapsed * remainingRatio);
+                etaLabel.setText("ETA: " + formatDuration(etaMillis));
             }
         });
+    }
+
+    public void update(String msg, double pct)
+    {
+        update(null, msg, pct);
     }
 
     private static String formatDuration(long millis)
@@ -147,7 +116,7 @@ public class ProgressDialog
         long days = totalSeconds / (3600 * 24);
 
         if (days > 0)
-            return String.format("%d days and %02d:%02d:%02d", days, hours, minutes, seconds);
+            return String.format("%d days %02d:%02d:%02d", days, hours, minutes, seconds);
         else if (hours > 0)
             return String.format("%d:%02d:%02d", hours, minutes, seconds);
         else

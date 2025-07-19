@@ -66,12 +66,13 @@ public class Maintenance
             //   0. CheckLinkCaseConflicts [optional]
             //   1. ResolveLinkCaseDifferences 
             //   2. FixDirectoryLinks [test a_bugaev, ночная москва -- check links map file, review txlog]
-            //   3. FixFileFormats
+            //   3. FixFileExtensions
             //
             do_users(Users, new CountFiles());
             // do_users(Users, CheckLinkCaseConflicts.class);
             do_users(Users, ResolveLinkCaseDifferences.class);
             // do_users(Users, FixDirectoryLinks.class);
+            // do_users(Users, FixFileExtensions.class);
 
             Util.out("");
             Util.out(">>> Completed for all requested users and their files");

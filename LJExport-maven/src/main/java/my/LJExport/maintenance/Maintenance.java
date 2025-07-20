@@ -27,7 +27,7 @@ import my.LJExport.runtime.ui.ProgressDialog;
 public class Maintenance
 {
     private static final String ALL_USERS = "<all>";
-    private static final String AllUsersFromUser = "colonelcassad";
+    private static final String AllUsersFromUser = "d_olshansky";
     // private static final String AllUsersFromUser = null;
 
     private static final String Users = ALL_USERS;

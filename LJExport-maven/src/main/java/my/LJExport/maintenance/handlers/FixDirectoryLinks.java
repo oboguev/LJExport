@@ -27,7 +27,7 @@ import my.LJExport.runtime.links.RelativeLink;
  */
 public class FixDirectoryLinks extends MaintenanceHandler
 {
-    private static boolean DryRun = true; // ###
+    private static boolean DryRun = false; // ###
 
     @Override
     protected void beginUsers() throws Exception
@@ -193,8 +193,10 @@ public class FixDirectoryLinks extends MaintenanceHandler
             {
                 String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
                         Config.User, href_original, linkInfo.linkFullFilePath);
+                
+                boolean allow = Config.User.equals("d_olshansky");
 
-                if (DryRun)
+                if (DryRun || allow)
                 {
                     trace(msg);
                     continue;

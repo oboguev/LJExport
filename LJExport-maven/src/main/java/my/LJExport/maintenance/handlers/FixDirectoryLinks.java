@@ -288,9 +288,11 @@ public class FixDirectoryLinks extends MaintenanceHandler
         List<LinkMapEntry> list = relpath2entry.get(rel.toLowerCase());
         if (list == null || list.size() == 0)
         {
-            if (required && (list == null || list.size() == 0))
+            if (required)
                 throwException("Old link is missing in the map");
-
+        }
+        else
+        {
             for (LinkMapEntry e : list)
             {
                 if (e.value.equals(rel))
@@ -338,7 +340,9 @@ public class FixDirectoryLinks extends MaintenanceHandler
         {
             if (required)
                 throwException("Old link is missing in the map");
-
+        }
+        else
+        {
             for (LinkMapEntry e : list)
             {
                 if (e.value.equals(rel))

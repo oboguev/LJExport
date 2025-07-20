@@ -16,6 +16,7 @@ import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.links.RelativeLink;
 
 /*
  * Fix IMG.SRC and A.HREF links pointing to a directory.
@@ -47,7 +48,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
     private boolean updatedMap = false;
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
-    private Map<String,String> alreadyRenamed = new HashMap<>();
+    private Map<String, String> alreadyRenamed = new HashMap<>();  // rel -> rel
 
     @Override
     protected void beginUser() throws Exception
@@ -154,19 +155,13 @@ public class FixDirectoryLinks extends MaintenanceHandler
         {
             String href = getLinkAttribute(n, attr);
             String href_original = href;
-            
+
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
 
-            String newref = this.alreadyRenamed.get(href.toLowerCase());
-            if (newref != null)
+            if (handleAlreadyRenamed(href, href_original, fullHtmlFilePath, n, attr))
             {
-                updateLinkAttribute(n, attr, newref);
                 updated = true;
-
-                changeLinksMap(href_original, newref, false);
-                changeLinksMap(href, newref, false);
-
                 continue;
             }
 
@@ -179,6 +174,21 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 continue;
 
             String ac = dir_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
+
+            if (ac != null && !ac.equals(linkInfo.linkFullFilePath))
+                throwException("Mismatching link case");
+
+            if (ac != null && Config.User.equals("colonelcassad"))
+            {
+                String ac2 = file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase() + "_xxx.jpeg");
+                if (ac2 != null)
+                {
+                    redirect_dir2file(fullHtmlFilePath, n, attr, href, href_original, ac2);
+                    updated = true;
+                    continue;
+                }
+            }
+
             if (ac == null)
             {
                 String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
@@ -194,9 +204,6 @@ public class FixDirectoryLinks extends MaintenanceHandler
                     throwException(msg);
                 }
             }
-
-            if (!ac.equals(linkInfo.linkFullFilePath))
-                throwException("Mismatching link case");
 
             File fp = new File(linkInfo.linkFullFilePath).getCanonicalFile();
             AtomicReference<String> onlyFile = new AtomicReference<>();
@@ -220,36 +227,107 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 /*
                  * Fix link
                  */
-                newref = href + "/" + onlyFile.get();
+                String newref = href + "/" + onlyFile.get();
                 updateLinkAttribute(n, attr, newref);
                 updated = true;
                 txLog.writeLine(String.format("Changed HTML %s.%s: %s => %s", tag, attr, href_original, newref));
+                trace(String.format("Changing HTML %s.%s: %s => %s", tag, attr, href_original, newref));
                 
-                alreadyRenamed.put(href.toLowerCase(), newref);
-                alreadyRenamed.put(href_original.toLowerCase(), newref);
+                String rel = href2rel(href, fullHtmlFilePath);
+                String rel_original = href2rel(href_original, fullHtmlFilePath);
+                String newrel = href2rel(newref, fullHtmlFilePath);
+
+                alreadyRenamed.put(rel.toLowerCase(), newrel);
+                alreadyRenamed.put(rel_original.toLowerCase(), newrel);
 
                 /*
                  * Fix map
                  */
-                changeLinksMap(href_original, newref, true);
-                changeLinksMap(href, newref, false);
+                changeLinksMap(href_original, newref, true, fullHtmlFilePath);
+                changeLinksMap(href, newref, false, fullHtmlFilePath);
             }
         }
 
         return updated;
     }
-
-    private void changeLinksMap(String href, String newref, boolean required) throws Exception
+    
+    private boolean handleAlreadyRenamed(String href, String href_original, String fullHtmlFilePath, Node n, String attr)  throws Exception
     {
-        List<LinkMapEntry> list = relpath2entry.get(href.toLowerCase());
+        String rel = href2rel(href, fullHtmlFilePath);
+        String rel_original = href2rel(href_original, fullHtmlFilePath);
+        
+        String newrel = this.alreadyRenamed.get(rel.toLowerCase());
+        if (newrel == null)
+            newrel = this.alreadyRenamed.get(rel_original.toLowerCase());
+        
+        if (newrel != null)
+        {
+            String newref = rel2href(newrel, fullHtmlFilePath);
+            updateLinkAttribute(n, attr, newref);
+            // ### trace
+
+            changeLinksMap(href_original, newref, false, fullHtmlFilePath);
+            changeLinksMap(href, newref, false, fullHtmlFilePath);
+
+            return true;
+        }
+        
+        return false;
+    }
+
+    private void changeLinksMap(String href, String newref, boolean required, String fullHtmlFilePath) throws Exception
+    {
+        String rel = href2rel(href, fullHtmlFilePath);
+        String newrel = href2rel(newref, fullHtmlFilePath);
+
+        List<LinkMapEntry> list = relpath2entry.get(rel.toLowerCase());
         if (required && (list == null || list.size() == 0))
             throwException("Old link is missing in the map");
 
         for (LinkMapEntry e : list)
         {
-            e.value = newref;
-            updatedMap = true;
+            if (e.value.equals(rel))
+            {
+                // ### trace
+                e.value = newrel;
+                updatedMap = true;
+            }
         }
+    }
+
+    private void redirect_dir2file(String fullHtmlFilePath, Node n, String attr, String href, String href_original, String ac) throws Exception
+    {
+        // redirect link to ac
+        String newref = RelativeLink.fileRelativeLink(ac, fullHtmlFilePath, this.userDir);
+        updateLinkAttribute(n, attr, newref);
+        // ### trace
+
+        // change map to ac
+        String rel = href2rel(href, fullHtmlFilePath);
+        String rel_original = href2rel(href_original, fullHtmlFilePath);
+        String newrel = abs2rel(ac);
+        boolean required = true;
+
+        List<LinkMapEntry> list = relpath2entry.get(rel.toLowerCase());
+        if (required && (list == null || list.size() == 0))
+            throwException("Old link is missing in the map");
+
+        for (LinkMapEntry e : list)
+        {
+            if (e.value.equals(rel))
+            {
+                // ### trace
+                e.value = newrel;
+                updatedMap = true;
+            }
+        }
+
+        // ### add to alreadyRenamed
+        
+        alreadyRenamed.put(rel.toLowerCase(), newrel);
+        alreadyRenamed.put(rel_original.toLowerCase(), newrel);
+        
+        Util.noop();
     }
 
     /* ===================================================================================================== */

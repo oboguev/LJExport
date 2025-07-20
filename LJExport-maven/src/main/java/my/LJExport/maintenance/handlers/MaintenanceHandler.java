@@ -16,7 +16,8 @@ import my.LJExport.runtime.links.RelativeLink;
 
 public abstract class MaintenanceHandler extends Maintenance
 {
-    protected final String linkDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "links";
+    protected final String userDir = Config.DownloadRoot + File.separator + Config.User;
+    protected final String linkDir = userDir + File.separator + "links";
     protected final String linkDirSep = linkDir + File.separator;
     protected final List<String> validNonLinkRoots = validNonLinkRoots();
 
@@ -157,5 +158,46 @@ public abstract class MaintenanceHandler extends Maintenance
     protected boolean isArchiveOrg()
     {
         return Config.User.equals("nationalism.org");
+    }
+
+    // href -> relative Unix path relative to links repository dir
+    protected String href2rel(String href, String fullHtmlFilePath) throws Exception
+    {
+        String abs = href2abs(href, fullHtmlFilePath);
+        String rel = abs2rel(abs);
+        return rel;
+    }
+
+    // href -> absolute file path of a linked file
+    protected String href2abs(String href, String fullHtmlFilePath) throws Exception
+    {
+        String abs = RelativeLink.resolveFileRelativeLink(fullHtmlFilePath, href, this.linkDir);
+        return abs;
+    }
+
+    // absolute file path of a linked file -> relative Unix path relative to links repository dir  
+    protected String abs2rel(String abs) throws Exception
+    {
+        String rel = Util.stripStart(abs, this.linkDir + File.separator);
+        rel = rel.replace(File.separatorChar, '/');
+        return rel;
+    }
+
+    // relative Unix path relative to links repository dir -> absolute file path of a linked file  
+    protected String rel2abs(String rel)
+    {
+        return this.linkDir + File.separator + rel.replace('/', File.separatorChar);
+    }
+
+    protected String rel2href(String rel, String fullHtmlFilePath) throws Exception
+    {
+        String abs = rel2abs(rel);
+        return abs2href(abs, fullHtmlFilePath);
+    }
+
+    protected String abs2href(String abs, String fullHtmlFilePath) throws Exception
+    {
+        String href = RelativeLink.fileRelativeLink(abs, fullHtmlFilePath, this.userDir);
+        return href;
     }
 }

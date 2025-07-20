@@ -161,7 +161,7 @@ public class FixFileExtensions extends MaintenanceHandler
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
 
-            String newref = this.alreadyRenamed.get(href.toLowerCase());
+            String newref = this.alreadyRenamed.get(href.toLowerCase()); // ### cannot use: rel vs abs
             if (newref != null)
             {
                 updateLinkAttribute(n, attr, newref);

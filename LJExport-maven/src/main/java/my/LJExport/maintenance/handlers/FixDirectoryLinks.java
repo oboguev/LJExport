@@ -48,7 +48,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
     private boolean updatedMap = false;
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
-    private Map<String, String> alreadyRenamed = new HashMap<>();  // rel -> rel
+    private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
 
     @Override
     protected void beginUser() throws Exception
@@ -210,7 +210,8 @@ public class FixDirectoryLinks extends MaintenanceHandler
             int count = countContainedFiles(fp, onlyFile);
 
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("[%s] %s.%s => [%d] %s", Config.User, tag, attr, count, linkInfo.linkFullFilePath));
+            sb.append(String.format("Detected [%s] %s.%s => [%d %s] %s" + nl,
+                    Config.User, tag, attr, count, count == 1 ? "child" : "children", linkInfo.linkFullFilePath));
             trace(sb.toString());
 
             if (count != 1)
@@ -230,9 +231,10 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 String newref = href + "/" + onlyFile.get();
                 updateLinkAttribute(n, attr, newref);
                 updated = true;
-                txLog.writeLine(String.format("Changed HTML %s.%s: %s => %s", tag, attr, href_original, newref));
-                trace(String.format("Changing HTML %s.%s: %s => %s", tag, attr, href_original, newref));
                 
+                txLog.writeLine(changeMessage(tag, attr, href_original, newref));
+                trace(changeMessage(tag, attr, href_original, newref));
+
                 String rel = href2rel(href, fullHtmlFilePath);
                 String rel_original = href2rel(href_original, fullHtmlFilePath);
                 String newrel = href2rel(newref, fullHtmlFilePath);
@@ -250,30 +252,31 @@ public class FixDirectoryLinks extends MaintenanceHandler
 
         return updated;
     }
-    
-    private boolean handleAlreadyRenamed(String href, String href_original, String fullHtmlFilePath, Node n, String tag, String attr)  throws Exception
+
+    private boolean handleAlreadyRenamed(String href, String href_original, String fullHtmlFilePath, Node n, String tag,
+            String attr) throws Exception
     {
         String rel = href2rel(href, fullHtmlFilePath);
         String rel_original = href2rel(href_original, fullHtmlFilePath);
-        
+
         String newrel = this.alreadyRenamed.get(rel.toLowerCase());
         if (newrel == null)
             newrel = this.alreadyRenamed.get(rel_original.toLowerCase());
-        
+
         if (newrel != null)
         {
             String newref = rel2href(newrel, fullHtmlFilePath);
             updateLinkAttribute(n, attr, newref);
 
-            txLog.writeLine(String.format("Changed HTML %s.%s: %s => %s", tag, attr, href_original, newref));
-            trace(String.format("Changing HTML %s.%s: %s => %s", tag, attr, href_original, newref));
+            txLog.writeLine(changeMessage(tag, attr, href_original, newref));
+            trace(changeMessage(tag, attr, href_original, newref));
 
             changeLinksMap(href_original, newref, false, fullHtmlFilePath);
             changeLinksMap(href, newref, false, fullHtmlFilePath);
 
             return true;
         }
-        
+
         return false;
     }
 
@@ -305,15 +308,16 @@ public class FixDirectoryLinks extends MaintenanceHandler
         }
     }
 
-    private void redirect_dir2file(String fullHtmlFilePath, Node n, String tag, String attr, String href, String href_original, String ac) throws Exception
+    private void redirect_dir2file(String fullHtmlFilePath, Node n, String tag, String attr, String href, String href_original,
+            String ac) throws Exception
     {
         // redirect link to ac
         String newref = RelativeLink.fileRelativeLink(ac, fullHtmlFilePath, this.userDir);
         updateLinkAttribute(n, attr, newref);
 
         // trace
-        txLog.writeLine(String.format("Changed HTML %s.%s: %s => %s", tag, attr, href_original, newref));
-        trace(String.format("Changing HTML %s.%s: %s => %s", tag, attr, href_original, newref));
+        txLog.writeLine(changeMessage(tag, attr, href_original, newref));
+        trace(changeMessage(tag, attr, href_original, newref));
 
         // change map to ac
         String rel = href2rel(href, fullHtmlFilePath);
@@ -346,8 +350,16 @@ public class FixDirectoryLinks extends MaintenanceHandler
         // add to alreadyRenamed
         alreadyRenamed.put(rel.toLowerCase(), newrel);
         alreadyRenamed.put(rel_original.toLowerCase(), newrel);
-        
+
         Util.noop();
+    }
+    
+    private String changeMessage(String tag, String attr, String href_original, String newref)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Changing [%s] HTML %s.%s from  %s" + nl, Config.User, tag, attr, href_original));
+        sb.append(String.format("          %s               to  %s" + nl, spaces(Config.User), newref));
+        return sb.toString();
     }
 
     /* ===================================================================================================== */

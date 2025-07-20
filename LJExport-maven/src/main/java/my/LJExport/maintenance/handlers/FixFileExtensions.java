@@ -50,7 +50,7 @@ public class FixFileExtensions extends MaintenanceHandler
     private boolean updatedMap = false;
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
-    private Map<String, String> alreadyRenamed = new HashMap<>();
+    private Map<String, String> alreadyRenamed = new HashMap<>();  // rel -> rel
 
     @Override
     protected void beginUser() throws Exception
@@ -168,16 +168,10 @@ public class FixFileExtensions extends MaintenanceHandler
 
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
-
-            String newref = this.alreadyRenamed.get(href.toLowerCase()); // ### cannot use: rel vs abs
-            if (newref != null)
+            
+            if (handleAlreadyRenamed(href, href_original, fullHtmlFilePath, n, tag, attr))
             {
-                updateLinkAttribute(n, attr, newref);
                 updated = true;
-
-                changeLinksMap(href_original, newref, false);
-                changeLinksMap(href, newref, false);
-
                 continue;
             }
 
@@ -239,7 +233,7 @@ public class FixFileExtensions extends MaintenanceHandler
              * Strip file extension if existed and append new extension
              */
             String newLinkFullFilePath = linkInfo.linkFullFilePath;
-            newref = href;
+            String newref = href;
 
             if (fnExt != null)
             {
@@ -264,8 +258,8 @@ public class FixFileExtensions extends MaintenanceHandler
             if (new File(newLinkFullFilePath).exists())
                 throwException("Target file already exists on disk: " + newLinkFullFilePath);
 
-            if (relpath2entry.containsKey(newref.toLowerCase())) //### rel
-                throwException("Target file already exists in repository map: " + newref);
+            if (relpath2entry.containsKey(href2rel(newref, fullHtmlFilePath).toLowerCase()))
+                throwException("Target file already exists in repository map: " + href2rel(newref, fullHtmlFilePath));
 
             /*
              * Log
@@ -296,30 +290,94 @@ public class FixFileExtensions extends MaintenanceHandler
             updateLinkAttribute(n, attr, newref);
             updated = true;
 
-            alreadyRenamed.put(href.toLowerCase(), newref); // ###
-            alreadyRenamed.put(href_original.toLowerCase(), newref);
+            String rel = href2rel(href, fullHtmlFilePath);
+            String rel_original = href2rel(href_original, fullHtmlFilePath);
+            String newrel = href2rel(newref, fullHtmlFilePath);
 
+            alreadyRenamed.put(rel.toLowerCase(), newrel);
+            alreadyRenamed.put(rel_original.toLowerCase(), newrel);
+            
             /*
              * Fix map
              */
-            changeLinksMap(href_original, newref, true); // ###
-            changeLinksMap(href, newref, false);
+            changeLinksMap(href_original, newref, true, fullHtmlFilePath);
+            changeLinksMap(href, newref, false, fullHtmlFilePath);
         }
 
         return updated;
     }
     
-    private void changeLinksMap(String href, String newref, boolean required) throws Exception
+    private boolean handleAlreadyRenamed(String href, String href_original, String fullHtmlFilePath, Node n, String tag,
+            String attr) throws Exception
     {
-        List<LinkMapEntry> list = relpath2entry.get(href.toLowerCase());
-        if (required && (list == null || list.size() == 0))
-            throwException("Old link is missing in the map");
+        String rel = href2rel(href, fullHtmlFilePath);
+        String rel_original = href2rel(href_original, fullHtmlFilePath);
 
-        for (LinkMapEntry e : list)
+        String newrel = this.alreadyRenamed.get(rel.toLowerCase());
+        if (newrel == null)
+            newrel = this.alreadyRenamed.get(rel_original.toLowerCase());
+
+        if (newrel != null)
         {
-            e.value = newref;
-            updatedMap = true;
+            String newref = rel2href(newrel, fullHtmlFilePath);
+            updateLinkAttribute(n, attr, newref);
+
+            txLog.writeLine(changeMessage(tag, attr, href_original, newref));
+            trace(changeMessage(tag, attr, href_original, newref));
+
+            changeLinksMap(href_original, newref, false, fullHtmlFilePath);
+            changeLinksMap(href, newref, false, fullHtmlFilePath);
+
+            return true;
         }
+
+        return false;
+    }
+
+    private void changeLinksMap(String href, String newref, boolean required, String fullHtmlFilePath) throws Exception
+    {
+        String rel = href2rel(href, fullHtmlFilePath);
+        String newrel = href2rel(newref, fullHtmlFilePath);
+
+        List<LinkMapEntry> list = relpath2entry.get(rel.toLowerCase());
+        if (list == null || list.size() == 0)
+        {
+            if (required)
+                throwException("Old link is missing in the map");
+        }
+        else
+        {
+            for (LinkMapEntry e : list)
+            {
+                if (e.value.equals(rel))
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
+                    sb.append(String.format("          %s            to  %s" + nl, spaces(Config.User), newrel));
+                    trace(sb.toString());
+
+                    e.value = newrel;
+                    updatedMap = true;
+                }
+                else if (e.value.equalsIgnoreCase(rel))
+                {
+                    throwException("Misimatching LinkDir case");
+                }
+                else
+                {
+                    // already changed
+                    Util.noop();
+                }
+            }
+        }
+    }
+
+    private String changeMessage(String tag, String attr, String href_original, String newref)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Changing [%s] HTML %s.%s from  %s" + nl, Config.User, tag, attr, href_original));
+        sb.append(String.format("          %s       %s %s   to  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), newref));
+        return sb.toString();
     }
 
     /* ===================================================================================================== */

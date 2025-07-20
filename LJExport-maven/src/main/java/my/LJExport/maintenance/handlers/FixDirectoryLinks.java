@@ -27,7 +27,7 @@ import my.LJExport.runtime.links.RelativeLink;
  */
 public class FixDirectoryLinks extends MaintenanceHandler
 {
-    private static boolean DryRun = false; // ###
+    private static boolean DryRun = true; // ###
 
     @Override
     protected void beginUsers() throws Exception

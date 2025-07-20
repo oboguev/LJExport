@@ -358,7 +358,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
     {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("Changing [%s] HTML %s.%s from  %s" + nl, Config.User, tag, attr, href_original));
-        sb.append(String.format("          %s               to  %s" + nl, spaces(Config.User), newref));
+        sb.append(String.format("          %s       %s %s   to  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), newref));
         return sb.toString();
     }
 

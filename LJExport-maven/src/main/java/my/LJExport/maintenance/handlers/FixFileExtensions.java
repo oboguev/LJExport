@@ -18,10 +18,10 @@ import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
 
 /*
- * Fix linked file extensions according to their actual content. 
+ * Fix linked file name extensions according to file actual content. 
  * Scan IMG.SRC and A.HREF links.
- * If link does not have extension in it s name, or points to a file of different type
- * than implied by extension, then adjust the link.
+ * If link does not have an extension in it s name, or points to a file of different actual type
+ * than implied by extension, then rename the file and adjust the link.
  * Adjust repository map file as well.
  * 
  * Execute AFTER ResolveLinkCaseDifferences
@@ -267,8 +267,9 @@ public class FixFileExtensions extends MaintenanceHandler
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("Renaming [%s] from  %s" + nl, Config.User, linkInfo.linkFullFilePath));
             sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newLinkFullFilePath));
-            sb.append(String.format("    link  %s  from  %s" + nl, spaces(Config.User), href_original));
-            sb.append(String.format("          %s    to  %s", spaces(Config.User), newref));
+            sb.append(String.format("  relink  %s  from  %s" + nl, spaces(Config.User), href_original));
+            sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newref));
+            sb.append(String.format("          %s    in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
 
             trace(sb.toString());
             txLog.writeLine(sb.toString());

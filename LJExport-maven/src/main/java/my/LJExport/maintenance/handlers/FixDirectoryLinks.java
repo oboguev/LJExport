@@ -231,7 +231,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 String newref = href + "/" + onlyFile.get();
                 updateLinkAttribute(n, attr, newref);
                 updated = true;
-                
+
                 txLog.writeLine(changeMessage(tag, attr, href_original, newref));
                 trace(changeMessage(tag, attr, href_original, newref));
 
@@ -286,24 +286,32 @@ public class FixDirectoryLinks extends MaintenanceHandler
         String newrel = href2rel(newref, fullHtmlFilePath);
 
         List<LinkMapEntry> list = relpath2entry.get(rel.toLowerCase());
-        if (required && (list == null || list.size() == 0))
-            throwException("Old link is missing in the map");
-
-        for (LinkMapEntry e : list)
+        if (list == null || list.size() == 0)
         {
-            if (e.value.equals(rel))
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
-                sb.append(String.format("          %s            to  %s" + nl, spaces(Config.User), newrel));
-                trace(sb.toString());
+            if (required && (list == null || list.size() == 0))
+                throwException("Old link is missing in the map");
 
-                e.value = newrel;
-                updatedMap = true;
-            }
-            else if (e.value.equalsIgnoreCase(rel))
+            for (LinkMapEntry e : list)
             {
-                throwException("Misimatching LinkDir case");
+                if (e.value.equals(rel))
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
+                    sb.append(String.format("          %s            to  %s" + nl, spaces(Config.User), newrel));
+                    trace(sb.toString());
+
+                    e.value = newrel;
+                    updatedMap = true;
+                }
+                else if (e.value.equalsIgnoreCase(rel))
+                {
+                    throwException("Misimatching LinkDir case");
+                }
+                else
+                {
+                    // already changed
+                    Util.noop();
+                }
             }
         }
     }
@@ -323,27 +331,35 @@ public class FixDirectoryLinks extends MaintenanceHandler
         String rel = href2rel(href, fullHtmlFilePath);
         String rel_original = href2rel(href_original, fullHtmlFilePath);
         String newrel = abs2rel(ac);
-        boolean required = true;
+        boolean required = false;
 
         List<LinkMapEntry> list = relpath2entry.get(rel.toLowerCase());
-        if (required && (list == null || list.size() == 0))
-            throwException("Old link is missing in the map");
-
-        for (LinkMapEntry e : list)
+        if (list == null || list.size() == 0)
         {
-            if (e.value.equals(rel))
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
-                sb.append(String.format("          %s            to  %s" + nl, spaces(Config.User), newrel));
-                trace(sb.toString());
+            if (required)
+                throwException("Old link is missing in the map");
 
-                e.value = newrel;
-                updatedMap = true;
-            }
-            else if (e.value.equalsIgnoreCase(rel))
+            for (LinkMapEntry e : list)
             {
-                throwException("Misimatching LinkDir case");
+                if (e.value.equals(rel))
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
+                    sb.append(String.format("          %s            to  %s" + nl, spaces(Config.User), newrel));
+                    trace(sb.toString());
+
+                    e.value = newrel;
+                    updatedMap = true;
+                }
+                else if (e.value.equalsIgnoreCase(rel))
+                {
+                    throwException("Misimatching LinkDir case");
+                }
+                else
+                {
+                    // already changed
+                    Util.noop();
+                }
             }
         }
 
@@ -353,7 +369,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
 
         Util.noop();
     }
-    
+
     private String changeMessage(String tag, String attr, String href_original, String newref)
     {
         StringBuilder sb = new StringBuilder();

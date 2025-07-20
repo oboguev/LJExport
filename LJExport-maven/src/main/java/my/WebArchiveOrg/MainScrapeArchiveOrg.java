@@ -899,12 +899,10 @@ public class MainScrapeArchiveOrg
         if (newref == null)
         {
             Util.err("Failed to download " + original_href);
-            Util.noop();
+            return false;
         }
-        else
-        {
-            // Util.out("Downloaded " + original_href + " => " + newref);
-        }
+
+        // Util.out("Downloaded " + original_href + " => " + newref);
 
         String relLink = RelativeLink.createRelativeLink("links/" + newref, "pages/" + loadedFileRelPath);
 
@@ -920,7 +918,7 @@ public class MainScrapeArchiveOrg
 
     private void loadStyles() throws Exception
     {
-        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, null, pagesDir, StyleProcessorAction.TO_LOCAL, 
+        StyleProcessor.processAllHtmlFiles(stylesCatalogDir, null, pagesDir, StyleProcessorAction.TO_LOCAL,
                 null, ShowStyleProgress, false, new HtmlFileBatchProcessingContext(), null, 0);
     }
 }

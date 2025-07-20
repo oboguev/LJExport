@@ -10,6 +10,7 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.readers.direct.PageParserDirectDreamwidthOrg;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
@@ -86,9 +87,18 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         for (LinkMapEntry e : list)
         {
             String relpath = e.value;
+            
+            if (isArchiveOrg())
+            {
+                while (relpath.startsWith("/"))
+                    relpath = relpath.substring(1);
+            }
 
             if (relpath.contains("\\") || relpath.endsWith("/"))
                 throwException("Invalid map entry");
+
+            if (Config.isDreamwidthOrg() && relpath.startsWith("p.dreamwidth.org/"))
+                relpath = PageParserDirectDreamwidthOrg.mapProxiedURI(relpath, "p.dreamwidth.org/");
 
             relpath = sanitizePath(relpath);
 
@@ -97,7 +107,17 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
             String ac = filedir_lc2ac.get(xp.toLowerCase());
 
             if (ac == null)
-                throwException("File is missing in links repository");
+            {
+                if (Config.isDreamwidthOrg())
+                {
+                    trace("File is missing in links repository: " + relpath + nl);
+                    continue;
+                }
+                else
+                {
+                    throwException("File is missing in links repository");
+                }
+            }
 
             if (!ac.startsWith(linkDir + File.separator))
                 throwException("File is outside of links repository");
@@ -162,6 +182,13 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
             if (href == null)
                 continue;
+            
+            if (isArchiveOrg())
+            {
+                /* ignore bad links due to former bug in archive loader */
+                if (href.startsWith("../") && href.endsWith("/links/null"))
+                    continue;
+            }
 
             if (handleIncompleteOnlineURLs(n, tag, attr, href))
             {
@@ -407,7 +434,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
     {
         if (!href.startsWith(matchPrefix))
             return false;
-        
+
         String newref = replaceWith + Util.stripStart(href, matchPrefix);
         trace(String.format("Changing [%s] HTML incomplete URL: %s => %s" + nl, Config.User, href, newref));
         updateLinkAttribute(n, attr, newref);
@@ -420,7 +447,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
     {
         if (!href.equals(match))
             return false;
-        
+
         String newref = replaceWith;
         trace(String.format("Changing [%s] HTML incomplete URL: %s => %s" + nl, Config.User, href, newref));
         updateLinkAttribute(n, attr, newref);

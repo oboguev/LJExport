@@ -118,7 +118,12 @@ public abstract class MaintenanceHandler extends Maintenance
         }
 
         if (!abs_root.equals(this.linkDir))
-            throw new Exception("Path escapes links root directory");
+        {
+            if (this.isArchiveOrg())
+                return false;
+            else
+                throw new Exception("Path escapes links root directory");
+        }
 
         return true;
     }
@@ -147,5 +152,10 @@ public abstract class MaintenanceHandler extends Maintenance
         }
 
         throw new IllegalArgumentException("No root component found in href: " + href);
+    }
+
+    protected boolean isArchiveOrg()
+    {
+        return Config.User.equals("nationalism.org");
     }
 }

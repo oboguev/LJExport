@@ -150,7 +150,12 @@ public class PageParserDirectDreamwidthOrg extends PageParserDirectBase
     private String mapProxiedImageURL(String proxiedUrl)
     {
         final String prefix = "https://p.dreamwidth.org/";
-
+        String original = mapProxiedURI(proxiedUrl, prefix);
+        return "http://" + original;
+    }
+    
+    public static String mapProxiedURI(String proxiedUrl, String prefix)
+    {
         if (!proxiedUrl.startsWith(prefix))
             throw new IllegalArgumentException("Unexpected URL format: " + proxiedUrl);
 
@@ -169,8 +174,8 @@ public class PageParserDirectDreamwidthOrg extends PageParserDirectBase
 
         // What remains is the original URL path
         String original = remainder.substring(secondSlash + 1);
-
-        return "http://" + original;
+        
+        return original ;
     }
     
     /* ======================================================================== */

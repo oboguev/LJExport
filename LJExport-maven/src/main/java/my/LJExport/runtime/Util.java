@@ -758,12 +758,12 @@ public class Util
                 if (subpath == null)
                 {
                     fset.add(xf.getName());
-                    enumerateFilesAndDirectories(fset, root, xf.getName());
+                    enumerateDirectories(fset, root, xf.getName());
                 }
                 else
                 {
                     fset.add(subpath + File.separator + xf.getName());
-                    enumerateFilesAndDirectories(fset, root, subpath + File.separator + xf.getName());
+                    enumerateDirectories(fset, root, subpath + File.separator + xf.getName());
                 }
             }
         }

@@ -159,7 +159,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
 
-            if (handleAlreadyRenamed(href, href_original, fullHtmlFilePath, n, attr))
+            if (handleAlreadyRenamed(href, href_original, fullHtmlFilePath, n, tag, attr))
             {
                 updated = true;
                 continue;
@@ -183,7 +183,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 String ac2 = file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase() + "_xxx.jpeg");
                 if (ac2 != null)
                 {
-                    redirect_dir2file(fullHtmlFilePath, n, attr, href, href_original, ac2);
+                    redirect_dir2file(fullHtmlFilePath, n, tag, attr, href, href_original, ac2);
                     updated = true;
                     continue;
                 }
@@ -251,7 +251,7 @@ public class FixDirectoryLinks extends MaintenanceHandler
         return updated;
     }
     
-    private boolean handleAlreadyRenamed(String href, String href_original, String fullHtmlFilePath, Node n, String attr)  throws Exception
+    private boolean handleAlreadyRenamed(String href, String href_original, String fullHtmlFilePath, Node n, String tag, String attr)  throws Exception
     {
         String rel = href2rel(href, fullHtmlFilePath);
         String rel_original = href2rel(href_original, fullHtmlFilePath);
@@ -264,7 +264,9 @@ public class FixDirectoryLinks extends MaintenanceHandler
         {
             String newref = rel2href(newrel, fullHtmlFilePath);
             updateLinkAttribute(n, attr, newref);
-            // ### trace
+
+            txLog.writeLine(String.format("Changed HTML %s.%s: %s => %s", tag, attr, href_original, newref));
+            trace(String.format("Changing HTML %s.%s: %s => %s", tag, attr, href_original, newref));
 
             changeLinksMap(href_original, newref, false, fullHtmlFilePath);
             changeLinksMap(href, newref, false, fullHtmlFilePath);
@@ -288,19 +290,30 @@ public class FixDirectoryLinks extends MaintenanceHandler
         {
             if (e.value.equals(rel))
             {
-                // ### trace
+                StringBuilder sb = new StringBuilder();
+                sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
+                sb.append(String.format("          %s            to  %s" + nl, spaces(Config.User), newrel));
+                trace(sb.toString());
+
                 e.value = newrel;
                 updatedMap = true;
+            }
+            else if (e.value.equalsIgnoreCase(rel))
+            {
+                throwException("Misimatching LinkDir case");
             }
         }
     }
 
-    private void redirect_dir2file(String fullHtmlFilePath, Node n, String attr, String href, String href_original, String ac) throws Exception
+    private void redirect_dir2file(String fullHtmlFilePath, Node n, String tag, String attr, String href, String href_original, String ac) throws Exception
     {
         // redirect link to ac
         String newref = RelativeLink.fileRelativeLink(ac, fullHtmlFilePath, this.userDir);
         updateLinkAttribute(n, attr, newref);
-        // ### trace
+
+        // trace
+        txLog.writeLine(String.format("Changed HTML %s.%s: %s => %s", tag, attr, href_original, newref));
+        trace(String.format("Changing HTML %s.%s: %s => %s", tag, attr, href_original, newref));
 
         // change map to ac
         String rel = href2rel(href, fullHtmlFilePath);
@@ -316,14 +329,21 @@ public class FixDirectoryLinks extends MaintenanceHandler
         {
             if (e.value.equals(rel))
             {
-                // ### trace
+                StringBuilder sb = new StringBuilder();
+                sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
+                sb.append(String.format("          %s            to  %s" + nl, spaces(Config.User), newrel));
+                trace(sb.toString());
+
                 e.value = newrel;
                 updatedMap = true;
             }
+            else if (e.value.equalsIgnoreCase(rel))
+            {
+                throwException("Misimatching LinkDir case");
+            }
         }
 
-        // ### add to alreadyRenamed
-        
+        // add to alreadyRenamed
         alreadyRenamed.put(rel.toLowerCase(), newrel);
         alreadyRenamed.put(rel_original.toLowerCase(), newrel);
         

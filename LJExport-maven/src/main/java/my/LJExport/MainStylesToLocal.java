@@ -72,6 +72,11 @@ public class MainStylesToLocal
 
     private static void do_users(String users) throws Exception
     {
+        if (!DryRun)
+        {
+            // ### confirm UI
+        }
+        
         /* can be set in debugger */
         boolean forceExitNow = false;
 

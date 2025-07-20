@@ -53,6 +53,14 @@ public class FixDirectoryLinks extends MaintenanceHandler
     @Override
     protected void beginUser() throws Exception
     {
+        /* clear for new user */
+        file_lc2ac = new HashMap<>();
+        dir_lc2ac = new HashMap<>();
+        updatedMap = false;
+        linkMapEntries = null;
+        relpath2entry = null;
+        alreadyRenamed = new HashMap<>(); // rel -> rel
+        
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
         build_lc2ac();

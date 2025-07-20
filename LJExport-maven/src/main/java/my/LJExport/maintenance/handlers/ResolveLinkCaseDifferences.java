@@ -52,6 +52,10 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
     @Override
     protected void beginUser() throws Exception
     {
+        /* clear for new user */
+        filedir_lc2ac = new HashMap<>();
+        href_lc2ac = new HashMap<>();
+
         super.beginUser();
         build_lc2ac();
         scanAndUpateLinkMapFile();

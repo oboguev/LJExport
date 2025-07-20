@@ -191,7 +191,9 @@ public class FixFileExtensions extends MaintenanceHandler
                 String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
                         Config.User, href_original, linkInfo.linkFullFilePath);
 
-                if (DryRun)
+                boolean allow = Config.User.equals("d_olshansky") && href.contains("../links/imgprx.livejournal.net/");
+
+                if (DryRun || allow)
                 {
                     trace(msg);
                     continue;
@@ -262,7 +264,7 @@ public class FixFileExtensions extends MaintenanceHandler
             if (new File(newLinkFullFilePath).exists())
                 throwException("Target file already exists on disk: " + newLinkFullFilePath);
 
-            if (relpath2entry.containsKey(newref.toLowerCase()))
+            if (relpath2entry.containsKey(newref.toLowerCase())) //### rel
                 throwException("Target file already exists in repository map: " + newref);
 
             /*
@@ -294,13 +296,13 @@ public class FixFileExtensions extends MaintenanceHandler
             updateLinkAttribute(n, attr, newref);
             updated = true;
 
-            alreadyRenamed.put(href.toLowerCase(), newref);
+            alreadyRenamed.put(href.toLowerCase(), newref); // ###
             alreadyRenamed.put(href_original.toLowerCase(), newref);
 
             /*
              * Fix map
              */
-            changeLinksMap(href_original, newref, true);
+            changeLinksMap(href_original, newref, true); // ###
             changeLinksMap(href, newref, false);
         }
 

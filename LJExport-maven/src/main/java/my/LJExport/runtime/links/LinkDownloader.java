@@ -290,7 +290,8 @@ public class LinkDownloader
                         }
 
                         /*
-                         * Adjust filename extension based on file actual content and Content-Type header
+                         * Adjust filename extension based on file actual content and Content-Type header.
+                         * Will return null if detected error response page such as HTML or PHP.
                          */
                         actual_filename = adjustExtension(actual_filename, r);
                         filename.set(actual_filename);
@@ -299,11 +300,14 @@ public class LinkDownloader
                          * Store file. Take care of collisions with existing file.
                          * May update filename.
                          */
-                        Web.Response final_r = r;
-                        Util.NamedFileLocks.interlock(actual_filename.toLowerCase(), () ->
+                        if (actual_filename != null)
                         {
-                            storeFile(filename, final_r, final_href_noanchor);
-                        });
+                            Web.Response final_r = r;
+                            Util.NamedFileLocks.interlock(actual_filename.toLowerCase(), () ->
+                            {
+                                storeFile(filename, final_r, final_href_noanchor);
+                            });
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -316,6 +320,10 @@ public class LinkDownloader
             });
 
             Thread.currentThread().setName(threadName);
+
+            /* server replied with error page */
+            if (filename.get() == null)
+                return null;
 
             String newref = abs2rel(filename.get());
             newref = linkReferencePrefix + encodePathComponents(newref);
@@ -338,7 +346,6 @@ public class LinkDownloader
             else
             {
                 examineException(host, r, ex);
-
             }
 
             // Main.err("Unable to download external link " + download_href, ex);
@@ -859,7 +866,9 @@ public class LinkDownloader
 
     /*
      * Adjust filename extension based on file actual content
-     * and Content-Type header
+     * and Content-Type header.
+     * 
+     * Return null if server replied with error pages such as HTML/XHTML/PHP or TXT.
      */
     private String adjustExtension(String filepath, Web.Response r) throws Exception
     {
@@ -875,14 +884,36 @@ public class LinkDownloader
         String finalExt = contentExt;
         if (finalExt == null)
             finalExt = headerExt;
+
+        String serverExt = finalExt;
+
         if (finalExt == null)
             finalExt = fnExt;
 
         if (finalExt != null && fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, finalExt))
-        {
             return filepath;
+
+        if (serverExt != null)
+        {
+            switch (serverExt.toLowerCase())
+            {
+            case "html":
+            case "xhtml":
+            case "php":
+                // server responded with error page
+                return null;
+
+            case "txt":
+                // if txt file was explicitly requested, isEquivalentExtensions above already returned it 
+                // otherwise (non-txt URL) server responded with error page
+                return null;
+                
+            default:
+                break;
+            }
         }
-        else if (finalExt != null && finalExt.length() != 0)
+
+        if (finalExt != null && finalExt.length() != 0)
         {
             return filepath + "." + finalExt;
         }

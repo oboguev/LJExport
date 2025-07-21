@@ -50,15 +50,26 @@ public class Maintenance
     protected static final ErrorMessageLog errorMessageLog = new ErrorMessageLog();
     protected static TxLog txLog;
     protected static BufferedWriter traceWriter;
+    
+    protected static final int TikaThreads = 100;
 
     public static void main(String[] args)
     {
         try
         {
+            System.setProperty("XMLReaderUtils.POOL_SIZE", String.format("%d", TikaThreads  + 10));
+            org.apache.tika.utils.XMLReaderUtils.setPoolSize(TikaThreads  + 10);
+            
             LimitProcessorUsage.limit();
             MemoryMonitor.startMonitor();
-            
-            traceWriter = new BufferedWriter(new FileWriter(Config.DownloadRoot + File.separator + "@admin" + File.separator + "trace.log", true));
+
+            String traceLogPath = Config.DownloadRoot + File.separator + "@admin" + File.separator + "trace.log";
+            traceWriter = new BufferedWriter(new FileWriter(traceLogPath, true));
+            traceWriter.write("" + nl);
+            traceWriter.write("===========================================================================================" + nl);
+            traceWriter.write("Maintenance started at " + Util.timeNow() + nl);
+            traceWriter.write("" + nl);
+            traceWriter.flush();
 
             txLog = new TxLog(Config.DownloadRoot + File.separator + "@admin" + File.separator + "transaction.log");
             txLog.open();
@@ -87,9 +98,15 @@ public class Maintenance
             txLog.writeLineSafe("");
             txLog.writeLineSafe("===========================================================================================");
 
+            traceWriter.write("" + nl);
+            traceWriter.write("Maintenance COMPLETED at " + Util.timeNow() + nl);
+            traceWriter.write("" + nl);
+            traceWriter.write("===========================================================================================" + nl);
+            traceWriter.flush();
+
             Util.out("");
             Util.out(">>> Completed for all requested users and their files");
-            
+
             showErrorMessageLogLog();
 
             Util.out("");
@@ -102,7 +119,7 @@ public class Maintenance
             Util.err("");
             Util.err("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
-            
+
             Main.emergency_logout();
 
             if (txLog != null && txLog.isOpen())
@@ -125,7 +142,7 @@ public class Maintenance
 
         Main.playCompletionSound();
     }
-    
+
     private static void showErrorMessageLogLog()
     {
         if (errorMessageLog.length() != 0)
@@ -348,7 +365,6 @@ public class Maintenance
 
         if (isParallel())
         {
-
             ParserParallelWorkContext ppwc = new ParserParallelWorkContext(enumeratedFiles, htmlPagesRootDir, parallelism);
 
             try

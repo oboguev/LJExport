@@ -2,9 +2,11 @@ package my.LJExport.maintenance.handlers;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jsoup.nodes.Node;
 
@@ -16,6 +18,8 @@ import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
+import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 
 /*
  * Fix linked file name extensions according to file actual content. 
@@ -51,6 +55,7 @@ public class FixFileExtensions extends MaintenanceHandler
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
     private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
+    private Map<String, String> fileContentExtensionMap = new HashMap<>();
 
     @Override
     protected void beginUser() throws Exception
@@ -62,12 +67,14 @@ public class FixFileExtensions extends MaintenanceHandler
         linkMapEntries = null;
         relpath2entry = null;
         alreadyRenamed = new HashMap<>();
+        fileContentExtensionMap = new HashMap<>();
 
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
         build_lc2ac();
         updatedMap = false;
         loadLinkMapFile();
+        fillFileContentExtensionMap(); 
     }
 
     @Override
@@ -204,8 +211,18 @@ public class FixFileExtensions extends MaintenanceHandler
             /*
              * Detect implied file extension from actual file content 
              */
-            byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
-            String contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content);
+            String contentExtension = null;
+            if (fileContentExtensionMap.containsKey(linkInfo.linkFullFilePath.toLowerCase()))
+            {
+                contentExtension = fileContentExtensionMap.get(linkInfo.linkFullFilePath.toLowerCase());
+            }
+            else
+            {
+                byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
+                contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content);
+                fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
+            }
+
             if (contentExtension == null || contentExtension.length() == 0)
                 continue;
 
@@ -351,7 +368,7 @@ public class FixFileExtensions extends MaintenanceHandler
             String newref = rel2href(newrel, fullHtmlFilePath);
             updateLinkAttribute(n, attr, newref);
 
-            txLog.writeLine(changeMessage(tag, attr, href_original, newref));
+            // txLog.writeLine(changeMessage(tag, attr, href_original, newref));
             trace(changeMessage(tag, attr, href_original, newref));
 
             changeLinksMap(href_original, newref, false, fullHtmlFilePath);
@@ -377,7 +394,7 @@ public class FixFileExtensions extends MaintenanceHandler
                 sb.append(String.format("LinkMap [%s] is MISSING existing link file  %s" + nl, Config.User, rel));
                 sb.append(String.format("         %s               being renamed to  %s" + nl, spaces(Config.User), newrel));
                 trace(sb.toString());
-                
+
                 if (DryRun || Config.True)
                 {
                     Util.noop();
@@ -424,7 +441,43 @@ public class FixFileExtensions extends MaintenanceHandler
     }
 
     /* ===================================================================================================== */
+    
+    private void fillFileContentExtensionMap() throws Exception
+    {
+        List<String> files = new ArrayList<>(file_lc2ac.values());
+        Collections.sort(files);
 
+        FiletypeParallelWorkContext ppwc = new FiletypeParallelWorkContext(files, TikaThreads);
+
+        try
+        {
+            for (FiletypeWorkContext wcx : ppwc)
+            {
+                Exception ex = wcx.getException();
+                if (ex != null)
+                    throw new Exception("While processing " + wcx.fullFilePath, ex);
+
+                Objects.requireNonNull(wcx.fullFilePath, "fullFilePath is null");
+
+                if (wcx.contentExtension == null)
+                {
+                    // Objects.requireNonNull(wcx.contentExtension, "extension is null");
+                    Util.noop();
+                }
+                
+                fileContentExtensionMap.put(wcx.fullFilePath.toLowerCase(), wcx.contentExtension);
+            }
+        }
+        finally
+        {
+            ppwc.close();
+        }
+
+        Util.noop();
+    }
+
+    /* ===================================================================================================== */
+    
     private String getFileExtension(String fn)
     {
         int dotIndex = fn.lastIndexOf('.');

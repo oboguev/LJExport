@@ -35,7 +35,7 @@ import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 public class FixFileExtensions extends MaintenanceHandler
 {
     private static boolean DryRun = true; // ###
-    private static final Safety safety = Safety.SAFE;
+    private static final Safety safety = Safety.UNSAFE;
 
     @Override
     protected void beginUsers() throws Exception
@@ -76,7 +76,13 @@ public class FixFileExtensions extends MaintenanceHandler
         build_lc2ac();
         updatedMap = false;
         loadLinkMapFile();
-        fillFileContentExtensionMap(); 
+        fillFileContentExtensionMap();
+        
+        trace("");
+        trace("");
+        trace("================================= Beginning user " + Config.User);
+        trace("");
+        trace("");
     }
 
     @Override
@@ -93,6 +99,12 @@ public class FixFileExtensions extends MaintenanceHandler
         }
 
         txLog.writeLine("Completed user " + Config.User);
+
+        trace("");
+        trace("");
+        trace("================================= Completed user " + Config.User);
+        trace("");
+        trace("");
     }
 
     private void build_lc2ac() throws Exception
@@ -302,7 +314,9 @@ public class FixFileExtensions extends MaintenanceHandler
              * Check for conflicts
              */
             if (new File(newLinkFullFilePath).exists())
+            {
                 throwException("Target file already exists on disk: " + newLinkFullFilePath);
+            }
 
             if (relpath2entry.containsKey(href2rel(newref, fullHtmlFilePath).toLowerCase()))
                 throwException("Target file already exists in repository map: " + href2rel(newref, fullHtmlFilePath));

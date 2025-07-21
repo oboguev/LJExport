@@ -137,7 +137,7 @@ public class Calendar
 
     private static boolean isLoadableYear(String s) throws Exception
     {
-        if (Config.LoadSince == null && Config.LoadTo == null)
+        if (Config.LoadSince == null && Config.LoadTill == null)
             return true;
 
         int yyyy = Integer.valueOf(s);
@@ -145,7 +145,7 @@ public class Calendar
         if (Config.LoadSince != null && yyyy < Config.LoadSince.yyyy)
             return false;
 
-        if (Config.LoadTo != null && yyyy > Config.LoadTo.yyyy)
+        if (Config.LoadTill != null && yyyy > Config.LoadTill.yyyy)
             return false;
 
         return true;
@@ -153,7 +153,7 @@ public class Calendar
 
     private static boolean isLoadableMonth(String s) throws Exception
     {
-        if (Config.LoadSince == null && Config.LoadTo == null)
+        if (Config.LoadSince == null && Config.LoadTill == null)
             return true;
 
         int yyyy = Integer.valueOf(s.substring(0, 4));
@@ -167,11 +167,11 @@ public class Calendar
                 return false;
         }
 
-        if (Config.LoadTo != null)
+        if (Config.LoadTill != null)
         {
-            if (yyyy > Config.LoadTo.yyyy)
+            if (yyyy > Config.LoadTill.yyyy)
                 return false;
-            if (yyyy == Config.LoadTo.yyyy && mm > Config.LoadTo.mm)
+            if (yyyy == Config.LoadTill.yyyy && mm > Config.LoadTill.mm)
                 return false;
         }
 

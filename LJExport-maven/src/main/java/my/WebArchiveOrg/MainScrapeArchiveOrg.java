@@ -17,7 +17,6 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;

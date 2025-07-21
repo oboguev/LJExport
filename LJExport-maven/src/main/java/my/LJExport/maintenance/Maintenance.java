@@ -1,6 +1,8 @@
 package my.LJExport.maintenance;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringTokenizer;
@@ -40,13 +42,14 @@ public class Maintenance
     private static int ParallelismDefault = 20;
     private static int ParallelismMonthly = 5;
 
-    public static int TotalFileCount = 0;
+    protected static int TotalFileCount = 0;
     private static ProgressDialog consoleProgress = null;
     private static int stageProcessedFileCount = 0;
 
     protected static final String nl = "\n";
     protected static final ErrorMessageLog errorMessageLog = new ErrorMessageLog();
     protected static TxLog txLog;
+    protected static BufferedWriter traceWriter;
 
     public static void main(String[] args)
     {
@@ -54,6 +57,8 @@ public class Maintenance
         {
             LimitProcessorUsage.limit();
             MemoryMonitor.startMonitor();
+            
+            traceWriter = new BufferedWriter(new FileWriter(Config.DownloadRoot + File.separator + "@admin" + File.separator + "trace.log", true));
 
             txLog = new TxLog(Config.DownloadRoot + File.separator + "@admin" + File.separator + "transaction.log");
             txLog.open();
@@ -84,11 +89,20 @@ public class Maintenance
 
             Util.out("");
             Util.out(">>> Completed for all requested users and their files");
+            
+            showErrorMessageLogLog();
+
+            Util.out("");
+            Util.out(">>> Completed for all requested users and their files");
         }
         catch (Exception ex)
         {
+            showErrorMessageLogLog();
+
+            Util.err("");
             Util.err("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
+            
             Main.emergency_logout();
 
             if (txLog != null && txLog.isOpen())
@@ -105,19 +119,25 @@ public class Maintenance
         finally
         {
             Util.safeClose(txLog);
-        }
-
-        if (errorMessageLog.length() != 0)
-        {
-            Util.err("");
-            Util.err("************** LOGGED ERRORS ************** ");
-            Util.err("");
-            Util.err(errorMessageLog.toString());
-            Util.err("");
-            Util.err("************** END OF LOGGED ERRORS ************** ");
+            Util.safeFlush(traceWriter);
+            Util.safeClose(traceWriter);
         }
 
         Main.playCompletionSound();
+    }
+    
+    private static void showErrorMessageLogLog()
+    {
+        if (errorMessageLog.length() != 0)
+        {
+            Util.err("");
+            Util.err("************** ALL LOGGED ERRORS ************** ");
+            Util.err("");
+            Util.err(errorMessageLog.toString());
+            Util.err("");
+            Util.err("************** END OF ALL LOGGED ERRORS ************** ");
+            Util.err("");
+        }
     }
 
     private static void do_users(String users, MaintenanceHandler handler) throws Exception

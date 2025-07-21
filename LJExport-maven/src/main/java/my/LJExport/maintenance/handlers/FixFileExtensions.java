@@ -50,7 +50,7 @@ public class FixFileExtensions extends MaintenanceHandler
     private boolean updatedMap = false;
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
-    private Map<String, String> alreadyRenamed = new HashMap<>();  // rel -> rel
+    private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
 
     @Override
     protected void beginUser() throws Exception
@@ -62,7 +62,7 @@ public class FixFileExtensions extends MaintenanceHandler
         linkMapEntries = null;
         relpath2entry = null;
         alreadyRenamed = new HashMap<>();
-        
+
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
         build_lc2ac();
@@ -168,7 +168,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
-            
+
             if (handleAlreadyRenamed(href, href_original, fullHtmlFilePath, n, tag, attr))
             {
                 updated = true;
@@ -209,6 +209,24 @@ public class FixFileExtensions extends MaintenanceHandler
             if (contentExtension == null || contentExtension.length() == 0)
                 continue;
 
+            if (tag.equalsIgnoreCase("img") || tag.equalsIgnoreCase("a"))
+            {
+                switch (contentExtension.toLowerCase())
+                {
+                /*
+                 * When downloading IMG link, or other link, server responded with HTML or XHTML,
+                 * likely because image was not availale, and displaying HTML page with 404 or other error.
+                 * Do not change extension in this case.
+                 */
+                case "html":
+                case "xhtml":
+                    continue;
+
+                default:
+                    break;
+                }
+            }
+
             /*
              * Get extension from file name 
              */
@@ -220,7 +238,7 @@ public class FixFileExtensions extends MaintenanceHandler
             /*
              * If it is not one of common media extensions, disregard it  
              */
-            if (fnExt != null && !FileTypeDetector.commonExtensions().contains(fnExt))
+            if (fnExt != null && !FileTypeDetector.commonExtensions().contains(fnExt.toLowerCase()))
                 fnExt = null;
 
             /*
@@ -252,6 +270,15 @@ public class FixFileExtensions extends MaintenanceHandler
             newLinkFullFilePath += "." + contentExtension;
             newref += "." + contentExtension;
 
+            if (fnExt != null)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.append(String.format("CHANGING EXTENSION [%s] from  %s" + nl, Config.User, linkInfo.linkFullFilePath));
+                sb.append(String.format("                    %s    to  %s" + nl, spaces(Config.User), newLinkFullFilePath));
+                trace(sb.toString());
+                txLog.writeLine(sb.toString());
+            }
+
             /*
              * Check for conflicts
              */
@@ -276,6 +303,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
             if (!DryRun)
             {
+                // ### test !!!!!
                 boolean replaceExisting = false;
                 Util.renameFile(linkInfo.linkFullFilePath, newLinkFullFilePath, replaceExisting);
                 txLog.writeLine("Renamed OK");
@@ -297,7 +325,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
             alreadyRenamed.put(rel.toLowerCase(), newrel);
             alreadyRenamed.put(rel_original.toLowerCase(), newrel);
-            
+
             /*
              * Fix map
              */
@@ -307,7 +335,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
         return updated;
     }
-    
+
     private boolean handleAlreadyRenamed(String href, String href_original, String fullHtmlFilePath, Node n, String tag,
             String attr) throws Exception
     {
@@ -344,7 +372,21 @@ public class FixFileExtensions extends MaintenanceHandler
         if (list == null || list.size() == 0)
         {
             if (required)
-                throwException("Old link is missing in the map");
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.append(String.format("LinkMap [%s] is MISSING existing link file  %s" + nl, Config.User, rel));
+                sb.append(String.format("         %s               being renamed to  %s" + nl, spaces(Config.User), newrel));
+                trace(sb.toString());
+                
+                if (DryRun || Config.True)
+                {
+                    Util.noop();
+                }
+                else
+                {
+                    throwException("Old link is missing in the map");
+                }
+            }
         }
         else
         {
@@ -393,10 +435,12 @@ public class FixFileExtensions extends MaintenanceHandler
             return fn.substring(dotIndex + 1);
     }
 
-    private void trace(String msg)
+    private void trace(String msg) throws Exception
     {
         errorMessageLog.add(msg);
-        Util.err(msg);
+        // Util.err(msg);
+        traceWriter.write(msg + nl);
+        traceWriter.flush();
     }
 
     @SuppressWarnings("unused")

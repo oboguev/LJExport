@@ -3,6 +3,7 @@ package my.LJExport.runtime;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.Flushable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -1340,6 +1341,20 @@ public class Util
     {
         return Character.isWhitespace(c) || c == '\u00A0';
     }
+    
+    public static void safeFlush(Flushable c)
+    {
+        try
+        {
+            if (c != null)
+                c.flush();
+        }
+        catch (Exception ex)
+        {
+            err("Failed to flush " + c.getClass().getName());
+        }
+    }
+    
 
     public static void safeClose(Closeable c)
     {

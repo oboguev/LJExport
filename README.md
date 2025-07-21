@@ -12,7 +12,7 @@ Newer version is located in LJExport/LJExport-maven and is described below. This
 
 Its use involves several stages, as described below.
 
-All programs are intended for execution from Eclipse environment. Programs lack own UI and all parameters are entered/edited by directly editing Java source files.
+All programs are intended for execution from Eclipse environment. Programs lack their own UI and all parameters are entered/edited by directly editing Java source files.
 
 ----
 

@@ -382,14 +382,24 @@ public class FixFileExtensions extends MaintenanceHandler
             renameFileActual(oldLinkFullFilePath, newLinkFullFilePath, fullHtmlFilePath, href, href_original, newref);
             return newref;
         }
-
-        if (isSameFileContent(oldLinkFullFilePath, newLinkFullFilePath))
+        else if (isSameFileContent(oldLinkFullFilePath, newLinkFullFilePath))
         {
-            // ### trace
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("Redirecting [%s] from  %s" + nl, Config.User, oldLinkFullFilePath));
+            sb.append(String.format("          %s       to  %s" + nl, spaces(Config.User), newLinkFullFilePath));
+            sb.append(String.format("  relink  %s     from  %s" + nl, spaces(Config.User), href_original));
+            sb.append(String.format("          %s       to  %s" + nl, spaces(Config.User), newref));
+            sb.append(String.format("          %s       in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
+
+            trace(sb.toString());
+            txLog.writeLine(safety, sb.toString());
+
             return newref;
         }
-
-        return null;
+        else
+        {
+            return null;
+        }
     }
 
     private void renameFileActual(String oldLinkFullFilePath,

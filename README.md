@@ -22,15 +22,15 @@ Main downloading program.
 
 Edit file Config.java, principally the following settings:
 
-- **LoginUser** – username of the user to be used for dowmloading. Main log into LJ as this user.
-- **Users** – usernames of users to be downloaded. Do not try to use the list of multiple users with Main, as it is easy to miss errors.
+- **LoginUser** – username of the user to be used for dowmloading. `Main` logs into LJ as this user.
+- **Users** – usernames of users to be downloaded. Do not try to use the list of multiple users with Main, as it is easy to miss errors in this case. Use just one user at a time.
 - **DownloadRoot** – location of download directory in the local file system.
 - **LoadSince** and **LoadTill** – select the range of years/months to be loaded. If set to null, they respectively mean "from the earliest post" and "to the latest post".
 - If **ReloadExistingFiles** is left false, posts already existing on local disk will not be re-downloded. This allows to run incremental update downloads, such as for adding newer posts.
 
 Then run `Main`. As with all LJExport programs, it helps to run them in Eclipse debugger. Debug pane of Eclipse allows to monitor program activity through the change in thread names.
 
-`Main` downloads posts with all comments expanded and with linked images orlinked files such as PDF, DOCX, TXT and others. Images and files are archived locally alongside posts HTML pages.
+`Main` downloads posts with all comments and comment trees expanded and with linked images or linked files such as PDF, DOCX, TXT and others. Images and files are archived locally alongside posts HTML pages.
 
 ----
 

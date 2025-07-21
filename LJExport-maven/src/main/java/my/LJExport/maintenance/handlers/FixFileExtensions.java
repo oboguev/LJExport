@@ -457,7 +457,7 @@ public class FixFileExtensions extends MaintenanceHandler
             {
                 Exception ex = wcx.getException();
                 if (ex != null)
-                    throw new Exception("While processing " + wcx.fullFilePath, ex);
+                    throwException("While processing " + wcx.fullFilePath, ex);
 
                 Objects.requireNonNull(wcx.fullFilePath, "fullFilePath is null");
 
@@ -502,5 +502,10 @@ public class FixFileExtensions extends MaintenanceHandler
     private void throwException(String msg) throws Exception
     {
         throw new Exception(msg);
+    }
+
+    private void throwException(String msg, Exception ex) throws Exception
+    {
+        throw new Exception(msg, ex);
     }
 }

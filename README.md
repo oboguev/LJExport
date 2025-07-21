@@ -63,7 +63,7 @@ Makes monthly "tapes" of posts and yearly-monthly blog navigation index. List of
 
 Downloads styles resources making blog archive independent from the original server and able to survive the server being changed or decomissioned. List of users to process should be entered in `MainStylesToLocal.java`.
 
-`MainStylesToLocal` can optionally executed in Dry Run mode when it only downloads style filed but does not patch HTML files to change style links from remote to local. When executed in Wet Run mode, `MainStylesToLocal` will also patch HTML files to redirect style links from remote server to a locally archived version.
+`MainStylesToLocal` can optionally executed in Dry Run mode when it only downloads style filed but does not patch HTML files to change style links from remote to local. When executed in Wet Run mode, `MainStylesToLocal` will also patch HTML files to redirect style links from remote server to a locally archived copy of style resources.
 
 Change from remote to local styles performed by `MainStylesToLocal` can be reverted with `MainStylesRevertToRemote` which undoes the changes done by `MainStylesToLocal` in HTML files and restores remote links to style resources in HTML files. Downloaded style resources are left intact.
 

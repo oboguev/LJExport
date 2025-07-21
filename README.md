@@ -10,7 +10,7 @@ Older version is located in LJExport/LJExport and is now obsolete. It requires F
 
 Newer version is located in LJExport/LJExport-maven and is described below. This version is self-contained, does not require external browsers and loads all the pages.
 
-Its use requires several stages, as described below.
+Its use involves several stages, as described below.
 
 All programs are intended for execution from Eclipse environment. Programs lack UI and all parameters are entered/edited by directly editing Java source files.
 

@@ -260,7 +260,6 @@ public class FixFileExtensions extends MaintenanceHandler
              */
             if (fnExt != null && !FileTypeDetector.commonExtensions().contains(fnExt.toLowerCase()))
                 fnExt = null;
-            // ### add html,xhtml,txt,avif and others from transition list below to common extensions
 
             /*
              * If it is equivalent to detected file content, do not make any change  

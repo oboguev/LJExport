@@ -167,8 +167,41 @@ public class FileTypeDetector
         xs.addAll(canonicalExtensionMap.keySet());
         xs.addAll(canonicalExtensionMap.values());
         xs.addAll(Config.DownloadFileTypes);
+        
+        xs.add("7z");
+        xs.add("7zip");
+        xs.add("gz");
+        xs.add("rar");
+        xs.add("tar");
+        xs.add("tgz");
+        xs.add("xz");
+        xs.add("zip");
+
+        xs.add("djvu");
+        xs.add("doc");
+        xs.add("docx");
+        xs.add("odt");
+        xs.add("pdf");
+        xs.add("rtf");
+        xs.add("txt");
+
+        xs.add("html");
+        xs.add("xhtml");
+        xs.add("php");
+
+        xs.add("avif");
         xs.add("bmp");
+        xs.add("gif");
+        xs.add("jpeg");
+        xs.add("jpg");
+        xs.add("png");
         xs.add("svg");
+        xs.add("tif");
+        xs.add("tiff");
+        xs.add("webp");
+
+        xs.add("mp4");
+        xs.add("qt");
 
         return xs;
     }

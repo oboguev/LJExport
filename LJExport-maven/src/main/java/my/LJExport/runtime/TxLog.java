@@ -2,6 +2,7 @@ package my.LJExport.runtime;
 
 import java.io.BufferedWriter;
 import java.io.Closeable;
+import java.io.Flushable;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -56,12 +57,17 @@ import java.util.Set;
  * Character encoding: 
  *   UTF-8 is hard-wired for portability and because log lines rarely need a different encoding nowadays.
  */
-public final class TxLog implements Closeable
+public final class TxLog implements Closeable, Flushable
 {
     private final Path path;
     private FileChannel channel;
     private FileLock lock;
     private BufferedWriter writer;
+
+    public static enum Safety
+    {
+        SAFE, UNSAFE
+    }
 
     /**
      * Opens an existing log file or atomically creates a new one.
@@ -83,7 +89,7 @@ public final class TxLog implements Closeable
             Files.createDirectories(parent);
 
     }
-    
+
     public boolean isOpen()
     {
         return channel != null && lock != null && writer != null;
@@ -93,7 +99,7 @@ public final class TxLog implements Closeable
     {
         if (channel != null || lock != null || writer != null)
             throw new Exception("Alredy opened");
-        
+
         try
         {
             /*
@@ -131,11 +137,25 @@ public final class TxLog implements Closeable
     /**
      * Appends text to the log and forces it to disk.
      */
-    public synchronized void writeText(String s) throws IOException
+    public void writeText(String s) throws IOException
+    {
+        writeText(Safety.SAFE, s);
+    }
+
+    public synchronized void writeText(Safety safe, String s) throws IOException
     {
         Objects.requireNonNull(s, "s");
 
         writer.write(s);
+        writer.flush(); // flush Java buffers
+
+        if (safe == Safety.SAFE)
+            channel.force(true); // flush OS buffers + metadata
+    }
+
+    @Override
+    public synchronized void flush() throws IOException
+    {
         writer.flush(); // flush Java buffers
         channel.force(true); // flush OS buffers + metadata
     }
@@ -143,12 +163,17 @@ public final class TxLog implements Closeable
     /**
      * Appends a line (string + platform line separator) to the log and forces it to disk.
      */
-    public synchronized void writeLine(String s) throws IOException
+    public void writeLine(String s) throws IOException
     {
-        writeText(s + System.lineSeparator());
+        writeLine(Safety.SAFE, s);
     }
 
-    public synchronized void writeLineSafe(String s) 
+    public void writeLine(Safety safe, String s) throws IOException
+    {
+        writeText(safe, s + System.lineSeparator());
+    }
+
+    public synchronized void writeLineSafe(String s)
     {
         try
         {
@@ -159,8 +184,8 @@ public final class TxLog implements Closeable
             Util.noop();
         }
     }
-    
-    public synchronized void writeTextSafe(String s) 
+
+    public synchronized void writeTextSafe(String s)
     {
         try
         {

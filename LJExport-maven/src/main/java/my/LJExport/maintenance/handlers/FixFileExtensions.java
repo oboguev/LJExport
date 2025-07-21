@@ -12,6 +12,7 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.runtime.TxLog.Safety;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
@@ -34,6 +35,7 @@ import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 public class FixFileExtensions extends MaintenanceHandler
 {
     private static boolean DryRun = true; // ###
+    private static final Safety safety = Safety.SAFE;
 
     @Override
     protected void beginUsers() throws Exception
@@ -316,18 +318,18 @@ public class FixFileExtensions extends MaintenanceHandler
             sb.append(String.format("          %s    in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
 
             trace(sb.toString());
-            txLog.writeLine(sb.toString());
+            txLog.writeLine(safety, sb.toString());
 
             if (!DryRun)
             {
                 // ### test !!!!!
                 boolean replaceExisting = false;
                 Util.renameFile(linkInfo.linkFullFilePath, newLinkFullFilePath, replaceExisting);
-                txLog.writeLine("Renamed OK");
+                txLog.writeLine(safety, "Renamed OK");
             }
             else
             {
-                txLog.writeLine("Dry-run fake renamed OK");
+                txLog.writeLine(safety, "Dry-run fake renamed OK");
             }
 
             /*
@@ -368,7 +370,7 @@ public class FixFileExtensions extends MaintenanceHandler
             String newref = rel2href(newrel, fullHtmlFilePath);
             updateLinkAttribute(n, attr, newref);
 
-            // txLog.writeLine(changeMessage(tag, attr, href_original, newref));
+            txLog.writeLine(Safety.UNSAFE, changeMessage(tag, attr, href_original, newref));
             trace(changeMessage(tag, attr, href_original, newref));
 
             changeLinksMap(href_original, newref, false, fullHtmlFilePath);

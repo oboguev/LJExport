@@ -25,7 +25,7 @@ import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.parallel.twostage.parser.ParserParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.parser.ParserWorkContext;
 import my.LJExport.runtime.synch.ThreadsControl;
-import my.LJExport.runtime.ui.ProgressDialog;
+import my.LJExport.runtime.ui.UIProgressDialog;
 
 public class Maintenance
 {
@@ -44,7 +44,7 @@ public class Maintenance
     private static int ParallelismMonthly = 5;
 
     protected static int TotalFileCount = 0;
-    private static ProgressDialog consoleProgress = null;
+    private static UIProgressDialog consoleProgress = null;
     private static int stageProcessedFileCount = 0;
 
     protected static final String nl = "\n";
@@ -293,7 +293,7 @@ public class Maintenance
     {
         if (consoleProgress == null)
         {
-            consoleProgress = new ProgressDialog(title);
+            consoleProgress = new UIProgressDialog(title);
             consoleProgress.begin();
         }
 

@@ -20,7 +20,7 @@ import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
-import my.LJExport.runtime.ui.ProgressDialog;
+import my.LJExport.runtime.ui.UIProgressDialog;
 
 /*
  * Склеить отдельные файлы комментариев LJSearch (ljsear.ch) в ленты
@@ -99,7 +99,7 @@ public class MainCombineCommentsAsTape
 
     private void scanTimestamps(List<CommentFileInfo> list) throws Exception
     {
-        ProgressDialog cp = new ProgressDialog("Scanning comment files for timestamps");
+        UIProgressDialog cp = new UIProgressDialog("Scanning comment files for timestamps");
 
         try
         {
@@ -153,7 +153,7 @@ public class MainCombineCommentsAsTape
     private void combineComments(String toFilePath, List<CommentFileInfo> list, String who) throws Exception
     {
         Node combinedPageRoot = null;
-        ProgressDialog cp = null;
+        UIProgressDialog cp = null;
 
         try
         {
@@ -162,7 +162,7 @@ public class MainCombineCommentsAsTape
 
             if (total >= 2000)
             {
-                cp = new ProgressDialog("Combining comment files " + who);
+                cp = new UIProgressDialog("Combining comment files " + who);
                 cp.begin();
                 cp.update("Combined 0 out of " + total, 0);
             }

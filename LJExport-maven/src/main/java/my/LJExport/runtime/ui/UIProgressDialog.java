@@ -3,7 +3,7 @@ package my.LJExport.runtime.ui;
 import javax.swing.*;
 import java.awt.*;
 
-public class ProgressDialog
+public class UIProgressDialog
 {
     private final JDialog dialog;
     private final JLabel topLabel;
@@ -15,7 +15,7 @@ public class ProgressDialog
     private Double last_pct;
     private long startTime = -1;
 
-    public ProgressDialog(String title)
+    public UIProgressDialog(String title)
     {
         dialog = new JDialog((Frame) null, "Progress", true);
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);

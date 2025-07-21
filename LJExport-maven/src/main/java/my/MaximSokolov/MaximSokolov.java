@@ -20,7 +20,7 @@ import my.LJExport.readers.direct.PageParserDirectNewStyle;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.YYYY_MM_DD;
 import my.LJExport.runtime.html.JSOUP;
-import my.LJExport.runtime.ui.ProgressDialog;
+import my.LJExport.runtime.ui.UIProgressDialog;
 
 public class MaximSokolov
 {
@@ -78,7 +78,7 @@ public class MaximSokolov
         String pagesDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "pages";
         List<String> pageFiles = Util.enumerateOnlyHtmlFiles(pagesDir);
 
-        ProgressDialog cp = new ProgressDialog("Processing " + user);
+        UIProgressDialog cp = new UIProgressDialog("Processing " + user);
         cp.begin();
         int count = 0;
 

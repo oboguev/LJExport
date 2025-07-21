@@ -30,7 +30,7 @@ import my.LJExport.runtime.links.RelativeLink.InvalidNestedPathException;
  */
 public class ResolveLinkCaseDifferences extends MaintenanceHandler
 {
-    private static boolean DryRun = true; // ###
+    private static boolean DryRun = true;
 
     @Override
     protected void beginUsers() throws Exception

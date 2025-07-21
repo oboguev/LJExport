@@ -27,7 +27,7 @@ import my.LJExport.runtime.links.RelativeLink;
  */
 public class FixDirectoryLinks extends MaintenanceHandler
 {
-    private static boolean DryRun = true; // ###
+    private static boolean DryRun = true;
 
     @Override
     protected void beginUsers() throws Exception
@@ -229,7 +229,6 @@ public class FixDirectoryLinks extends MaintenanceHandler
                 if (!DryRun)
                     throwException("Multiple files in linked directory " + linkInfo.linkFullFilePath);
                 trace("Multiple files in linked directory " + linkInfo.linkFullFilePath);
-                Util.noop(); // ###
                 continue;
             }
 

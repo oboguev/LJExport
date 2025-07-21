@@ -1,6 +1,6 @@
 # LJExport
 
-Download LJ blog journals and records
+Download LiveJournal blog journals and records
 
 ---
 

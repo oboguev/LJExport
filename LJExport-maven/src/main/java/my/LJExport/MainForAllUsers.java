@@ -163,7 +163,7 @@ public class MainForAllUsers
             return;
         }
 
-        new BuildNavigationIndex(monthlyRootDir, BuildNavigationIndex.DIVIDER).buildNavigation();
+        new BuildNavigationIndex(Config.User, monthlyRootDir, BuildNavigationIndex.DIVIDER).buildNavigation();
     }
 
     /* ======================================================================= */
@@ -175,7 +175,7 @@ public class MainForAllUsers
         do_user_monthly_insert_nav_controls(user, "monthly-pages");
         do_user_monthly_insert_nav_controls(user, "monthly-reposts");
     }
-    
+
     private void do_user_monthly_insert_nav_controls(String user, String which) throws Exception
     {
         String monthlyRootDir = Config.DownloadRoot + File.separator + Config.User + File.separator + which;
@@ -187,7 +187,7 @@ public class MainForAllUsers
                 Util.err("User " + user + "has no monthly-pages");
             return;
         }
-        
+
         new InsertNavigationControls(monthlyRootDir, InsertNavigationControls.DIVIDER).insertContols();
-   }
+    }
 }

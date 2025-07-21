@@ -79,8 +79,11 @@ public class MainStylesToLocal
             
             try
             {
+                String mult = users.contains(",") ? "ей" : "я";
+                
                 String questionText = String.format(
-                        "Точно ли вы желаете переменить стили с удалённых на архивированные для пользователей %s ?",
+                        "Точно ли вы желаете переменить стили с удалённых на архивированные для пользовател%s %s ?",
+                        mult,
                         users.replace(",", ", "));
                 response = UIDialogQuestion.askQuestion(questionText, "Отменить", "Да", "Отменить");
             }

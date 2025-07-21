@@ -2,6 +2,7 @@ package my.LJExport.maintenance.handlers;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import my.LJExport.runtime.TxLog.Safety;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
+import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
@@ -77,7 +79,7 @@ public class FixFileExtensions extends MaintenanceHandler
         updatedMap = false;
         loadLinkMapFile();
         fillFileContentExtensionMap();
-        
+
         trace("");
         trace("");
         trace("================================= Beginning user " + Config.User);
@@ -310,41 +312,9 @@ public class FixFileExtensions extends MaintenanceHandler
                 txLog.writeLine(sb.toString());
             }
 
-            /*
-             * Check for conflicts
-             */
-            if (new File(newLinkFullFilePath).exists())
-            {
-                throwException("Target file already exists on disk: " + newLinkFullFilePath);
-            }
-
-            if (relpath2entry.containsKey(href2rel(newref, fullHtmlFilePath).toLowerCase()))
-                throwException("Target file already exists in repository map: " + href2rel(newref, fullHtmlFilePath));
-
-            /*
-             * Log
-             */
-            StringBuilder sb = new StringBuilder();
-            sb.append(String.format("Renaming [%s] from  %s" + nl, Config.User, linkInfo.linkFullFilePath));
-            sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newLinkFullFilePath));
-            sb.append(String.format("  relink  %s  from  %s" + nl, spaces(Config.User), href_original));
-            sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newref));
-            sb.append(String.format("          %s    in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
-
-            trace(sb.toString());
-            txLog.writeLine(safety, sb.toString());
-
-            if (!DryRun)
-            {
-                // ### test !!!!!
-                boolean replaceExisting = false;
-                Util.renameFile(linkInfo.linkFullFilePath, newLinkFullFilePath, replaceExisting);
-                txLog.writeLine(safety, "Renamed OK");
-            }
-            else
-            {
-                txLog.writeLine(safety, "Dry-run fake renamed OK");
-            }
+            newref = renameFile(linkInfo.linkFullFilePath, newLinkFullFilePath, fullHtmlFilePath,
+                    href, href_original, contentExtension);
+            newLinkFullFilePath = this.href2abs(newref, fullHtmlFilePath);
 
             /*
              * Fix link
@@ -367,6 +337,95 @@ public class FixFileExtensions extends MaintenanceHandler
         }
 
         return updated;
+    }
+
+    private String renameFile(String oldLinkFullFilePath,
+            String newLinkFullFilePath,
+            String fullHtmlFilePath,
+            String href,
+            String href_original,
+            String contentExtension) throws Exception
+    {
+        /*
+         * Check for conflicts with existing files and resolve them
+         */
+        String newref = tryRenameFile(oldLinkFullFilePath, newLinkFullFilePath, fullHtmlFilePath, href, href_original);
+        if (newref != null)
+            return newref;
+
+        String tryLinkFullFilePath = oldLinkFullFilePath + "." + contentExtension;
+        newref = tryRenameFile(oldLinkFullFilePath, tryLinkFullFilePath, fullHtmlFilePath, href, href_original);
+        if (newref != null)
+            return newref;
+
+        File fp = new File(oldLinkFullFilePath).getParentFile();
+        fp = new File(fp, "x-" + Util.uuid() + "." + contentExtension);
+        fp = FilePath.canonicalFile(fp);
+        tryLinkFullFilePath = fp.getCanonicalPath();
+        newref = tryRenameFile(oldLinkFullFilePath, tryLinkFullFilePath, fullHtmlFilePath, href, href_original);
+        if (newref == null)
+            throwException("Unable to resolve file collision");
+
+        return newref;
+    }
+
+    private String tryRenameFile(String oldLinkFullFilePath,
+            String newLinkFullFilePath,
+            String fullHtmlFilePath,
+            String href,
+            String href_original) throws Exception
+    {
+        String newref = abs2href(newLinkFullFilePath, fullHtmlFilePath);
+
+        if (!new File(newLinkFullFilePath).exists())
+        {
+            renameFileActual(oldLinkFullFilePath, newLinkFullFilePath, fullHtmlFilePath, href, href_original, newref);
+            return newref;
+        }
+
+        if (isSameFileContent(oldLinkFullFilePath, newLinkFullFilePath))
+        {
+            // ### trace
+            return newref;
+        }
+
+        return null;
+    }
+
+    private void renameFileActual(String oldLinkFullFilePath,
+            String newLinkFullFilePath,
+            String fullHtmlFilePath,
+            String href,
+            String href_original,
+            String newref) throws Exception
+    {
+        if (relpath2entry.containsKey(href2rel(newref, fullHtmlFilePath).toLowerCase()))
+            throwException("Target file already exists in repository map: " + href2rel(newref, fullHtmlFilePath));
+
+        /*
+         * Log
+         */
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Renaming [%s] from  %s" + nl, Config.User, oldLinkFullFilePath));
+        sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newLinkFullFilePath));
+        sb.append(String.format("  relink  %s  from  %s" + nl, spaces(Config.User), href_original));
+        sb.append(String.format("          %s    to  %s" + nl, spaces(Config.User), newref));
+        sb.append(String.format("          %s    in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
+
+        trace(sb.toString());
+        txLog.writeLine(safety, sb.toString());
+
+        if (!DryRun)
+        {
+            // ### test !!!!!
+            boolean replaceExisting = false;
+            Util.renameFile(oldLinkFullFilePath, newLinkFullFilePath, replaceExisting);
+            txLog.writeLine(safety, "Renamed OK");
+        }
+        else
+        {
+            txLog.writeLine(safety, "Dry-run fake renamed OK");
+        }
     }
 
     private boolean handleAlreadyRenamed(String href, String href_original, String fullHtmlFilePath, Node n, String tag,
@@ -457,7 +516,7 @@ public class FixFileExtensions extends MaintenanceHandler
     }
 
     /* ===================================================================================================== */
-    
+
     private void fillFileContentExtensionMap() throws Exception
     {
         List<String> files = new ArrayList<>(file_lc2ac.values());
@@ -480,7 +539,7 @@ public class FixFileExtensions extends MaintenanceHandler
                     // Objects.requireNonNull(wcx.contentExtension, "extension is null");
                     Util.noop();
                 }
-                
+
                 fileContentExtensionMap.put(wcx.fullFilePath.toLowerCase(), wcx.contentExtension);
             }
         }
@@ -493,7 +552,7 @@ public class FixFileExtensions extends MaintenanceHandler
     }
 
     /* ===================================================================================================== */
-    
+
     private String getFileExtension(String fn)
     {
         int dotIndex = fn.lastIndexOf('.');
@@ -502,6 +561,13 @@ public class FixFileExtensions extends MaintenanceHandler
             return null;
         else
             return fn.substring(dotIndex + 1);
+    }
+
+    private boolean isSameFileContent(String fp1, String fp2) throws Exception
+    {
+        byte[] ba1 = Util.readFileAsByteArray(fp1);
+        byte[] ba2 = Util.readFileAsByteArray(fp2);
+        return Arrays.equals(ba1, ba2);
     }
 
     private void trace(String msg) throws Exception

@@ -63,12 +63,14 @@ Makes monthly "tapes" of posts and yearly-monthly blog navigation index. List of
 
 Downloads styles resources making blog archive independent from the original server and able to survive the server being changed or decomissioned. List of users to process should be entered in `MainStylesToLocal.java`.
 
-`MainStylesToLocal` can optionally executed in Dry Run mode when it only downloads style filed but does not patch HTML files to change style links from remote to local. When executed in Wet Run mode, `MainStylesToLocal` will also patch HTML files to redirect style links from remote server to a locally archived copy of style resources.
+`MainStylesToLocal` can optionally executed in Dry Run mode when it only downloads style filed but does not patch HTML files to change style links from remote to local. The whole chain of style resources is downloaded (including their dependencies and dependencies of dependencies), and links within downloaded copies of resources are changed to redirect from remote resources to a local copy. Resource downloading is incremental: if repository has new HTML files with newer resources, these newer resources will be downloaded, but already downloaded resources will not be re-downloaded.
 
-Change from remote to local styles performed by `MainStylesToLocal` can be reverted with `MainStylesRevertToRemote` which undoes the changes done by `MainStylesToLocal` in HTML files and restores remote links to style resources in HTML files. Downloaded style resources are left intact.
+When executed in Wet Run mode, `MainStylesToLocal` will additionally patch HTML files to redirect style links within HTML files from remote server to a locally archived copy of style resources.
+
+Change to HTML files from remote to local styles performed by `MainStylesToLocal` can be reverted with `MainStylesRevertToRemote` which undoes the changes done by `MainStylesToLocal` in HTML files and restores remote links to style resources in HTML files. Downloaded style resources are left intact.
 
 ----
 
 ### MainScrapeArchiveOrg
 
-A related program is `MainScrapeArchiveOrg` which scrapes an archive of sites that are no longer available live from their pages stored in archive.org.
+A related program is `MainScrapeArchiveOrg` which scrapes an archive of sites that are no longer available live from their pages stored in archive.org

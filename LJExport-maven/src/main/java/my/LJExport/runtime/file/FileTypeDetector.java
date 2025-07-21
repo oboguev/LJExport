@@ -12,6 +12,7 @@ import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypes;
+import org.apache.tika.utils.XMLReaderUtils;
 
 import my.LJExport.Config;
 
@@ -22,6 +23,15 @@ public class FileTypeDetector
 {
     // private final static String MIME_OCTET_STREAM = "application/octet-stream";
     private final static String MIME_OCTET_STREAM = MediaType.OCTET_STREAM.toString();
+    
+    /*
+     * Maximum number of threads that can simultaneously call Tika
+     */
+    public static void prepareThreading(int nTikaMaxThreads) throws Exception
+    {
+        // System.setProperty("XMLReaderUtils.POOL_SIZE", String.format("%d", nTikaMaxThreads + 10));
+        XMLReaderUtils.setPoolSize(nTikaMaxThreads + 10);
+    }
 
     public static String fileExtensionFromActualFileContent(byte[] fileBytes) throws Exception
     {

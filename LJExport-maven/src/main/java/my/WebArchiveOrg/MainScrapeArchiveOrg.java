@@ -17,6 +17,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;
@@ -117,6 +118,8 @@ public class MainScrapeArchiveOrg
         boolean production = Util.True;
 
         LimitProcessorUsage.limit();
+        Config.prepareThreading(10); /* actually just one */
+        
         Util.out(">>> Start time: " + Util.timeNow());
 
         Properties p = LJExportInformation.load();

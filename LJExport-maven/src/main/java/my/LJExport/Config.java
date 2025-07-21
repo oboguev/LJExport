@@ -8,6 +8,7 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 
 import my.LJExport.calendar.YYYY_MM;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.http.TrustAnySSL;
 import my.LJExport.runtime.password.PasswordStorage;
 import my.LJExport.runtime.ui.UIDialogPassword;
@@ -32,8 +33,8 @@ public class Config
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    // public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
-    public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
+    // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
@@ -175,6 +176,8 @@ public class Config
             NWorkThreads = Runtime.getRuntime().availableProcessors() * ThreadsPerCPU;
             NWorkThreads = Math.min(NWorkThreads, MaxThreads);
         }
+        
+        prepareThreading();
 
         // acquireLoginPassword();
 
@@ -188,6 +191,17 @@ public class Config
 
         if (Proxy == null)
             ProxyBlockingMessage = null;
+    }
+    
+    public static void prepareThreading() throws Exception
+    {
+        prepareThreading(Config.NWorkThreads);
+    }
+
+    public static void prepareThreading(int nthreads) throws Exception
+    {
+        nthreads = Math.max(nthreads, Config.LinkDownloadSpawnThreshold + Config.LinkDownloadThreadsPoolSize);
+        FileTypeDetector.prepareThreading(nthreads  + 10);
     }
 
     public static void acquireLoginPassword() throws Exception

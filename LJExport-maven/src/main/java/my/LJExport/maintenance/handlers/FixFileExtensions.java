@@ -622,7 +622,7 @@ public class FixFileExtensions extends MaintenanceHandler
         List<String> files = new ArrayList<>(file_lc2ac.values());
         Collections.sort(files);
 
-        FiletypeParallelWorkContext ppwc = new FiletypeParallelWorkContext(files, TikaThreads);
+        FiletypeParallelWorkContext ppwc = new FiletypeParallelWorkContext(files, FileTypeDetectionThreads);
 
         try
         {

@@ -19,6 +19,7 @@ import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.MemoryMonitor;
 import my.LJExport.runtime.TxLog;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.parallel.twostage.parser.ParserParallelWorkContext;
@@ -52,14 +53,13 @@ public class Maintenance
     protected static TxLog txLog;
     protected static BufferedWriter traceWriter;
 
-    protected static final int TikaThreads = 100;
+    protected static final int FileTypeDetectionThreads = 100;
 
     public static void main(String[] args)
     {
         try
         {
-            System.setProperty("XMLReaderUtils.POOL_SIZE", String.format("%d", TikaThreads + 10));
-            org.apache.tika.utils.XMLReaderUtils.setPoolSize(TikaThreads + 10);
+            FileTypeDetector.prepareThreading(FileTypeDetectionThreads);
 
             LimitProcessorUsage.limit();
             MemoryMonitor.startMonitor();

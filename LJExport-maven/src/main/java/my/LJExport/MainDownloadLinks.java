@@ -61,7 +61,7 @@ public class MainDownloadLinks
     // private static final String Users = "udod99.lj-rossia-org,colonelcassad.my_comments,harmfulgrumpy.dreamwidth-org";
     private static final String Users = "1981dn.pre-2025,1981dn_dn.pre-2025,a_kaminsky.pre-2025,a_samovarov.pre-2025,bantaputu.pre-2025,hokma.pre-2025,krylov.pre-2025,oboguev.pre-2025,pioneer_lj.pre-2025,polit_ec.pre-2025,zhenziyou.pre-2025";
 
-    /* we can use large number of threds because they usually are network IO bound */
+    /* we can use large number of threads because they usually are network IO bound */
     private static final int NWorkThreads = 300;
     private static final int MaxConnectionsPerRoute = 10;
 
@@ -100,8 +100,9 @@ public class MainDownloadLinks
             users = String.join(",", list);
         }
 
-        Config.init("");
+        Config.NWorkThreads = NWorkThreads;
         Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
+        Config.init("");
         Web.init();
 
         ActivityCounters.reset();

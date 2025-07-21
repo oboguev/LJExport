@@ -42,6 +42,11 @@ public class FixFileExtensions extends MaintenanceHandler
     @Override
     protected void beginUsers() throws Exception
     {
+        /*
+         * FixFileExtensions log is huge and will cause Eclipse console overflow
+         */
+        printErrorMessageLog = false;
+
         Util.out(">>> Fix linked file extensions");
         super.beginUsers("Fix linked file extensions");
         txLog.writeLine(String.format("Executing FixFileExtensions in %s RUN mode", DryRun ? "DRY" : "WET"));
@@ -242,24 +247,6 @@ public class FixFileExtensions extends MaintenanceHandler
             if (contentExtension == null || contentExtension.length() == 0)
                 continue;
 
-            if (tag.equalsIgnoreCase("img") || tag.equalsIgnoreCase("a"))
-            {
-                switch (contentExtension.toLowerCase())
-                {
-                /*
-                 * When downloading IMG link, or other link, server responded with HTML or XHTML,
-                 * likely because image was not availale, and displaying HTML page with 404 or other error.
-                 * Do not change extension in this case.
-                 */
-                case "html":
-                case "xhtml":
-                    continue;
-
-                default:
-                    break;
-                }
-            }
-
             /*
              * Get extension from file name 
              */
@@ -273,12 +260,90 @@ public class FixFileExtensions extends MaintenanceHandler
              */
             if (fnExt != null && !FileTypeDetector.commonExtensions().contains(fnExt.toLowerCase()))
                 fnExt = null;
+            // ### add html,xhtml,txt,avif and others from transition list below to common extensions
 
             /*
              * If it is equivalent to detected file content, do not make any change  
              */
             if (fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, contentExtension))
                 continue;
+
+            /*
+             *  The following transitions were detected in scan:
+             *
+             *     doc     txt
+             *     gif     txt
+             *     jpeg    txt
+             *     jpg     txt
+             *     pdf     txt
+             *     png     txt
+             *     zip     txt
+             *     
+             *     png     avif
+             *     
+             *     gif     bmp
+             *     jpg     bmp
+             *     
+             *     jpeg    gif
+             *     jpg     gif
+             *     png     gif
+             *     
+             *     bmp     jpg
+             *     gif     jpg
+             *     pdf     jpg
+             *     png     jpg
+             *     tif     jpg
+             *     webp    jpg
+             *     
+             *     doc     odt
+             *     
+             *     gif     pdf
+             *     jpg     pdf
+             *     
+             *     jpg     php
+             *     png     php
+             *     
+             *     gif     png
+             *     jpeg    png
+             *     jpg     png
+             *     
+             *     mp4     qt
+             *     
+             *     doc     rtf
+             *     
+             *     jpg     svg
+             *     png     svg
+             *     
+             *     gif     webp
+             *     jpeg    webp
+             *     jpg     webp
+             *     png     webp
+             *     
+             * and also many transitions -> html, xhtml    
+             */
+
+            // ### in others, restore original-url if present
+            // ### in LinkDownloader, return null in these cases
+
+            if (tag.equalsIgnoreCase("img") || tag.equalsIgnoreCase("a"))
+            {
+                switch (contentExtension.toLowerCase())
+                {
+                /*
+                 * When downloading IMG link, or other link, server responded with HTML or XHTML or PHP,
+                 * likely because image was not availale, and displaying HTML page with 404 or other error.
+                 * Do not change extension in this case.
+                 */
+                case "html":
+                case "xhtml":
+                case "php":
+                case "txt":
+                    continue;
+
+                default:
+                    break;
+                }
+            }
 
             /*
              * Strip file extension if existed and append new extension
@@ -314,6 +379,9 @@ public class FixFileExtensions extends MaintenanceHandler
 
             newref = renameFile(linkInfo.linkFullFilePath, newLinkFullFilePath, fullHtmlFilePath,
                     href, href_original, contentExtension);
+            if (newref == null)
+                continue;
+
             newLinkFullFilePath = this.href2abs(newref, fullHtmlFilePath);
 
             /*
@@ -379,7 +447,8 @@ public class FixFileExtensions extends MaintenanceHandler
 
         if (!new File(newLinkFullFilePath).exists())
         {
-            renameFileActual(oldLinkFullFilePath, newLinkFullFilePath, fullHtmlFilePath, href, href_original, newref);
+            if (!renameFileActual(oldLinkFullFilePath, newLinkFullFilePath, fullHtmlFilePath, href, href_original, newref))
+                return null;
             return newref;
         }
         else if (isSameFileContent(oldLinkFullFilePath, newLinkFullFilePath))
@@ -402,7 +471,7 @@ public class FixFileExtensions extends MaintenanceHandler
         }
     }
 
-    private void renameFileActual(String oldLinkFullFilePath,
+    private boolean renameFileActual(String oldLinkFullFilePath,
             String newLinkFullFilePath,
             String fullHtmlFilePath,
             String href,
@@ -427,14 +496,35 @@ public class FixFileExtensions extends MaintenanceHandler
 
         if (!DryRun)
         {
-            // ### test !!!!!
-            boolean replaceExisting = false;
-            Util.renameFile(oldLinkFullFilePath, newLinkFullFilePath, replaceExisting);
-            txLog.writeLine(safety, "Renamed OK");
+            boolean done = false;
+            String cause = null;
+
+            try
+            {
+                boolean replaceExisting = false;
+                Util.renameFile(oldLinkFullFilePath, newLinkFullFilePath, replaceExisting);
+                done = true;
+            }
+            catch (Exception ex)
+            {
+                cause = ex.getLocalizedMessage();
+            }
+
+            if (done)
+            {
+                txLog.writeLine(safety, "Renamed OK");
+            }
+            else
+            {
+                txLog.writeLine(safety, "Renaming FAILED, cause: " + cause);
+            }
+
+            return done;
         }
         else
         {
             txLog.writeLine(safety, "Dry-run fake renamed OK");
+            return true;
         }
     }
 

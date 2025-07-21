@@ -29,8 +29,8 @@ import my.LJExport.runtime.ui.ProgressDialog;
 public class Maintenance
 {
     private static final String ALL_USERS = "<all>";
-    private static final String AllUsersFromUser = "avmalgin";
- // private static final String AllUsersFromUser = null;
+    // private static final String AllUsersFromUser = "avmalgin";
+    private static final String AllUsersFromUser = null;
 
     private static final String Users = ALL_USERS;
     // private static final String Users = "1981dn";
@@ -48,18 +48,19 @@ public class Maintenance
 
     protected static final String nl = "\n";
     protected static final ErrorMessageLog errorMessageLog = new ErrorMessageLog();
+    protected static boolean printErrorMessageLog = true;
     protected static TxLog txLog;
     protected static BufferedWriter traceWriter;
-    
+
     protected static final int TikaThreads = 100;
 
     public static void main(String[] args)
     {
         try
         {
-            System.setProperty("XMLReaderUtils.POOL_SIZE", String.format("%d", TikaThreads  + 10));
-            org.apache.tika.utils.XMLReaderUtils.setPoolSize(TikaThreads  + 10);
-            
+            System.setProperty("XMLReaderUtils.POOL_SIZE", String.format("%d", TikaThreads + 10));
+            org.apache.tika.utils.XMLReaderUtils.setPoolSize(TikaThreads + 10);
+
             LimitProcessorUsage.limit();
             MemoryMonitor.startMonitor();
 
@@ -145,7 +146,7 @@ public class Maintenance
 
     private static void showErrorMessageLogLog()
     {
-        if (errorMessageLog.length() != 0)
+        if (errorMessageLog.length() != 0 && printErrorMessageLog)
         {
             Util.err("");
             Util.err("************** ALL LOGGED ERRORS ************** ");
@@ -153,6 +154,12 @@ public class Maintenance
             Util.err(errorMessageLog.toString());
             Util.err("");
             Util.err("************** END OF ALL LOGGED ERRORS ************** ");
+            Util.err("");
+        }
+        else if (errorMessageLog.length() != 0)
+        {
+            Util.err("");
+            Util.err("************** MESSAGE LOG IS NOT PRINTED HERE DUE TO SIZE LIMITS ************** ");
             Util.err("");
         }
     }

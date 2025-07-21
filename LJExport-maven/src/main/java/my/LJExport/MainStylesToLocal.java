@@ -12,6 +12,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.synch.ThreadsControl;
+import my.LJExport.runtime.ui.UIDialogQuestion;
 import my.LJExport.styles.HtmlFileBatchProcessingContext;
 import my.LJExport.styles.StyleProcessor;
 import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
@@ -74,9 +75,28 @@ public class MainStylesToLocal
     {
         if (!DryRun)
         {
-            // ### confirm UI
+            String response = "Отменить";
+            
+            try
+            {
+                String questionText = String.format(
+                        "Точно ли вы желаете переменить стили с удалённых на архивированные для пользователей %s ?",
+                        users.replace(",", ", "));
+                response = UIDialogQuestion.askQuestion(questionText, "Отменить", "Да", "Отменить");
+            }
+            catch (Exception ex)
+            {
+                Util.out(">>> Диалог закрыт, отмена операции");
+                return;
+            }
+            
+            if (!response.equals("Да"))
+            {
+                Util.out(">>> Отмена");
+                return;
+            }
         }
-        
+
         /* can be set in debugger */
         boolean forceExitNow = false;
 

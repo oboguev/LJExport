@@ -83,6 +83,9 @@ public class FixLongPaths extends MaintenanceHandler
         // ###          apply rename list to link map
         // ###          save link map
         // ### delete rename list file
+
+        // ### if not in map, add to map using original path
+        // ### renaming by copy + delete
     }
 
     @Override
@@ -172,9 +175,20 @@ public class FixLongPaths extends MaintenanceHandler
         }
         else
         {
-            Util.out("Rename  " + rel);
-            Util.out("    to  " + newrel);
-            Util.out("");
+            boolean print = true;
+
+            if (rel.contains(".userapi.com/"))
+                print = false;
+
+            if (rel.startsWith("imgprx.livejournal.net/") || rel.startsWith("xc3.services.livejournal.com/"))
+                print = false;
+
+            if (print)
+            {
+                Util.out("Rename  " + rel);
+                Util.out("    to  " + newrel);
+                Util.out("");
+            }
 
             String newabs = this.rel2abs(newrel);
             File fp = new File(newabs).getCanonicalFile();
@@ -201,22 +215,71 @@ public class FixLongPaths extends MaintenanceHandler
         String[] components = rel.split("/");
 
         String host = components[0];
-        String pclastExt = URLCodec.fullyDecodeMixed(components[components.length - 1]);
 
         for (int k = 1; k < components.length; k++)
-            components[k] = LinkDownloader.makeSanePathComponent(components[k]);
-        // String pc1 = components[0];
-        // String pc2 = components[1];
+            components[k] = URLCodec.fullyDecodeMixed(components[k]);
+
+        String pc1 = components.length <= 1 ? null : components[1];
+        String pc2 = components.length <= 2 ? null : components[2];
+        // String pc3 = components.length <= 3 ? null : components[3];
         String pclast = components[components.length - 1];
 
         String newrel = null;
 
+        if (host.startsWith("sun") && host.endsWith(".userapi.com") ||
+                host.startsWith("scontent") && host.endsWith(".fbcdn.net"))
         {
-            String[] xc = components.clone();
-            reapplyExtension(xc, host, pclastExt);
-            newrel = recompose(xc, "/");
-            if (newrel.length() <= MaxRelativeFilePath)
-                return newrel;
+            URI uri = new URI(pclast);
+
+            if (uri.getPath() != null)
+            {
+                String[] xc = components.clone();
+                xc[xc.length - 1] = uri.getPath();
+                newrel = recompose(xc, "/");
+                if (newrel.length() <= MaxRelativeFilePath)
+                    return newrel;
+            }
+        }
+
+        if ((host.equals("substackcdn.com") || host.equals("cdn.substack.com")) &&
+                components.length >= 5 && pc1.equals("image") && pc2.equals("fetch"))
+        {
+            String xclast = null;
+            
+            if (pclast.startsWith("https://"))
+            {
+                xclast = Util.stripStart(pclast, "https://");
+            }
+            else if (pclast.startsWith("http://"))
+            {
+                xclast = Util.stripStart(pclast, "http://");
+            }
+            
+            if (xclast != null)
+            {
+                String[] xc = concat(host, "image", "fetch");
+                xc = concat(xc, xclast.split("/"));
+                xc = saneExceptFirst(xc, true);
+                newrel = recompose(xc, "/");
+                if (newrel.length() <= MaxRelativeFilePath)
+                    return newrel;
+                
+            }
+        }
+
+        if (host.toLowerCase().endsWith(".yimg.com"))
+        {
+            String[] pcs = extractRemainderAfter(components, "http:");
+            if (pcs == null)
+                pcs = extractRemainderAfter(components, "https:");
+            if (pcs != null && pcs.length >= 1)
+            {
+                String[] xc = concat(host, pcs);
+                xc = saneExceptFirst(xc, true);
+                newrel = recompose(xc, "/");
+                if (newrel.length() <= MaxRelativeFilePath)
+                    return newrel;
+            }
         }
 
         if (isBotchedImgPrx(components))
@@ -229,19 +292,19 @@ public class FixLongPaths extends MaintenanceHandler
             if (folder >= 100)
                 folder = 99;
             xc[2] = String.format("x-%02d", folder);
-            xc[3] = pclast;
+            xc[3] = sane(pclast);
             newrel = recompose(xc, "/");
             if (newrel.length() <= MaxRelativeFilePath)
                 return newrel;
         }
 
-        if (host.toLowerCase().endsWith(".yimg.com"))
+        if (Util.True)
         {
-            String[] pcs = extractRemainderAfter(components, "http%3A");
-            if (pcs == null)
-                pcs = extractRemainderAfter(components, "https%3A");
-            if (pcs != null && pcs.length >= 1)
-                components = concat(host, pcs);
+            String[] xc = saneExceptFirst(components, true);
+            reapplyExtension(xc, pclast);
+            newrel = recompose(xc, "/");
+            if (newrel.length() <= MaxRelativeFilePath)
+                return newrel;
         }
 
         if (components.length >= 3)
@@ -249,7 +312,8 @@ public class FixLongPaths extends MaintenanceHandler
             String[] xc = new String[3];
             xc[0] = components[0];
             xc[1] = "@@@";
-            xc[2] = LinkDownloader.makeSanePathComponent(pclast);
+            xc[2] = sane(pclast);
+            reapplyExtension(xc, pclast);
             newrel = recompose(xc, "/");
             if (newrel.length() <= MaxRelativeFilePath)
                 return newrel;
@@ -257,9 +321,9 @@ public class FixLongPaths extends MaintenanceHandler
 
         if (components.length >= 3)
         {
-            String[] xc = components.clone();
+            String[] xc = saneExceptFirst(components, false);
             xc[xc.length - 1] = "x - " + Util.uuid();
-            reapplyExtension(xc, host, pclastExt);
+            reapplyExtension(xc, pclast);
             newrel = recompose(xc, "/");
             if (newrel.length() <= MaxRelativeFilePath)
                 return newrel;
@@ -270,53 +334,85 @@ public class FixLongPaths extends MaintenanceHandler
         return rel;
     }
 
-    @SuppressWarnings("unused")
-    private String makeSaneRelativeUnixPath(String path, String separator) throws Exception
+    private String sane(String component) throws Exception
     {
-        return makeSaneRelativeUnixPath(path.split(separator), separator);
+        return LinkDownloader.makeSanePathComponent(component);
     }
 
-    private String makeSaneRelativeUnixPath(String[] components, String separator) throws Exception
+    @SuppressWarnings("unused")
+    private String[] saneAll(String[] components, boolean tryAvoidGuid) throws Exception
     {
-        StringBuilder path = new StringBuilder();
+        components = components.clone();
 
-        for (String x : components)
-        {
-            if (path.length() != 0)
-                path.append(separator);
-            path.append(LinkDownloader.makeSanePathComponent(x));
-        }
+        String pclast = components[components.length -1];
 
-        return path.toString();
+        for (int k = 0; k < components.length; k++)
+            components[k] = sane(components[k]);
+        
+        if (tryAvoidGuid)
+            tryAvoidGuid(components, pclast);
+
+        return components;
+    }
+
+    private String[] saneExceptFirst(String[] components, boolean tryAvoidGuid) throws Exception
+    {
+        components = components.clone();
+        
+        String pclast = components[components.length -1];
+
+        for (int k = 1; k < components.length; k++)
+            components[k] = sane(components[k]);
+        
+        if (tryAvoidGuid)
+            tryAvoidGuid(components, pclast);
+
+        return components;
     }
     
-    private void reapplyExtension(String[] xc, String host, String pclast) throws Exception
+    private void tryAvoidGuid(String[] components, String pclast) throws Exception
+    {
+        if (!isLowercaseGuid(components[components.length -1]))
+            return;
+
+        String path = null;
+        try
+        {
+            URI uri = new URI(URLCodec.fullyDecodeMixed(pclast));
+            path = uri.getPath();
+        }
+        catch (Exception ex)
+        {
+            return;
+        }
+        
+        if (path == null)
+            return;
+        
+        components[components.length -1] = sane(path);
+    }
+
+    private void reapplyExtension(String[] xc, String pclast) throws Exception
     {
         String ext = LinkDownloader.getFileExtension(pclast);
 
-        if (ext == null && host.startsWith("sun") && host.endsWith(".userapi.com"))
+        if (ext == null)
         {
-            URI uri = new URI(URLCodec.fullyDecodeMixed(pclast));
-            if (uri.getPath() != null)
+            URI uri = null;
+            try
+            {
+                uri = new URI(URLCodec.fullyDecodeMixed(pclast));
+            }
+            catch (Exception ex)
+            {
+                // disregard
+            }
+            if (uri != null && uri.getPath() != null)
                 ext = LinkDownloader.getFileExtension(uri.getPath());
         }
 
         if (ext != null && !xc[xc.length - 1].toLowerCase().endsWith("." + ext.toLowerCase()))
             xc[xc.length - 1] += "." + ext;
-    }
-
-    private String recompose(String[] components, String separator) throws Exception
-    {
-        StringBuilder path = new StringBuilder();
-
-        for (String x : components)
-        {
-            if (path.length() != 0)
-                path.append(separator);
-            path.append(x);
-        }
-
-        return path.toString();
     }
 
     private boolean isBotchedImgPrx(String[] components)
@@ -373,6 +469,20 @@ public class FixLongPaths extends MaintenanceHandler
 
         return null; // breaker not found
     }
+    
+    private String recompose(String[] components, String separator) throws Exception
+    {
+        StringBuilder path = new StringBuilder();
+
+        for (String x : components)
+        {
+            if (path.length() != 0)
+                path.append(separator);
+            path.append(x);
+        }
+
+        return path.toString();
+    }
 
     private String[] concat(String[] sa1, String[] sa2)
     {
@@ -396,6 +506,7 @@ public class FixLongPaths extends MaintenanceHandler
         return result;
     }
 
+    @SuppressWarnings("unused")
     private String[] concat(String[] sa, String s)
     {
         if (sa == null || s == null)
@@ -405,6 +516,11 @@ public class FixLongPaths extends MaintenanceHandler
         System.arraycopy(sa, 0, result, 0, sa.length);
         result[sa.length] = s;
         return result;
+    }
+    
+    private String[] concat(String ... s)
+    {
+        return s.clone();
     }
 
     /* ===================================================================================================== */

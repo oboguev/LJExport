@@ -142,7 +142,7 @@ public class URLCodec
         
         for (int i = 0; i < maxIterations; i++)
         {
-            String decoded = decodeMixed(fn);
+            String decoded = decodeMixed(prev);
             if (decoded.equals(prev))
                 return decoded; // converged
             prev = decoded;

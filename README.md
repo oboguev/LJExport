@@ -10,7 +10,7 @@ Older version is located in LJExport/LJExport and is now obsolete. It requires F
 
 Newer version is located in LJExport/LJExport-maven and is described below. This version is self-contained, does not require external browsers and loads all the pages.
 
-Its use involves several stages, as described below.
+Its use involves several stages described below.
 
 All programs are intended for execution from Eclipse environment. Programs lack their own UI and all parameters are entered/edited by directly editing Java source files.
 
@@ -43,7 +43,7 @@ Downloads from lj.rossia.org instead of livejournal.com.
 ### MainDreamwidthOrg
 
 Downloads from dreamwidth.org instead of livejournal.com.
-Download capability limited to a single particular style, so it may be curretnly unable to download just any Dreamwidth user.
+Download capability limited to a single particular style, so it may be currently unable to download just any arbitrary Dreamwidth blog.
 
 ----
 
@@ -61,9 +61,11 @@ Makes monthly "tapes" of posts and yearly-monthly blog navigation index. List of
 
 ### MainStylesToLocal
 
-Downloads styles resources making blog archive independent from the original server and able to survive the server being changed or decomissioned. List of users to process should be entered in `MainStylesToLocal.java`.
+Downloads styles resources making the blog archive independent from the original server and able to survive the server being changed or decomissioned. List of users to process should be entered in `MainStylesToLocal.java`.
 
-`MainStylesToLocal` can optionally executed in Dry Run mode when it only downloads style filed but does not patch HTML files to change style links from remote to local. The whole chain of style resources is downloaded (including their dependencies and dependencies of dependencies), and links within downloaded copies of resources are changed to redirect from remote resources to a local copy. Resource downloading is incremental: if repository has new HTML files with newer resources, these newer resources will be downloaded, but already downloaded resources will not be re-downloaded.
+The whole chain of style resources is downloaded (including their dependencies and dependencies of dependencies), and links within downloaded copies of resources are changed to redirect from remote resources to a local copy. Resource downloading is incremental: if repository has new HTML files with newer resources, these newer resources will be downloaded, but already downloaded resources will not be re-downloaded.
+
+`MainStylesToLocal` can be optionally executed in Dry Run mode when it only downloads style resources to a local archive but does not yet patch HTML files to change their style links from remote to local. 
 
 When executed in Wet Run mode, `MainStylesToLocal` will additionally patch HTML files to redirect style links within HTML files from remote server to a locally archived copy of style resources.
 

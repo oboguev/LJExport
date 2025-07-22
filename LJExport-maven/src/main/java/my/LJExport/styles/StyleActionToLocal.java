@@ -961,7 +961,7 @@ public class StyleActionToLocal
         String lc = absoluteUrl.toLowerCase();
         if (lc.startsWith("data:"))
             return null;
-        
+
         if (Config.isLiveJournal() && lc.equals("/img/userinfo_v3.svg?v="))
             absoluteUrl = "https://l-stat.livejournal.net" + absoluteUrl;
 
@@ -1000,7 +1000,7 @@ public class StyleActionToLocal
         }
 
         if (dontDownloadCss != null && dontDownloadCss.matchOR(download_href, naming_href))
-            return null;
+            return absoluteUrl;
 
         /*
          * Download file to local repository (residing in local file system).
@@ -1019,7 +1019,12 @@ public class StyleActionToLocal
         {
             if (allowUndownloadaleCss != null && allowUndownloadaleCss.matchOR(download_href, naming_href))
             {
-                return null;
+                return absoluteUrl;
+            }
+            else if (allowUndownloadaleCssResource(absoluteUrl))
+            {
+                // ### message
+                return absoluteUrl;
             }
             else
             {
@@ -1042,7 +1047,7 @@ public class StyleActionToLocal
                 {
                     /* debug-time, to collect them all, use only for DryRun */
                     errorMessageLog.add(sb.toString());
-                    return null;
+                    return absoluteUrl;
                 }
 
                 throw newException("Unable to download style passive resource: " + absoluteUrl);
@@ -1057,6 +1062,35 @@ public class StyleActionToLocal
         rel = RelativeLink.fileRelativeLink(abs, relativeToFilePath, Config.DownloadRoot + File.separator + Config.User);
 
         return rel;
+    }
+
+    private boolean allowUndownloadaleCssResource(String absoluteUrl) throws Exception
+    {
+        /*
+         * When downloading live (non-dry) from LiveJournal, 
+         * allow non-downloadable CSS resources from sites other that LiveJournal
+         * and also from imgprx.livejournal.net.
+         */
+        if (Config.isLiveJournal() && !dryRun)
+        {
+            URI uri = new URI(absoluteUrl);
+            String host = uri.getHost().toLowerCase();
+            
+            if (host.equals("imgprx.livejournal.net"))
+                return true;
+            
+            if (host.equals("livejournal.com") || host.equals("livejournal.net"))
+                return false;
+            
+            if (host.startsWith("livejournal.com") || host.startsWith("livejournal.net"))
+                return false;
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /*
@@ -1462,7 +1496,7 @@ public class StyleActionToLocal
     {
         if (cssText == null || cssText.isEmpty())
             return true; // trivially safe
-        
+
         // Fast-path shortcut
         String lc = cssText.toLowerCase(Locale.ROOT);
 
@@ -1473,7 +1507,8 @@ public class StyleActionToLocal
             return true;
 
         // Clean up @important noise before checking for real @import
-        if (mayHaveImport) {
+        if (mayHaveImport)
+        {
             lc = lc.replaceAll("!\\s*important", " ");
             if (!lc.contains("import"))
                 mayHaveImport = false;
@@ -1490,7 +1525,7 @@ public class StyleActionToLocal
         // 3. Look for either url(…) or @import.  Finding either => external ref
         if (mayHaveUrl && URL_FUNCTION.matcher(clean).find())
             return false;
-        
+
         if ((mayHaveImport && IMPORT_DIRECTIVE.matcher(clean).find()))
             return false;
 
@@ -1603,7 +1638,7 @@ public class StyleActionToLocal
         String lc = hostingFilePath.toLowerCase();
         return lc.endsWith(".html") || lc.endsWith(".htm");
     }
-    
+
     private Exception newException(String msg)
     {
         return new Exception(msg);

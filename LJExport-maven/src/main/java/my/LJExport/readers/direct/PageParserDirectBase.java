@@ -382,6 +382,7 @@ public abstract class PageParserDirectBase
         String newref = Web.getRedirectLocation(href, null);
         if (newref != null)
         {
+            // ### decote imgprx /st
             String newref_noprotocol = Util.stripProtocol(newref);
             if (newref_noprotocol.equals(href_noprotocol))
                 newref = null;

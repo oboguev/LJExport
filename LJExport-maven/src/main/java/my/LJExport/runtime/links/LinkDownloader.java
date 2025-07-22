@@ -135,7 +135,7 @@ public class LinkDownloader
             threadName = "(unnamed)";
 
         String href = name_href;
-        
+
         if (Util.True && href.contains("imgprx.livejournal.net/"))
         {
             Util.noop(); // ###
@@ -225,7 +225,7 @@ public class LinkDownloader
                         {
                             headers.put("Referer", referer);
                         }
-                        
+
                         if (image)
                         {
                             addImageHeaders(headers);
@@ -708,14 +708,11 @@ public class LinkDownloader
 
         if (url.getHost().equals("imgprx.livejournal.net"))
         {
-            for (String pc : Util.asList(url.getPath(), "/"))
-            {
-                if (pc.length() != 0)
-                {
-                    sb = new StringBuilder("x-" + Util.uuid());
-                    list.add(sb);
-                }
-            }
+            int folder = (int) (Math.random() * 100);
+            if (folder >= 100)
+                folder = 99;
+            list.add(new StringBuilder(String.format("x-%02d", folder)));
+            list.add(new StringBuilder("x-" + Util.uuid()));
         }
         else
         {
@@ -921,7 +918,7 @@ public class LinkDownloader
                 // if txt file was explicitly requested, isEquivalentExtensions above already returned it 
                 // otherwise (non-txt URL) server responded with error page
                 return null;
-                
+
             default:
                 break;
             }
@@ -936,7 +933,7 @@ public class LinkDownloader
             return filepath;
         }
     }
-    
+
     public static void addImageHeaders(Map<String, String> headers)
     {
         headers.put("Sec-Fetch-Dest", "image");

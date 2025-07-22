@@ -287,10 +287,11 @@ public class LinkDownloader
                         }
                         catch (UnableCreateDirectoryException dex)
                         {
+                            // ###
                             actual_filename = linksDir + File.separator + "@@@" + File.separator + "x-" + Util.uuid2();
 
                             String ext = getFileExtension(f.getName());
-                            if (ext != null && ext.length() != 0 && ext.length() <= 4)
+                            if (ext != null)
                                 actual_filename += "." + ext;
 
                             filename.set(actual_filename);
@@ -361,8 +362,6 @@ public class LinkDownloader
             if (download_href_noanchor != null)
                 failedSet.add(download_href_noanchor);
 
-            Util.noop();
-
             return null;
         }
         finally
@@ -387,7 +386,7 @@ public class LinkDownloader
                 // change actual_filename to old-path\x-uuid.ext
                 String ext = getFileExtension(fp.getName());
                 String fn = "x-" + Util.uuid();
-                if (ext != null && ext.length() != 0 && ext.length() <= 4)
+                if (ext != null)
                     fn += "." + ext;
                 fp = new File(fp.getParentFile(), fn).getCanonicalFile();
                 actual_filename = fp.getCanonicalPath();
@@ -772,15 +771,17 @@ public class LinkDownloader
             list.add(sb);
 
             list.add(new StringBuilder("@@@"));
-            
+
             int folder = (int) (Math.random() * 100);
             if (folder >= 100)
                 folder = 99;
             list.add(new StringBuilder(String.format("x-%02d", folder)));
-            
+
             list.add(sb = new StringBuilder("x-" + Util.uuid()));
 
-            // ### add extension
+            String ext = getFileExtension(getLastPathComponent(url));
+            if (ext != null)
+                sb.append("." + ext);
 
             path = new StringBuilder();
             for (StringBuilder x : list)
@@ -826,7 +827,7 @@ public class LinkDownloader
         if (fn.length() > MaxFilePathComponentLength)
         {
             String ext = getFileExtension(fn);
-            if (ext == null || ext.length() == 0 || ext.length() > 4)
+            if (ext == null)
                 return "x-" + Util.uuid();
             else
                 return "x-" + Util.uuid() + "." + ext;
@@ -887,11 +888,15 @@ public class LinkDownloader
     public static String getFileExtension(String fn)
     {
         int dotIndex = fn.lastIndexOf('.');
+
         // no extension or dot is at the end
         if (dotIndex == -1 || dotIndex == fn.length() - 1)
             return null;
-        else
-            return fn.substring(dotIndex + 1);
+
+        String ext = fn.substring(dotIndex + 1);
+        if (ext.length() == 0 || ext.length() > 4)
+            ext = null;
+        return ext;
     }
 
     public static class AlreadyFailedException extends Exception
@@ -958,6 +963,21 @@ public class LinkDownloader
         {
             return filepath;
         }
+    }
+
+    private String getLastPathComponent(URL url)
+    {
+        String path = url.getPath();
+
+        if (path == null || path.isEmpty())
+            return "";
+
+        // Trailing slash means "directory", last component is empty
+        if (path.endsWith("/"))
+            return "";
+
+        int lastSlash = path.lastIndexOf('/');
+        return lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
     }
 
     public static void addImageHeaders(Map<String, String> headers)

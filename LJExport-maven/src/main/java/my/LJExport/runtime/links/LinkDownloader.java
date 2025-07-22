@@ -228,17 +228,11 @@ public class LinkDownloader
                         
                         if (image)
                         {
-                            headers.put("Sec-Fetch-Dest", "image");
-                            headers.put("Sec-Fetch-Mode", "no-cors");
-                            headers.put("Sec-Fetch-Site", "cross-site");
-                            headers.put("Sec-Fetch-User", null);
+                            addImageHeaders(headers);
                         }
                         else
                         {
-                            headers.put("Sec-Fetch-Dest", "document");
-                            headers.put("Sec-Fetch-Mode", "navigate");
-                            headers.put("Sec-Fetch-Site", "none");
-                            headers.put("Sec-Fetch-User", "?1");
+                            addDocumentHeaders(headers);
                         }
                     }
 
@@ -941,5 +935,21 @@ public class LinkDownloader
         {
             return filepath;
         }
+    }
+    
+    public static void addImageHeaders(Map<String, String> headers)
+    {
+        headers.put("Sec-Fetch-Dest", "image");
+        headers.put("Sec-Fetch-Mode", "no-cors");
+        headers.put("Sec-Fetch-Site", "cross-site");
+        headers.put("Sec-Fetch-User", null);
+    }
+
+    public static void addDocumentHeaders(Map<String, String> headers)
+    {
+        headers.put("Sec-Fetch-Dest", "document");
+        headers.put("Sec-Fetch-Mode", "navigate");
+        headers.put("Sec-Fetch-Site", "none");
+        headers.put("Sec-Fetch-User", "?1");
     }
 }

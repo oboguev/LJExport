@@ -198,15 +198,26 @@ public class FixLongPaths extends MaintenanceHandler
 
     private String makeShorterFileRelativePath(String rel) throws Exception
     {
-        String newrel = makeSaneRelativeUnixPath(rel, "/");
-        if (newrel.length() <= MaxRelativeFilePath)
-            return newrel;
-
         String[] components = rel.split("/");
+
         String host = components[0];
+        String pclastExt = URLCodec.fullyDecodeMixed(components[components.length - 1]);
+
+        for (int k = 1; k < components.length; k++)
+            components[k] = LinkDownloader.makeSanePathComponent(components[k]);
         // String pc1 = components[0];
         // String pc2 = components[1];
         String pclast = components[components.length - 1];
+
+        String newrel = null;
+
+        {
+            String[] xc = components.clone();
+            reapplyExtension(xc, host, pclastExt);
+            newrel = recompose(xc, "/");
+            if (newrel.length() <= MaxRelativeFilePath)
+                return newrel;
+        }
 
         if (isBotchedImgPrx(components))
         {
@@ -248,19 +259,7 @@ public class FixLongPaths extends MaintenanceHandler
         {
             String[] xc = components.clone();
             xc[xc.length - 1] = "x - " + Util.uuid();
-            
-            String ext = LinkDownloader.getFileExtension(pclast);
-            
-            if (ext == null && host.startsWith("sun") && host.endsWith(".userapi.com"))
-            {
-                URI uri = new URI(URLCodec.fullyDecodeMixed(pclast));
-                if (uri.getPath() != null)
-                    ext = LinkDownloader.getFileExtension(uri.getPath());
-            }
-            
-            if (ext != null)
-                xc[xc.length - 1] += "." + ext;
-            
+            reapplyExtension(xc, host, pclastExt);
             newrel = recompose(xc, "/");
             if (newrel.length() <= MaxRelativeFilePath)
                 return newrel;
@@ -271,6 +270,7 @@ public class FixLongPaths extends MaintenanceHandler
         return rel;
     }
 
+    @SuppressWarnings("unused")
     private String makeSaneRelativeUnixPath(String path, String separator) throws Exception
     {
         return makeSaneRelativeUnixPath(path.split(separator), separator);
@@ -288,6 +288,21 @@ public class FixLongPaths extends MaintenanceHandler
         }
 
         return path.toString();
+    }
+    
+    private void reapplyExtension(String[] xc, String host, String pclast) throws Exception
+    {
+        String ext = LinkDownloader.getFileExtension(pclast);
+
+        if (ext == null && host.startsWith("sun") && host.endsWith(".userapi.com"))
+        {
+            URI uri = new URI(URLCodec.fullyDecodeMixed(pclast));
+            if (uri.getPath() != null)
+                ext = LinkDownloader.getFileExtension(uri.getPath());
+        }
+
+        if (ext != null && !xc[xc.length - 1].toLowerCase().endsWith("." + ext.toLowerCase()))
+            xc[xc.length - 1] += "." + ext;
     }
 
     private String recompose(String[] components, String separator) throws Exception

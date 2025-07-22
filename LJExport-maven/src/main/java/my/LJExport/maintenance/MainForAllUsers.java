@@ -1,9 +1,11 @@
-package my.LJExport;
+package my.LJExport.maintenance;
 
 import java.io.File;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import my.LJExport.Config;
+import my.LJExport.Main;
 import my.LJExport.monthly.BuildNavigationIndex;
 import my.LJExport.monthly.InsertNavigationControls;
 import my.LJExport.runtime.EnumUsers;

@@ -1,4 +1,4 @@
-package my.LJExport;
+package my.LJExport.maintenance;
 
 import java.io.File;
 import java.net.URLDecoder;
@@ -9,6 +9,8 @@ import java.util.StringTokenizer;
 
 import org.jsoup.nodes.Node;
 
+import my.LJExport.Config;
+import my.LJExport.Main;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;

@@ -69,7 +69,7 @@ The whole chain of style resources is downloaded (including their dependencies a
 
 When executed in Wet Run mode, `MainStylesToLocal` will additionally patch HTML files to redirect style links within HTML files from remote server to a locally archived copy of style resources.
 
-Change to HTML files from remote to local styles performed by `MainStylesToLocal` can be reverted with `MainStylesRevertToRemote` which undoes the changes done by `MainStylesToLocal` in HTML files and restores remote links to style resources in HTML files. Downloaded style resources are left intact.
+Change to HTML files from remote to local styles performed by `MainStylesToLocal` can be reverted with `MainStylesRevertToRemote` which undoes the changes done by `MainStylesToLocal` in HTML files and restores remote links to style resources in HTML files. Downloaded style resources are left intact, i.e. relocated and ready for reapplication of `MainStylesToLocal`.
 
 ----
 

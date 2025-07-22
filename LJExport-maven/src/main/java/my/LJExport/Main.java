@@ -247,8 +247,16 @@ public class Main
             if (!Config.ReloadExistingFiles)
             {
                 Calendar.Records = removeExistingRecords(Calendar.Records);
-                out(">>> Located " + Calendar.Records.size() + " records to load");
             }
+            
+            if (Util.True)
+            {
+                // ###
+                Calendar.Records.clear();
+                Calendar.Records.add("827312.html");
+            }
+
+            out(">>> Located " + Calendar.Records.size() + " records to load");
 
             if (Calendar.Records.size() == 0)
             {

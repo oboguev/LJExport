@@ -38,6 +38,7 @@ import my.LJExport.runtime.RandomString;
 import my.LJExport.runtime.TxLog;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileBackedMap;
+import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.DownloadSource;
 import my.LJExport.runtime.links.LinkDownloader;
@@ -445,11 +446,11 @@ public class StyleActionToLocal
              * Download CSS file to local repository (residing in local file system).
              * Returns path relative to repository root, with url-encoded path components.
              */
-            newref = linkDownloader.download(naming_href, download_href, null, false, "", downloadSource);
+            newref = linkDownloader.download(false, naming_href, download_href, null, false, "", downloadSource);
             if (newref == null && !naming_href.equals(download_href))
             {
                 download_href = ArchiveOrgUrl.getLatestCaptureUrl(naming_href);
-                newref = linkDownloader.download(naming_href, download_href, null, false, "", downloadSource);
+                newref = linkDownloader.download(false, naming_href, download_href, null, false, "", downloadSource);
                 // TODO: add alias download_href if does not exist -> newref (decodePathCopmonents first)
                 // TODO: add alias cssFileURL if does not exist -> newref (decodePathCopmonents first)
             }
@@ -1055,11 +1056,12 @@ public class StyleActionToLocal
          * Download file to local repository (residing in local file system).
          * Returns path relative to repository root, with url-encoded path components.
          */
-        String rel = linkDownloader.download(naming_href, download_href, null, true, "", downloadSource);
+        boolean image = FileTypeDetector.isImagePath(naming_href);
+        String rel = linkDownloader.download(image, naming_href, download_href, null, true, "", downloadSource);
         if (rel == null && !naming_href.equals(download_href))
         {
             download_href = ArchiveOrgUrl.getLatestCaptureUrl(naming_href);
-            rel = linkDownloader.download(naming_href, download_href, null, true, "", downloadSource);
+            rel = linkDownloader.download(image, naming_href, download_href, null, true, "", downloadSource);
             // TODO: add alias download_href if does not exist -> rel (decodePathCopmonents first)
             // TODO: add alias absoluteUrl if does not exist -> rel (decodePathCopmonents first)
         }

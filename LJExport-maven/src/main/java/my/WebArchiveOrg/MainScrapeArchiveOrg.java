@@ -17,6 +17,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;
@@ -118,7 +119,7 @@ public class MainScrapeArchiveOrg
 
         LimitProcessorUsage.limit();
         Config.prepareThreading(10); /* actually just one */
-        
+
         Util.out(">>> Start time: " + Util.timeNow());
 
         Properties p = LJExportInformation.load();
@@ -810,7 +811,8 @@ public class MainScrapeArchiveOrg
         for (String name_href : Util.read_list(PreloadResourcesList))
         {
             String download_href = ArchiveOrgUrl.getLatestCaptureUrl(name_href);
-            String newref = Main.linkDownloader.download(name_href, download_href, null, true, "");
+            String newref = Main.linkDownloader.download(FileTypeDetector.isImagePath(name_href),
+                    name_href, download_href, null, true, "");
             if (newref == null)
             {
                 Util.err("Failed to download " + name_href);
@@ -858,7 +860,7 @@ public class MainScrapeArchiveOrg
 
             if (href != null && ArchiveOrgUrl.urlMatchesRoot(href, archiveOrgWebRoot, true))
             {
-                updated |= loadExternalResource(an, "href", href, fileRelPath);
+                updated |= loadExternalResource(an, false, "href", href, fileRelPath);
             }
         }
 
@@ -868,7 +870,7 @@ public class MainScrapeArchiveOrg
 
             if (href != null && ArchiveOrgUrl.urlMatchesRoot(href, archiveOrgWebRoot, true))
             {
-                updated |= loadExternalResource(an, "src", href, fileRelPath);
+                updated |= loadExternalResource(an, true, "src", href, fileRelPath);
             }
         }
 
@@ -879,7 +881,8 @@ public class MainScrapeArchiveOrg
         }
     }
 
-    private boolean loadExternalResource(Node an, String attr, String original_href, String loadedFileRelPath) throws Exception
+    private boolean loadExternalResource(Node an, boolean image, String attr, String original_href, String loadedFileRelPath)
+            throws Exception
     {
         original_href = TeleportUrl.ungarbleTeleportUrl(original_href);
 
@@ -896,7 +899,7 @@ public class MainScrapeArchiveOrg
         if (!Main.linkDownloader.shouldDownload(naming_href, attr.equalsIgnoreCase("href")))
             return false;
 
-        String newref = Main.linkDownloader.download(naming_href, download_href, null, true, "");
+        String newref = Main.linkDownloader.download(image, naming_href, download_href, null, true, "");
 
         if (newref == null)
         {

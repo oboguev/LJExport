@@ -23,7 +23,7 @@ public class FileTypeDetector
 {
     // private final static String MIME_OCTET_STREAM = "application/octet-stream";
     private final static String MIME_OCTET_STREAM = MediaType.OCTET_STREAM.toString();
-    
+
     /*
      * Maximum number of threads that can simultaneously call Tika
      */
@@ -153,6 +153,25 @@ public class FileTypeDetector
         return norm1 != null && norm2 != null && norm1.equals(norm2);
     }
 
+    public static boolean isImagePath(String path)
+    {
+        String lc = path.toLowerCase();
+
+        return lc.endsWith(".avif") ||
+                lc.endsWith(".bmp") ||
+                lc.endsWith(".dib") ||
+                lc.endsWith(".gif") ||
+                lc.endsWith(".ico") ||
+                lc.endsWith(".icon") ||
+                lc.endsWith(".jpeg") ||
+                lc.endsWith(".jpg") ||
+                lc.endsWith(".png") ||
+                lc.endsWith(".svg") ||
+                lc.endsWith(".tif") ||
+                lc.endsWith(".tiff") ||
+                lc.endsWith(".webp");
+    }
+
     /* ==================================================================================== */
 
     public static Set<String> commonExtensions()
@@ -167,7 +186,7 @@ public class FileTypeDetector
         xs.addAll(canonicalExtensionMap.keySet());
         xs.addAll(canonicalExtensionMap.values());
         xs.addAll(Config.DownloadFileTypes);
-        
+
         xs.add("7z");
         xs.add("7zip");
         xs.add("gz");

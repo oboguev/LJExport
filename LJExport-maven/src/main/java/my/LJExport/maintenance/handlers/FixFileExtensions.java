@@ -660,21 +660,31 @@ public class FixFileExtensions extends MaintenanceHandler
 
     private boolean scheduleOriginalUrl(String fullHtmlFilePath, String linkFullFilePath, Node n, String tag, String attr) throws Exception
     {
+        StringBuilder sb = new StringBuilder();
+
         String original_attr_name = "original-" + attr;
         
         String original_attr_value = JSOUP.getAttribute(n, original_attr_name);
         if (original_attr_value != null)
         {
-            // ### trace
             JSOUP.updateAttribute(n, attr, original_attr_value);
+
+            sb.append(String.format("Error-response [%s] link file  %s" + nl, Config.User, linkFullFilePath));
+            sb.append(String.format("                %s         in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
+            sb.append(String.format("                %s  revert to  %s" + nl, spaces(Config.User), original_attr_value));
         }
         else
         {
-            // ### trace
+            sb.append(String.format("Error-response [%s] link file  %s" + nl, Config.User, linkFullFilePath));
+            sb.append(String.format("                %s         in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
+            sb.append(String.format("                %s      leave  as-is" + nl, spaces(Config.User)));
         }
         
         schedDeleteMapEntryFor(linkFullFilePath);
         
+        trace(sb.toString());
+        txLog.writeLine(safety, sb.toString());
+    
         return true;
     }
     

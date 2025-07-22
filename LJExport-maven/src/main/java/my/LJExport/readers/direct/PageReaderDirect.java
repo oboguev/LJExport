@@ -44,24 +44,6 @@ public class PageReaderDirect implements PageReader, PageContentSource
     public PageReaderDirect(String rurl, String fileDir)
     {
         parser = new PageParserDirectClassic(this);
-
-        if (Util.False)
-        {
-            // rurl = "19518.html";   // test: roineroyce
-            // rurl = "88279.html";   // test: nilsky_nikolay
-            // rurl = "1076886.html"; // test: genby
-            // rurl = "7430586.html"; // test: oboguev (with snipboard image)
-            // rurl = "7450356.html"; // test: oboguev (no comments)
-            // rurl = "2352931.html"; // test: krylov (many pages of comments)
-            // rurl = "5938498.html"; // test: oboguev (some comments)
-
-            // rurl = "2106296.html"; // test: tor85 (no comments)  
-            // rurl = "175603.html";  // test: a_bugaev (comments disabled)
-            // rurl = "2532366.html"; // test: colonelcassad
-            // rurl = "5182367.html"; // test: oboguev (private, no comments)
-            // rurl = "2504913.html"; // test: krylov (unexpandable link)
-        }
-
         parser.rurl = rurl;
         parser.rid = rurl.substring(0, rurl.indexOf('.'));
         this.fileDir = fileDir + File.separator;

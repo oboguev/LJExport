@@ -82,7 +82,7 @@ public class MainStylesToLocal
                 String mult = users.contains(",") ? "ей" : "я";
                 
                 String questionText = String.format(
-                        "Точно ли вы желаете переменить стили с удалённых на архивированные для пользовател%s %s ?",
+                        "Точно ли вы желаете переменить стили в файлах HTML с удалённых стилей на их архивированные копии для пользовател%s %s ?",
                         mult,
                         users.replace(",", ", "));
                 response = UIDialogQuestion.askQuestion(questionText, "Отменить", "Да", "Отменить");

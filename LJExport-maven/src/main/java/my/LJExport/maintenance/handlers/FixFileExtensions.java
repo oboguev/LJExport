@@ -67,7 +67,7 @@ public class FixFileExtensions extends MaintenanceHandler
     private Map<String, List<LinkMapEntry>> relpath2entry;
     private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
     private Map<String, String> fileContentExtensionMap = new HashMap<>();
-    private Set<String> deleteLinkMapEntries = new HashSet<>();
+    private Set<String> deleteLinkMapEntriesFor = new HashSet<>();
 
     @Override
     protected void beginUser() throws Exception
@@ -80,14 +80,14 @@ public class FixFileExtensions extends MaintenanceHandler
         relpath2entry = null;
         alreadyRenamed = new HashMap<>();
         fileContentExtensionMap = new HashMap<>();
-        deleteLinkMapEntries = new HashSet<>();
+        deleteLinkMapEntriesFor = new HashSet<>();
 
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
         build_lc2ac();
         updatedMap = false;
         loadLinkMapFile();
-        fillFileContentExtensionMap();
+        prefillFileContentExtensionMap();
 
         trace("");
         trace("");
@@ -99,6 +99,8 @@ public class FixFileExtensions extends MaintenanceHandler
     @Override
     protected void endUser() throws Exception
     {
+        linkMapEntries = applyScheduledDeletes(linkMapEntries);
+        
         if (updatedMap && !DryRun)
         {
             String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
@@ -620,7 +622,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
-    private void fillFileContentExtensionMap() throws Exception
+    private void prefillFileContentExtensionMap() throws Exception
     {
         List<String> files = new ArrayList<>(file_lc2ac.values());
         Collections.sort(files);
@@ -671,18 +673,41 @@ public class FixFileExtensions extends MaintenanceHandler
             // ### trace
         }
         
-        schedDeleteMapEntry(linkFullFilePath);
+        schedDeleteMapEntryFor(linkFullFilePath);
         
         return true;
     }
     
-    private void schedDeleteMapEntry(String linkFullFilePath) throws Exception
+    private void schedDeleteMapEntryFor(String linkFullFilePath) throws Exception
     {
         String rel = this.abs2rel(linkFullFilePath);
+        deleteLinkMapEntriesFor.add(rel.toLowerCase());
+    }
+    
+    private List<LinkMapEntry> applyScheduledDeletes(List<LinkMapEntry> entries) throws Exception
+    {
+        List<LinkMapEntry> list = new ArrayList<>();
         
-        // ### trace
+        for (LinkMapEntry e : entries)
+        {
+            if (deleteLinkMapEntriesFor.contains(e.value.toLowerCase()))
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.append(String.format("Deleting LinkMap [%s] entry for error-response URL  %s" + nl, Config.User, e.key));
+                sb.append(String.format("                  %s                          file  %s" + nl, spaces(Config.User), e.value));
+                
+                trace(sb.toString());
+                txLog.writeLine(safety, sb.toString());
+                
+                updatedMap = true;
+            }
+            else
+            {
+                list.add(e);
+            }
+        }
         
-        deleteLinkMapEntries.add(rel.toLowerCase());
+        return list;
     }
     
     /* ===================================================================================================== */

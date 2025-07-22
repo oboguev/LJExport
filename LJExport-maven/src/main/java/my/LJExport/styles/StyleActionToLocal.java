@@ -330,7 +330,10 @@ public class StyleActionToLocal
 
             updateLinkElement(elLink, urlEncodeLink(relpath), elInsertAfter, updateElLink, createdElement);
         }
-        // ### if allowed non-down return absoluteCssFileUrl 
+        else if (allowUndownloadaleCssResource(cssFileURL))
+        {
+            updateLinkElement(elLink, urlEncodeLink(cssFileURL), elInsertAfter, updateElLink, createdElement);
+        }
         else
         {
             updateLinkElement(elLink, cssFileURL, elInsertAfter, updateElLink, createdElement);
@@ -1068,7 +1071,6 @@ public class StyleActionToLocal
             }
             else if (allowUndownloadaleCssResource(absoluteUrl))
             {
-                // ### message
                 return absoluteUrl;
             }
             else
@@ -1120,6 +1122,8 @@ public class StyleActionToLocal
         {
             URI uri = new URI(absoluteUrl);
             String host = uri.getHost().toLowerCase();
+            
+            // ### message if true
 
             if (host.equals("imgprx.livejournal.net"))
                 return true;
@@ -1172,7 +1176,10 @@ public class StyleActionToLocal
 
             return relpath;
         }
-        // ### if allowed non-down return absoluteCssFileUrl 
+        else if (allowUndownloadaleCssResource(absoluteCssFileUrl))
+        {
+            return absoluteCssFileUrl;
+        }
         else
         {
             return null;

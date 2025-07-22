@@ -39,8 +39,8 @@ public class Config
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
     // public static final YYYY_MM LoadTill = null;
-    public static final YYYY_MM LoadSince = new YYYY_MM(2010, 10);
-    public static final YYYY_MM LoadTill = new YYYY_MM(2010, 10);
+    public static final YYYY_MM LoadSince = new YYYY_MM(2009, 1);
+    public static final YYYY_MM LoadTill = new YYYY_MM(2011, 12);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;

@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.jsoup.nodes.Node;
 
@@ -65,6 +67,7 @@ public class FixFileExtensions extends MaintenanceHandler
     private Map<String, List<LinkMapEntry>> relpath2entry;
     private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
     private Map<String, String> fileContentExtensionMap = new HashMap<>();
+    private Set<String> deleteLinkMapEntries = new HashSet<>();
 
     @Override
     protected void beginUser() throws Exception
@@ -77,6 +80,7 @@ public class FixFileExtensions extends MaintenanceHandler
         relpath2entry = null;
         alreadyRenamed = new HashMap<>();
         fileContentExtensionMap = new HashMap<>();
+        deleteLinkMapEntries = new HashSet<>();
 
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
@@ -321,22 +325,22 @@ public class FixFileExtensions extends MaintenanceHandler
              * and also many transitions -> html, xhtml    
              */
 
-            // ### in others, restore original-url if present
-            // ### in LinkDownloader, return null in these cases
-
             if (tag.equalsIgnoreCase("img") || tag.equalsIgnoreCase("a"))
             {
                 switch (contentExtension.toLowerCase())
                 {
                 /*
-                 * When downloading IMG link, or other link, server responded with HTML or XHTML or PHP,
-                 * likely because image was not availale, and displaying HTML page with 404 or other error.
-                 * Do not change extension in this case.
+                 * When downloading IMG link, or other link, server responded with HTML or XHTML or PHP or TXT,
+                 * likely because image was not available, and displaying HTML page with 404 or other error.
+                 * Requests for actual TXT files have already been handled by isEquivalentExtensions above.
+                 * 
+                 * Do not change extension in this case, and revert to original URL if available.
                  */
                 case "html":
                 case "xhtml":
                 case "php":
                 case "txt":
+                    updated = scheduleOriginalUrl(fullHtmlFilePath, linkInfo.linkFullFilePath, n, tag, attr);
                     continue;
 
                 default:
@@ -652,6 +656,37 @@ public class FixFileExtensions extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
+    private boolean scheduleOriginalUrl(String fullHtmlFilePath, String linkFullFilePath, Node n, String tag, String attr) throws Exception
+    {
+        String original_attr_name = "original-" + attr;
+        
+        String original_attr_value = JSOUP.getAttribute(n, original_attr_name);
+        if (original_attr_value != null)
+        {
+            // ### trace
+            JSOUP.updateAttribute(n, attr, original_attr_value);
+        }
+        else
+        {
+            // ### trace
+        }
+        
+        schedDeleteMapEntry(linkFullFilePath);
+        
+        return true;
+    }
+    
+    private void schedDeleteMapEntry(String linkFullFilePath) throws Exception
+    {
+        String rel = this.abs2rel(linkFullFilePath);
+        
+        // ### trace
+        
+        deleteLinkMapEntries.add(rel.toLowerCase());
+    }
+    
+    /* ===================================================================================================== */
+    
     private String getFileExtension(String fn)
     {
         int dotIndex = fn.lastIndexOf('.');

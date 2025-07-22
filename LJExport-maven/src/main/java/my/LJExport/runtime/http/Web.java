@@ -471,11 +471,18 @@ public class Web
         Response r = new Response();
 
         HttpGet request = new HttpGet(url);
+
         setCommon(request, headers);
         if (headers != null)
         {
             for (String key : headers.keySet())
-                request.setHeader(key, headers.get(key));
+            {
+                String value = headers.get(key);
+                if (value != null)
+                    request.setHeader(key, value);
+                else
+                    request.removeHeaders(key);
+            }
         }
 
         ActivityCounters.startedWebRequest();
@@ -648,6 +655,11 @@ public class Web
         setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
         setHeader(request, headers, "Cache-Control", "no-cache");
         setHeader(request, headers, "Pragma", "no-cache");
+
+        setHeader(request, headers, "Sec-Fetch-Dest", "document");
+        setHeader(request, headers, "Sec-Fetch-Mode", "navigate");
+        setHeader(request, headers, "Sec-Fetch-Site", "none");
+        setHeader(request, headers, "Sec-Fetch-User", "?1");
     }
 
     private static void setHeader(HttpRequestBase request, Map<String, String> headers, String key, String value) throws Exception

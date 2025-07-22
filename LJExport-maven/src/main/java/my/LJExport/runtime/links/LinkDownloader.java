@@ -225,6 +225,21 @@ public class LinkDownloader
                         {
                             headers.put("Referer", referer);
                         }
+                        
+                        if (image)
+                        {
+                            headers.put("Sec-Fetch-Dest", "image");
+                            headers.put("Sec-Fetch-Mode", "no-cors");
+                            headers.put("Sec-Fetch-Site", "cross-site");
+                            headers.put("Sec-Fetch-User", null);
+                        }
+                        else
+                        {
+                            headers.put("Sec-Fetch-Dest", "document");
+                            headers.put("Sec-Fetch-Mode", "navigate");
+                            headers.put("Sec-Fetch-Site", "none");
+                            headers.put("Sec-Fetch-User", "?1");
+                        }
                     }
 
                     Web.Response r = null;

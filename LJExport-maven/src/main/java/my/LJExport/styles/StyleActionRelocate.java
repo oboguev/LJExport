@@ -138,7 +138,7 @@ public class StyleActionRelocate
         if (href.toLowerCase().startsWith("file://"))
             throw new Exception("Unexpected file:// url in a style");
 
-        if (href.startsWith("../"))
+        if (StyleManager.isHtmlReferenceToLocalStyle(href))
             return relocate(href, deltaLevel);
         else
             return null;

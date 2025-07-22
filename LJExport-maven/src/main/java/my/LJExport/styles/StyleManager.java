@@ -345,6 +345,6 @@ public class StyleManager
         while (href.startsWith("../"))
             href = href.substring("../".length());
 
-        return href.startsWith("styles/");
+        return href.startsWith("styles/styles.20");
     }
 }

@@ -1,5 +1,9 @@
 package my.LJExport.runtime.lj;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
 
@@ -298,7 +302,7 @@ public class LJUtil
 
         return url;
     }
-    
+
     /*
      * User base HTTP
      * 
@@ -323,6 +327,88 @@ public class LJUtil
         else
         {
             return "http://" + Config.MangledUser + "." + Config.Site;
+        }
+    }
+
+    /* ======================================================================================== */
+
+    /**
+     * Attempts to extract the original image URL from a LiveJournal proxy URL.
+     * If the proxy URL contains "?" or "#" characters, throws an exception to alert for manual handling.
+     *
+     * @param url the possibly proxied image URL
+     * @return the original image URL if detected, or the input URL otherwise
+     * @throws IllegalArgumentException if the URL contains '?' or '#' and appears to be an imgprx proxy URL
+     * 
+     * Decodes https://imgprx.livejournal.net/st/a5qxcIzYm6irxnS1DFddEl8-2t1CYWAJYj-i7bfFaKo/img1.labirint.ru/books/168777/big.jpg
+     * into    https://img1.labirint.ru/books/168777/big.jpg
+     */
+    public static String decodeImgPrxStLink(String url) throws Exception
+    {
+        if (url == null)
+            return null;
+
+        try
+        {
+            URL parsedUrl = new URL(url);
+            String host = parsedUrl.getHost();
+            if (host == null || !host.equalsIgnoreCase("imgprx.livejournal.net"))
+                return url;
+
+            // Check for embedded query or fragment — we want to know about this!
+            if (url.contains("?") || url.contains("#"))
+                throw new IllegalArgumentException("LiveJournal image proxy URL contains '?' or '#': " + url);
+
+            String path = parsedUrl.getPath(); // starts with /
+            if (path == null || path.isEmpty())
+                return url;
+
+            String[] components = path.split("/");
+
+            if (components.length < 3)
+                return url; // need at least /st/key/...
+
+            // Skip first component (empty string before first slash)
+            // Skip second component ("st" or similar)
+            for (int i = 2; i < components.length; i++)
+            {
+                if (looksLikeHost(components[i]))
+                {
+                    List<String> originalParts = new ArrayList<>();
+                    for (int j = i; j < components.length; j++)
+                    {
+                        originalParts.add(components[j]);
+                    }
+                    String reconstructed = String.join("/", originalParts);
+                    return "https://" + decodePercent(reconstructed);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Unable to decode LiveJournal image proxy URL" + url, ex);
+        }
+
+        return url;
+    }
+
+    private static boolean looksLikeHost(String s)
+    {
+        // Must contain at least one dot and only valid hostname characters
+        if (s == null || !s.contains("."))
+            return false;
+        return s.matches("(?i)[a-z0-9.-]+");
+    }
+
+    private static String decodePercent(String s)
+    {
+        try
+        {
+            return java.net.URLDecoder.decode(s, "UTF-8");
+        }
+        catch (Exception e)
+        {
+            return s;
         }
     }
 }

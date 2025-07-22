@@ -49,7 +49,7 @@ public class FixLongPaths extends MaintenanceHandler
     private Map<String, List<LinkMapEntry>> relpath2entry;
     private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
 
-    private static final int MaxFilePath = 250;
+    private static final int MaxFilePath = 245;
     private final int MaxRelativeFilePath = MaxFilePath - this.linkDirSep.length();
 
     @Override
@@ -72,7 +72,7 @@ public class FixLongPaths extends MaintenanceHandler
         for (String path : file_lc2ac.keySet())
         {
             path = file_lc2ac.get(path);
-            if (path.length() >= MaxFilePath)
+            if (path.length() > MaxFilePath)
                 analyzeLongFilePath(path);
         }
 
@@ -286,9 +286,9 @@ public class FixLongPaths extends MaintenanceHandler
 
         if (host.toLowerCase().equals("cdn.vox-cdn.com") && components.length >= 8)
         {
-            if (pc1.equals("thumbor") && components[5].equals("cdn.vox-cdn.com") && components[6].equals("uploads"))
+            if (pc1.equals("thumbor") && components[6].equals("cdn.vox-cdn.com") && components[7].equals("uploads"))
             {
-                String[] xc = since(components, 5);
+                String[] xc = since(components, 6);
                 xc = saneExceptFirst(xc, true);
                 newrel = recompose(xc, "/");
                 if (newrel.length() <= MaxRelativeFilePath)

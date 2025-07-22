@@ -329,8 +329,8 @@ public class StyleActionToLocal
                     Config.DownloadRoot + File.separator + Config.User);
 
             updateLinkElement(elLink, urlEncodeLink(relpath), elInsertAfter, updateElLink, createdElement);
-
         }
+        // ### if allowed non-down return absoluteCssFileUrl 
         else
         {
             updateLinkElement(elLink, cssFileURL, elInsertAfter, updateElLink, createdElement);
@@ -522,11 +522,21 @@ public class StyleActionToLocal
     /*
      * Encode each separate path component of the path 
      */
-    private String urlEncodeLink(String relativeFilePath) throws Exception
+    private String urlEncodeLink(String path) throws Exception
     {
-        if (relativeFilePath == null || relativeFilePath.isEmpty())
-            return relativeFilePath;
+        if (path == null || path.isEmpty())
+            return path;
 
+        String lc = path.toLowerCase();
+        
+        if (lc.startsWith("http://") || lc.startsWith("https://"))
+            return urlEncodeRemoteAbsoluteLink(path);
+        else
+            return urlEncodeLocalRelativeLink(path);
+    }
+
+    private String urlEncodeLocalRelativeLink(String relativeFilePath) throws Exception
+    {
         StringBuilder encoded = new StringBuilder();
         String[] components = relativeFilePath.split("/");
 
@@ -552,6 +562,40 @@ public class StyleActionToLocal
         return encoded.toString();
     }
 
+    private String urlEncodeRemoteAbsoluteLink(String path) throws Exception
+    {
+        URI uri = new URI(path);
+
+        String scheme = uri.getScheme();
+        String authority = uri.getRawAuthority();
+        String[] segments = uri.getRawPath() != null ? uri.getRawPath().split("/") : new String[0];
+
+        StringBuilder encodedPath = new StringBuilder();
+        for (int i = 0; i < segments.length; i++)
+        {
+            if (i > 0) encodedPath.append('/');
+
+            String seg = segments[i];
+            if (seg.equals(".") || seg.equals(".."))
+                encodedPath.append(seg);
+            else
+                encodedPath.append(URLEncoder.encode(seg, "UTF-8").replace("+", "%20"));
+        }
+
+        StringBuilder result = new StringBuilder();
+        result.append(scheme).append("://").append(authority);
+        if (encodedPath.length() > 0)
+            result.append('/').append(encodedPath);
+
+        // Append query and fragment as-is
+        if (uri.getRawQuery() != null)
+            result.append('?').append(uri.getRawQuery());
+        if (uri.getRawFragment() != null)
+            result.append('#').append(uri.getRawFragment());
+
+        return result.toString();        
+    }
+    
     /* ================================================================================== */
 
     /*
@@ -780,7 +824,8 @@ public class StyleActionToLocal
                             String originalUrl = uriTerm.getURIString();
                             /* this cannot be CSS but only image or similar file, hence no recursion */
                             String newUrl = downloadAndRelinkPassiveFile(originalUrl, hostingFileURL, hostingFilePath, false);
-                            if (newUrl != null)
+
+                            if (newUrl != null && !newUrl.equals(originalUrl))
                             {
                                 uriTerm.setURIString(urlEncodeLink(newUrl));
                                 changed = true;
@@ -1075,13 +1120,13 @@ public class StyleActionToLocal
         {
             URI uri = new URI(absoluteUrl);
             String host = uri.getHost().toLowerCase();
-            
+
             if (host.equals("imgprx.livejournal.net"))
                 return true;
-            
+
             if (host.equals("livejournal.com") || host.equals("livejournal.net"))
                 return false;
-            
+
             if (host.startsWith("livejournal.com") || host.startsWith("livejournal.net"))
                 return false;
 
@@ -1127,6 +1172,7 @@ public class StyleActionToLocal
 
             return relpath;
         }
+        // ### if allowed non-down return absoluteCssFileUrl 
         else
         {
             return null;

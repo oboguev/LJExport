@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.net.URLEncoder;
 
@@ -1115,7 +1116,7 @@ public class StyleActionToLocal
     {
         /*
          * When downloading live (non-dry) from LiveJournal, 
-         * allow non-downloadable CSS resources from sites other that LiveJournal
+         * allow non-downloadable CSS resources from sites other than LiveJournal
          * and also from imgprx.livejournal.net.
          */
         if (Config.isLiveJournal() && !dryRun)
@@ -1123,18 +1124,30 @@ public class StyleActionToLocal
             URI uri = new URI(absoluteUrl);
             String host = uri.getHost().toLowerCase();
             
-            // ### message if true
+            boolean result = ((Supplier<Boolean>) () -> {
+                
+                if (host.equals("imgprx.livejournal.net"))
+                    return true;
 
-            if (host.equals("imgprx.livejournal.net"))
+                if (host.equals("livejournal.com") || host.equals("livejournal.net"))
+                    return false;
+
+                if (host.startsWith(".livejournal.com") || host.startsWith(".livejournal.net"))
+                    return false;
+
                 return true;
+                
+            }).get();
+            
+            if (result)
+            {
+                String msg = "Leaving unarchived remote link to undownloadable CSS style resource: " + absoluteUrl;
+                Util.err(msg);
+                if (errorMessageLog != null)
+                    errorMessageLog.add(msg);                
+            }
 
-            if (host.equals("livejournal.com") || host.equals("livejournal.net"))
-                return false;
-
-            if (host.startsWith("livejournal.com") || host.startsWith("livejournal.net"))
-                return false;
-
-            return true;
+            return result;
         }
         else
         {

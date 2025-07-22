@@ -190,7 +190,7 @@ public class StyleActionToLocal
                 continue;
 
             if (generated_by != null || suppressed_by != null)
-                throw new Exception("Unexpected attributes in LINK tag");
+                throw newException("Unexpected attributes in LINK tag");
 
             /* tag not processed yet*/
             String rel = JSOUP.getAttribute(n, "rel");
@@ -201,10 +201,10 @@ public class StyleActionToLocal
                 continue;
 
             if (!rel.trim().equalsIgnoreCase("stylesheet"))
-                throw new Exception("Unexpected value of link.rel: " + rel);
+                throw newException("Unexpected value of link.rel: " + rel);
 
             if (href == null)
-                throw new Exception("Unexpected value of link.href: null");
+                throw newException("Unexpected value of link.href: null");
 
             if (type == null || type.trim().equalsIgnoreCase("text/css"))
             {
@@ -227,7 +227,7 @@ public class StyleActionToLocal
                 continue;
 
             if (generated_by != null || suppressed_by != null)
-                throw new Exception("Unexpected attributes in LINK tag");
+                throw newException("Unexpected attributes in LINK tag");
 
             /* tag not processed yet*/
             String type = JSOUP.getAttribute(n, "type");
@@ -247,7 +247,7 @@ public class StyleActionToLocal
                 continue;
 
             if (style_altered_by != null)
-                throw new Exception("Unexpected attribute in a tag");
+                throw newException("Unexpected attribute in a tag");
 
             /* tag not processed yet*/
             if (JSOUP.getAttribute(n, "style") != null)
@@ -310,12 +310,12 @@ public class StyleActionToLocal
 
         if (baseUrl == null && !Util.isAbsoluteURL(href))
         {
-            throw new Exception("Unexpected link.href: " + href);
+            throw newException("Unexpected link.href: " + href);
         }
         else if (!Util.isAbsoluteURL(href))
         {
             // later may resolve it against baseUrl
-            throw new Exception("Unexpected link.href: " + href);
+            throw newException("Unexpected link.href: " + href);
         }
 
         String cssFileURL = Util.resolveURL(baseUrl, href);
@@ -344,7 +344,7 @@ public class StyleActionToLocal
                 JSOUP.getAttribute(elLink, Original + "type") != null ||
                 JSOUP.getAttribute(elLink, Original + "href") != null)
         {
-            throw new Exception("LINK tag contains unexpected original-xxx attributes");
+            throw newException("LINK tag contains unexpected original-xxx attributes");
         }
 
         String original_rel = JSOUP.getAttribute(elLink, "rel");
@@ -416,7 +416,7 @@ public class StyleActionToLocal
                 sb.append("Please check transaction log and take corrective action." + nl);
                 sb.append("Log file: " + txLog.getPath());
                 Util.err(sb.toString());
-                throw new Exception(sb.toString());
+                throw newException(sb.toString());
             }
 
             /*
@@ -455,7 +455,7 @@ public class StyleActionToLocal
                 if (allowUndownloadaleCss != null && allowUndownloadaleCss.matchOR(download_href, naming_href))
                     return null;
 
-                throw new Exception("Failed to download style URL: " + cssFileURL);
+                throw newException("Failed to download style URL: " + cssFileURL);
             }
 
             newref = LinkDownloader.decodePathComponents(newref);
@@ -595,7 +595,7 @@ public class StyleActionToLocal
                  *   - commit all provisional CSS to disk at the end of whole operation 
                  * 
                  */
-                throw new Exception("Circular reference in style sheets");
+                throw newException("Circular reference in style sheets");
             }
         }
 
@@ -732,7 +732,7 @@ public class StyleActionToLocal
                     return null;
                 }
 
-                throw new Exception("Failed to parse CSS content in " + where);
+                throw newException("Failed to parse CSS content in " + where);
             }
             else
             {
@@ -910,7 +910,7 @@ public class StyleActionToLocal
             boolean forHtmlTagInlineStyle) throws Exception
     {
         if (originalUrl == null)
-            throw new Exception("Resoruce URL is missing (null)");
+            throw newException("Resoruce URL is missing (null)");
 
         originalUrl = originalUrl.trim();
 
@@ -927,7 +927,7 @@ public class StyleActionToLocal
             }
             else
             {
-                throw new Exception(msg);
+                throw newException(msg);
             }
         }
 
@@ -947,7 +947,7 @@ public class StyleActionToLocal
             }
             else
             {
-                throw new Exception(msg);
+                throw newException(msg);
             }
         }
 
@@ -985,7 +985,7 @@ public class StyleActionToLocal
             }
             else
             {
-                throw new Exception("Referenced style resource is not remote: " + absoluteUrl);
+                throw newException("Referenced style resource is not remote: " + absoluteUrl);
             }
         }
 
@@ -1045,7 +1045,7 @@ public class StyleActionToLocal
                     return null;
                 }
 
-                throw new Exception("Unable to download style passive resource: " + absoluteUrl);
+                throw newException("Unable to download style passive resource: " + absoluteUrl);
             }
         }
 
@@ -1073,7 +1073,7 @@ public class StyleActionToLocal
     private String downloadAndRelinkCssFile(String originalUrl, String baseUrl, String relativeToFilePath) throws Exception
     {
         if (originalUrl == null || originalUrl.trim().isEmpty())
-            throw new Exception("Resuouce URL is missing or blank");
+            throw newException("Resuouce URL is missing or blank");
 
         String absoluteCssFileUrl = Util.resolveURL(baseUrl, originalUrl);
 
@@ -1082,7 +1082,7 @@ public class StyleActionToLocal
          */
         String lc = absoluteCssFileUrl.toLowerCase();
         if (!lc.startsWith("http://") && !lc.startsWith("https://"))
-            throw new Exception("Referenced style resource is not remote: " + absoluteCssFileUrl);
+            throw newException("Referenced style resource is not remote: " + absoluteCssFileUrl);
 
         String newref = resolveCssFile(absoluteCssFileUrl);
         if (newref != null)
@@ -1194,7 +1194,7 @@ public class StyleActionToLocal
     private void updateStyleElement(Element elStyle, String modifiedCss) throws Exception
     {
         if (JSOUP.getAttribute(elStyle, Original + "type") != null)
-            throw new Exception("STYLE tag contains unexpected original-type attribute");
+            throw newException("STYLE tag contains unexpected original-type attribute");
 
         String original_type = JSOUP.getAttribute(elStyle, "type");
 
@@ -1224,7 +1224,7 @@ public class StyleActionToLocal
         boolean updated = false;
 
         if (JSOUP.getAttribute(el, Original + "style") != null)
-            throw new Exception("Tag contains unexpected original-style attribute");
+            throw newException("Tag contains unexpected original-style attribute");
 
         String original_style = JSOUP.getAttribute(el, "style");
         if (original_style == null)
@@ -1279,7 +1279,7 @@ public class StyleActionToLocal
 
         if (declList == null)
         {
-            // throw new Exception("Failed to parse inline style content");
+            // throw newException("Failed to parse inline style content");
             Util.err("Malformed inline tag style in " + hostingFilePath);
             return null;
         }
@@ -1602,5 +1602,10 @@ public class StyleActionToLocal
             return false;
         String lc = hostingFilePath.toLowerCase();
         return lc.endsWith(".html") || lc.endsWith(".htm");
+    }
+    
+    private Exception newException(String msg)
+    {
+        return new Exception(msg);
     }
 }

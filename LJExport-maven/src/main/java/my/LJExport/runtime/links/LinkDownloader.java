@@ -802,14 +802,13 @@ public class LinkDownloader
         return result;
     }
 
-    private String makeSanePathComponent(String component) throws Exception
+    public static String makeSanePathComponent(String component) throws Exception
     {
         /*
          * Unpack %xx sequences -> unicode.
-         * Sometimes it has double encoding.
+         * Sometimes it has double or even triple encoding.
          */
-        String fn = URLCodec.decodeMixed(component);
-        fn = URLCodec.decodeMixed(fn);
+        String fn = URLCodec.fullyDecodeMixed(component);
 
         /*
          * Encode reserved characters to URL representation

@@ -5,10 +5,14 @@ import java.util.List;
 import my.LJExport.maintenance.Maintenance;
 import my.LJExport.runtime.Util;
 
-public class CountFiles extends MaintenanceHandler 
+public class CountFiles extends MaintenanceHandler
 {
     private int totalFileCount = 0;
-    
+
+    public CountFiles() throws Exception
+    {
+    }
+
     @Override
     protected void beginUsers()
     {
@@ -31,13 +35,13 @@ public class CountFiles extends MaintenanceHandler
     protected void endUser()
     {
     }
-    
+
     @Override
     protected boolean isParallel()
     {
         return true;
     }
-    
+
     @Override
     protected void printDivider()
     {

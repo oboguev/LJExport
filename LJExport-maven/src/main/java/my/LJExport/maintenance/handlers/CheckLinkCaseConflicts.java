@@ -15,6 +15,10 @@ import my.LJExport.runtime.html.JSOUP;
  */
 public class CheckLinkCaseConflicts extends MaintenanceHandler 
 {
+    public CheckLinkCaseConflicts() throws Exception
+    {
+    }
+    
     @Override
     protected void beginUsers() throws Exception
     {

@@ -34,12 +34,17 @@ import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
  * Adjust repository map file as well.
  * 
  * Execute AFTER ResolveLinkCaseDifferences
+ *     and AFTER FixLongPaths.
  *     and AFTER FixDirectoryLinks.
  */
 public class FixFileExtensions extends MaintenanceHandler
 {
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;
+
+    public FixFileExtensions() throws Exception
+    {
+    }
 
     @Override
     protected void beginUsers() throws Exception
@@ -100,7 +105,7 @@ public class FixFileExtensions extends MaintenanceHandler
     protected void endUser() throws Exception
     {
         linkMapEntries = applyScheduledDeletes(linkMapEntries);
-        
+
         if (updatedMap && !DryRun)
         {
             String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
@@ -658,12 +663,13 @@ public class FixFileExtensions extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
-    private boolean scheduleOriginalUrl(String fullHtmlFilePath, String linkFullFilePath, Node n, String tag, String attr) throws Exception
+    private boolean scheduleOriginalUrl(String fullHtmlFilePath, String linkFullFilePath, Node n, String tag, String attr)
+            throws Exception
     {
         StringBuilder sb = new StringBuilder();
 
         String original_attr_name = "original-" + attr;
-        
+
         String original_attr_value = JSOUP.getAttribute(n, original_attr_name);
         if (original_attr_value != null)
         {
@@ -679,36 +685,37 @@ public class FixFileExtensions extends MaintenanceHandler
             sb.append(String.format("                %s         in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
             sb.append(String.format("                %s      leave  as-is" + nl, spaces(Config.User)));
         }
-        
+
         schedDeleteMapEntryFor(linkFullFilePath);
-        
+
         trace(sb.toString());
         txLog.writeLine(safety, sb.toString());
-    
+
         return true;
     }
-    
+
     private void schedDeleteMapEntryFor(String linkFullFilePath) throws Exception
     {
         String rel = this.abs2rel(linkFullFilePath);
         deleteLinkMapEntriesFor.add(rel.toLowerCase());
     }
-    
+
     private List<LinkMapEntry> applyScheduledDeletes(List<LinkMapEntry> entries) throws Exception
     {
         List<LinkMapEntry> list = new ArrayList<>();
-        
+
         for (LinkMapEntry e : entries)
         {
             if (deleteLinkMapEntriesFor.contains(e.value.toLowerCase()))
             {
                 StringBuilder sb = new StringBuilder();
                 sb.append(String.format("Deleting LinkMap [%s] entry for error-response URL  %s" + nl, Config.User, e.key));
-                sb.append(String.format("                  %s                          file  %s" + nl, spaces(Config.User), e.value));
-                
+                sb.append(
+                        String.format("                  %s                          file  %s" + nl, spaces(Config.User), e.value));
+
                 trace(sb.toString());
                 txLog.writeLine(safety, sb.toString());
-                
+
                 updatedMap = true;
             }
             else
@@ -716,12 +723,12 @@ public class FixFileExtensions extends MaintenanceHandler
                 list.add(e);
             }
         }
-        
+
         return list;
     }
-    
+
     /* ===================================================================================================== */
-    
+
     private String getFileExtension(String fn)
     {
         int dotIndex = fn.lastIndexOf('.');

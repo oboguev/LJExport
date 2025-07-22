@@ -1,11 +1,12 @@
 package my.LJExport.maintenance.handlers;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.jsoup.nodes.Node;
 
@@ -17,28 +18,22 @@ import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
+import my.LJExport.runtime.url.URLCodec;
 
-/*
- * Fix IMG.SRC and A.HREF links pointing to a directory.
- * If this directory has a single file, redirect the link to this file.
- * Adjust repository map file as well.
- * 
- * Execute AFTER ResolveLinkCaseDifferences.
- */
-public class FixDirectoryLinks extends MaintenanceHandler
+public class FixLongPaths extends MaintenanceHandler
 {
     private static boolean DryRun = true;
 
-    public FixDirectoryLinks() throws Exception
+    public FixLongPaths() throws Exception
     {
     }
 
     @Override
     protected void beginUsers() throws Exception
     {
-        Util.out(">>> Fix links pointing to directories");
-        super.beginUsers("Fix links pointing to directories");
-        txLog.writeLine(String.format("Executing FixDirectoryLinks in %s mode", DryRun ? "DRY" : "WET"));
+        Util.out(">>> Fix long file paths");
+        super.beginUsers("Fixing long file paths");
+        txLog.writeLine(String.format("Executing FixLongPaths in %s mode", DryRun ? "DRY" : "WET"));
     }
 
     @Override
@@ -53,6 +48,9 @@ public class FixDirectoryLinks extends MaintenanceHandler
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
     private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
+
+    private static final int MaxFilePath = 250;
+    private final int MaxRelativeFilePath = MaxFilePath - this.linkDirSep.length();
 
     @Override
     protected void beginUser() throws Exception
@@ -70,6 +68,21 @@ public class FixDirectoryLinks extends MaintenanceHandler
         build_lc2ac();
         updatedMap = false;
         loadLinkMapFile();
+
+        for (String path : file_lc2ac.keySet())
+        {
+            path = file_lc2ac.get(path);
+            if (path.length() >= MaxFilePath)
+                analyzeLongFilePath(path);
+        }
+
+        // ### build rename list
+        // ### save it to file unless aleady exists (KV)
+        // ### apply rename list to HTML
+        // ### enduser: apply rename list to renames
+        // ###          apply rename list to link map
+        // ###          save link map
+        // ### delete rename list file
     }
 
     @Override
@@ -84,6 +97,8 @@ public class FixDirectoryLinks extends MaintenanceHandler
             Util.writeToFileVerySafe(mapFilePath, content);
             txLog.writeLine("updated OK");
         }
+
+        // ### recursively remove empty dirs using dir_lc2ac.values() sorted by length
 
         txLog.writeLine("Completed user " + Config.User);
     }
@@ -140,11 +155,259 @@ public class FixDirectoryLinks extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
+    private void analyzeLongFilePath(String path) throws Exception
+    {
+        String rel = this.abs2rel(path);
+        String newrel = makeShorterFileRelativePath(rel);
+
+        // ### check for already existing newrel
+        // ### monitor collisions with added
+
+        Map<String, String> lc_newrel2path = new HashMap<>();
+
+        if (rel.equals(newrel))
+        {
+            Util.err("Cannot rename  " + rel);
+            Util.err("");
+        }
+        else
+        {
+            Util.out("Rename  " + rel);
+            Util.out("    to  " + newrel);
+            Util.out("");
+
+            String newabs = this.rel2abs(newrel);
+            File fp = new File(newabs).getCanonicalFile();
+            if (fp.exists() && !isSameFileContent(fp.getCanonicalPath(), path))
+            {
+                // throwException("File already exists and has different content: " + fp.getAbsolutePath());
+                Util.err("File already exists and has different content, old: " + path);
+                Util.err("                                               new: " + fp.getCanonicalPath());
+            }
+
+            if (lc_newrel2path.containsKey(newrel.toLowerCase()))
+            {
+                Util.err("File already exists (double rename), newrel: " + newrel);
+                Util.err("                                     path 1: " + lc_newrel2path.get(newrel.toLowerCase()));
+                Util.err("                                     path 2: " + path);
+            }
+
+            lc_newrel2path.put(newrel.toLowerCase(), path);
+        }
+    }
+
+    private String makeShorterFileRelativePath(String rel) throws Exception
+    {
+        String newrel = makeSaneRelativeUnixPath(rel, "/");
+        if (newrel.length() <= MaxRelativeFilePath)
+            return newrel;
+
+        String[] components = rel.split("/");
+        String host = components[0];
+        // String pc1 = components[0];
+        // String pc2 = components[1];
+        String pclast = components[components.length - 1];
+
+        if (isBotchedImgPrx(components))
+        {
+            String[] xc = new String[4];
+            xc[0] = components[0];
+            xc[1] = "@@@";
+
+            int folder = (int) (Math.random() * 100);
+            if (folder >= 100)
+                folder = 99;
+            xc[2] = String.format("x-%02d", folder);
+            xc[3] = pclast;
+            newrel = recompose(xc, "/");
+            if (newrel.length() <= MaxRelativeFilePath)
+                return newrel;
+        }
+
+        if (host.toLowerCase().endsWith(".yimg.com"))
+        {
+            String[] pcs = extractRemainderAfter(components, "http%3A");
+            if (pcs == null)
+                pcs = extractRemainderAfter(components, "https%3A");
+            if (pcs != null && pcs.length >= 1)
+                components = concat(host, pcs);
+        }
+
+        if (components.length >= 3)
+        {
+            String[] xc = new String[3];
+            xc[0] = components[0];
+            xc[1] = "@@@";
+            xc[2] = LinkDownloader.makeSanePathComponent(pclast);
+            newrel = recompose(xc, "/");
+            if (newrel.length() <= MaxRelativeFilePath)
+                return newrel;
+        }
+
+        if (components.length >= 3)
+        {
+            String[] xc = components.clone();
+            xc[xc.length - 1] = "x - " + Util.uuid();
+            
+            String ext = LinkDownloader.getFileExtension(pclast);
+            
+            if (ext == null && host.startsWith("sun") && host.endsWith(".userapi.com"))
+            {
+                URI uri = new URI(URLCodec.fullyDecodeMixed(pclast));
+                if (uri.getPath() != null)
+                    ext = LinkDownloader.getFileExtension(uri.getPath());
+            }
+            
+            if (ext != null)
+                xc[xc.length - 1] += "." + ext;
+            
+            newrel = recompose(xc, "/");
+            if (newrel.length() <= MaxRelativeFilePath)
+                return newrel;
+        }
+
+        // ###
+
+        return rel;
+    }
+
+    private String makeSaneRelativeUnixPath(String path, String separator) throws Exception
+    {
+        return makeSaneRelativeUnixPath(path.split(separator), separator);
+    }
+
+    private String makeSaneRelativeUnixPath(String[] components, String separator) throws Exception
+    {
+        StringBuilder path = new StringBuilder();
+
+        for (String x : components)
+        {
+            if (path.length() != 0)
+                path.append(separator);
+            path.append(LinkDownloader.makeSanePathComponent(x));
+        }
+
+        return path.toString();
+    }
+
+    private String recompose(String[] components, String separator) throws Exception
+    {
+        StringBuilder path = new StringBuilder();
+
+        for (String x : components)
+        {
+            if (path.length() != 0)
+                path.append(separator);
+            path.append(x);
+        }
+
+        return path.toString();
+    }
+
+    private boolean isBotchedImgPrx(String[] components)
+    {
+        if (!components[0].equals("imgprx.livejournal.net"))
+            return false;
+
+        for (int k = 1; k < components.length; k++)
+        {
+            String pc = components[k];
+            if (!pc.startsWith("x-") || !isLowercaseGuid(pc.substring(2)))
+                return false;
+        }
+
+        return true;
+    }
+
+    public static boolean isLowercaseGuid(String s)
+    {
+        if (s == null || s.length() != 32)
+            return false;
+
+        for (int i = 0; i < s.length(); i++)
+        {
+            char c = s.charAt(i);
+            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')))
+                return false;
+        }
+
+        return true;
+    }
+
+    // String[] tokens = {"A", "B", "BREAK", "C", "D"};
+    // String[] result = extractRemainderAfter(tokens, "BREAK");
+    // result is ["C", "D"]
+    public static String[] extractRemainderAfter(String[] tokens, String breaker)
+    {
+        if (tokens == null || breaker == null)
+            throw new NullPointerException("Arguments must not be null");
+
+        for (int i = 0; i < tokens.length; i++)
+        {
+            if (breaker.equals(tokens[i]))
+            {
+                int remainderLength = tokens.length - (i + 1);
+                if (remainderLength <= 0)
+                    return new String[0]; // no elements after breaker
+
+                String[] remainder = new String[remainderLength];
+                System.arraycopy(tokens, i + 1, remainder, 0, remainderLength);
+                return remainder;
+            }
+        }
+
+        return null; // breaker not found
+    }
+
+    private String[] concat(String[] sa1, String[] sa2)
+    {
+        if (sa1 == null || sa2 == null)
+            throw new NullPointerException("Arguments must not be null");
+
+        String[] result = new String[sa1.length + sa2.length];
+        System.arraycopy(sa1, 0, result, 0, sa1.length);
+        System.arraycopy(sa2, 0, result, sa1.length, sa2.length);
+        return result;
+    }
+
+    private String[] concat(String s, String[] sa)
+    {
+        if (s == null || sa == null)
+            throw new NullPointerException("Arguments must not be null");
+
+        String[] result = new String[1 + sa.length];
+        result[0] = s;
+        System.arraycopy(sa, 0, result, 1, sa.length);
+        return result;
+    }
+
+    private String[] concat(String[] sa, String s)
+    {
+        if (sa == null || s == null)
+            throw new NullPointerException("Arguments must not be null");
+
+        String[] result = new String[sa.length + 1];
+        System.arraycopy(sa, 0, result, 0, sa.length);
+        result[sa.length] = s;
+        return result;
+    }
+
+    /* ===================================================================================================== */
+
+    @Override
+    protected boolean onEnumFiles(String which, List<String> enumeratedFiles)
+    {
+        return false;
+    }
+
     @Override
     protected void processHtmlFile(String fullHtmlFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
             List<Node> pageFlat) throws Exception
     {
         super.processHtmlFile(fullHtmlFilePath, relativeFilePath, parser, pageFlat);
+
+        if (Util.True)
+            return;
 
         boolean updated = false;
 
@@ -190,77 +453,6 @@ public class FixDirectoryLinks extends MaintenanceHandler
             if (ac != null && !ac.equals(linkInfo.linkFullFilePath))
                 throwException("Mismatching link case");
 
-            if (ac != null && Config.User.equals("colonelcassad"))
-            {
-                String ac2 = file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase() + "_xxx.jpeg");
-                if (ac2 != null)
-                {
-                    redirect_dir2file(fullHtmlFilePath, n, tag, attr, href, href_original, ac2);
-                    updated = true;
-                    continue;
-                }
-            }
-
-            if (ac == null)
-            {
-                String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
-                        Config.User, href_original, linkInfo.linkFullFilePath);
-
-                boolean allow = Config.User.equals("d_olshansky");
-
-                if (DryRun || allow)
-                {
-                    trace(msg);
-                    continue;
-                }
-                else
-                {
-                    throwException(msg);
-                }
-            }
-
-            File fp = new File(linkInfo.linkFullFilePath).getCanonicalFile();
-            AtomicReference<String> onlyFile = new AtomicReference<>();
-            int count = countContainedFiles(fp, onlyFile);
-
-            StringBuilder sb = new StringBuilder();
-            sb.append(String.format("Detected [%s] %s.%s => [%d %s] %s" + nl,
-                    Config.User, tag, attr, count, count == 1 ? "child" : "children", linkInfo.linkFullFilePath));
-            trace(sb.toString());
-
-            if (count != 1)
-            {
-                if (!DryRun)
-                    throwException("Multiple files in linked directory " + linkInfo.linkFullFilePath);
-                trace("Multiple files in linked directory " + linkInfo.linkFullFilePath);
-                continue;
-            }
-
-            if (count == 1)
-            {
-                /*
-                 * Fix link
-                 */
-                String newref = href + "/" + onlyFile.get();
-                updateLinkAttribute(n, attr, newref);
-                updated = true;
-
-                txLog.writeLine(changeMessage(tag, attr, href_original, newref));
-                trace(changeMessage(tag, attr, href_original, newref));
-
-                String rel = href2rel(href, fullHtmlFilePath);
-                String rel_original = href2rel(href_original, fullHtmlFilePath);
-                String newrel = href2rel(newref, fullHtmlFilePath);
-
-                alreadyRenamed.put(rel.toLowerCase(), newrel);
-                alreadyRenamed.put(rel_original.toLowerCase(), newrel);
-
-                /*
-                 * Fix map
-                 */
-                changeLinksMap(href_original, newref, true, fullHtmlFilePath);
-                changeLinksMap(href, newref, false, fullHtmlFilePath);
-            }
         }
 
         return updated;
@@ -397,23 +589,11 @@ public class FixDirectoryLinks extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
-    private int countContainedFiles(File fp, AtomicReference<String> onlyFile)
+    private boolean isSameFileContent(String fp1, String fp2) throws Exception
     {
-        int count = 0;
-
-        for (File fpx : fp.listFiles())
-        {
-            if (fpx.isFile())
-            {
-                onlyFile.set(fpx.getName());
-                count++;
-            }
-        }
-
-        if (count != 1)
-            onlyFile.set(null);
-
-        return count;
+        byte[] ba1 = Util.readFileAsByteArray(fp1);
+        byte[] ba2 = Util.readFileAsByteArray(fp2);
+        return Arrays.equals(ba1, ba2);
     }
 
     private void trace(String msg)

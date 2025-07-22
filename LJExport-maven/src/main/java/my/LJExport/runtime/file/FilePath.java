@@ -144,7 +144,7 @@ public class FilePath
                     String px = path.toAbsolutePath().toString();
                     String rx = result.toAbsolutePath().toString();
                     if (!px.equalsIgnoreCase(rx))
-                        throw new Exception("Internal consistencey check failed");
+                        throw new RuntimeException("Internal consistencey check failed");
 
                     return result;
                 }

@@ -27,6 +27,10 @@ import my.LJExport.runtime.links.LinkDownloader;
  */
 public class LowercaseLinks extends MaintenanceHandler
 {
+    public LowercaseLinks() throws Exception
+    {
+    }
+
     @Override
     protected void beginUsers() throws Exception
     {
@@ -37,7 +41,7 @@ public class LowercaseLinks extends MaintenanceHandler
              */
             throw new Exception("DO NOT USE");
         }
-        
+
         Util.out(">>> Lowercasing link file paths and names");
         super.beginUsers("Lowercasing link file paths and names");
     }
@@ -70,17 +74,17 @@ public class LowercaseLinks extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, "img"))
         {
             String href = getLinkAttribute(n, "src");
-            
+
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
-            
+
             LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
             if (linkInfo != null)
             {
                 String lc = href.toLowerCase();
                 if (!lc.equals(href))
                 {
-                    updateLinkAttribute(n, "src", lc); 
+                    updateLinkAttribute(n, "src", lc);
                     update = true;
                 }
             }
@@ -89,10 +93,10 @@ public class LowercaseLinks extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, "a"))
         {
             String href = getLinkAttribute(n, "href");
-            
+
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
-            
+
             LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
             if (linkInfo != null)
             {
@@ -176,10 +180,10 @@ public class LowercaseLinks extends MaintenanceHandler
         sb.append("                  via " + tname);
         txLog.writeLine(sb.toString());
 
-        trace(String.format("Renaming LinksDir file %s => %s", 
-                new File(indir, fn).toPath().toString(), 
+        trace(String.format("Renaming LinksDir file %s => %s",
+                new File(indir, fn).toPath().toString(),
                 new File(indir, lcfn).toPath().toString()));
-        
+
         Files.move(new File(indir, fn).toPath(), new File(indir, tname).toPath(), StandardCopyOption.ATOMIC_MOVE);
         Files.move(new File(indir, tname).toPath(), new File(indir, lcfn).toPath(), StandardCopyOption.ATOMIC_MOVE);
         txLog.writeLine("renamed OK");
@@ -193,7 +197,7 @@ public class LowercaseLinks extends MaintenanceHandler
         boolean update = false;
 
         List<LinkMapEntry> list = FileBackedMap.readMapFile(mapFilePath);
-        
+
         for (LinkMapEntry e : list)
         {
             String lc = e.value.toLowerCase();
@@ -204,7 +208,7 @@ public class LowercaseLinks extends MaintenanceHandler
                 update = true;
             }
         }
-        
+
         if (update)
         {
             txLog.writeLine("updating links map " + mapFilePath);
@@ -213,7 +217,7 @@ public class LowercaseLinks extends MaintenanceHandler
             txLog.writeLine("updated OK");
         }
     }
-    
+
     private void trace(String msg)
     {
         Util.err(msg);

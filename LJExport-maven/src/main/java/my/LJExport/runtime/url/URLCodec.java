@@ -133,6 +133,23 @@ public class URLCodec
     {
         return (Character.digit(high, 16) << 4) | Character.digit(low, 16);
     }
+    
+    public static String fullyDecodeMixed(String fn) throws Exception
+    {
+        final int maxIterations = 10;
+        
+        String prev = fn;
+        
+        for (int i = 0; i < maxIterations; i++)
+        {
+            String decoded = decodeMixed(fn);
+            if (decoded.equals(prev))
+                return decoded; // converged
+            prev = decoded;
+        }
+
+        throw new IllegalStateException("Decoding did not converge within limit");
+    }
 
     /* ================================================================================= */
 

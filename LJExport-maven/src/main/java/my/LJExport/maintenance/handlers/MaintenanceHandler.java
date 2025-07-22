@@ -16,11 +16,11 @@ import my.LJExport.runtime.links.RelativeLink;
 
 public abstract class MaintenanceHandler extends Maintenance
 {
-    protected final String userDir = Config.DownloadRoot + File.separator + Config.User;
-    protected final String linkDir = userDir + File.separator + "links";
-    protected final String linkDirSep = linkDir + File.separator;
+    protected final String userDir = isEmpty(Config.User) ? null : FilePath.getFilePathActualCase(Config.DownloadRoot + File.separator + Config.User);
+    protected final String linkDir = isEmpty(Config.User) ? null : FilePath.getFilePathActualCase(userDir + File.separator + "links");
+    protected final String linkDirSep = isEmpty(Config.User) ? null : linkDir + File.separator;
     protected final List<String> validNonLinkRoots = validNonLinkRoots();
-
+    
     private static final String FileProtocol = "file://";
 
     protected static class LinkInfo
@@ -28,6 +28,10 @@ public abstract class MaintenanceHandler extends Maintenance
         public String linkFullFilePath;
         public String linkRelativeFilePath;
         public String linkRelativeUnixPath;
+    }
+    
+    public MaintenanceHandler() throws Exception
+    {
     }
 
     protected LinkInfo linkInfo(String fullHtmlFilePath, String href)
@@ -95,8 +99,11 @@ public abstract class MaintenanceHandler extends Maintenance
 
     private List<String> validNonLinkRoots()
     {
-        List<String> list = new ArrayList<>();
+        if (isEmpty(Config.User))
+            return null;
 
+        List<String> list = new ArrayList<>();
+        
         list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "profile");
         list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "pages");
         list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "reposts");
@@ -199,5 +206,10 @@ public abstract class MaintenanceHandler extends Maintenance
     {
         String href = RelativeLink.fileRelativeLink(abs, fullHtmlFilePath, this.userDir);
         return href;
+    }
+    
+    private static boolean isEmpty(String s)
+    {
+        return s == null || s.isEmpty();
     }
 }

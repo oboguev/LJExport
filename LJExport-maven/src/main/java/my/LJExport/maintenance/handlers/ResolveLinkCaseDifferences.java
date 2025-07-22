@@ -32,6 +32,10 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 {
     private static boolean DryRun = true;
 
+    public ResolveLinkCaseDifferences() throws Exception
+    {
+    }
+
     @Override
     protected void beginUsers() throws Exception
     {
@@ -91,7 +95,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         for (LinkMapEntry e : list)
         {
             String relpath = e.value;
-            
+
             if (isArchiveOrg())
             {
                 while (relpath.startsWith("/"))
@@ -186,7 +190,7 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
             if (href == null)
                 continue;
-            
+
             if (isArchiveOrg())
             {
                 /* ignore bad links due to former bug in archive loader */

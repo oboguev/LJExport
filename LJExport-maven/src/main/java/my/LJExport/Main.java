@@ -249,9 +249,9 @@ public class Main
                 Calendar.Records = removeExistingRecords(Calendar.Records);
             }
             
-            if (Util.True)
+            if (Util.False)
             {
-                // ###
+                // for testing
                 Calendar.Records.clear();
                 Calendar.Records.add("827312.html");
             }

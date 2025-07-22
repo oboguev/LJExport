@@ -136,11 +136,6 @@ public class LinkDownloader
 
         String href = name_href;
 
-        if (Util.True && href.contains("imgprx.livejournal.net/"))
-        {
-            Util.noop(); // ###
-        }
-
         try
         {
             // avoid HTTPS certificate problem
@@ -692,6 +687,9 @@ public class LinkDownloader
 
     /* ======================================================================== */
 
+    private static final int MaxFilePathComponentLength = 90;
+    private static final int MaxFilePathLentgh = 230;
+
     private String buildFilePath(String linksDir, String href) throws Exception
     {
         URL url = new URL(href);
@@ -765,10 +763,38 @@ public class LinkDownloader
             }
         }
 
-        return path.toString();
-    }
+        String result = path.toString();
 
-    private static final int MaxPathComponentLength = 80;
+        if (result.length() >= MaxFilePathLentgh)
+        {
+            sb = list.get(0);
+            list.clear();
+            list.add(sb);
+
+            list.add(new StringBuilder("@@@"));
+            
+            int folder = (int) (Math.random() * 100);
+            if (folder >= 100)
+                folder = 99;
+            list.add(new StringBuilder(String.format("x-%02d", folder)));
+            
+            list.add(sb = new StringBuilder("x-" + Util.uuid()));
+
+            // ### add extension
+
+            path = new StringBuilder();
+            for (StringBuilder x : list)
+            {
+                if (path.length() != 0)
+                    path.append(File.separator);
+                path.append(x.toString());
+            }
+
+            result = path.toString();
+        }
+
+        return result;
+    }
 
     private String makeSanePathComponent(String component) throws Exception
     {
@@ -797,7 +823,7 @@ public class LinkDownloader
         /*
          * If name is too long
          */
-        if (fn.length() > MaxPathComponentLength)
+        if (fn.length() > MaxFilePathComponentLength)
         {
             String ext = getFileExtension(fn);
             if (ext == null || ext.length() == 0 || ext.length() > 4)

@@ -23,6 +23,11 @@ public class FixUnencodedLinks extends MaintenanceHandler
 {
     private static boolean DryRun = true;
 
+    private static int NScannedLinks = 0;
+    private static int NCorrectLinks = 0;
+    private static int NFixableLinks = 0;
+    private static int NDanglingLinks = 0;
+
     public FixUnencodedLinks() throws Exception
     {
     }
@@ -39,6 +44,15 @@ public class FixUnencodedLinks extends MaintenanceHandler
     protected void endUsers() throws Exception
     {
         super.endUsers();
+
+        Util.out("");
+        Util.out("FixUnencodedLinks summary:");
+        Util.out("");
+        Util.out("  Scanned links: " + NScannedLinks);
+        Util.out("  Correct links: " + NCorrectLinks);
+        Util.out("  Fixable links: " + NFixableLinks);
+        Util.out(  "Dangling links: " + NDanglingLinks);
+        Util.out("");
     }
 
     private Map<String, String> rel_filedir_lc2ac = new HashMap<>();
@@ -105,9 +119,11 @@ public class FixUnencodedLinks extends MaintenanceHandler
                 if (href_raw.startsWith("../") && href_raw.endsWith("/links/null"))
                     continue;
             }
-            
+
             if (!href_raw.contains("../links/"))
                 continue;
+
+            NScannedLinks++;
 
             /*
              * Check if decoded value points to a file, then everything is fine
@@ -118,7 +134,10 @@ public class FixUnencodedLinks extends MaintenanceHandler
             {
                 String rel = href2rel(decoded_href, fullHtmlFilePath);
                 if (rel_exists(rel))
+                {
+                    NCorrectLinks++;
                     continue;
+                }
             }
 
             /*
@@ -165,6 +184,7 @@ public class FixUnencodedLinks extends MaintenanceHandler
             }
 
             danglingLinkMessage(href_raw, fullHtmlFilePath, tag, attr);
+            NDanglingLinks++;
         }
 
         return updated;
@@ -177,11 +197,15 @@ public class FixUnencodedLinks extends MaintenanceHandler
     {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("Changing [%s] HTML %s.%s from  %s" + nl, Config.User, tag, attr, href_raw));
-        sb.append(String.format("          %s       %s %s   to  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), href_replacement));
-        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), fullHtmlFilePath));
+        sb.append(String.format("          %s       %s %s   to  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr),
+                href_replacement));
+        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr),
+                fullHtmlFilePath));
 
         trace(sb.toString());
         Util.out(sb.toString());
+
+        NFixableLinks++;
     }
 
     private void danglingLinkMessage(String href_raw, String fullHtmlFilePath, String tag, String attr)
@@ -189,7 +213,8 @@ public class FixUnencodedLinks extends MaintenanceHandler
     {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("Dangling [%s] HTML %s.%s link  %s" + nl, Config.User, tag, attr, href_raw));
-        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), fullHtmlFilePath));
+        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr),
+                fullHtmlFilePath));
 
         trace(sb.toString());
         Util.err(sb.toString());

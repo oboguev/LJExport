@@ -9,12 +9,12 @@ import my.LJExport.runtime.url.URLCodec;
 public class ShortFilePath
 {
     private final int MaxRelativeFilePath;
-    
+
     public ShortFilePath(int MaxRelativeFilePath)
     {
         this.MaxRelativeFilePath = MaxRelativeFilePath;
     }
-    
+
     public String makeShorterFileRelativePath(String rel) throws Exception
     {
         String[] components = rel.split("/");
@@ -159,9 +159,9 @@ public class ShortFilePath
             if (newrel.length() <= MaxRelativeFilePath)
                 return newrel;
         }
-        
+
         throwException("Unable to shorten file path using employed methods: " + rel);
-        
+
         return null;
     }
 
@@ -230,6 +230,7 @@ public class ShortFilePath
         if (ext == null)
         {
             URI uri = null;
+            
             try
             {
                 uri = new URI(URLCodec.fullyDecodeMixed(pclast));
@@ -238,6 +239,7 @@ public class ShortFilePath
             {
                 // disregard
             }
+            
             if (uri != null && uri.getPath() != null)
                 ext = LinkDownloader.getFileExtension(uri.getPath());
         }
@@ -371,5 +373,40 @@ public class ShortFilePath
     private void throwException(String msg) throws Exception
     {
         throw new Exception(msg);
+    }
+
+    /* ===================================================================================== */
+
+    public String makeShorterFileRelativePathAfterCollision(String rel) throws Exception
+    {
+        String[] components = rel.split("/");
+
+        String host = components[0];
+
+        for (int k = 1; k < components.length; k++)
+            components[k] = URLCodec.fullyDecodeMixed(components[k]);
+
+        // String pc1 = components.length <= 1 ? null : components[1];
+        // String pc2 = components.length <= 2 ? null : components[2];
+        // String pc3 = components.length <= 3 ? null : components[3];
+        String pclast = components[components.length - 1];
+
+        String newrel = null;
+
+        if (components.length >= 3)
+        {
+            String[] xc = new String[3];
+            xc[0] = host;
+            xc[1] = "@@@";
+            xc[2] = "x - " + Util.uuid();
+            reapplyExtension(xc, pclast);
+            newrel = recompose(xc, "/");
+            if (newrel.length() <= MaxRelativeFilePath)
+                return newrel;
+        }
+
+        throwException("Unable to shorten file path using employed methods: " + rel);
+
+        return null;
     }
 }

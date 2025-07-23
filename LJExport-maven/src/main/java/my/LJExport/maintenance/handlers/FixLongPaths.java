@@ -261,9 +261,9 @@ public class FixLongPaths extends MaintenanceHandler
 
             if (!good)
             {
-                // ### regenerate newrel
+                // regenerate newrel
+                newrel = sfp.makeShorterFileRelativePathAfterCollision(rel);
             }
-
         }
         while (!good);
 

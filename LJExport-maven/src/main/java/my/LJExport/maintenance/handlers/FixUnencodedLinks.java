@@ -105,6 +105,9 @@ public class FixUnencodedLinks extends MaintenanceHandler
                 if (href_raw.startsWith("../") && href_raw.endsWith("/links/null"))
                     continue;
             }
+            
+            if (!href_raw.contains("../links/"))
+                continue;
 
             /*
              * Check if decoded value points to a file, then everything is fine

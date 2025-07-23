@@ -207,6 +207,13 @@ public class FixFileExtensions extends MaintenanceHandler
 
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
+            
+            if (isArchiveOrg())
+            {
+                /* ignore bad links due to former bug in archive loader */
+                if (href.startsWith("../") && href.endsWith("/links/null"))
+                    continue;
+            }
 
             if (handleAlreadyRenamed(href, href_original, fullHtmlFilePath, n, tag, attr))
             {

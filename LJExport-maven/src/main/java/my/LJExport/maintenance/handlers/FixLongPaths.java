@@ -484,11 +484,13 @@ public class FixLongPaths extends MaintenanceHandler
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
             
-            if (href_raw.contains("static-2.rosminzdrav.ru/"))
+            if (isArchiveOrg())
             {
-                Util.noop(); // ###
+                /* ignore bad links due to former bug in archive loader */
+                if (href.startsWith("../") && href.endsWith("/links/null"))
+                    continue;
             }
-
+            
             if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href))
             {
                 String rel = href2rel(href, fullHtmlFilePath);

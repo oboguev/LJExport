@@ -161,7 +161,7 @@ public class FixUnencodedLinks extends MaintenanceHandler
                 }
             }
 
-            // ### dangling link
+            danglingLinkMessage(href_raw, fullHtmlFilePath, tag, attr);
         }
 
         return updated;
@@ -174,13 +174,22 @@ public class FixUnencodedLinks extends MaintenanceHandler
     {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("Changing [%s] HTML %s.%s from  %s" + nl, Config.User, tag, attr, href_raw));
-        sb.append(String.format("          %s       %s %s   to  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr),
-                href_replacement));
-        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr),
-                fullHtmlFilePath));
+        sb.append(String.format("          %s       %s %s   to  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), href_replacement));
+        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), fullHtmlFilePath));
 
         trace(sb.toString());
         Util.out(sb.toString());
+    }
+
+    private void danglingLinkMessage(String href_raw, String fullHtmlFilePath, String tag, String attr)
+            throws Exception
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Dangling [%s] HTML %s.%s link  %s" + nl, Config.User, tag, attr, href_raw));
+        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), fullHtmlFilePath));
+
+        trace(sb.toString());
+        Util.err(sb.toString());
     }
 
     private void trace(String msg) throws Exception

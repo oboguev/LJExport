@@ -180,6 +180,17 @@ public class URLCodec
     {
         return encodeReserved(s, FILESYS_RESERVED_CHARS);
     }
+    
+    public static boolean containsFilesysReservedChars(String s)
+    {
+        for (char c : FILESYS_RESERVED_CHARS.toCharArray())
+        {
+            if (s.contains("" + c))
+                return true;
+        }
+        
+        return false;
+    }
 
     private static final String FILESYS_RESERVED_CHARS = "|\\/:*?\"<>";
 }

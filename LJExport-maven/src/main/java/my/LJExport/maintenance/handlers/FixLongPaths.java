@@ -23,10 +23,17 @@ import my.LJExport.runtime.file.KVFile;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.url.URLCodec;
 
 public class FixLongPaths extends MaintenanceHandler
 {
+    static enum FixPhase
+    {
+        GenerateRenames, RelocateLinksMap, FixHtmlPages
+    }
+
     private static boolean DryRun = true;
+    private static FixPhase phase = FixPhase.FixHtmlPages;
 
     public FixLongPaths() throws Exception
     {
@@ -112,16 +119,19 @@ public class FixLongPaths extends MaintenanceHandler
         updatedMap = false;
         loadLinkMapFile();
 
-        applyRenamesToLinkMap();
-
-        if (updatedMap && !DryRun)
+        if (phase == FixPhase.RelocateLinksMap)
         {
-            String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+            applyRenamesToLinkMap();
 
-            txLog.writeLine("updating links map " + mapFilePath);
-            String content = FileBackedMap.recomposeMapFile(linkMapEntries);
-            Util.writeToFileVerySafe(mapFilePath, content);
-            txLog.writeLine("updated OK");
+            if (updatedMap && !DryRun)
+            {
+                String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+
+                txLog.writeLine("updating links map " + mapFilePath);
+                String content = FileBackedMap.recomposeMapFile(linkMapEntries);
+                Util.writeToFileVerySafe(mapFilePath, content);
+                txLog.writeLine("updated OK");
+            }
         }
     }
 
@@ -200,6 +210,9 @@ public class FixLongPaths extends MaintenanceHandler
                 return list;
             }
         }
+
+        if (phase != FixPhase.GenerateRenames)
+            throwException("Rename insrtuctions have not been pre-generated");
 
         Util.out("Generating rename instructions");
         trace("Generating rename instructions");
@@ -384,7 +397,7 @@ public class FixLongPaths extends MaintenanceHandler
     private void applyRenamesToLinkMap(String src, String dst) throws Exception
     {
         List<LinkMapEntry> entries = relpath2entry.get(src.toLowerCase());
-        
+
         if (entries != null)
         {
             for (LinkMapEntry e : entries)
@@ -412,7 +425,7 @@ public class FixLongPaths extends MaintenanceHandler
     @Override
     protected boolean onEnumFiles(String which, List<String> enumeratedFiles)
     {
-        return false; // ###
+        return phase == FixPhase.FixHtmlPages;
     }
 
     @Override
@@ -446,41 +459,92 @@ public class FixLongPaths extends MaintenanceHandler
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
 
-            String rel = this.href2abs(href, fullHtmlFilePath);
-            String rel_raw = this.href2abs(href_raw, fullHtmlFilePath);
-
-            String newrel = renames_lc_old2new.get(rel.toLowerCase());
-            if (newrel != null)
+            if (!URLCodec.containsFilesysReservedChars(href))
             {
-                String newref = this.rel2href(newrel, fullHtmlFilePath);
-                updateLinkAttribute(n, attr, newref);
-                updated = true;
-
-                String msg = changeMessage(tag, attr, href, newref);
-                trace(msg);
-
-                continue;
+                String rel = this.href2abs(href, fullHtmlFilePath);
+                if (tryChange(rel, href, n, tag, attr, fullHtmlFilePath))
+                {
+                    updated = true;
+                    continue;
+                }
             }
 
-            newrel = renames_lc_old2new.get(rel_raw.toLowerCase());
-            if (newrel != null)
+            String href2 = URLCodec.encode(href).replace("%2F", "/");
+            if (!URLCodec.containsFilesysReservedChars(href2))
             {
-                Util.err("Unencoded HREF in " + fullHtmlFilePath);
-                Util.noop(); // ###
-
-                if (Util.False)
+                String rel2 = this.href2abs(href2, fullHtmlFilePath);
+                if (tryChange(rel2, href, n, tag, attr, fullHtmlFilePath))
                 {
-                    String newref = this.rel2href(newrel, fullHtmlFilePath);
-                    updateLinkAttribute(n, attr, newref);
                     updated = true;
+                    continue;
+                }
+            }
 
-                    String msg = changeMessage(tag, attr, href, newref);
-                    trace(msg);
+            String href3 = URLCodec.encodeFilename(href).replace("%2F", "/");
+            if (!URLCodec.containsFilesysReservedChars(href3))
+            {
+                String rel3 = this.href2abs(href3, fullHtmlFilePath);
+                if (tryChange(rel3, href, n, tag, attr, fullHtmlFilePath))
+                {
+                    updated = true;
+                    continue;
+                }
+            }
+
+            if (!URLCodec.containsFilesysReservedChars(href_raw))
+            {
+                String rel_raw = this.href2abs(href_raw, fullHtmlFilePath);
+                if (tryChange(rel_raw, href_raw, n, tag, attr, fullHtmlFilePath))
+                {
+                    updated = true;
+                    continue;
+                }
+            }
+
+            href2 = URLCodec.encode(href_raw).replace("%2F", "/");
+            if (!URLCodec.containsFilesysReservedChars(href2))
+            {
+                String rel2 = this.href2abs(href2, fullHtmlFilePath);
+                if (tryChange(rel2, href_raw, n, tag, attr, fullHtmlFilePath))
+                {
+                    updated = true;
+                    continue;
+                }
+            }
+
+            href3 = URLCodec.encodeFilename(href_raw).replace("%2F", "/");
+            if (!URLCodec.containsFilesysReservedChars(href3))
+            {
+                String rel3 = this.href2abs(href3, fullHtmlFilePath);
+                if (tryChange(rel3, href_raw, n, tag, attr, fullHtmlFilePath))
+                {
+                    updated = true;
+                    continue;
                 }
             }
         }
 
         return updated;
+    }
+
+    private boolean tryChange(String rel, String href, Node n, String tag, String attr, String fullHtmlFilePath) throws Exception
+    {
+        String newrel = renames_lc_old2new.get(rel.toLowerCase());
+
+        if (newrel != null)
+        {
+            String newref = this.rel2href(newrel, fullHtmlFilePath);
+            updateLinkAttribute(n, attr, newref);
+
+            String msg = changeMessage(tag, attr, href, newref);
+            trace(msg);
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     private String changeMessage(String tag, String attr, String href_original, String newref)

@@ -77,6 +77,13 @@ public abstract class MaintenanceHandler extends Maintenance
         return href;
     }
 
+    protected String getLinkAttributeUndecoded(Node n, String name) throws Exception
+    {
+        String href = JSOUP.getAttribute(n, name);
+        href = preprocesHref(href);
+        return href;
+    }
+
     protected void updateLinkAttribute(Node n, String attrname, String newref) throws Exception
     {
         JSOUP.updateAttribute(n, attrname, LinkDownloader.encodePathComponents(newref));

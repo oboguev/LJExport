@@ -23,7 +23,6 @@ import my.LJExport.runtime.file.KVFile;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.links.RelativeLink;
 
 public class FixLongPaths extends MaintenanceHandler
 {
@@ -49,11 +48,14 @@ public class FixLongPaths extends MaintenanceHandler
 
     private Map<String, String> file_lc2ac = new HashMap<>();
     private Map<String, String> dir_lc2ac = new HashMap<>();
+
     private boolean updatedMap = false;
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
-    private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
+
     private List<KVEntry> renames = null;
+    private Map<String, String> renames_old2new = new HashMap<>();
+    private Map<String, String> renames_lc_old2new = new HashMap<>();
 
     private static final int MaxFilePath = 245;
     private final int MaxRelativeFilePath = MaxFilePath - linkDirSep.length();
@@ -61,7 +63,8 @@ public class FixLongPaths extends MaintenanceHandler
     @Override
     protected void beginUser() throws Exception
     {
-        txLog.writeLine(String.format("Beginning FixLongPaths in %s mode for user", DryRun ? "DRY" : "WET", Config.User));
+        txLog.writeLine(String.format("Beginning FixLongPaths in %s mode for user %s", DryRun ? "DRY" : "WET", Config.User));
+        trace(String.format("Beginning FixLongPaths in %s mode for user %s", DryRun ? "DRY" : "WET", Config.User));
 
         /* clear for new user */
         file_lc2ac = new HashMap<>();
@@ -69,7 +72,9 @@ public class FixLongPaths extends MaintenanceHandler
         updatedMap = false;
         linkMapEntries = null;
         relpath2entry = null;
-        alreadyRenamed = new HashMap<>(); // rel -> rel
+        renames = null;
+        renames_old2new = new HashMap<>();
+        renames_lc_old2new = new HashMap<>();
 
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
@@ -78,6 +83,7 @@ public class FixLongPaths extends MaintenanceHandler
 
         build_lc2ac();
         renames = prepareRenames();
+        mapRenames();
 
         if (!DryRun)
         {
@@ -105,10 +111,8 @@ public class FixLongPaths extends MaintenanceHandler
 
         updatedMap = false;
         loadLinkMapFile();
-        
-        applyRenamesToLinkMap();
 
-        // ### apply rename list to HTML
+        applyRenamesToLinkMap();
 
         if (updatedMap && !DryRun)
         {
@@ -124,7 +128,8 @@ public class FixLongPaths extends MaintenanceHandler
     @Override
     protected void endUser() throws Exception
     {
-        txLog.writeLine(String.format("Completed FixLongPaths in %s mode for user", DryRun ? "DRY" : "WET", Config.User));
+        txLog.writeLine(String.format("Completed FixLongPaths in %s mode for user %s", DryRun ? "DRY" : "WET", Config.User));
+        trace(String.format("Completed FixLongPaths in %s mode for user %s", DryRun ? "DRY" : "WET", Config.User));
     }
 
     /* ===================================================================================================== */
@@ -313,6 +318,15 @@ public class FixLongPaths extends MaintenanceHandler
         return newrel;
     }
 
+    private void mapRenames() throws Exception
+    {
+        for (KVEntry e : renames)
+        {
+            renames_old2new.put(e.key, e.value);
+            renames_lc_old2new.put(e.key.toLowerCase(), e.value);
+        }
+    }
+
     /* ===================================================================================================== */
 
     private void executeRenames(List<KVEntry> renames) throws Exception
@@ -340,23 +354,25 @@ public class FixLongPaths extends MaintenanceHandler
             }
             catch (Exception ex)
             {
-                Util.out("Rename failed: " + ex.getLocalizedMessage());
+                Util.err("Rename failed: " + ex.getLocalizedMessage());
                 trace("Rename failed: " + ex.getLocalizedMessage());
                 throwException("Rename failed", ex);
             }
+
+            trace("Renamed OK");
         }
     }
 
     private void executeRename(String src, String dst) throws Exception
     {
         File fp = new File(src).getCanonicalFile();
-        
+
         byte[] ba = Util.readFileAsByteArray(src);
         Util.writeToFileSafe(dst, ba);
-        
+
         Files.delete(fp.toPath());
     }
-    
+
     /* ===================================================================================================== */
 
     private void applyRenamesToLinkMap() throws Exception
@@ -364,19 +380,22 @@ public class FixLongPaths extends MaintenanceHandler
         for (KVEntry e : renames)
             applyRenamesToLinkMap(e.key, e.value);
     }
-    
+
     private void applyRenamesToLinkMap(String src, String dst) throws Exception
     {
         List<LinkMapEntry> entries = relpath2entry.get(src.toLowerCase());
         
-        for (LinkMapEntry e : entries)
+        if (entries != null)
         {
-            e.value = dst;
-            updatedMap = true;
+            for (LinkMapEntry e : entries)
+            {
+                e.value = dst;
+                updatedMap = true;
+            }
         }
-        
+
         // if not in the map, add to the map using reconstructed original path
-        if (entries.size() == 0)
+        if (entries == null || entries.size() == 0)
         {
             ShortFilePath sfp = new ShortFilePath(MaxRelativeFilePath);
             String url = sfp.reconstructURL(src);
@@ -387,13 +406,13 @@ public class FixLongPaths extends MaintenanceHandler
             }
         }
     }
-    
+
     /* ===================================================================================================== */
 
     @Override
     protected boolean onEnumFiles(String which, List<String> enumeratedFiles)
     {
-        return false;
+        return false; // ###
     }
 
     @Override
@@ -401,9 +420,6 @@ public class FixLongPaths extends MaintenanceHandler
             List<Node> pageFlat) throws Exception
     {
         super.processHtmlFile(fullHtmlFilePath, relativeFilePath, parser, pageFlat);
-
-        if (Util.True)
-            return;
 
         boolean updated = false;
 
@@ -425,154 +441,46 @@ public class FixLongPaths extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
             String href = getLinkAttribute(n, attr);
-            String href_original = href;
+            String href_raw = getLinkAttributeUndecoded(n, attr);
 
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
 
-            if (handleAlreadyRenamed(href, href_original, fullHtmlFilePath, n, tag, attr))
+            String rel = this.href2abs(href, fullHtmlFilePath);
+            String rel_raw = this.href2abs(href_raw, fullHtmlFilePath);
+
+            String newrel = renames_lc_old2new.get(rel.toLowerCase());
+            if (newrel != null)
             {
+                String newref = this.rel2href(newrel, fullHtmlFilePath);
+                updateLinkAttribute(n, attr, newref);
                 updated = true;
+
+                String msg = changeMessage(tag, attr, href, newref);
+                trace(msg);
+
                 continue;
             }
 
-            LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
-            if (linkInfo == null)
-                continue;
+            newrel = renames_lc_old2new.get(rel_raw.toLowerCase());
+            if (newrel != null)
+            {
+                Util.err("Unencoded HREF in " + fullHtmlFilePath);
+                Util.noop(); // ###
 
-            // regular file?
-            if (null != file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase()))
-                continue;
+                if (Util.False)
+                {
+                    String newref = this.rel2href(newrel, fullHtmlFilePath);
+                    updateLinkAttribute(n, attr, newref);
+                    updated = true;
 
-            String ac = dir_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
-
-            if (ac != null && !ac.equals(linkInfo.linkFullFilePath))
-                throwException("Mismatching link case");
-
+                    String msg = changeMessage(tag, attr, href, newref);
+                    trace(msg);
+                }
+            }
         }
 
         return updated;
-    }
-
-    private boolean handleAlreadyRenamed(String href, String href_original, String fullHtmlFilePath, Node n, String tag,
-            String attr) throws Exception
-    {
-        String rel = href2rel(href, fullHtmlFilePath);
-        String rel_original = href2rel(href_original, fullHtmlFilePath);
-
-        String newrel = this.alreadyRenamed.get(rel.toLowerCase());
-        if (newrel == null)
-            newrel = this.alreadyRenamed.get(rel_original.toLowerCase());
-
-        if (newrel != null)
-        {
-            String newref = rel2href(newrel, fullHtmlFilePath);
-            updateLinkAttribute(n, attr, newref);
-
-            txLog.writeLine(changeMessage(tag, attr, href_original, newref));
-            trace(changeMessage(tag, attr, href_original, newref));
-
-            changeLinksMap(href_original, newref, false, fullHtmlFilePath);
-            changeLinksMap(href, newref, false, fullHtmlFilePath);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private void changeLinksMap(String href, String newref, boolean required, String fullHtmlFilePath) throws Exception
-    {
-        String rel = href2rel(href, fullHtmlFilePath);
-        String newrel = href2rel(newref, fullHtmlFilePath);
-
-        List<LinkMapEntry> list = relpath2entry.get(rel.toLowerCase());
-        if (list == null || list.size() == 0)
-        {
-            if (required)
-                throwException("Old link is missing in the map");
-        }
-        else
-        {
-            for (LinkMapEntry e : list)
-            {
-                if (e.value.equals(rel))
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
-                    sb.append(String.format("          %s            to  %s" + nl, spaces(Config.User), newrel));
-                    trace(sb.toString());
-
-                    e.value = newrel;
-                    updatedMap = true;
-                }
-                else if (e.value.equalsIgnoreCase(rel))
-                {
-                    throwException("Misimatching LinkDir case");
-                }
-                else
-                {
-                    // already changed
-                    Util.noop();
-                }
-            }
-        }
-    }
-
-    private void redirect_dir2file(String fullHtmlFilePath, Node n, String tag, String attr, String href, String href_original,
-            String ac) throws Exception
-    {
-        // redirect link to ac
-        String newref = RelativeLink.fileRelativeLink(ac, fullHtmlFilePath, this.userDir);
-        updateLinkAttribute(n, attr, newref);
-
-        // trace
-        txLog.writeLine(changeMessage(tag, attr, href_original, newref));
-        trace(changeMessage(tag, attr, href_original, newref));
-
-        // change map to ac
-        String rel = href2rel(href, fullHtmlFilePath);
-        String rel_original = href2rel(href_original, fullHtmlFilePath);
-        String newrel = abs2rel(ac);
-        boolean required = false;
-
-        List<LinkMapEntry> list = relpath2entry.get(rel.toLowerCase());
-        if (list == null || list.size() == 0)
-        {
-            if (required)
-                throwException("Old link is missing in the map");
-        }
-        else
-        {
-            for (LinkMapEntry e : list)
-            {
-                if (e.value.equals(rel))
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(String.format("Changing [%s] LinksDir map  %s" + nl, Config.User, e.value));
-                    sb.append(String.format("          %s            to  %s" + nl, spaces(Config.User), newrel));
-                    trace(sb.toString());
-
-                    e.value = newrel;
-                    updatedMap = true;
-                }
-                else if (e.value.equalsIgnoreCase(rel))
-                {
-                    throwException("Misimatching LinkDir case");
-                }
-                else
-                {
-                    // already changed
-                    Util.noop();
-                }
-            }
-        }
-
-        // add to alreadyRenamed
-        alreadyRenamed.put(rel.toLowerCase(), newrel);
-        alreadyRenamed.put(rel_original.toLowerCase(), newrel);
-
-        Util.noop();
     }
 
     private String changeMessage(String tag, String attr, String href_original, String newref)
@@ -612,6 +520,7 @@ public class FixLongPaths extends MaintenanceHandler
                     if (fp.exists())
                     {
                         trace("Was unable to delete directory " + fp.getCanonicalPath());
+                        Util.err("        Was unable to delete directory " + fp.getCanonicalPath());
                     }
                     else
                     {

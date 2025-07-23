@@ -193,6 +193,7 @@ public class FixUnencodedLinks extends MaintenanceHandler
 
         trace(sb.toString());
         Util.err(sb.toString());
+        errorMessageLog.add(sb.toString());
     }
 
     private void trace(String msg) throws Exception
@@ -200,7 +201,7 @@ public class FixUnencodedLinks extends MaintenanceHandler
         // errorMessageLog.add(msg);
         traceWriter.write(msg + nl);
         traceWriter.flush();
-        Util.out(msg);
+        // Util.out(msg);
     }
 
     @SuppressWarnings("unused")

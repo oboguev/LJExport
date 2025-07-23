@@ -1,9 +1,12 @@
 package my.LJExport.maintenance.handlers;
 
 import java.io.File;
-import java.net.URI;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,14 +14,16 @@ import java.util.Map;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
+import my.LJExport.maintenance.handlers.util.ShortFilePath;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
+import my.LJExport.runtime.file.KVFile;
+import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.RelativeLink;
-import my.LJExport.runtime.url.URLCodec;
 
 public class FixLongPaths extends MaintenanceHandler
 {
@@ -48,13 +53,16 @@ public class FixLongPaths extends MaintenanceHandler
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
     private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
+    private List<KVEntry> renames = null;
 
     private static final int MaxFilePath = 245;
-    private final int MaxRelativeFilePath = MaxFilePath - this.linkDirSep.length();
+    private final int MaxRelativeFilePath = MaxFilePath - linkDirSep.length();
 
     @Override
     protected void beginUser() throws Exception
     {
+        txLog.writeLine(String.format("Beginning FixLongPaths in %s mode for user", DryRun ? "DRY" : "WET", Config.User));
+
         /* clear for new user */
         file_lc2ac = new HashMap<>();
         dir_lc2ac = new HashMap<>();
@@ -65,16 +73,12 @@ public class FixLongPaths extends MaintenanceHandler
 
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
+
         build_lc2ac();
+        renames = prepareRenames();
+
         updatedMap = false;
         loadLinkMapFile();
-
-        for (String path : file_lc2ac.keySet())
-        {
-            path = file_lc2ac.get(path);
-            if (path.length() > MaxFilePath)
-                analyzeLongFilePath(path);
-        }
 
         // ### build rename list
         // ### save it to file unless aleady exists (KV)
@@ -88,11 +92,18 @@ public class FixLongPaths extends MaintenanceHandler
         // ### renaming by copy + delete
 
         // ### leave KV file renaming history
-    }
 
-    @Override
-    protected void endUser() throws Exception
-    {
+        if (!DryRun)
+        {
+            Util.out("  >>> Deleting empty directories for user " + Config.User);
+            trace("Deleting empty directories for user " + Config.User);
+
+            deleteEmptyFolders(dir_lc2ac.values());
+
+            Util.out("  >>> Deleted empty directories for user " + Config.User);
+            trace("  >>> Deleted empty directories for user " + Config.User);
+        }
+
         if (updatedMap && !DryRun)
         {
             String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
@@ -102,11 +113,15 @@ public class FixLongPaths extends MaintenanceHandler
             Util.writeToFileVerySafe(mapFilePath, content);
             txLog.writeLine("updated OK");
         }
-
-        // ### recursively remove empty dirs using dir_lc2ac.values() sorted by length
-
-        txLog.writeLine("Completed user " + Config.User);
     }
+
+    @Override
+    protected void endUser() throws Exception
+    {
+        txLog.writeLine(String.format("Completed FixLongPaths in %s mode for user", DryRun ? "DRY" : "WET", Config.User));
+    }
+
+    /* ===================================================================================================== */
 
     private void build_lc2ac() throws Exception
     {
@@ -160,409 +175,118 @@ public class FixLongPaths extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
-    private void analyzeLongFilePath(String path) throws Exception
+    private List<KVEntry> prepareRenames() throws Exception
     {
-        String rel = this.abs2rel(path);
-        String newrel = makeShorterFileRelativePath(rel);
-
-        // ### check for already existing newrel
-        // ### monitor collisions with added
-
-        Map<String, String> lc_newrel2path = new HashMap<>();
-
-        if (rel.equals(newrel))
-        {
-            Util.err("Cannot rename  " + rel);
-            Util.err("");
-        }
-        else
-        {
-            boolean print = true;
-
-            if (rel.contains(".userapi.com/"))
-                print = false;
-
-            if (rel.startsWith("imgprx.livejournal.net/") || rel.startsWith("xc3.services.livejournal.com/"))
-                print = false;
-
-            if (print)
-            {
-                Util.out("Rename  " + rel);
-                Util.out("    to  " + newrel);
-                Util.out("");
-            }
-
-            String newabs = this.rel2abs(newrel);
-            File fp = new File(newabs).getCanonicalFile();
-            if (fp.exists() && !isSameFileContent(fp.getCanonicalPath(), path))
-            {
-                // throwException("File already exists and has different content: " + fp.getAbsolutePath());
-                Util.err("File already exists and has different content, old: " + path);
-                Util.err("                                               new: " + fp.getCanonicalPath());
-            }
-
-            if (lc_newrel2path.containsKey(newrel.toLowerCase()))
-            {
-                Util.err("File already exists (double rename), newrel: " + newrel);
-                Util.err("                                     path 1: " + lc_newrel2path.get(newrel.toLowerCase()));
-                Util.err("                                     path 2: " + path);
-            }
-
-            lc_newrel2path.put(newrel.toLowerCase(), path);
-        }
-    }
-
-    private String makeShorterFileRelativePath(String rel) throws Exception
-    {
-        String[] components = rel.split("/");
-
-        String host = components[0];
-
-        for (int k = 1; k < components.length; k++)
-            components[k] = URLCodec.fullyDecodeMixed(components[k]);
-
-        String pc1 = components.length <= 1 ? null : components[1];
-        String pc2 = components.length <= 2 ? null : components[2];
-        // String pc3 = components.length <= 3 ? null : components[3];
-        String pclast = components[components.length - 1];
-
-        String newrel = null;
-
-        if (host.startsWith("sun") && host.endsWith(".userapi.com") ||
-                host.startsWith("scontent") && host.endsWith(".fbcdn.net"))
-        {
-            URI uri = new URI(pclast);
-
-            if (uri.getPath() != null)
-            {
-                String[] xc = components.clone();
-                xc[xc.length - 1] = uri.getPath();
-                newrel = recompose(xc, "/");
-                if (newrel.length() <= MaxRelativeFilePath)
-                    return newrel;
-            }
-        }
-
-        if ((host.equals("substackcdn.com") || host.equals("cdn.substack.com")) &&
-                components.length >= 5 && pc1.equals("image") && pc2.equals("fetch"))
-        {
-            String xclast = null;
-
-            if (pclast.startsWith("https://"))
-            {
-                xclast = Util.stripStart(pclast, "https://");
-            }
-            else if (pclast.startsWith("http://"))
-            {
-                xclast = Util.stripStart(pclast, "http://");
-            }
-
-            if (xclast != null)
-            {
-                String[] xc = concat(host, "image", "fetch");
-                xc = concat(xc, xclast.split("/"));
-                xc = saneExceptFirst(xc, true);
-                newrel = recompose(xc, "/");
-                if (newrel.length() <= MaxRelativeFilePath)
-                    return newrel;
-
-            }
-        }
-
-        if (host.toLowerCase().endsWith(".yimg.com"))
-        {
-            String[] pcs = extractRemainderAfter(components, "http:");
-            if (pcs == null)
-                pcs = extractRemainderAfter(components, "https:");
-            if (pcs != null && pcs.length >= 1)
-            {
-                String[] xc = concat(host, pcs);
-                xc = saneExceptFirst(xc, true);
-                newrel = recompose(xc, "/");
-                if (newrel.length() <= MaxRelativeFilePath)
-                    return newrel;
-            }
-        }
-
-        if (host.toLowerCase().equals("cdn.vox-cdn.com") && components.length >= 8)
-        {
-            if (pc1.equals("thumbor") && components[6].equals("cdn.vox-cdn.com") && components[7].equals("uploads"))
-            {
-                String[] xc = since(components, 6);
-                xc = saneExceptFirst(xc, true);
-                newrel = recompose(xc, "/");
-                if (newrel.length() <= MaxRelativeFilePath)
-                    return newrel;
-            }
-        }
-
-        if (host.endsWith(".gannett-cdn.com") && components.length >= 13)
-        {
-            if (pc1.equals("-mm-") && components[4].equals("http") && components[6].equals("-mm-") &&
-                    components[9].equals("local") && components[10].equals("-"))
-            {
-                String[] xc = since(components, 11);
-                xc = concat(host, xc);
-                xc = saneExceptFirst(xc, true);
-                newrel = recompose(xc, "/");
-                if (newrel.length() <= MaxRelativeFilePath)
-                    return newrel;
-            }
-        }
-
-        if (isBotchedImgPrx(components))
-        {
-            String[] xc = new String[4];
-            xc[0] = components[0];
-            xc[1] = "@@@";
-
-            int folder = (int) (Math.random() * 100);
-            if (folder >= 100)
-                folder = 99;
-            xc[2] = String.format("x-%02d", folder);
-            xc[3] = sane(pclast);
-            newrel = recompose(xc, "/");
-            if (newrel.length() <= MaxRelativeFilePath)
-                return newrel;
-        }
+        KVFile kvfile = new KVFile(this.linkDir + File.separator + "rename-history.txt");
 
         if (Util.True)
         {
-            String[] xc = saneExceptFirst(components, true);
-            reapplyExtension(xc, pclast);
-            newrel = recompose(xc, "/");
-            if (newrel.length() <= MaxRelativeFilePath)
-                return newrel;
+            if (kvfile.exists())
+                return kvfile.load(true);
         }
 
-        if (components.length >= 3)
+        List<KVEntry> list = new ArrayList<>();
+        Map<String, String> lc_newrel2path = new HashMap<>();
+
+        for (String path : file_lc2ac.keySet())
         {
-            String[] xc = new String[3];
-            xc[0] = components[0];
-            xc[1] = "@@@";
-            xc[2] = sane(pclast);
-            reapplyExtension(xc, pclast);
-            newrel = recompose(xc, "/");
-            if (newrel.length() <= MaxRelativeFilePath)
-                return newrel;
+            path = file_lc2ac.get(path);
+            String rel = abs2rel(path);
+
+            if (path.length() > MaxFilePath)
+                list.add(new KVEntry(rel, makeShortFileRelPath(path, rel, lc_newrel2path)));
         }
 
-        if (components.length >= 3)
+        kvfile.save(list);
+
+        return list;
+    }
+
+    private String makeShortFileRelPath(String path, String rel, Map<String, String> lc_newrel2path) throws Exception
+    {
+        ShortFilePath sfp = new ShortFilePath(MaxRelativeFilePath);
+
+        String newrel = sfp.makeShorterFileRelativePath(rel);
+
+        if (rel.equals(newrel) || newrel.length() > MaxRelativeFilePath)
         {
-            String[] xc = saneExceptFirst(components, false);
-            xc[xc.length - 1] = "x - " + Util.uuid();
-            reapplyExtension(xc, pclast);
-            newrel = recompose(xc, "/");
-            if (newrel.length() <= MaxRelativeFilePath)
-                return newrel;
+            Util.err("Cannot rename  " + rel);
+            throwException("Cannot rename  " + rel);
         }
+        
+        /* --------------------------------------------------------------- */
 
-        // ###
+        boolean good = true;
+        
+        do {
+            
+            good = true;
 
-        return rel;
-    }
+            /* --------------------------------------------------------------- */
 
-    private String sane(String component) throws Exception
-    {
-        return LinkDownloader.makeSanePathComponent(component);
-    }
-
-    @SuppressWarnings("unused")
-    private String[] saneAll(String[] components, boolean tryAvoidGuid) throws Exception
-    {
-        components = components.clone();
-
-        String pclast = components[components.length - 1];
-
-        for (int k = 0; k < components.length; k++)
-            components[k] = sane(components[k]);
-
-        if (tryAvoidGuid)
-            tryAvoidGuid(components, pclast);
-
-        return components;
-    }
-
-    private String[] saneExceptFirst(String[] components, boolean tryAvoidGuid) throws Exception
-    {
-        components = components.clone();
-
-        String pclast = components[components.length - 1];
-
-        for (int k = 1; k < components.length; k++)
-            components[k] = sane(components[k]);
-
-        if (tryAvoidGuid)
-            tryAvoidGuid(components, pclast);
-
-        return components;
-    }
-
-    private void tryAvoidGuid(String[] components, String pclast) throws Exception
-    {
-        if (!isLowercaseGuid(components[components.length - 1]))
-            return;
-
-        String path = null;
-        try
-        {
-            URI uri = new URI(URLCodec.fullyDecodeMixed(pclast));
-            path = uri.getPath();
-        }
-        catch (Exception ex)
-        {
-            return;
-        }
-
-        if (path == null)
-            return;
-
-        components[components.length - 1] = sane(path);
-    }
-
-    private void reapplyExtension(String[] xc, String pclast) throws Exception
-    {
-        String ext = LinkDownloader.getFileExtension(pclast);
-
-        if (ext == null)
-        {
-            URI uri = null;
-            try
+            if (good)
             {
-                uri = new URI(URLCodec.fullyDecodeMixed(pclast));
+                String newabs = this.rel2abs(newrel);
+                File fp = new File(newabs).getCanonicalFile();
+                if (fp.exists() && !isSameFileContent(fp.getCanonicalPath(), path))
+                {
+                    if (Util.False)
+                    {
+                        Util.err("File already exists and has different content, old: " + path);
+                        Util.err("                                               new: " + fp.getCanonicalPath());
+                    }
+
+                    good = false;
+                }
             }
-            catch (Exception ex)
+            
+            /* --------------------------------------------------------------- */
+
+            if (good)
             {
-                // disregard
+                if (lc_newrel2path.containsKey(newrel.toLowerCase()))
+                {
+                    if (Util.False)
+                    {
+                        Util.err("File already exists (double rename), newrel: " + newrel);
+                        Util.err("                                     path 1: " + lc_newrel2path.get(newrel.toLowerCase()));
+                        Util.err("                                     path 2: " + path);
+                    }
+                    
+                    good = false;
+                }
             }
-            if (uri != null && uri.getPath() != null)
-                ext = LinkDownloader.getFileExtension(uri.getPath());
-        }
+            
+            /* --------------------------------------------------------------- */
 
-        if (ext != null && !xc[xc.length - 1].toLowerCase().endsWith("." + ext.toLowerCase()))
-            xc[xc.length - 1] += "." + ext;
-    }
-
-    private boolean isBotchedImgPrx(String[] components)
-    {
-        if (!components[0].equals("imgprx.livejournal.net"))
-            return false;
-
-        for (int k = 1; k < components.length; k++)
-        {
-            String pc = components[k];
-            if (!pc.startsWith("x-") || !isLowercaseGuid(pc.substring(2)))
-                return false;
-        }
-
-        return true;
-    }
-
-    public static boolean isLowercaseGuid(String s)
-    {
-        if (s == null || s.length() != 32)
-            return false;
-
-        for (int i = 0; i < s.length(); i++)
-        {
-            char c = s.charAt(i);
-            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')))
-                return false;
-        }
-
-        return true;
-    }
-
-    // String[] tokens = {"A", "B", "BREAK", "C", "D"};
-    // String[] result = extractRemainderAfter(tokens, "BREAK");
-    // result is ["C", "D"]
-    public static String[] extractRemainderAfter(String[] tokens, String breaker)
-    {
-        if (tokens == null || breaker == null)
-            throw new NullPointerException("Arguments must not be null");
-
-        for (int i = 0; i < tokens.length; i++)
-        {
-            if (breaker.equals(tokens[i]))
+            if (!good)
             {
-                int remainderLength = tokens.length - (i + 1);
-                if (remainderLength <= 0)
-                    return new String[0]; // no elements after breaker
-
-                String[] remainder = new String[remainderLength];
-                System.arraycopy(tokens, i + 1, remainder, 0, remainderLength);
-                return remainder;
+                // ### regenerate newrel
             }
+
         }
+        while (!good);
 
-        return null; // breaker not found
-    }
+        lc_newrel2path.put(newrel.toLowerCase(), path);
 
-    private String[] since(String[] sa, int k)
-    {
-        if (sa == null)
-            throw new NullPointerException("Input array is null");
+        StringBuilder sb = new StringBuilder();
+        sb.append("Rename  " + rel + nl);
+        sb.append("    to  " + newrel + nl);
 
-        if (k < 0 || k > sa.length)
-            throw new IndexOutOfBoundsException("Index k is out of bounds: " + k);
+        boolean print = true;
 
-        int newLength = sa.length - k;
-        String[] result = new String[newLength];
-        System.arraycopy(sa, k, result, 0, newLength);
-        return result;
-    }
+        if (rel.contains(".userapi.com/"))
+            print = false;
 
-    private String recompose(String[] components, String separator) throws Exception
-    {
-        StringBuilder path = new StringBuilder();
+        if (rel.startsWith("imgprx.livejournal.net/") || rel.startsWith("xc3.services.livejournal.com/"))
+            print = false;
 
-        for (String x : components)
-        {
-            if (path.length() != 0)
-                path.append(separator);
-            path.append(x);
-        }
+        if (print || Util.True) // ###
+            Util.out(sb.toString());
+        
+        trace(sb.toString());
 
-        return path.toString();
-    }
-
-    private String[] concat(String[] sa1, String[] sa2)
-    {
-        if (sa1 == null || sa2 == null)
-            throw new NullPointerException("Arguments must not be null");
-
-        String[] result = new String[sa1.length + sa2.length];
-        System.arraycopy(sa1, 0, result, 0, sa1.length);
-        System.arraycopy(sa2, 0, result, sa1.length, sa2.length);
-        return result;
-    }
-
-    private String[] concat(String s, String[] sa)
-    {
-        if (s == null || sa == null)
-            throw new NullPointerException("Arguments must not be null");
-
-        String[] result = new String[1 + sa.length];
-        result[0] = s;
-        System.arraycopy(sa, 0, result, 1, sa.length);
-        return result;
-    }
-
-    @SuppressWarnings("unused")
-    private String[] concat(String[] sa, String s)
-    {
-        if (sa == null || s == null)
-            throw new NullPointerException("Arguments must not be null");
-
-        String[] result = new String[sa.length + 1];
-        System.arraycopy(sa, 0, result, 0, sa.length);
-        result[sa.length] = s;
-        return result;
-    }
-
-    private String[] concat(String... s)
-    {
-        return s.clone();
+        return newrel;
     }
 
     /* ===================================================================================================== */
@@ -762,6 +486,48 @@ public class FixLongPaths extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
+    private void deleteEmptyFolders(Collection<String> xset) throws Exception
+    {
+        List<String> xlist = new ArrayList<>(xset);
+
+        // sort by longest first
+        Collections.sort(xlist, new Comparator<String>()
+        {
+            @Override
+            public int compare(String a, String b)
+            {
+                return Integer.compare(b.length(), a.length()); // Descending order
+            }
+        });
+
+        for (String dir : xlist)
+        {
+            File fp = new File(dir).getCanonicalFile();
+
+            if (fp.exists() && isEmptyDir(fp))
+            {
+                try
+                {
+                    Files.delete(fp.toPath());
+
+                    if (fp.exists())
+                    {
+                        trace("Was unable to delete directory " + fp.getCanonicalPath());
+                    }
+                    else
+                    {
+                        trace("Deleted empty directory " + fp.getCanonicalPath());
+                        Util.out("        Deleted empty directory " + fp.getCanonicalPath());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    trace("Was unable to delete directory " + fp.getCanonicalPath());
+                }
+            }
+        }
+    }
+
     private boolean isSameFileContent(String fp1, String fp2) throws Exception
     {
         byte[] ba1 = Util.readFileAsByteArray(fp1);
@@ -769,10 +535,17 @@ public class FixLongPaths extends MaintenanceHandler
         return Arrays.equals(ba1, ba2);
     }
 
-    private void trace(String msg)
+    private boolean isEmptyDir(File fp) throws Exception
     {
-        errorMessageLog.add(msg);
-        Util.err(msg);
+        return fp.isDirectory() && fp.list().length == 0;
+    }
+
+    private void trace(String msg) throws Exception
+    {
+        // errorMessageLog.add(msg);
+        // Util.err(msg);
+        traceWriter.write(msg + nl);
+        traceWriter.flush();
     }
 
     @SuppressWarnings("unused")

@@ -1,15 +1,16 @@
 package my.LJExport.runtime.file;
 
-import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+
+import my.LJExport.runtime.Util;
 
 public class KVFile
 {
@@ -29,29 +30,29 @@ public class KVFile
         }
     }
 
-    public KVFile(String path)
+    public KVFile(String path) throws Exception
     {
-        this.filePath = Paths.get(path);
+        this.filePath = new File(path).getCanonicalFile().toPath();
+    }
+    
+    public boolean exists()
+    {
+        return filePath.toFile().exists();
     }
 
     public void save(List<KVEntry> entries) throws Exception
     {
-        try (BufferedWriter writer = Files.newBufferedWriter(filePath,
-                StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING))
+        String nl = System.lineSeparator();
+        StringBuilder sb = new StringBuilder();
+
+        for (KVEntry e : entries)
         {
-            String lineSeparator = System.lineSeparator();
-            for (KVEntry entry : entries)
-            {
-                writer.write(entry.key);
-                writer.write(lineSeparator);
-                writer.write(entry.value);
-                writer.write(lineSeparator);
-                writer.write(SEPARATOR);
-                writer.write(lineSeparator);
-            }
+            sb.append(e.key + nl);
+            sb.append(e.value + nl);
+            sb.append(SEPARATOR + nl);
         }
+        
+        Util.writeToFileVerySafe(this.filePath.toAbsolutePath().toString(), sb.toString());
     }
 
     public List<KVEntry> load(boolean trim) throws Exception

@@ -79,8 +79,16 @@ public class FixLongPaths extends MaintenanceHandler
         build_lc2ac();
         renames = prepareRenames();
 
-        // ### enduser: apply rename list to renames
-        // ### renaming by copy + delete
+        if (!DryRun)
+        {
+            Util.out("  >>> Executing rename instructions for user " + Config.User);
+            trace("Executing rename instructions for user " + Config.User);
+
+            executeRenames(renames);
+
+            Util.out("  >>> Completed rename instructions for user " + Config.User);
+            trace("Completed rename instructions for user " + Config.User);
+        }
 
         if (!DryRun)
         {
@@ -279,6 +287,12 @@ public class FixLongPaths extends MaintenanceHandler
         }
         while (!good);
 
+        if (rel.equals(newrel) || newrel.length() > MaxRelativeFilePath)
+        {
+            Util.err("Cannot rename  " + rel);
+            throwException("Cannot rename  " + rel);
+        }
+
         lc_newrel2path.put(newrel.toLowerCase(), path);
 
         StringBuilder sb = new StringBuilder();
@@ -301,6 +315,50 @@ public class FixLongPaths extends MaintenanceHandler
         return newrel;
     }
 
+    /* ===================================================================================================== */
+
+    private void executeRenames(List<KVEntry> renames) throws Exception
+    {
+        for (KVEntry e : renames)
+        {
+            String srcrel = e.key;
+            String dstrel = e.value;
+
+            String srcabs = rel2abs(srcrel);
+            String dstabs = rel2abs(dstrel);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("Executing rename [%s]  %s" + nl, Config.User, srcrel));
+            sb.append(String.format("              to  %s   %s" + nl, spaces(Config.User), dstrel));
+            sb.append(String.format("            file  %s   %s" + nl, spaces(Config.User), srcabs));
+            sb.append(String.format("              to  %s   %s" + nl, spaces(Config.User), dstabs));
+
+            Util.out(sb.toString());
+            trace(sb.toString());
+
+            try
+            {
+                executeRename(srcabs, dstabs);
+            }
+            catch (Exception ex)
+            {
+                Util.out("Rename failed: " + ex.getLocalizedMessage());
+                trace("Rename failed: " + ex.getLocalizedMessage());
+                throwException("Rename failed", ex);
+            }
+        }
+    }
+
+    private void executeRename(String src, String dst) throws Exception
+    {
+        File fp = new File(src).getCanonicalFile();
+        
+        byte[] ba = Util.readFileAsByteArray(src);
+        Util.writeToFileSafe(dst, ba);
+        
+        Files.delete(fp.toPath());
+    }
+    
     /* ===================================================================================================== */
 
     @Override
@@ -564,5 +622,10 @@ public class FixLongPaths extends MaintenanceHandler
     private void throwException(String msg) throws Exception
     {
         throw new Exception(msg);
+    }
+
+    private void throwException(String msg, Exception ex) throws Exception
+    {
+        throw new Exception(msg, ex);
     }
 }

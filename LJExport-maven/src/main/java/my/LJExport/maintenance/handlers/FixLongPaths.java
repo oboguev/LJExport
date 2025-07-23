@@ -74,24 +74,13 @@ public class FixLongPaths extends MaintenanceHandler
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
 
+        /* -------------------------------------------------- */
+
         build_lc2ac();
         renames = prepareRenames();
 
-        updatedMap = false;
-        loadLinkMapFile();
-
-        // ### build rename list
-        // ### save it to file unless aleady exists (KV)
-        // ### apply rename list to HTML
         // ### enduser: apply rename list to renames
-        // ###          apply rename list to link map
-        // ###          save link map
-        // ### delete rename list file
-
-        // ### if not in map, add to map using original path
         // ### renaming by copy + delete
-
-        // ### leave KV file renaming history
 
         if (!DryRun)
         {
@@ -103,6 +92,17 @@ public class FixLongPaths extends MaintenanceHandler
             Util.out("  >>> Deleted empty directories for user " + Config.User);
             trace("  >>> Deleted empty directories for user " + Config.User);
         }
+
+        /* -------------------------------------------------- */
+
+        updatedMap = false;
+        loadLinkMapFile();
+
+        // ###          apply rename list to link map
+        // ###          save link map
+        // ### if not in map, add to map using original path
+
+        // ### apply rename list to HTML
 
         if (updatedMap && !DryRun)
         {
@@ -182,8 +182,16 @@ public class FixLongPaths extends MaintenanceHandler
         if (Util.True)
         {
             if (kvfile.exists())
-                return kvfile.load(true);
+            {
+                List<KVEntry> list = kvfile.load(true);
+                Util.out("Loaded existing rename history");
+                trace("Loaded existing rename history");
+                return list;
+            }
         }
+
+        Util.out("Generating rename instructions");
+        trace("Generating rename instructions");
 
         List<KVEntry> list = new ArrayList<>();
         Map<String, String> lc_newrel2path = new HashMap<>();
@@ -199,6 +207,9 @@ public class FixLongPaths extends MaintenanceHandler
 
         kvfile.save(list);
 
+        Util.out("Generated rename instructions and saved them to rename history");
+        trace("Generated rename instructions and saved them to rename history");
+
         return list;
     }
 
@@ -213,13 +224,14 @@ public class FixLongPaths extends MaintenanceHandler
             Util.err("Cannot rename  " + rel);
             throwException("Cannot rename  " + rel);
         }
-        
+
         /* --------------------------------------------------------------- */
 
         boolean good = true;
-        
-        do {
-            
+
+        do
+        {
+
             good = true;
 
             /* --------------------------------------------------------------- */
@@ -239,7 +251,7 @@ public class FixLongPaths extends MaintenanceHandler
                     good = false;
                 }
             }
-            
+
             /* --------------------------------------------------------------- */
 
             if (good)
@@ -252,11 +264,11 @@ public class FixLongPaths extends MaintenanceHandler
                         Util.err("                                     path 1: " + lc_newrel2path.get(newrel.toLowerCase()));
                         Util.err("                                     path 2: " + path);
                     }
-                    
+
                     good = false;
                 }
             }
-            
+
             /* --------------------------------------------------------------- */
 
             if (!good)
@@ -283,7 +295,7 @@ public class FixLongPaths extends MaintenanceHandler
 
         if (print || Util.True) // ###
             Util.out(sb.toString());
-        
+
         trace(sb.toString());
 
         return newrel;

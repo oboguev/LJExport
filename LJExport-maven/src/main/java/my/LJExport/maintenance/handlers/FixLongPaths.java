@@ -566,8 +566,9 @@ public class FixLongPaths extends MaintenanceHandler
             String newref = rel2href(newrel, fullHtmlFilePath);
             updateLinkAttribute(n, attr, newref);
 
-            String msg = changeMessage(tag, attr, href, newref);
+            String msg = changeMessage(tag, attr, href, newref, fullHtmlFilePath);
             trace(msg);
+            Util.out(msg);
 
             unused_renames_old_lc2ac.remove(rel.toLowerCase());
 
@@ -579,11 +580,12 @@ public class FixLongPaths extends MaintenanceHandler
         }
     }
 
-    private String changeMessage(String tag, String attr, String href_original, String newref)
+    private String changeMessage(String tag, String attr, String href_original, String newref, String fullHtmlFilePath)
     {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("Changing [%s] HTML %s.%s from  %s" + nl, Config.User, tag, attr, href_original));
         sb.append(String.format("          %s       %s %s   to  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), newref));
+        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), fullHtmlFilePath));
         return sb.toString();
     }
 

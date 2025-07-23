@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.jsoup.nodes.Node;
 
+import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
@@ -112,7 +113,15 @@ public class FixNullLinks extends MaintenanceHandler
             if (href_original != null && href_original.trim().length() != 0)
             {
                 if (href_original.startsWith("/web/20"))
+                {
                     href_original = "https://web.archive.org" + href_original;
+                }
+                else if (!href_original.startsWith("/"))
+                {
+                    String path = new File(relativeFilePath).getParentFile().toString();
+                    path = path.replace(File.separator, "/");
+                    path = String.format("http://%s/%s/%s", Config.User, path, href_original);
+                }
 
                 if (!href_original.startsWith("http://") && !href_original.startsWith("https://"))
                 {

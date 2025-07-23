@@ -181,7 +181,32 @@ public class URLCodec
         return encodeReserved(s, FILESYS_RESERVED_CHARS);
     }
     
-    public static boolean containsFilesysReservedChars(String s)
+    public static boolean unixRelativePathContainsFilesysReservedChars(String path)
+    {
+        return fileRelativePathContainsFilesysReservedChars(path, '/');
+    }
+    
+    public static boolean windowsRelativePathContainsFilesysReservedChars(String path)
+    {
+        return fileRelativePathContainsFilesysReservedChars(path, '\\');
+    }
+
+    public static boolean fileRelativePathContainsFilesysReservedChars(String path, char separator)
+    {
+        String[] pcs = path.split("" + separator);
+        
+        for (String pc : pcs)
+        {
+            if (pc.equals(".") || pc.equals(".."))
+                continue;
+            if (pathComponentContainsFilesysReservedChars(pc))
+                return true;
+        }
+        
+        return false;
+    }
+
+    public static boolean pathComponentContainsFilesysReservedChars(String s)
     {
         for (char c : FILESYS_RESERVED_CHARS.toCharArray())
         {

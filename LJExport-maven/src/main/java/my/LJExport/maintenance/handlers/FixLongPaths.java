@@ -63,6 +63,7 @@ public class FixLongPaths extends MaintenanceHandler
     private List<KVEntry> renames = null;
     private Map<String, String> renames_old2new = new HashMap<>();
     private Map<String, String> renames_lc_old2new = new HashMap<>();
+    private Map<String, String> unused_renames_old_lc2ac = new HashMap<>();
 
     private static final int MaxFilePath = 245;
     private final int MaxRelativeFilePath = MaxFilePath - linkDirSep.length();
@@ -70,8 +71,11 @@ public class FixLongPaths extends MaintenanceHandler
     @Override
     protected void beginUser() throws Exception
     {
-        txLog.writeLine(String.format("Beginning FixLongPaths in %s mode for user %s", DryRun ? "DRY" : "WET", Config.User));
-        trace(String.format("Beginning FixLongPaths in %s mode for user %s", DryRun ? "DRY" : "WET", Config.User));
+        txLog.writeLine(String.format("Beginning FixLongPaths in %s mode for user %s, phase %s",
+                DryRun ? "DRY" : "WET", Config.User, phase.name()));
+
+        trace(String.format("Beginning FixLongPaths in %s mode for user %s, phase %s",
+                DryRun ? "DRY" : "WET", Config.User, phase.name()));
 
         /* clear for new user */
         file_lc2ac = new HashMap<>();
@@ -82,6 +86,7 @@ public class FixLongPaths extends MaintenanceHandler
         renames = null;
         renames_old2new = new HashMap<>();
         renames_lc_old2new = new HashMap<>();
+        unused_renames_old_lc2ac = new HashMap<>();
 
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
@@ -140,6 +145,25 @@ public class FixLongPaths extends MaintenanceHandler
     {
         txLog.writeLine(String.format("Completed FixLongPaths in %s mode for user %s", DryRun ? "DRY" : "WET", Config.User));
         trace(String.format("Completed FixLongPaths in %s mode for user %s", DryRun ? "DRY" : "WET", Config.User));
+
+        StringBuilder sb = new StringBuilder();
+        if (unused_renames_old_lc2ac.size() == 0)
+        {
+            sb.append("All renames have been used in HTML files" + nl);
+            
+            trace(sb.toString());
+            Util.out(sb.toString());
+        }
+        else
+        {
+            sb.append("Renames unused in HTML files:" + nl);
+            for (String rel : unused_renames_old_lc2ac.values())
+                sb.append("    " + rel + nl);
+
+            trace(sb.toString());
+            Util.err(sb.toString());
+        }
+        
     }
 
     /* ===================================================================================================== */
@@ -337,6 +361,7 @@ public class FixLongPaths extends MaintenanceHandler
         {
             renames_old2new.put(e.key, e.value);
             renames_lc_old2new.put(e.key.toLowerCase(), e.value);
+            unused_renames_old_lc2ac.put(e.key.toLowerCase(), e.key);
         }
     }
 
@@ -458,8 +483,13 @@ public class FixLongPaths extends MaintenanceHandler
 
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
+            
+            if (href_raw.contains("static-2.rosminzdrav.ru/"))
+            {
+                Util.noop(); // ###
+            }
 
-            if (!URLCodec.containsFilesysReservedChars(href))
+            if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href))
             {
                 String rel = this.href2abs(href, fullHtmlFilePath);
                 if (tryChange(rel, href, n, tag, attr, fullHtmlFilePath))
@@ -470,7 +500,7 @@ public class FixLongPaths extends MaintenanceHandler
             }
 
             String href2 = URLCodec.encode(href).replace("%2F", "/");
-            if (!URLCodec.containsFilesysReservedChars(href2))
+            if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href2))
             {
                 String rel2 = this.href2abs(href2, fullHtmlFilePath);
                 if (tryChange(rel2, href, n, tag, attr, fullHtmlFilePath))
@@ -481,7 +511,7 @@ public class FixLongPaths extends MaintenanceHandler
             }
 
             String href3 = URLCodec.encodeFilename(href).replace("%2F", "/");
-            if (!URLCodec.containsFilesysReservedChars(href3))
+            if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href3))
             {
                 String rel3 = this.href2abs(href3, fullHtmlFilePath);
                 if (tryChange(rel3, href, n, tag, attr, fullHtmlFilePath))
@@ -491,7 +521,7 @@ public class FixLongPaths extends MaintenanceHandler
                 }
             }
 
-            if (!URLCodec.containsFilesysReservedChars(href_raw))
+            if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href_raw))
             {
                 String rel_raw = this.href2abs(href_raw, fullHtmlFilePath);
                 if (tryChange(rel_raw, href_raw, n, tag, attr, fullHtmlFilePath))
@@ -502,7 +532,7 @@ public class FixLongPaths extends MaintenanceHandler
             }
 
             href2 = URLCodec.encode(href_raw).replace("%2F", "/");
-            if (!URLCodec.containsFilesysReservedChars(href2))
+            if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href2))
             {
                 String rel2 = this.href2abs(href2, fullHtmlFilePath);
                 if (tryChange(rel2, href_raw, n, tag, attr, fullHtmlFilePath))
@@ -513,7 +543,7 @@ public class FixLongPaths extends MaintenanceHandler
             }
 
             href3 = URLCodec.encodeFilename(href_raw).replace("%2F", "/");
-            if (!URLCodec.containsFilesysReservedChars(href3))
+            if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href3))
             {
                 String rel3 = this.href2abs(href3, fullHtmlFilePath);
                 if (tryChange(rel3, href_raw, n, tag, attr, fullHtmlFilePath))
@@ -533,11 +563,13 @@ public class FixLongPaths extends MaintenanceHandler
 
         if (newrel != null)
         {
-            String newref = this.rel2href(newrel, fullHtmlFilePath);
+            String newref = rel2href(newrel, fullHtmlFilePath);
             updateLinkAttribute(n, attr, newref);
 
             String msg = changeMessage(tag, attr, href, newref);
             trace(msg);
+
+            unused_renames_old_lc2ac.remove(rel.toLowerCase());
 
             return true;
         }

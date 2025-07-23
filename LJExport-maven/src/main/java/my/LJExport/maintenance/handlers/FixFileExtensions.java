@@ -207,7 +207,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
-            
+
             if (isArchiveOrg())
             {
                 /* ignore bad links due to former bug in archive loader */
@@ -716,9 +716,12 @@ public class FixFileExtensions extends MaintenanceHandler
             if (deleteLinkMapEntriesFor.contains(e.value.toLowerCase()))
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append(String.format("Deleting LinkMap [%s] entry for error-response URL  %s" + nl, Config.User, e.key));
-                sb.append(
-                        String.format("                  %s                          file  %s" + nl, spaces(Config.User), e.value));
+                
+                sb.append(String.format("Deleting LinkMap [%s] entry for error-response URL  %s" + nl,
+                        Config.User, e.key));
+                
+                sb.append(String.format("                  %s                          file  %s" + nl,
+                        spaces(Config.User), e.value));
 
                 trace(sb.toString());
                 txLog.writeLine(safety, sb.toString());

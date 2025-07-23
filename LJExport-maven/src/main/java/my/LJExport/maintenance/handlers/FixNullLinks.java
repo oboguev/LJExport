@@ -58,11 +58,6 @@ public class FixNullLinks extends MaintenanceHandler
         }
     }
 
-    private boolean rel_exists(String rel)
-    {
-        return rel_filedir_lc2ac.containsKey(rel.toLowerCase());
-    }
-
     /* ===================================================================================================== */
 
     @Override

@@ -38,7 +38,7 @@ public class Maintenance
     // private static final String Users = "oboguev";
     // private static final String Users = "a_kaminsky";
     // private static final String Users = "1981dn,1981dn_dn,64vlad,_devol_";
-    private static final String Users = "nationalism.org";
+    private static final String Users = "oboguev";
     // private static final String Users = "harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "udod99.lj-rossia-org";
 
@@ -96,10 +96,10 @@ public class Maintenance
             // do_users(Users, ResolveLinkCaseDifferences.class);
             // do_users(Users, FixUnencodedLinks.class);
             // do_users(Users, VerifyUnencodedLinks.class);
-            do_users(Users, FixNullLinks.class); // only for nationalism.org
+            // do_users(Users, FixNullLinks.class); // only for nationalism.org
             // do_users(Users, FixDirectoryLinks.class);
             // do_users(Users, FixLongPaths.class);
-            // do_users(Users, FixFileExtensions.class);
+            do_users(Users, FixFileExtensions.class);
 
             txLog.writeLineSafe("");
             txLog.writeLineSafe("Maintenance COMPLETED at " + Util.timeNow());

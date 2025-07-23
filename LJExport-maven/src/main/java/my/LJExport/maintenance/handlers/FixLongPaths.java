@@ -29,10 +29,14 @@ public class FixLongPaths extends MaintenanceHandler
 {
     static enum FixPhase
     {
-        GenerateRenames, RelocateLinksMap, FixHtmlPages
+        GenerateRenames, ExecuteRenames, RelocateLinksMap, FixHtmlPages
     }
 
     private static FixPhase phase = FixPhase.GenerateRenames;
+    // private static FixPhase phase = FixPhase.ExecuteRenames;
+    // private static FixPhase phase = FixPhase.RelocateLinksMap;
+    // private static FixPhase phase = FixPhase.FixHtmlPages;
+
     private static boolean DryRun = true;
 
     public FixLongPaths() throws Exception
@@ -97,7 +101,7 @@ public class FixLongPaths extends MaintenanceHandler
         renames = prepareRenames();
         mapRenames();
 
-        if (!DryRun && phase == FixPhase.GenerateRenames)
+        if (!DryRun && phase == FixPhase.ExecuteRenames)
         {
             Util.out("  >>> Executing rename instructions for user " + Config.User);
             trace("Executing rename instructions for user " + Config.User);
@@ -108,7 +112,7 @@ public class FixLongPaths extends MaintenanceHandler
             trace("Completed rename instructions for user " + Config.User);
         }
 
-        if (!DryRun && phase == FixPhase.GenerateRenames)
+        if (!DryRun && phase == FixPhase.ExecuteRenames)
         {
             Util.out("  >>> Deleting empty directories for user " + Config.User);
             trace("Deleting empty directories for user " + Config.User);
@@ -132,10 +136,14 @@ public class FixLongPaths extends MaintenanceHandler
             {
                 String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
 
+                Util.out("Updating links map " + mapFilePath);
                 txLog.writeLine("updating links map " + mapFilePath);
+
                 String content = FileBackedMap.recomposeMapFile(linkMapEntries);
                 Util.writeToFileVerySafe(mapFilePath, content);
+
                 txLog.writeLine("updated OK");
+                Util.out("    updated OK");
             }
         }
     }
@@ -146,24 +154,27 @@ public class FixLongPaths extends MaintenanceHandler
         txLog.writeLine(String.format("Completed FixLongPaths in %s mode for user %s", DryRun ? "DRY" : "WET", Config.User));
         trace(String.format("Completed FixLongPaths in %s mode for user %s", DryRun ? "DRY" : "WET", Config.User));
 
-        StringBuilder sb = new StringBuilder();
-        if (unused_renames_old_lc2ac.size() == 0)
+        if (phase == FixPhase.FixHtmlPages)
         {
-            sb.append("All renames have been used in HTML files" + nl);
 
-            trace(sb.toString());
-            Util.out(sb.toString());
+            StringBuilder sb = new StringBuilder();
+            if (unused_renames_old_lc2ac.size() == 0)
+            {
+                sb.append("All renames have been used in HTML files" + nl);
+
+                trace(sb.toString());
+                Util.out(sb.toString());
+            }
+            else
+            {
+                sb.append("Renames unused in HTML files:" + nl);
+                for (String rel : unused_renames_old_lc2ac.values())
+                    sb.append("    " + rel + nl);
+
+                trace(sb.toString());
+                Util.err(sb.toString());
+            }
         }
-        else
-        {
-            sb.append("Renames unused in HTML files:" + nl);
-            for (String rel : unused_renames_old_lc2ac.values())
-                sb.append("    " + rel + nl);
-
-            trace(sb.toString());
-            Util.err(sb.toString());
-        }
-
     }
 
     /* ===================================================================================================== */
@@ -410,12 +421,18 @@ public class FixLongPaths extends MaintenanceHandler
 
     private void executeRename(String src, String dst) throws Exception
     {
-        File fp = new File(src).getCanonicalFile();
+        File fpsrc = new File(src).getCanonicalFile();
+        File fpdst = new File(dst).getCanonicalFile();
+
+        if (!fpsrc.exists() && fpdst.exists() && Config.False)
+            return;
+
+        fpdst.getParentFile().getCanonicalFile().mkdirs();
 
         byte[] ba = Util.readFileAsByteArray(src);
         Util.writeToFileSafe(dst, ba);
 
-        Files.delete(fp.toPath());
+        Files.delete(fpsrc.toPath());
     }
 
     /* ===================================================================================================== */

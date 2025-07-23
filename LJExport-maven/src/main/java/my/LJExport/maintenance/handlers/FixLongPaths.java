@@ -32,8 +32,8 @@ public class FixLongPaths extends MaintenanceHandler
         GenerateRenames, RelocateLinksMap, FixHtmlPages
     }
 
+    private static FixPhase phase = FixPhase.GenerateRenames;
     private static boolean DryRun = true;
-    private static FixPhase phase = FixPhase.FixHtmlPages;
 
     public FixLongPaths() throws Exception
     {
@@ -97,7 +97,7 @@ public class FixLongPaths extends MaintenanceHandler
         renames = prepareRenames();
         mapRenames();
 
-        if (!DryRun)
+        if (!DryRun && phase == FixPhase.GenerateRenames)
         {
             Util.out("  >>> Executing rename instructions for user " + Config.User);
             trace("Executing rename instructions for user " + Config.User);
@@ -108,7 +108,7 @@ public class FixLongPaths extends MaintenanceHandler
             trace("Completed rename instructions for user " + Config.User);
         }
 
-        if (!DryRun)
+        if (!DryRun && phase == FixPhase.GenerateRenames)
         {
             Util.out("  >>> Deleting empty directories for user " + Config.User);
             trace("Deleting empty directories for user " + Config.User);
@@ -150,7 +150,7 @@ public class FixLongPaths extends MaintenanceHandler
         if (unused_renames_old_lc2ac.size() == 0)
         {
             sb.append("All renames have been used in HTML files" + nl);
-            
+
             trace(sb.toString());
             Util.out(sb.toString());
         }
@@ -163,7 +163,7 @@ public class FixLongPaths extends MaintenanceHandler
             trace(sb.toString());
             Util.err(sb.toString());
         }
-        
+
     }
 
     /* ===================================================================================================== */
@@ -253,10 +253,17 @@ public class FixLongPaths extends MaintenanceHandler
                 list.add(new KVEntry(rel, makeShortFileRelPath(path, rel, lc_newrel2path)));
         }
 
-        kvfile.save(list);
-
-        Util.out("Generated rename instructions and saved them to rename history");
-        trace("Generated rename instructions and saved them to rename history");
+        if (DryRun)
+        {
+            Util.out("Generated rename instructions");
+            trace("Generated rename instructions");
+        }
+        else
+        {
+            kvfile.save(list);
+            Util.out("Generated rename instructions and saved them to rename history");
+            trace("Generated rename instructions and saved them to rename history");
+        }
 
         return list;
     }
@@ -347,7 +354,7 @@ public class FixLongPaths extends MaintenanceHandler
         if (rel.startsWith("imgprx.livejournal.net/") || rel.startsWith("xc3.services.livejournal.com/"))
             print = false;
 
-        if (print || Util.True) // ###
+        if (print || Util.True)
             Util.out(sb.toString());
 
         trace(sb.toString());
@@ -439,7 +446,7 @@ public class FixLongPaths extends MaintenanceHandler
             String url = sfp.reconstructURL(src);
             if (url != null)
             {
-                linkMapEntries.add(new LinkMapEntry(url, dst)); // ###
+                linkMapEntries.add(new LinkMapEntry(url, dst));
                 updatedMap = true;
             }
         }
@@ -483,14 +490,14 @@ public class FixLongPaths extends MaintenanceHandler
 
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
-            
+
             if (isArchiveOrg())
             {
                 /* ignore bad links due to former bug in archive loader */
                 if (href.startsWith("../") && href.endsWith("/links/null"))
                     continue;
             }
-            
+
             if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href))
             {
                 String rel = href2rel(href, fullHtmlFilePath);
@@ -587,7 +594,8 @@ public class FixLongPaths extends MaintenanceHandler
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("Changing [%s] HTML %s.%s from  %s" + nl, Config.User, tag, attr, href_original));
         sb.append(String.format("          %s       %s %s   to  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), newref));
-        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), fullHtmlFilePath));
+        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr),
+                fullHtmlFilePath));
         return sb.toString();
     }
 

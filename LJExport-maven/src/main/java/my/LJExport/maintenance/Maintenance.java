@@ -92,9 +92,9 @@ public class Maintenance
             do_users(Users, new CountFiles());
             // do_users(Users, CheckLinkCaseConflicts.class);
             // do_users(Users, ResolveLinkCaseDifferences.class);
-            do_users(Users, FixUnencodedLinks.class);
+            // do_users(Users, FixUnencodedLinks.class);
             // do_users(Users, FixDirectoryLinks.class);
-            // do_users(Users, FixLongPaths.class);
+            do_users(Users, FixLongPaths.class);
             // do_users(Users, FixFileExtensions.class);
 
             txLog.writeLineSafe("");

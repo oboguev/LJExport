@@ -491,7 +491,7 @@ public class FixLongPaths extends MaintenanceHandler
 
             if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href))
             {
-                String rel = this.href2abs(href, fullHtmlFilePath);
+                String rel = href2rel(href, fullHtmlFilePath);
                 if (tryChange(rel, href, n, tag, attr, fullHtmlFilePath))
                 {
                     updated = true;
@@ -502,7 +502,7 @@ public class FixLongPaths extends MaintenanceHandler
             String href2 = URLCodec.encode(href).replace("%2F", "/");
             if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href2))
             {
-                String rel2 = this.href2abs(href2, fullHtmlFilePath);
+                String rel2 = href2rel(href2, fullHtmlFilePath);
                 if (tryChange(rel2, href, n, tag, attr, fullHtmlFilePath))
                 {
                     updated = true;
@@ -513,7 +513,7 @@ public class FixLongPaths extends MaintenanceHandler
             String href3 = URLCodec.encodeFilename(href).replace("%2F", "/");
             if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href3))
             {
-                String rel3 = this.href2abs(href3, fullHtmlFilePath);
+                String rel3 = href2rel(href3, fullHtmlFilePath);
                 if (tryChange(rel3, href, n, tag, attr, fullHtmlFilePath))
                 {
                     updated = true;
@@ -523,7 +523,7 @@ public class FixLongPaths extends MaintenanceHandler
 
             if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href_raw))
             {
-                String rel_raw = this.href2abs(href_raw, fullHtmlFilePath);
+                String rel_raw = href2rel(href_raw, fullHtmlFilePath);
                 if (tryChange(rel_raw, href_raw, n, tag, attr, fullHtmlFilePath))
                 {
                     updated = true;
@@ -534,7 +534,7 @@ public class FixLongPaths extends MaintenanceHandler
             href2 = URLCodec.encode(href_raw).replace("%2F", "/");
             if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href2))
             {
-                String rel2 = this.href2abs(href2, fullHtmlFilePath);
+                String rel2 = href2rel(href2, fullHtmlFilePath);
                 if (tryChange(rel2, href_raw, n, tag, attr, fullHtmlFilePath))
                 {
                     updated = true;
@@ -545,7 +545,7 @@ public class FixLongPaths extends MaintenanceHandler
             href3 = URLCodec.encodeFilename(href_raw).replace("%2F", "/");
             if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href3))
             {
-                String rel3 = this.href2abs(href3, fullHtmlFilePath);
+                String rel3 = href2rel(href3, fullHtmlFilePath);
                 if (tryChange(rel3, href_raw, n, tag, attr, fullHtmlFilePath))
                 {
                     updated = true;

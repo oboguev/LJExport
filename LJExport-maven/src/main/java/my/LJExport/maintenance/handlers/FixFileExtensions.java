@@ -211,7 +211,7 @@ public class FixFileExtensions extends MaintenanceHandler
             if (isArchiveOrg())
             {
                 /* ignore bad links due to former bug in archive loader */
-                if (href.startsWith("../") && href.endsWith("/links/null"))
+                if (href.startsWith("../") && href.endsWith("../links/null"))
                     continue;
             }
 

@@ -9,35 +9,32 @@ import java.util.Map;
 
 import org.jsoup.nodes.Node;
 
-import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
-import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.url.URLCodec;
 
 /*
- * Fix local URL links not properly URL-encoded in IMG.SRC and A.HREF tags 
+ * Verify that local URL links are properly URL-encoded in IMG.SRC and A.HREF tags
+ * and point to local files. 
  */
-public class FixUnencodedLinks extends MaintenanceHandler
+public class VerifyUnencodedLinks extends MaintenanceHandler
 {
     private static boolean DryRun = true;
 
     private static int NScannedLinks = 0;
     private static int NCorrectLinks = 0;
-    private static int NFixableLinks = 0;
-    private static int NDanglingLinks = 0;
 
-    public FixUnencodedLinks() throws Exception
+    public VerifyUnencodedLinks() throws Exception
     {
     }
 
     @Override
     protected void beginUsers() throws Exception
     {
-        Util.out(">>> * Fix local URL links not properly URL-encoded in IMG.SRC and A.HREF tags ");
-        super.beginUsers("Fixing unencoded links");
-        txLog.writeLine(String.format("Executing FixUnencodedLinks in %s mode", DryRun ? "DRY RUN" : "WET RUN"));
+        Util.out(">>> Verify that local URL links are properly URL-encoded in IMG.SRC and A.HREF tags ");
+        super.beginUsers("Verifying for unencoded links");
+        txLog.writeLine(String.format("Executing VerifyUnencodedLinks in %s mode", DryRun ? "DRY RUN" : "WET RUN"));
     }
 
     @Override
@@ -46,12 +43,11 @@ public class FixUnencodedLinks extends MaintenanceHandler
         super.endUsers();
 
         Util.out("");
-        Util.out("FixUnencodedLinks summary:");
+        Util.out("VerifyUnencodedLinks summary:");
         Util.out("");
         Util.out("  Scanned links: " + NScannedLinks);
         Util.out("  Correct links: " + NCorrectLinks);
-        Util.out("  Fixable links: " + NFixableLinks);
-        Util.out(  "Dangling links: " + NDanglingLinks);
+        Util.out("  Missing links: " + (NScannedLinks - NCorrectLinks));
         Util.out("");
     }
 
@@ -140,51 +136,8 @@ public class FixUnencodedLinks extends MaintenanceHandler
                 }
             }
 
-            /*
-             * Does href_raw point to a file?
-             * If so, encode it. 
-             */
-            if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href_raw))
-            {
-                String rel = href2rel(href_raw, fullHtmlFilePath);
-                if (rel_exists(rel))
-                {
-                    updateLinkAttribute(n, attr, href_raw);
-                    updated = true;
-                    changeMessage(href_raw, LinkDownloader.encodePathComponents(href_raw), fullHtmlFilePath, tag, attr);
-                    continue;
-                }
-
-            }
-
-            String href2 = URLCodec.encode(href_raw).replace("%2F", "/");
-            if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href2))
-            {
-                String rel = href2rel(href2, fullHtmlFilePath);
-                if (rel_exists(rel))
-                {
-                    updateLinkAttribute(n, attr, href2);
-                    updated = true;
-                    changeMessage(href_raw, LinkDownloader.encodePathComponents(href2), fullHtmlFilePath, tag, attr);
-                    continue;
-                }
-            }
-
-            String href3 = URLCodec.encodeFilename(href_raw).replace("%2F", "/");
-            if (!URLCodec.unixRelativePathContainsFilesysReservedChars(href3))
-            {
-                String rel = href2rel(href3, fullHtmlFilePath);
-                if (rel_exists(rel))
-                {
-                    updateLinkAttribute(n, attr, href3);
-                    updated = true;
-                    changeMessage(href_raw, LinkDownloader.encodePathComponents(href3), fullHtmlFilePath, tag, attr);
-                    continue;
-                }
-            }
-
-            danglingLinkMessage(href_raw, fullHtmlFilePath, tag, attr);
-            NDanglingLinks++;
+            Util.out(String.format("Missing link file for %s.%s link to  %s" + nl, tag, attr, decoded_href));
+            Util.out(String.format("                      %s.%s in file  %s" + nl, spaces(tag), spaces(attr), fullHtmlFilePath));
         }
 
         return updated;
@@ -192,35 +145,7 @@ public class FixUnencodedLinks extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
-    private void changeMessage(String href_raw, String href_replacement, String fullHtmlFilePath, String tag, String attr)
-            throws Exception
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("Changing [%s] HTML %s.%s from  %s" + nl, Config.User, tag, attr, href_raw));
-        sb.append(String.format("          %s       %s %s   to  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr),
-                href_replacement));
-        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr),
-                fullHtmlFilePath));
-
-        trace(sb.toString());
-        Util.out(sb.toString());
-
-        NFixableLinks++;
-    }
-
-    private void danglingLinkMessage(String href_raw, String fullHtmlFilePath, String tag, String attr)
-            throws Exception
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("Dangling [%s] HTML %s.%s link  %s" + nl, Config.User, tag, attr, href_raw));
-        sb.append(String.format("          %s       %s %s   in  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr),
-                fullHtmlFilePath));
-
-        trace(sb.toString());
-        Util.err(sb.toString());
-        errorMessageLog.add(sb.toString());
-    }
-
+    @SuppressWarnings("unused")
     private void trace(String msg) throws Exception
     {
         // errorMessageLog.add(msg);

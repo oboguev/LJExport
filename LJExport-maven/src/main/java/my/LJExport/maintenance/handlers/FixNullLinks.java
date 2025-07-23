@@ -1,8 +1,6 @@
 package my.LJExport.maintenance.handlers;
 
 import java.io.File;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +10,6 @@ import org.jsoup.nodes.Node;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
-import my.LJExport.runtime.url.URLCodec;
 
 /*
  * Fix local links ending in ../links/null
@@ -98,23 +95,52 @@ public class FixNullLinks extends MaintenanceHandler
             if (href_raw == null)
                 continue;
 
-            if (!(href_raw.startsWith("../") && href_raw.endsWith("../links/null")))
-                continue;
+            boolean fix = false;
+
+            if (href_raw.startsWith("../") && href_raw.endsWith("../links/null"))
+                fix = true;
             
+            if (!fix && href_raw.endsWith("/null"))
+            {
+                Util.err("Null link outside of links repo");
+                throwException("Null link outside of links repo");
+            }
+
+            if (!fix)
+                continue;
+
             if (href_original != null && href_original.trim().length() != 0)
             {
-                
-                Util.out(String.format("Changing %s.%s link to  %s" + nl, tag, attr, href_raw));
-                Util.out(String.format("         %s.%s back to  %s" + nl, spaces(tag), spaces(attr), href_original));
-                Util.out(String.format("         %s.%s in file  %s" + nl, spaces(tag), spaces(attr), fullHtmlFilePath));
-                
+                if (href_original.startsWith("/web/20"))
+                    href_original = "https://web.archive.org" + href_original;
+
+                if (!href_original.startsWith("http://") && !href_original.startsWith("https://"))
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(String.format("Non-absolute %s.%s  link URL  %s" + nl, tag, attr, href_original));
+                    sb.append(String.format("             %s %s   in file  %s" + nl, spaces(tag), spaces(attr), fullHtmlFilePath));
+                    Util.err(sb.toString());
+                }
+            }
+
+            if (href_original != null && href_original.trim().length() != 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.append(String.format("Changing %s.%s link from  %s" + nl, tag, attr, href_raw));
+                sb.append(String.format("         %s %s   back to  %s" + nl, spaces(tag), spaces(attr), href_original));
+                sb.append(String.format("         %s %s   in file  %s" + nl, spaces(tag), spaces(attr), fullHtmlFilePath));
+                Util.out(sb.toString());
+
                 JSOUP.updateAttribute(n, attr, href_original);
                 updated = true;
             }
             else
             {
-                Util.out(String.format("No original URL for null %s.%s link to  %s" + nl, tag, attr, href_raw));
-                Util.out(String.format("                         %s.%s in file  %s" + nl, spaces(tag), spaces(attr), fullHtmlFilePath));
+                StringBuilder sb = new StringBuilder();
+                sb.append(String.format("No original URL for null %s.%s link to  %s" + nl, tag, attr, href_raw));
+                sb.append(String.format("                         %s %s in file  %s" + nl, spaces(tag), spaces(attr),
+                        fullHtmlFilePath));
+                Util.err(sb.toString());
             }
         }
 

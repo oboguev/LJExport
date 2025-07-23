@@ -120,7 +120,7 @@ public class FixNullLinks extends MaintenanceHandler
                 {
                     String path = new File(relativeFilePath).getParentFile().toString();
                     path = path.replace(File.separator, "/");
-                    path = String.format("http://%s/%s/%s", Config.User, path, href_original);
+                    href_original = String.format("http://%s/%s/%s", Config.User, path, href_original);
                 }
 
                 if (!href_original.startsWith("http://") && !href_original.startsWith("https://"))

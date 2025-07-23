@@ -105,10 +105,8 @@ public class FixLongPaths extends MaintenanceHandler
 
         updatedMap = false;
         loadLinkMapFile();
-
-        // ###          apply rename list to link map
-        // ###          save link map
-        // ### if not in map, add to map using original path
+        
+        applyRenamesToLinkMap();
 
         // ### apply rename list to HTML
 
@@ -357,6 +355,37 @@ public class FixLongPaths extends MaintenanceHandler
         Util.writeToFileSafe(dst, ba);
         
         Files.delete(fp.toPath());
+    }
+    
+    /* ===================================================================================================== */
+
+    private void applyRenamesToLinkMap() throws Exception
+    {
+        for (KVEntry e : renames)
+            applyRenamesToLinkMap(e.key, e.value);
+    }
+    
+    private void applyRenamesToLinkMap(String src, String dst) throws Exception
+    {
+        List<LinkMapEntry> entries = relpath2entry.get(src.toLowerCase());
+        
+        for (LinkMapEntry e : entries)
+        {
+            e.value = dst;
+            updatedMap = true;
+        }
+        
+        // if not in the map, add to the map using reconstructed original path
+        if (entries.size() == 0)
+        {
+            ShortFilePath sfp = new ShortFilePath(MaxRelativeFilePath);
+            String url = sfp.reconstructURL(src);
+            if (url != null)
+            {
+                linkMapEntries.add(new LinkMapEntry(url, dst)); // ###
+                updatedMap = true;
+            }
+        }
     }
     
     /* ===================================================================================================== */

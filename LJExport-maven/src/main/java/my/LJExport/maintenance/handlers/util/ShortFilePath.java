@@ -230,7 +230,7 @@ public class ShortFilePath
         if (ext == null)
         {
             URI uri = null;
-            
+
             try
             {
                 uri = new URI(URLCodec.fullyDecodeMixed(pclast));
@@ -239,7 +239,7 @@ public class ShortFilePath
             {
                 // disregard
             }
-            
+
             if (uri != null && uri.getPath() != null)
                 ext = LinkDownloader.getFileExtension(uri.getPath());
         }
@@ -408,5 +408,35 @@ public class ShortFilePath
         throwException("Unable to shorten file path using employed methods: " + rel);
 
         return null;
+    }
+
+    /* ===================================================================================== */
+
+    public String reconstructURL(String rel) throws Exception
+    {
+        String[] components = rel.split("/");
+
+        String host = components[0];
+        host = host.replace("__", ":");
+        components[0] = host;
+
+        for (int k = 1; k < components.length; k++)
+            components[k] = URLCodec.fullyDecodeMixed(components[k]);
+
+        for (int k = 1; k < components.length; k++)
+        {
+            String pc = components[k];
+
+            String ext = LinkDownloader.getFileExtension(pc);
+            if (ext != null)
+                pc = Util.stripTail(pc, "." + ext);
+            
+            if (pc.startsWith("x-") && isLowercaseGuid(pc.substring(2)))
+                    return null;
+        }
+
+        String url = "https://" + recompose(components, "/");
+
+        return url;
     }
 }

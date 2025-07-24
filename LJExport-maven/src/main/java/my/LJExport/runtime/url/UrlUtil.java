@@ -33,6 +33,15 @@ public class UrlUtil
      * If urls contains multiple elements of different shapes of the same URL (protocol, encodings), tries to consolidate them to one canonic form and return it.
      * If consolidation is impossible, returns null.
      */
+
+    /**
+     * Consolidates a collection of URLs into a canonical form.
+     * Prefers HTTPS and less double-encoding (e.g., %2520).
+     *
+     * @param urls            Input URLs
+     * @param ignorePathCase  Whether to treat path case-insensitively
+     * @return A preferred canonical URL (from the input set), or null if conflict
+     */
     public static String consolidateUrlVariants(Collection<String> urls, boolean ignorePathCase)
     {
         if (urls == null || urls.isEmpty())
@@ -57,14 +66,12 @@ public class UrlUtil
             return null;
 
         List<String> variants = normalizedToOriginals.values().iterator().next();
-
-        for (String v : variants)
-            if (v.toLowerCase(Locale.ROOT).startsWith("https://"))
-                return v;
-
-        return variants.get(0); // fallback
+        return selectBestUrl(variants);
     }
 
+    /**
+     * Normalize URL for structural comparison.
+     */
     private static String normalizeUrlForComparison(String urlString, boolean ignorePathCase)
     {
         try
@@ -83,9 +90,8 @@ public class UrlUtil
             String query = url.getQuery();
             String fragment = url.getRef();
 
-            // Use "scheme" as placeholder to group http/https together
             URI normalized = new URI(
-                    "scheme",
+                    "scheme", // placeholder scheme
                     null,
                     host,
                     port,
@@ -101,6 +107,9 @@ public class UrlUtil
         }
     }
 
+    /**
+     * Normalize and re-encode a URL path with optional case folding.
+     */
     private static String normalizeAndReencodePath(String rawPath, boolean ignoreCase)
     {
         String[] parts = rawPath.split("/");
@@ -109,7 +118,7 @@ public class UrlUtil
         {
             try
             {
-                String decoded = URLDecoder.decode(part, StandardCharsets.UTF_8);
+                String decoded = fullyDecode(part);
                 if (ignoreCase)
                     decoded = decoded.toLowerCase(Locale.ROOT);
                 String encoded = URLEncoder.encode(decoded, StandardCharsets.UTF_8)
@@ -118,10 +127,69 @@ public class UrlUtil
             }
             catch (Exception e)
             {
-                // fallback on error
                 reencodedParts.add(part);
             }
         }
         return "/" + String.join("/", reencodedParts);
+    }
+
+    /**
+     * Repeatedly decode percent-encoded text (handles double-encoded values).
+     */
+    private static String fullyDecode(String input)
+    {
+        String prev;
+        String current = input;
+        int maxDepth = 5;
+        int count = 0;
+        do
+        {
+            prev = current;
+            current = URLDecoder.decode(prev, StandardCharsets.UTF_8);
+            count++;
+        }
+        while (!prev.equals(current) && count < maxDepth);
+        return current;
+    }
+
+    /**
+     * Selects the best representative URL:
+     * - Prefer HTTPS
+     * - Prefer fewer %25 (double-encoded)
+     */
+    private static String selectBestUrl(List<String> variants)
+    {
+        String best = null;
+        int bestScore = Integer.MAX_VALUE;
+
+        for (String v : variants)
+        {
+            int score = countOccurrences(v, "%25");
+            if (v.toLowerCase(Locale.ROOT).startsWith("https://"))
+            {
+                score -= 10; // strong preference
+            }
+            if (score < bestScore)
+            {
+                best = v;
+                bestScore = score;
+            }
+        }
+
+        return best;
+    }
+
+    /**
+     * Count occurrences of substring in a string.
+     */
+    private static int countOccurrences(String s, String sub)
+    {
+        int count = 0, index = 0;
+        while ((index = s.indexOf(sub, index)) != -1)
+        {
+            count++;
+            index += sub.length();
+        }
+        return count;
     }
 }

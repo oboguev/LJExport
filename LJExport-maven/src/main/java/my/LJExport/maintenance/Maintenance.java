@@ -30,8 +30,8 @@ import my.LJExport.runtime.ui.UIProgressDialog;
 public class Maintenance
 {
     private static final String ALL_USERS = "<all>";
-    // private static final String AllUsersFromUser = "a_samovarov";
-    private static final String AllUsersFromUser = null;
+    private static final String AllUsersFromUser = "ru_history";
+    // private static final String AllUsersFromUser = null;
 
     private static final String Users = ALL_USERS;
     // private static final String Users = "1981dn";

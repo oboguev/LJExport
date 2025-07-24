@@ -386,9 +386,6 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         private void addUrl(String url) throws Exception
         {
-            // ### url = URLCodec.fullyDecodeMixed(url);
-            // ### decode full
-            // ### encode
             if (!urls.contains(url))
                 urls.add(url);
         }

@@ -36,6 +36,9 @@ public class MainRedownloadFailedLinks
     private String linksDir;
     private KVFile kvfile;
     private List<KVEntry> kvlist;
+    private List<KVEntry> kvlist_good = new ArrayList<>();
+    private List<KVEntry> kvlist_failed = new ArrayList<>();
+    private List<KVEntry> kvlist_all = new ArrayList<>();
 
     private static final String ALL_USERS = "<all>";
     private static final String AllUsersFromUser = null;
@@ -49,6 +52,8 @@ public class MainRedownloadFailedLinks
     /* we can use large number of threads because they usually are network IO bound */
     private static final int NWorkThreads = 300;
     private static final int MaxConnectionsPerRoute = 10;
+    
+    private static boolean DryRun = true;
 
     public static void main(String[] args)
     {
@@ -148,33 +153,33 @@ public class MainRedownloadFailedLinks
 
             if (!redownloadLinkFiles())
                 return;
-            
+
             if (Main.isAborting())
             {
                 Util.err(">>> Aborted redownloading of failed links for user " + Config.User);
                 return;
             }
-            
+
         }
         finally
         {
             ThreadsControl.shutdownAfterUser();
         }
     }
-    
+
     /* =================================================================================================== */
-    
+
     private boolean redownloadLinkFiles() throws Exception
     {
         if (kvfile.exists())
             kvlist = kvfile.load(true);
 
-        if (kvlist == null ||  kvlist.size() == 0)
+        if (kvlist == null || kvlist.size() == 0)
         {
             Util.out("User " + Config.User + " has no files scheduled to redownload");
             return false;
         }
-        
+
         // start worker threads
         ThreadsControl.workerThreadGoEventFlag.clear();
         ThreadsControl.activeWorkerThreadCount.set(0);
@@ -202,7 +207,7 @@ public class MainRedownloadFailedLinks
                     Util.out(">>> Waiting for active worker threads to complete ...");
             }
         }
-        
+
         return true;
     }
 
@@ -237,7 +242,7 @@ public class MainRedownloadFailedLinks
     private void do_redownload() throws Exception
     {
         ThreadsControl.workerThreadGoEventFlag.waitFlag();
-        
+
         LinkRedownloader linkRedownloader = new LinkRedownloader(linksDir);
 
         for (;;)
@@ -253,11 +258,11 @@ public class MainRedownloadFailedLinks
                     return;
                 entry = kvlist.remove(0);
             }
-            
+
             String url = entry.key;
             String relpath = entry.value;
             boolean image = false;
-            
+
             if (url.startsWith("image:"))
             {
                 image = true;
@@ -268,16 +273,24 @@ public class MainRedownloadFailedLinks
                 image = false;
                 url = Util.stripStart(url, "document:");
             }
-            
+            else
+            {
+                throw new Exception("Invalid control file format");
+            }
+
             String referer = LJUtil.userBase();
-            
+
             if (LinkDownloader.shouldDownload(url, false) && linkRedownloader.redownload(url, relpath, referer, image))
             {
+                kvlist_good.add(entry);
+                kvlist_all.add(entry);
                 // ### OK -> remove from list
                 // ### add original-attr if missing
             }
             else
             {
+                kvlist_failed.add(entry);
+                kvlist_all.add(entry);
                 // ### cannot reload -> restore original URL in links
             }
         }

@@ -729,7 +729,7 @@ public abstract class PageParser
         {
             String href = JSOUP.getAttribute(n, attr);
 
-            if (Main.linkDownloader.shouldDownload(href, filterDownloadFileTypes))
+            if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
                 String referer = LJUtil.recordPageURL(rurl);
                 boolean image = tag.equalsIgnoreCase("img");

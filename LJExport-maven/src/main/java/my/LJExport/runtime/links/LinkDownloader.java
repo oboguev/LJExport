@@ -607,7 +607,7 @@ public class LinkDownloader
         return href;
     }
 
-    public boolean shouldDownload(String href, boolean filterDownloadFileTypes) throws Exception
+    public static boolean shouldDownload(String href, boolean filterDownloadFileTypes) throws Exception
     {
         try
         {

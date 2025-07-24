@@ -411,7 +411,7 @@ public abstract class PageParserDirectBase
         {
             String href = JSOUP.getAttribute(n, attr);
 
-            if (Main.linkDownloader.shouldDownload(href, filterDownloadFileTypes))
+            if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
             {
                 String referer = (rurl == null) ? null : LJUtil.recordPageURL(rurl);
 

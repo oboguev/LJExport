@@ -24,6 +24,8 @@ import my.LJExport.runtime.Util.UnableCreateDirectoryException;
 import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.file.FileTypeDetector;
+import my.LJExport.runtime.file.ServerContent;
+import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.util.DontDownload;
@@ -302,7 +304,7 @@ public class LinkDownloader
                          * Adjust filename extension based on file actual content and Content-Type header.
                          * Will return null if detected error response page such as HTML or PHP.
                          */
-                        actual_filename = adjustExtension(actual_filename, r);
+                        actual_filename = adjustExtension(final_name_href_noanchor, actual_filename, r);
                         filename.set(actual_filename);
 
                         /*
@@ -666,7 +668,7 @@ public class LinkDownloader
      * 
      * Return null if server replied with error pages such as HTML/XHTML/PHP or TXT.
      */
-    private String adjustExtension(String filepath, Web.Response r) throws Exception
+    private String adjustExtension(String href, String filepath, Web.Response r) throws Exception
     {
         String fnExt = LinkFilepath.getMediaFileExtension(filepath);
 
@@ -688,10 +690,22 @@ public class LinkDownloader
         if (finalExt != null && fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, finalExt))
             return filepath;
         
-        // ### www.lib.ru lib.ru: requests txt, sends back html but inside is <pre> -> ok
-        // ### html content reply is ok for url extensions xhtml and shtml
+        Decision decision = ServerContent.acceptContent(href, serverExt, fnExt, r.binaryBody, r);
+        if (decision.isReject())
+        {
+            return null;
+        }
+        else if (decision.isAccept())
+        {
+            if (decision.finalExtension == null)
+                return filepath;
 
-        if (serverExt != null)
+            finalExt = decision.finalExtension;
+            if (fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, finalExt))
+                return filepath;
+        }
+        // if (decision.isNeutral())
+        else if (serverExt != null)
         {
             switch (serverExt.toLowerCase())
             {
@@ -713,6 +727,7 @@ public class LinkDownloader
 
         if (finalExt != null && finalExt.length() != 0)
         {
+            /* appends to any possibly existing extension, e.g. aaa.txt.html or aaa.jpg.png */
             return filepath + "." + finalExt;
         }
         else

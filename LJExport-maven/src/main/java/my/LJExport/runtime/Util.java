@@ -613,7 +613,7 @@ public class Util
             xs.add(s);
         return xs;
     }
-    
+
     /* development aids */
     public static boolean True = true;
     public static boolean False = false;
@@ -1340,7 +1340,7 @@ public class Util
     {
         return Character.isWhitespace(c) || c == '\u00A0';
     }
-    
+
     public static void safeFlush(Flushable c)
     {
         try
@@ -1353,7 +1353,6 @@ public class Util
             err("Failed to flush " + c.getClass().getName());
         }
     }
-    
 
     public static void safeClose(Closeable c)
     {
@@ -1474,5 +1473,76 @@ public class Util
         PrintWriter pw = new PrintWriter(sw);
         ex.printStackTrace(pw);
         return sw.toString();
+    }
+
+    public static boolean in(String value, String... choices)
+    {
+        return Arrays.asList(choices).contains(value);
+    }
+
+    public static boolean eq(String s1, String s2)
+    {
+        if (s1 == null && s2 == null)
+            return true;
+        else if (s1 == null || s2 == null)
+            return false;
+        else
+            return s1.equals(s2);
+    }
+
+    public static boolean eqi(String s1, String s2)
+    {
+        if (s1 == null && s2 == null)
+            return true;
+        else if (s1 == null || s2 == null)
+            return false;
+        else
+            return s1.equalsIgnoreCase(s2);
+    }
+
+    public static boolean contains(byte[] data, String asciiSubstring)
+    {
+        byte[] target = asciiSubstring.getBytes(StandardCharsets.UTF_8);
+
+        outer: for (int i = 0; i <= data.length - target.length; i++)
+        {
+            for (int j = 0; j < target.length; j++)
+            {
+                if (data[i + j] != target[j])
+                {
+                    continue outer;
+                }
+            }
+
+            return true; // Match found
+        }
+
+        return false;
+    }
+
+    public static boolean containsCaseInsensitive(byte[] data, String asciiSubstring)
+    {
+        byte[] target = asciiSubstring.getBytes(StandardCharsets.UTF_8);
+
+        outer: for (int i = 0; i <= data.length - target.length; i++)
+        {
+            for (int j = 0; j < target.length; j++)
+            {
+                int b = data[i + j] & 0xFF;
+                int t = target[j] & 0xFF;
+
+                // ASCII case-insensitive compare: toLower
+                if (b >= 'A' && b <= 'Z')
+                    b += 32;
+                if (t >= 'A' && t <= 'Z')
+                    t += 32;
+
+                if (b != t)
+                    continue outer;
+            }
+            return true; // Match found
+        }
+
+        return false;
     }
 }

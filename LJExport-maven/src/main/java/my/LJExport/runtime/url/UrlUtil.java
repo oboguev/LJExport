@@ -37,19 +37,11 @@ public class UrlUtil
     /**
      * Consolidates a collection of URLs into a canonical form.
      * Prefers HTTPS and less double-encoding (e.g., %2520).
+     * Accepts non-conforming input URLs.
      *
      * @param urls            Input URLs
      * @param ignorePathCase  Whether to treat path case-insensitively
      * @return A preferred canonical URL (from the input set), or null if conflict
-     */
-
-    /**
-     * Consolidates a collection of URLs into a canonical RFC-conforming form.
-     * Accepts non-conforming input URLs.
-     *
-     * @param urls            Input URLs
-     * @param ignorePathCase  Whether to compare paths case-insensitively
-     * @return RFC-compliant canonical URL, or null if conflicting
      */
     public static String consolidateUrlVariants(Collection<String> urls, boolean ignorePathCase)
     {

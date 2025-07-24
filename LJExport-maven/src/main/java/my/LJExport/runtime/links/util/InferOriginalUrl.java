@@ -7,7 +7,7 @@ import my.LJExport.runtime.url.URLCodec;
 /*
  * Infer original URL from relative path name in link repository
  */
-public class InferOriginalURL
+public class InferOriginalUrl
 {
     private static final String schema = "https://";
 

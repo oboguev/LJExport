@@ -3,8 +3,7 @@ package my.LJExport.maintenance.handlers.util;
 import java.net.URI;
 
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.links.util.LinkFilepathUtil;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.url.URLCodec;
 
 public class ShortFilePath
@@ -168,7 +167,7 @@ public class ShortFilePath
 
     private String sane(String component) throws Exception
     {
-        return LinkDownloader.makeSanePathComponent(component);
+        return LinkFilepath.makeSanePathComponent(component);
     }
 
     @SuppressWarnings("unused")
@@ -226,7 +225,7 @@ public class ShortFilePath
 
     private void reapplyExtension(String[] xc, String pclast) throws Exception
     {
-        String ext = LinkFilepathUtil.getMediaFileExtension(pclast);
+        String ext = LinkFilepath.getMediaFileExtension(pclast);
 
         if (ext == null)
         {
@@ -242,7 +241,7 @@ public class ShortFilePath
             }
 
             if (uri != null && uri.getPath() != null)
-                ext = LinkFilepathUtil.getMediaFileExtension(uri.getPath());
+                ext = LinkFilepath.getMediaFileExtension(uri.getPath());
         }
 
         if (ext != null && !xc[xc.length - 1].toLowerCase().endsWith("." + ext.toLowerCase()))
@@ -428,7 +427,7 @@ public class ShortFilePath
         {
             String pc = components[k];
 
-            String ext = LinkFilepathUtil.getMediaFileExtension(pc);
+            String ext = LinkFilepath.getMediaFileExtension(pc);
             if (ext != null)
                 pc = Util.stripTail(pc, "." + ext);
 
@@ -454,7 +453,7 @@ public class ShortFilePath
         }
 
         String pclast = components[components.length - 1];
-        String ext = LinkFilepathUtil.getMediaFileExtension(pclast);
+        String ext = LinkFilepath.getMediaFileExtension(pclast);
         
         if (ext != null)
         {

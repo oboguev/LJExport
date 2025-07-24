@@ -42,7 +42,7 @@ import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.util.DownloadSource;
-import my.LJExport.runtime.links.util.LinkFilepathUtil;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.RelativeLink;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
 import my.LJExport.runtime.url.UrlSetMatcher;
@@ -464,7 +464,7 @@ public class StyleActionToLocal
                 throw newException("Failed to download style URL: " + cssFileURL);
             }
 
-            newref = LinkFilepathUtil.decodePathComponents(newref);
+            newref = LinkFilepath.decodePathComponents(newref);
 
             /* convert to absolute path*/
             String cssFilePath = linkDownloader.rel2abs(newref);
@@ -1106,7 +1106,7 @@ public class StyleActionToLocal
         }
 
         /* Full local file path name */
-        rel = LinkFilepathUtil.decodePathComponents(rel);
+        rel = LinkFilepath.decodePathComponents(rel);
         String abs = linkDownloader.rel2abs(rel);
 
         /* File path relative to the referencing resource (both must reside within DownloadRoot)  */

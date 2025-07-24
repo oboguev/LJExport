@@ -12,7 +12,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
-import my.LJExport.runtime.links.util.LinkFilepathUtil;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public class LinkRedownloader
@@ -49,7 +49,7 @@ public class LinkRedownloader
                 contentExt = headerExt;
             }
 
-            String urlPathExt = LinkFilepathUtil.getMediaFileExtension(xurl.getPath());
+            String urlPathExt = LinkFilepath.getMediaFileExtension(xurl.getPath());
 
             if (contentExt != null)
             {

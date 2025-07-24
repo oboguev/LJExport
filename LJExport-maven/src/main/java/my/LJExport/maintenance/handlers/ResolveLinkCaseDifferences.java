@@ -16,7 +16,7 @@ import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.links.util.LinkFilepathUtil;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.RelativeLink;
 import my.LJExport.runtime.links.util.RelativeLink.InvalidNestedPathException;
 
@@ -269,8 +269,8 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
 
         String h1 = href;
         String h2 = sanitizePath(href);
-        String h3 = LinkFilepathUtil.encodePathComponents(href);
-        String h4 = sanitizePath(LinkFilepathUtil.encodePathComponents(href));
+        String h3 = LinkFilepath.encodePathComponents(href);
+        String h4 = sanitizePath(LinkFilepath.encodePathComponents(href));
         String h5 = href + "_xxx.jpeg";
 
         List<String> list = new ArrayList<>();

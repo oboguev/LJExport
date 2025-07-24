@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.links.util.LinkFilepath;
 
 /*
  * Generate safe file name
@@ -59,8 +59,8 @@ public class SafeFileName
         String result = sb.toString();
         
         /* Fix dangerous trailing . or space (Windows will strip them silently) */
-        result = LinkDownloader.escapeTrailingDotsAndSpaces(result);
-        result = LinkDownloader.escapeLeadingSpacesAndUnicode(result);
+        result = LinkFilepath.escapeTrailingDotsAndSpaces(result);
+        result = LinkFilepath.escapeLeadingSpacesAndUnicode(result);
 
         /*
          * If reserved file name, mangle it

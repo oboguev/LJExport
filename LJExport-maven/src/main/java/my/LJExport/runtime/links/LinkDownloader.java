@@ -5,11 +5,9 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,10 +28,9 @@ import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.util.DontDownload;
 import my.LJExport.runtime.links.util.DownloadSource;
-import my.LJExport.runtime.links.util.LinkFilepathUtil;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.URLClassifier;
 import my.LJExport.runtime.synch.NamedLocks;
-import my.LJExport.runtime.url.URLCodec;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public class LinkDownloader
@@ -120,7 +117,7 @@ public class LinkDownloader
     {
         String href = name_href;
         String href_noanchor = Util.stripAnchor(href);
-        String fn = buildFilePath(linksDir, href_noanchor);
+        String fn = LinkFilepath.buildFilePath(linksDir, href_noanchor);
         String afn = href2file.getAnyUrlProtocol(href_noanchor);
         if (afn != null)
             fn = afn;
@@ -161,7 +158,7 @@ public class LinkDownloader
             if (failedSet.contains(download_href_noanchor))
                 return null;
 
-            filename.set(buildFilePath(linksDir, name_href_noanchor));
+            filename.set(LinkFilepath.buildFilePath(linksDir, name_href_noanchor));
 
             // Main.out(">>> Downloading: " + href + " -> " + filename.get());
 
@@ -301,7 +298,7 @@ public class LinkDownloader
                             actual_filename += String.format("x-%02d", folder) + File.separator;
                             actual_filename += "x-" + Util.uuid();
 
-                            String ext = LinkFilepathUtil.getMediaFileExtension(f.getName());
+                            String ext = LinkFilepath.getMediaFileExtension(f.getName());
                             if (ext != null)
                                 actual_filename += "." + ext;
 
@@ -347,7 +344,7 @@ public class LinkDownloader
                 return null;
 
             String newref = abs2rel(filename.get());
-            newref = linkReferencePrefix + LinkFilepathUtil.encodePathComponents(newref);
+            newref = linkReferencePrefix + LinkFilepath.encodePathComponents(newref);
             return newref;
         }
         catch (Exception ex)
@@ -395,7 +392,7 @@ public class LinkDownloader
             if (fp.isDirectory() || fp.isFile() && !isSameContent(fp.getCanonicalPath(), r.binaryBody))
             {
                 // change actual_filename to old-path\x-uuid.ext
-                String ext = LinkFilepathUtil.getMediaFileExtension(fp.getName());
+                String ext = LinkFilepath.getMediaFileExtension(fp.getName());
                 String fn = "x-" + Util.uuid();
                 if (ext != null)
                     fn += "." + ext;
@@ -672,209 +669,6 @@ public class LinkDownloader
 
     /* ======================================================================== */
 
-    private static final int MaxFilePathComponentLength = 90;
-    private static final int MaxFilePathLentgh = 230;
-
-    private String buildFilePath(String linksDir, String href) throws Exception
-    {
-        URL url = new URL(href);
-
-        List<StringBuilder> list = new ArrayList<>();
-
-        StringBuilder sb = new StringBuilder(linksDir + File.separator);
-        sb.append(url.getHost());
-        int port = url.getPort();
-        if (port > 0 && port != 80 && port != 443)
-            sb.append("__" + port);
-        list.add(sb);
-        sb = null;
-
-        if (url.getHost().equals("imgprx.livejournal.net"))
-        {
-            int folder = (int) (Math.random() * 100);
-            if (folder >= 100)
-                folder = 99;
-            list.add(new StringBuilder(String.format("x-%02d", folder)));
-            list.add(new StringBuilder("x-" + Util.uuid()));
-        }
-        else
-        {
-            for (String pc : Util.asList(url.getPath(), "/"))
-            {
-                if (pc.length() != 0)
-                {
-                    sb = new StringBuilder(pc);
-                    list.add(sb);
-                }
-            }
-
-            String ext = (sb == null) ? null : LinkFilepathUtil.getMediaFileExtension(sb.toString());
-
-            String query = url.getQuery();
-            if (query != null && query.length() != 0)
-            {
-                if (sb == null)
-                {
-                    // https://simg.sputnik.ru/?key=671d8d631c860987add28ec9742b240a2b6cac18
-                    sb = new StringBuilder();
-                    list.add(sb);
-                }
-
-                sb.append("?" + query);
-                // reappend extenstion
-                if (ext != null && ext.length() != 0 && ext.length() <= 4)
-                    sb.append("." + ext);
-            }
-
-            if (sb == null)
-            {
-                // https://simg.sputnik.ru
-                sb = new StringBuilder("[unnamed-root]");
-                list.add(sb);
-            }
-        }
-
-        StringBuilder path = new StringBuilder();
-        for (StringBuilder x : list)
-        {
-            if (path.length() == 0)
-            {
-                path.append(x.toString());
-            }
-            else
-            {
-                path.append(File.separator);
-                path.append(makeSanePathComponent(x.toString()));
-            }
-        }
-
-        String result = path.toString();
-
-        if (result.length() >= MaxFilePathLentgh)
-        {
-            sb = list.get(0);
-            list.clear();
-            list.add(sb);
-
-            list.add(new StringBuilder("@@@"));
-
-            int folder = (int) (Math.random() * 100);
-            if (folder >= 100)
-                folder = 99;
-            list.add(new StringBuilder(String.format("x-%02d", folder)));
-
-            list.add(sb = new StringBuilder("x-" + Util.uuid()));
-
-            String ext = LinkFilepathUtil.getMediaFileExtension(getLastPathComponent(url));
-            if (ext != null)
-                sb.append("." + ext);
-
-            path = new StringBuilder();
-            for (StringBuilder x : list)
-            {
-                if (path.length() != 0)
-                    path.append(File.separator);
-                path.append(x.toString());
-            }
-
-            result = path.toString();
-        }
-
-        return result;
-    }
-
-    public static String makeSanePathComponent(String component) throws Exception
-    {
-        /*
-         * Unpack %xx sequences -> unicode.
-         * Sometimes it has double or even triple encoding.
-         */
-        String fn = URLCodec.fullyDecodeMixed(component);
-
-        /*
-         * Encode reserved characters to URL representation
-         */
-        fn = URLCodec.encodeFilename(fn);
-
-        /* Fix dangerous trailing . or space (Windows will strip them silently) */
-        fn = escapeTrailingDotsAndSpaces(fn);
-        fn = escapeLeadingSpacesAndUnicode(fn);
-
-        /*
-         * If reserved file name, mangle it
-         */
-        if (Util.isReservedFileName(fn, true))
-            return "x-" + Util.uuid() + "_" + fn;
-
-        /*
-         * If name is too long
-         */
-        if (fn.length() > MaxFilePathComponentLength)
-        {
-            String ext = LinkFilepathUtil.getMediaFileExtension(fn);
-            if (ext == null)
-                return "x-" + Util.uuid();
-            else
-                return "x-" + Util.uuid() + "." + ext;
-        }
-
-        return fn;
-    }
-
-    public static String escapeTrailingDotsAndSpaces(String s)
-    {
-        int i = s.length();
-
-        while (i > 0 && isProblematicTrailingChar(s.charAt(i - 1)))
-            i--;
-
-        if (i == s.length())
-            return s;
-
-        if (i == 0)
-            return "x-" + Util.uuid();
-
-        StringBuilder out = new StringBuilder(s.substring(0, i));
-        for (int j = i; j < s.length(); j++)
-            out.append(String.format("%%%02X", (int) s.charAt(j)));
-        return out.toString();
-    }
-
-    private static boolean isProblematicTrailingChar(char c)
-    {
-        return c == '.' || c == ' ' || c == '\u0009' || c == '\u00A0' || (c >= '\u2000' && c <= '\u200F');
-    }
-
-    public static String escapeLeadingSpacesAndUnicode(String s)
-    {
-        int i = 0;
-        while (i < s.length() && isProblematicLeadingChar(s.charAt(i)))
-            i++;
-
-        if (i == 0)
-            return s;
-
-        if (i == s.length())
-            return "x-" + Util.uuid(); // string was entirely invisible chars
-
-        StringBuilder out = new StringBuilder();
-        for (int j = 0; j < i; j++)
-            out.append(String.format("%%%02X", (int) s.charAt(j)));
-        out.append(s.substring(i));
-
-        return out.toString();
-    }
-
-    private static boolean isProblematicLeadingChar(char c)
-    {
-        return c == ' ' || c == '\u0009' || c == '\u00A0' || (c >= '\u2000' && c <= '\u200F');
-    }
-
-    public static class AlreadyFailedException extends Exception
-    {
-        private static final long serialVersionUID = 1L;
-    }
-
     /* ======================================================================================= */
 
     /*
@@ -886,7 +680,7 @@ public class LinkDownloader
     private String adjustExtension(String filepath, Web.Response r) throws Exception
     {
         String filename = new File(filepath).getName();
-        String fnExt = LinkFilepathUtil.getMediaFileExtension(filename);
+        String fnExt = LinkFilepath.getMediaFileExtension(filename);
 
         String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
 
@@ -936,21 +730,6 @@ public class LinkDownloader
         }
     }
 
-    private String getLastPathComponent(URL url)
-    {
-        String path = url.getPath();
-
-        if (path == null || path.isEmpty())
-            return "";
-
-        // Trailing slash means "directory", last component is empty
-        if (path.endsWith("/"))
-            return "";
-
-        int lastSlash = path.lastIndexOf('/');
-        return lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
-    }
-
     public static void addImageHeaders(Map<String, String> headers)
     {
         headers.put("Sec-Fetch-Dest", "image");
@@ -965,5 +744,10 @@ public class LinkDownloader
         headers.put("Sec-Fetch-Mode", "navigate");
         headers.put("Sec-Fetch-Site", "none");
         headers.put("Sec-Fetch-User", "?1");
+    }
+
+    public static class AlreadyFailedException extends Exception
+    {
+        private static final long serialVersionUID = 1L;
     }
 }

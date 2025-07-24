@@ -13,7 +13,7 @@ import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
-import my.LJExport.runtime.links.util.LinkFilepathUtil;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.url.URLCodec;
 
 /*
@@ -151,7 +151,7 @@ public class FixUnencodedLinks extends MaintenanceHandler
                 {
                     updateLinkAttribute(n, attr, href_raw);
                     updated = true;
-                    changeMessage(href_raw, LinkFilepathUtil.encodePathComponents(href_raw), fullHtmlFilePath, tag, attr);
+                    changeMessage(href_raw, LinkFilepath.encodePathComponents(href_raw), fullHtmlFilePath, tag, attr);
                     continue;
                 }
 
@@ -165,7 +165,7 @@ public class FixUnencodedLinks extends MaintenanceHandler
                 {
                     updateLinkAttribute(n, attr, href2);
                     updated = true;
-                    changeMessage(href_raw, LinkFilepathUtil.encodePathComponents(href2), fullHtmlFilePath, tag, attr);
+                    changeMessage(href_raw, LinkFilepath.encodePathComponents(href2), fullHtmlFilePath, tag, attr);
                     continue;
                 }
             }
@@ -178,7 +178,7 @@ public class FixUnencodedLinks extends MaintenanceHandler
                 {
                     updateLinkAttribute(n, attr, href3);
                     updated = true;
-                    changeMessage(href_raw, LinkFilepathUtil.encodePathComponents(href3), fullHtmlFilePath, tag, attr);
+                    changeMessage(href_raw, LinkFilepath.encodePathComponents(href3), fullHtmlFilePath, tag, attr);
                     continue;
                 }
             }

@@ -22,7 +22,7 @@ import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.links.util.InferOriginalURL;
+import my.LJExport.runtime.links.util.InferOriginalUrl;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 import my.LJExport.runtime.url.UrlUtil;
@@ -392,7 +392,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (ShortFilePath.isGeneratedUnixRelativePath(relpath))
                 return;
 
-            String url = InferOriginalURL.infer(relpath);
+            String url = InferOriginalUrl.infer(relpath);
             if (url != null)
                 addUrl(url);
         }

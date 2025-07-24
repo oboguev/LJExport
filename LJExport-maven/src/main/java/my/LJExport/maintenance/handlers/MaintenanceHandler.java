@@ -11,7 +11,7 @@ import my.LJExport.maintenance.Maintenance;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.html.JSOUP;
-import my.LJExport.runtime.links.util.LinkFilepathUtil;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.RelativeLink;
 
 public abstract class MaintenanceHandler extends Maintenance
@@ -73,7 +73,7 @@ public abstract class MaintenanceHandler extends Maintenance
         String href = JSOUP.getAttribute(n, name);
         href = preprocesHref(href);
         if (href != null)
-            href = LinkFilepathUtil.decodePathComponents(href);
+            href = LinkFilepath.decodePathComponents(href);
         return href;
     }
 
@@ -86,7 +86,7 @@ public abstract class MaintenanceHandler extends Maintenance
 
     protected void updateLinkAttribute(Node n, String attrname, String newref) throws Exception
     {
-        JSOUP.updateAttribute(n, attrname, LinkFilepathUtil.encodePathComponents(newref));
+        JSOUP.updateAttribute(n, attrname, LinkFilepath.encodePathComponents(newref));
     }
 
     private String preprocesHref(String href)

@@ -430,13 +430,38 @@ public class ShortFilePath
             String ext = LinkDownloader.getFileExtension(pc);
             if (ext != null)
                 pc = Util.stripTail(pc, "." + ext);
-            
+
             if (pc.startsWith("x-") && isLowercaseGuid(pc.substring(2)))
-                    return null;
+                return null;
         }
 
         String url = "https://" + recompose(components, "/");
 
         return url;
+    }
+
+    /* ===================================================================================== */
+
+    public static boolean isGeneratedUnixRelativePath(String rel) throws Exception
+    {
+        String[] components = rel.split("/");
+
+        for (String pc : components)
+        {
+            if (pc.equals("@@@") || isLowercaseGuid(pc))
+                return true;
+        }
+
+        String pclast = components[components.length - 1];
+        String ext = LinkDownloader.getFileExtension(pclast);
+        
+        if (ext != null)
+        {
+            String pc = Util.stripTail(pclast, "." + ext);
+            if (isLowercaseGuid(pc))
+                return true;
+        }
+
+        return false;
     }
 }

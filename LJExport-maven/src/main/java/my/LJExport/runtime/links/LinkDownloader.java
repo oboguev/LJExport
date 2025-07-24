@@ -911,6 +911,7 @@ public class LinkDownloader
         String ext = fn.substring(dotIndex + 1);
         if (ext.length() == 0 || ext.length() > 4)
             ext = null;
+        
         return ext;
     }
 

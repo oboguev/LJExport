@@ -255,8 +255,22 @@ public class MainRedownloadFailedLinks
             
             String url = entry.key;
             String relpath = entry.value;
+            boolean image = false;
             
-            if (LinkDownloader.shouldDownload(url, false) && linkRedownloader.redownload(url, relpath))
+            if (url.startsWith("image:"))
+            {
+                image = true;
+                url = Util.stripStart(url, "image:");
+            }
+            else if (url.startsWith("document:"))
+            {
+                image = false;
+                url = Util.stripStart(url, "document:");
+            }
+            
+            String referer = null;  // ###
+            
+            if (LinkDownloader.shouldDownload(url, false) && linkRedownloader.redownload(url, relpath, referer, image))
             {
                 // ### OK -> remove from list
                 // ### add original-attr if missing

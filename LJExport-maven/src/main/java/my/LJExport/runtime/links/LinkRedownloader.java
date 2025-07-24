@@ -11,7 +11,6 @@ import my.LJExport.Config;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
-import my.LJExport.runtime.links.LinkDownloader.AlreadyFailedException;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public class LinkRedownloader
@@ -23,7 +22,7 @@ public class LinkRedownloader
         this.linksDir = linksDir;
     }
 
-    public boolean redownload(String url, String unixRelFilePath, String referer) throws Exception
+    public boolean redownload(String url, String unixRelFilePath, String referer, boolean image) throws Exception
     {
         String fullFilePath = linksDir + File.separator + unixRelFilePath.replace("/", File.separator);
 

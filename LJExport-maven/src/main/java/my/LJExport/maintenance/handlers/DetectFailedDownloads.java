@@ -11,13 +11,17 @@ import java.util.Objects;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
+import my.LJExport.maintenance.handlers.util.ShortFilePath;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.file.KVFile;
+import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.InferOriginalURL;
+import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 
@@ -57,6 +61,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
     private Map<String, String> file_lc2ac = new HashMap<>();
     private Map<String, String> fileContentExtensionMap = new HashMap<>();
     private Map<String, FailedLinkInfo> failedLinkInfo = new HashMap<>();
+    private List<LinkMapEntry> linkMapEntries;
+    private Map<String, List<LinkMapEntry>> relpath2entry;
 
     @Override
     protected void beginUser() throws Exception
@@ -65,10 +71,13 @@ public class DetectFailedDownloads extends MaintenanceHandler
         file_lc2ac = new HashMap<>();
         fileContentExtensionMap = new HashMap<>();
         failedLinkInfo = new HashMap<>();
+        linkMapEntries = null;
+        relpath2entry = null;
 
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
         build_lc2ac();
+        loadLinkMapFile();
         prefillFileContentExtensionMap();
 
         trace("");
@@ -81,16 +90,25 @@ public class DetectFailedDownloads extends MaintenanceHandler
     @Override
     protected void endUser() throws Exception
     {
-        List<KVEntry> list = new ArrayList<>(); 
+        List<KVEntry> list = new ArrayList<>();
 
         for (FailedLinkInfo fli : failedLinkInfo.values())
         {
-            fli.prepare();
-        
+            fli.prepare(relpath2entry);
+
             if (fli.urls.size() == 1)
-                list.add(new KVEntry(fli.urls.get(0), fli.relpath));
+            {
+                String url = fli.urls.get(0);
+
+                if (fli.image)
+                    url = "image:" + url;
+                else
+                    url = "document:" + url;
+                
+                list.add(new KVEntry(url, fli.relpath));
+            }
         }
-        
+
         if (!DryRun)
         {
             new KVFile(linkDirSep + "failed-link-downloads.txt").save(list);
@@ -111,6 +129,30 @@ public class DetectFailedDownloads extends MaintenanceHandler
         {
             fp = linkDir + File.separator + fp;
             file_lc2ac.put(fp.toLowerCase(), fp);
+        }
+    }
+    
+    private void loadLinkMapFile() throws Exception
+    {
+        String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+        linkMapEntries = FileBackedMap.readMapFile(mapFilePath);
+
+        relpath2entry = new HashMap<>();
+
+        for (LinkMapEntry e : linkMapEntries)
+        {
+            String relpath = e.value;
+
+            if (relpath.contains("\\") || relpath.endsWith("/"))
+                throwException("Invalid map entry");
+
+            List<LinkMapEntry> list = relpath2entry.get(relpath.toLowerCase());
+            if (list == null)
+            {
+                list = new ArrayList<LinkMapEntry>();
+                relpath2entry.put(relpath.toLowerCase(), list);
+            }
+            list.add(e);
         }
     }
 
@@ -235,11 +277,16 @@ public class DetectFailedDownloads extends MaintenanceHandler
                     FailedLinkInfo fli = failedLinkInfo.get(relpath.toLowerCase());
                     if (fli == null)
                         failedLinkInfo.put(relpath.toLowerCase(), fli = new FailedLinkInfo(relpath));
+
                     if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
                     {
                         if (!fli.urls.contains(href_original))
                             fli.urls.add(href_original);
                     }
+
+                    if (tag.equalsIgnoreCase("img"))
+                        fli.image = true;
+
                     break;
 
                 default:
@@ -298,9 +345,22 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         public final String relpath;
         public final List<String> urls = new ArrayList<>();
+        public boolean image = false;
 
-        public void prepare() throws Exception
+        public void prepare(Map<String, List<LinkMapEntry>> relpath2entry) throws Exception
         {
+            List<LinkMapEntry> entries = relpath2entry.get(relpath.toLowerCase());
+            if (entries != null)
+            {
+                for (LinkMapEntry e : entries)
+                {
+                    String url = e.key;
+                    if (!urls.contains(url))
+                        urls.add(url);
+                    
+                }
+            }
+            
             if (urls.size() > 1)
             {
                 String msg = "Multiple URLs for link file: " + relpath;
@@ -326,6 +386,9 @@ public class DetectFailedDownloads extends MaintenanceHandler
             }
 
             /* infer URL from relpath */
+            if (ShortFilePath.isGeneratedUnixRelativePath(relpath))
+                return;
+            
             String url = InferOriginalURL.infer(relpath);
             if (url != null)
                 urls.add(url);

@@ -5,14 +5,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.jsoup.nodes.Node;
+
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.MemoryMonitor;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.KVFile;
 import my.LJExport.runtime.file.KVFile.KVEntry;
+import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
@@ -50,9 +54,10 @@ public class MainRedownloadFailedLinks
     // private static final String Users = "zhu_s";
 
     /* we can use large number of threads because they usually are network IO bound */
-    private static final int NWorkThreads = 300;
+    private static final int NWorkThreadsDownload = 300;
+    private static final int NMaxWorkThreadsHtmlFiles = 70;
     private static final int MaxConnectionsPerRoute = 10;
-    
+
     private static boolean DryRun = true;
 
     public static void main(String[] args)
@@ -85,7 +90,7 @@ public class MainRedownloadFailedLinks
             users = String.join(",", list);
         }
 
-        Config.NWorkThreads = NWorkThreads;
+        Config.NWorkThreads = NWorkThreadsDownload;
         Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
         Config.init("");
         Web.init();
@@ -149,7 +154,7 @@ public class MainRedownloadFailedLinks
             linksDir = userRoot + File.separator + "links";
             kvfile = new KVFile(linksDir + File.separator + "failed-link-downloads.txt");
 
-            Util.out(">>> Redownloading failed links for user " + Config.User);
+            Util.out(">>> Redownloading of failed links for user " + Config.User);
 
             if (!redownloadLinkFiles())
                 return;
@@ -160,6 +165,7 @@ public class MainRedownloadFailedLinks
                 return;
             }
 
+            updateUserHtmlFiles();
         }
         finally
         {
@@ -179,15 +185,24 @@ public class MainRedownloadFailedLinks
             Util.out("User " + Config.User + " has no files scheduled to redownload");
             return false;
         }
+        else
+        {
+            int parallelism = Math.min(NWorkThreadsDownload, kvlist.size());
+            runWorkers(parallelism, WorkType.RedownloadLinkFiles);
+            return true;
+        }
+    }
 
+    private void runWorkers(int parallelism, WorkType workType) throws Exception
+    {
         // start worker threads
         ThreadsControl.workerThreadGoEventFlag.clear();
         ThreadsControl.activeWorkerThreadCount.set(0);
 
         List<Thread> vt = new ArrayList<Thread>();
-        for (int nt = 0; nt < Math.min(NWorkThreads, kvlist.size()); nt++)
+        for (int nt = 0; nt < parallelism; nt++)
         {
-            Thread t = new Thread(new RedownloadRunnable(this));
+            Thread t = new Thread(new RedownloadRunnable(this, workType));
             vt.add(t);
             t.start();
             ThreadsControl.activeWorkerThreadCount.incrementAndGet();
@@ -207,17 +222,22 @@ public class MainRedownloadFailedLinks
                     Util.out(">>> Waiting for active worker threads to complete ...");
             }
         }
+    }
 
-        return true;
+    public static enum WorkType
+    {
+        RedownloadLinkFiles, UpdateHtmlFiles
     }
 
     public static class RedownloadRunnable implements Runnable
     {
         private final MainRedownloadFailedLinks main;
+        private final WorkType workType;
 
-        public RedownloadRunnable(MainRedownloadFailedLinks main)
+        public RedownloadRunnable(MainRedownloadFailedLinks main, WorkType workType)
         {
             this.main = main;
+            this.workType = workType;
         }
 
         public void run()
@@ -226,7 +246,16 @@ public class MainRedownloadFailedLinks
             {
                 ThreadsControl.backgroundStarting();
                 Thread.currentThread().setName("worker");
-                main.do_redownload();
+                switch (workType)
+                {
+                case RedownloadLinkFiles:
+                    main.doRedownloadLinkFiles();
+                    break;
+
+                case UpdateHtmlFiles:
+                    main.doUpdateHtmlFiles();
+                    break;
+                }
             }
             catch (Exception ex)
             {
@@ -239,11 +268,9 @@ public class MainRedownloadFailedLinks
         }
     }
 
-    private void do_redownload() throws Exception
+    private void doRedownloadLinkFiles() throws Exception
     {
         ThreadsControl.workerThreadGoEventFlag.waitFlag();
-
-        LinkRedownloader linkRedownloader = new LinkRedownloader(linksDir);
 
         for (;;)
         {
@@ -280,19 +307,140 @@ public class MainRedownloadFailedLinks
 
             String referer = LJUtil.userBase();
 
-            if (LinkDownloader.shouldDownload(url, false) && linkRedownloader.redownload(url, relpath, referer, image))
+            if (redownload(url, relpath, referer, image))
             {
-                kvlist_good.add(entry);
-                kvlist_all.add(entry);
+                synchronized (kvlist)
+                {
+                    kvlist_good.add(entry);
+                    kvlist_all.add(entry);
+                }
                 // ### OK -> remove from list
                 // ### add original-attr if missing
             }
             else
             {
-                kvlist_failed.add(entry);
-                kvlist_all.add(entry);
+                synchronized (kvlist)
+                {
+                    kvlist_failed.add(entry);
+                    kvlist_all.add(entry);
+                }
                 // ### cannot reload -> restore original URL in links
             }
         }
+    }
+
+    /* ========================================================================================== */
+
+    private List<String> htmlFilesList;
+
+    private void updateUserHtmlFiles() throws Exception
+    {
+        List<String> list = new ArrayList<>();
+
+        addDirFiles(list, "pages");
+        addDirFiles(list, "reposts");
+        addDirFiles(list, "profile");
+
+        if (Util.False)
+        {
+            addDirFiles(list, "monthly-pages");
+            addDirFiles(list, "monthly-reposts");
+        }
+
+        htmlFilesList = list;
+
+        int parallelism = Runtime.getRuntime().availableProcessors() * Config.ThreadsPerCPU;
+        parallelism = Math.min(parallelism, NMaxWorkThreadsHtmlFiles);
+        Config.prepareThreading(parallelism);
+
+        runWorkers(parallelism, WorkType.UpdateHtmlFiles);
+    }
+
+    private void addDirFiles(List<String> list, String which) throws Exception
+    {
+        final String htmlPagesRootDir = userRoot + File.separator + which;
+
+        File fpRootDir = new File(htmlPagesRootDir).getCanonicalFile();
+        if (!fpRootDir.exists() || !fpRootDir.isDirectory())
+        {
+            if (which.equals("pages"))
+                Util.err("Missing directory " + fpRootDir.getCanonicalPath());
+            return;
+        }
+
+        List<String> enumeratedFiles = Util.enumerateAnyHtmlFiles(htmlPagesRootDir);
+
+        for (String fpath : enumeratedFiles)
+            list.add(this.userRoot + File.separator + which + File.separator + fpath);
+    }
+
+    private void doUpdateHtmlFiles() throws Exception
+    {
+        ThreadsControl.workerThreadGoEventFlag.waitFlag();
+
+        for (;;)
+        {
+            String fullHtmlFilePath;
+
+            if (Main.isAborting())
+                return;
+
+            synchronized (htmlFilesList)
+            {
+                if (htmlFilesList.size() == 0)
+                    return;
+                fullHtmlFilePath = htmlFilesList.remove(0);
+            }
+
+            processHtmlFile(fullHtmlFilePath);
+        }
+    }
+
+    private void processHtmlFile(String fullHtmlFilePath) throws Exception
+    {
+        PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
+        parser.rid = parser.rurl = null;
+        parser.pageSource = Util.readFileAsString(fullHtmlFilePath);
+        parser.parseHtml(parser.pageSource);
+        processHtmlFile(fullHtmlFilePath, parser, JSOUP.flatten(parser.pageRoot));
+    }
+
+    private void processHtmlFile(String fullHtmlFilePath, PageParserDirectBasePassive parser, List<Node> pageFlat) throws Exception
+    {
+        boolean updated = false;
+
+        updated |= process(fullHtmlFilePath, parser, pageFlat, "a", "href");
+        updated |= process(fullHtmlFilePath, parser, pageFlat, "img", "src");
+
+        if (updated && !DryRun)
+        {
+            String html = JSOUP.emitHtml(parser.pageRoot);
+            Util.writeToFileSafe(fullHtmlFilePath, html);
+        }
+    }
+
+    private boolean process(String fullHtmlFilePath, PageParserDirectBasePassive parser, List<Node> pageFlat,
+            String tag, String attr) throws Exception
+    {
+        boolean updated = false;
+
+        for (Node n : JSOUP.findElements(pageFlat, tag))
+        {
+            // ####
+        }
+
+        return updated;
+    }
+
+    /* ========================================================================================== */
+
+    public boolean redownload(String url, String relativeLinkFilePath, String referer, boolean image) throws Exception
+    {
+        LinkRedownloader linkRedownloader = new LinkRedownloader(linksDir);
+
+        if (!LinkDownloader.shouldDownload(url, false))
+            return false;
+
+        return linkRedownloader.redownload(url, relativeLinkFilePath, referer, image);
     }
 }

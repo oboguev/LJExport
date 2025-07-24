@@ -30,6 +30,7 @@ import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.synch.NamedLocks;
 import my.LJExport.runtime.url.URLCodec;
+import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public class LinkDownloader
 {
@@ -148,6 +149,9 @@ public class LinkDownloader
 
             // map washingtonpost image resizer url
             download_href = map_washpost_imr(download_href);
+
+            if (ArchiveOrgUrl.isArchiveOrgSimpleTimestampUrl(download_href))
+                download_href = ArchiveOrgUrl.toDirectDownloadUrl(download_href, false);
 
             href_noanchor = Util.stripAnchor(href);
             download_href_noanchor = Util.stripAnchor(download_href);
@@ -625,7 +629,7 @@ public class LinkDownloader
                 return false;
 
             String host = url.getHost();
-            
+
             if (Util.False)
             {
                 /*
@@ -653,7 +657,7 @@ public class LinkDownloader
             String path = url.getPath();
             if (path == null)
                 return false;
-            
+
             // HTML pages with document-looking URLs like https://en.wikipedia.org/wiki/File:FD2.png
             if (URLClassifier.isNonDocumentURL(url))
                 return false;

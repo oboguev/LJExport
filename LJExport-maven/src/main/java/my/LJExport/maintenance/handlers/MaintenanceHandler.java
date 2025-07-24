@@ -57,7 +57,7 @@ public abstract class MaintenanceHandler extends Maintenance
         }
     }
 
-    protected String spaces(String s)
+    protected static String spaces(String s)
     {
         StringBuilder sb = new StringBuilder();
         for (char c : s.toCharArray())

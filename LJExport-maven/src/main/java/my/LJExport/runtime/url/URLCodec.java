@@ -151,6 +151,23 @@ public class URLCodec
         throw new IllegalStateException("Decoding did not converge within limit");
     }
 
+    public static String fullyDecode(String fn) throws Exception
+    {
+        final int maxIterations = 10;
+        
+        String prev = fn;
+        
+        for (int i = 0; i < maxIterations; i++)
+        {
+            String decoded = decode(prev);
+            if (decoded.equals(prev))
+                return decoded; // converged
+            prev = decoded;
+        }
+
+        throw new IllegalStateException("Decoding did not converge within limit");
+    }
+
     /* ================================================================================= */
 
     public static String encodeReserved(String s, String reserved)

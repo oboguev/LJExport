@@ -1216,8 +1216,7 @@ public class Util
                 break;
 
             default:
-                throw new RuntimeException("Unexpected scheme " + uri.getScheme() + "://");
-
+                throw new RuntimeException("Unexpected URL scheme " + uri.getScheme() + "://");
             }
 
             return 0 != uri.getHost().trim().length();

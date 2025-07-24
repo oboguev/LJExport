@@ -17,6 +17,7 @@ import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
+import my.LJExport.runtime.url.URLCodec;
 
 public class DetectFailedDownloads extends MaintenanceHandler
 {
@@ -35,8 +36,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
          */
         printErrorMessageLog = false;
 
-        Util.out(">>> Detect failed link downloads");
-        super.beginUsers("Detect failed link downloads");
+        Util.out(">>> Detect failed downloads of linked files");
+        super.beginUsers("Detect failed downloads of linked files");
         txLog.writeLine(String.format("Executing DetectFailedDownloads in %s RUN mode", DryRun ? "DRY" : "WET"));
     }
 
@@ -47,16 +48,16 @@ public class DetectFailedDownloads extends MaintenanceHandler
     }
 
     private Map<String, String> file_lc2ac = new HashMap<>();
-    private Map<String, String> dir_lc2ac = new HashMap<>();
     private Map<String, String> fileContentExtensionMap = new HashMap<>();
+    private Map<String, FailedLinkInfo> failedLinkInfo = new HashMap<>();
 
     @Override
     protected void beginUser() throws Exception
     {
         /* clear for new user */
         file_lc2ac = new HashMap<>();
-        dir_lc2ac = new HashMap<>();
         fileContentExtensionMap = new HashMap<>();
+        failedLinkInfo = new HashMap<>();
 
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
@@ -73,6 +74,15 @@ public class DetectFailedDownloads extends MaintenanceHandler
     @Override
     protected void endUser() throws Exception
     {
+        List<FailedLinkInfo> flis = new ArrayList<FailedLinkInfo>(failedLinkInfo.values());
+        for (FailedLinkInfo fli : flis)
+        {
+            fli.prepare();
+        }
+
+        // ### if not dry
+        // ### dump failedLinkInfo 
+
         trace("");
         trace("");
         trace("================================= Completed user " + Config.User);
@@ -87,23 +97,6 @@ public class DetectFailedDownloads extends MaintenanceHandler
             fp = linkDir + File.separator + fp;
             file_lc2ac.put(fp.toLowerCase(), fp);
         }
-
-        for (String fp : Util.enumerateDirectories(linkDir))
-        {
-            fp = linkDir + File.separator + fp;
-            dir_lc2ac.put(fp.toLowerCase(), fp);
-        }
-
-        /*
-         * consistency validation
-         */
-        for (String fn : file_lc2ac.keySet())
-            if (dir_lc2ac.containsKey(fn))
-                throwException("Error enumerating files and directories");
-
-        for (String fn : dir_lc2ac.keySet())
-            if (file_lc2ac.containsKey(fn))
-                throwException("Error enumerating files and directories");
     }
 
     /* ===================================================================================================== */
@@ -119,7 +112,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         updated |= process(fullHtmlFilePath, relativeFilePath, parser, pageFlat, "a", "href");
         updated |= process(fullHtmlFilePath, relativeFilePath, parser, pageFlat, "img", "src");
 
-        if (updated && !DryRun)
+        if (updated && !DryRun && Util.False)
         {
             String html = JSOUP.emitHtml(parser.pageRoot);
             Util.writeToFileSafe(fullHtmlFilePath, html);
@@ -134,7 +127,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
             String href = getLinkAttribute(n, attr);
-            String href_original = href;
+            String href_original = getLinkAttribute(n, "original-" + attr);
 
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
@@ -154,7 +147,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (ac == null)
             {
                 String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
-                        Config.User, href_original, linkInfo.linkFullFilePath);
+                        Config.User, href, linkInfo.linkFullFilePath);
 
                 boolean allow = Config.User.equals("d_olshansky") && href.contains("../links/imgprx.livejournal.net/");
 
@@ -210,60 +203,6 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, contentExtension))
                 continue;
 
-            /*
-             *  The following transitions were detected in scan:
-             *
-             *     doc     txt
-             *     gif     txt
-             *     jpeg    txt
-             *     jpg     txt
-             *     pdf     txt
-             *     png     txt
-             *     zip     txt
-             *     
-             *     png     avif
-             *     
-             *     gif     bmp
-             *     jpg     bmp
-             *     
-             *     jpeg    gif
-             *     jpg     gif
-             *     png     gif
-             *     
-             *     bmp     jpg
-             *     gif     jpg
-             *     pdf     jpg
-             *     png     jpg
-             *     tif     jpg
-             *     webp    jpg
-             *     
-             *     doc     odt
-             *     
-             *     gif     pdf
-             *     jpg     pdf
-             *     
-             *     jpg     php
-             *     png     php
-             *     
-             *     gif     png
-             *     jpeg    png
-             *     jpg     png
-             *     
-             *     mp4     qt
-             *     
-             *     doc     rtf
-             *     
-             *     jpg     svg
-             *     png     svg
-             *     
-             *     gif     webp
-             *     jpeg    webp
-             *     jpg     webp
-             *     png     webp
-             *     
-             * and also many transitions -> html, xhtml    
-             */
-
             if (tag.equalsIgnoreCase("img") || tag.equalsIgnoreCase("a"))
             {
                 switch (contentExtension.toLowerCase())
@@ -272,15 +211,21 @@ public class DetectFailedDownloads extends MaintenanceHandler
                  * When downloading IMG link, or other link, server responded with HTML or XHTML or PHP or TXT,
                  * likely because image was not available, and displaying HTML page with 404 or other error.
                  * Requests for actual TXT files have already been handled by isEquivalentExtensions above.
-                 * 
-                 * Do not change extension in this case, and revert to original URL if available.
                  */
                 case "html":
                 case "xhtml":
                 case "php":
                 case "txt":
-                    // ###
-                    continue;
+                    String relpath = this.abs2rel(linkInfo.linkFullFilePath);
+                    FailedLinkInfo fli = failedLinkInfo.get(relpath.toLowerCase());
+                    if (fli == null)
+                        failedLinkInfo.put(relpath.toLowerCase(), fli = new FailedLinkInfo(relpath));
+                    if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
+                    {
+                        if (!fli.urls.contains(href_original))
+                            fli.urls.add(href_original);
+                    }
+                    break;
 
                 default:
                     break;
@@ -329,6 +274,60 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
+    public static class FailedLinkInfo
+    {
+        public FailedLinkInfo(String relpath)
+        {
+            this.relpath = relpath;
+        }
+
+        public final String relpath;
+        public final List<String> urls = new ArrayList<>();
+
+        public void prepare() throws Exception
+        {
+            if (urls.size() > 1)
+            {
+                String msg = "Multiple URLs for link file: " + relpath;
+                Util.err(msg);
+                throwException(msg);
+                Util.noop();
+            }
+
+            if (urls.size() == 1)
+            {
+                if (urls.get(0).contains("%"))
+                {
+                    throwException("Examine link URL: " + urls.get(0));
+                }
+
+                if (Util.False && relpath.contains("%"))
+                {
+                    Util.out(urls.get(0));
+                    Util.out("        " + relpath);
+                    Util.out("");
+                }
+                return;
+            }
+
+            /* infer URL from relpath */
+
+            if (Util.True && relpath.contains("%"))
+            {
+                String prefix = "https://";
+
+                Util.out(spaces(prefix) + relpath);
+                String dmix = prefix + URLCodec.fullyDecodeMixed(relpath);
+                if (dmix.contains("\uFFFD"))
+                    dmix = null;
+                Util.out(dmix);
+                Util.out("");
+            }
+        }
+    }
+
+    /* ===================================================================================================== */
+
     private String getFileExtension(String fn)
     {
         int dotIndex = fn.lastIndexOf('.');
@@ -348,12 +347,12 @@ public class DetectFailedDownloads extends MaintenanceHandler
     }
 
     @SuppressWarnings("unused")
-    private void throwException(String msg) throws Exception
+    private static void throwException(String msg) throws Exception
     {
         throw new Exception(msg);
     }
 
-    private void throwException(String msg, Exception ex) throws Exception
+    private static void throwException(String msg, Exception ex) throws Exception
     {
         throw new Exception(msg, ex);
     }

@@ -16,6 +16,7 @@ import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.LinkRedownloader;
 import my.LJExport.runtime.synch.ThreadsControl;
 
@@ -254,8 +255,7 @@ public class MainRedownloadFailedLinks
             String url = entry.key;
             String relpath = entry.value;
             
-            // ### shouldDownload
-            if (linkRedownloader.redownload(url, relpath))
+            if (LinkDownloader.shouldDownload(url, false) && linkRedownloader.redownload(url, relpath))
             {
                 // ### OK -> remove from list
                 // ### add original-attr if missing

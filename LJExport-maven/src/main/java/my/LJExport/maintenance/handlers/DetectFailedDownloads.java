@@ -247,7 +247,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
              */
             File fp = new File(linkInfo.linkFullFilePath);
             String fnExt = getFileExtension(fp.getName());
-            if (fnExt != null && (fnExt.length() == 0 || fnExt.length() > 4))
+            if (fnExt != null && (fnExt.length() == 0 || fnExt.length() > 4)) // ###
                 fnExt = null;
 
             /*

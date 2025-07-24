@@ -209,6 +209,8 @@ public class LinkDownloader
 
                     Map<String, String> headers = new HashMap<>();
                     headers.put("Accept", Config.UserAgentAccept_Download);
+                    
+                    // ### ALWAYS need referer for image hosting sites
 
                     if (referer != null && referer.length() != 0)
                     {
@@ -290,6 +292,7 @@ public class LinkDownloader
                         }
                         catch (UnableCreateDirectoryException dex)
                         {
+                            // ####
                             actual_filename = linksDir + File.separator + "@@@" + File.separator;
 
                             int folder = (int) (Math.random() * 100);
@@ -698,7 +701,8 @@ public class LinkDownloader
         if (finalExt != null && fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, finalExt))
             return filepath;
         
-        // ### www.lib.ru lib.ru txt -> html
+        // ### www.lib.ru lib.ru: requests txt, sends back html but inside is <pre> -> ok
+        // ### html content reply is ok for url extensions xhtml and shtml
 
         if (serverExt != null)
         {

@@ -441,6 +441,10 @@ public class MainRedownloadFailedLinks
         if (!LinkDownloader.shouldDownload(url, false))
             return false;
 
+        // ### www.lib.ru lib.ru: requests txt, sends back html but inside is <pre> -> ok
+        // ### html content reply is ok for url extensions xhtml and shtml
+        // ### ALWAYS need referer for image hosting sites
+
         return linkRedownloader.redownload(url, relativeLinkFilePath, referer, image);
     }
 }

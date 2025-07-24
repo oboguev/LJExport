@@ -33,7 +33,7 @@ import my.LJExport.runtime.url.UrlUtil;
  */
 public class DetectFailedDownloads extends MaintenanceHandler
 {
-    private static boolean DryRun = false; // ###
+    private static boolean DryRun = true; // ###
     // private static final Safety safety = Safety.UNSAFE;
 
     public DetectFailedDownloads() throws Exception
@@ -356,7 +356,9 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
             if (urls.size() > 1)
             {
-                String url = UrlUtil.consolidateUrlVariants(urls);
+                String url = UrlUtil.consolidateUrlVariants(urls, false);
+                if (url == null)
+                    url = UrlUtil.consolidateUrlVariants(urls, true);
                 if (url != null)
                 {
                     urls.clear();

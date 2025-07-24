@@ -33,7 +33,7 @@ public class UrlUtil
      * If urls contains multiple elements of different shapes of the same URL (protocol, encodings), tries to consolidate them to one canonic form and return it.
      * If consolidation is impossible, returns null.
      */
-    public static String consolidateUrlVariants(Collection<String> urls)
+    public static String consolidateUrlVariants(Collection<String> urls, boolean ignorePathCase)
     {
         if (urls == null || urls.isEmpty())
             return null;
@@ -44,7 +44,7 @@ public class UrlUtil
 
         for (String url : urls)
         {
-            String normalized = normalizeUrlForComparison(url);
+            String normalized = normalizeUrlForComparison(url, ignorePathCase);
             if (normalized == null)
                 return null;
 
@@ -65,7 +65,7 @@ public class UrlUtil
         return variants.get(0); // fallback
     }
 
-    private static String normalizeUrlForComparison(String urlString)
+    private static String normalizeUrlForComparison(String urlString, boolean ignorePathCase)
     {
         try
         {
@@ -79,13 +79,13 @@ public class UrlUtil
                 port = -1;
             }
 
-            String path = normalizeAndReencodePath(url.getPath());
-
+            String path = normalizeAndReencodePath(url.getPath(), ignorePathCase);
             String query = url.getQuery();
             String fragment = url.getRef();
 
+            // Use "scheme" as placeholder to group http/https together
             URI normalized = new URI(
-                    "scheme", // placeholder scheme for comparison
+                    "scheme",
                     null,
                     host,
                     port,
@@ -101,7 +101,7 @@ public class UrlUtil
         }
     }
 
-    private static String normalizeAndReencodePath(String rawPath)
+    private static String normalizeAndReencodePath(String rawPath, boolean ignoreCase)
     {
         String[] parts = rawPath.split("/");
         List<String> reencodedParts = new ArrayList<>();
@@ -109,15 +109,16 @@ public class UrlUtil
         {
             try
             {
-                // Decode any %XX encoding, then re-encode consistently
                 String decoded = URLDecoder.decode(part, StandardCharsets.UTF_8);
+                if (ignoreCase)
+                    decoded = decoded.toLowerCase(Locale.ROOT);
                 String encoded = URLEncoder.encode(decoded, StandardCharsets.UTF_8)
-                        .replace("+", "%20"); // fix space encoding
+                        .replace("+", "%20");
                 reencodedParts.add(encoded);
             }
             catch (Exception e)
             {
-                // Should not happen, but fallback to raw
+                // fallback on error
                 reencodedParts.add(part);
             }
         }

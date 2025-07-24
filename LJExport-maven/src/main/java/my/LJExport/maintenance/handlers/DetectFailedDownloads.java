@@ -24,6 +24,7 @@ import my.LJExport.runtime.links.InferOriginalURL;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
+import my.LJExport.runtime.url.UrlUtil;
 
 /*
  * Detect linked files pointed by IMG.SRC and A.HREF that contain HTML/XHTML/PHP/TXT content -- 
@@ -104,7 +105,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                     url = "image:" + url;
                 else
                     url = "document:" + url;
-                
+
                 list.add(new KVEntry(url, fli.relpath));
             }
         }
@@ -131,7 +132,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             file_lc2ac.put(fp.toLowerCase(), fp);
         }
     }
-    
+
     private void loadLinkMapFile() throws Exception
     {
         String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
@@ -279,10 +280,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                         failedLinkInfo.put(relpath.toLowerCase(), fli = new FailedLinkInfo(relpath));
 
                     if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
-                    {
-                        if (!fli.urls.contains(href_original))
-                            fli.urls.add(href_original);
-                    }
+                        fli.addUrl(href_original);
 
                     if (tag.equalsIgnoreCase("img"))
                         fli.image = true;
@@ -353,14 +351,19 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (entries != null)
             {
                 for (LinkMapEntry e : entries)
+                    addUrl(e.key);
+            }
+
+            if (urls.size() > 1)
+            {
+                String url = UrlUtil.consolidateUrlVariants(urls);
+                if (url != null)
                 {
-                    String url = e.key;
-                    if (!urls.contains(url))
-                        urls.add(url);
-                    
+                    urls.clear();
+                    addUrl(url);
                 }
             }
-            
+
             if (urls.size() > 1)
             {
                 String msg = "Multiple URLs for link file: " + relpath;
@@ -370,27 +373,23 @@ public class DetectFailedDownloads extends MaintenanceHandler
             }
 
             if (urls.size() == 1)
-            {
-                if (urls.get(0).contains("%"))
-                {
-                    throwException("Review link URL: " + urls.get(0));
-                }
-
-                if (Util.False && relpath.contains("%"))
-                {
-                    Util.out(urls.get(0));
-                    Util.out("        " + relpath);
-                    Util.out("");
-                }
                 return;
-            }
 
             /* infer URL from relpath */
             if (ShortFilePath.isGeneratedUnixRelativePath(relpath))
                 return;
-            
+
             String url = InferOriginalURL.infer(relpath);
             if (url != null)
+                addUrl(url);
+        }
+
+        private void addUrl(String url) throws Exception
+        {
+            // ### url = URLCodec.fullyDecodeMixed(url);
+            // ### decode full
+            // ### encode
+            if (!urls.contains(url))
                 urls.add(url);
         }
     }

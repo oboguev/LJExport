@@ -42,12 +42,21 @@ public class UrlUtil
      * @param ignorePathCase  Whether to treat path case-insensitively
      * @return A preferred canonical URL (from the input set), or null if conflict
      */
+
+    /**
+     * Consolidates a collection of URLs into a canonical RFC-conforming form.
+     * Accepts non-conforming input URLs.
+     *
+     * @param urls            Input URLs
+     * @param ignorePathCase  Whether to compare paths case-insensitively
+     * @return RFC-compliant canonical URL, or null if conflicting
+     */
     public static String consolidateUrlVariants(Collection<String> urls, boolean ignorePathCase)
     {
         if (urls == null || urls.isEmpty())
             return null;
         if (urls.size() == 1)
-            return urls.iterator().next();
+            return polishToRfcSafe(urls.iterator().next());
 
         Map<String, List<String>> normalizedToOriginals = new HashMap<>();
 
@@ -66,11 +75,12 @@ public class UrlUtil
             return null;
 
         List<String> variants = normalizedToOriginals.values().iterator().next();
-        return selectBestUrl(variants);
+        String best = selectBestVariant(variants);
+        return polishToRfcSafe(best);
     }
 
     /**
-     * Normalize URL for structural comparison.
+     * Normalize a URL for equivalence comparison.
      */
     private static String normalizeUrlForComparison(String urlString, boolean ignorePathCase)
     {
@@ -91,7 +101,7 @@ public class UrlUtil
             String fragment = url.getRef();
 
             URI normalized = new URI(
-                    "scheme", // placeholder scheme
+                    "scheme", // placeholder to unify http/https
                     null,
                     host,
                     port,
@@ -108,33 +118,7 @@ public class UrlUtil
     }
 
     /**
-     * Normalize and re-encode a URL path with optional case folding.
-     */
-    private static String normalizeAndReencodePath(String rawPath, boolean ignoreCase)
-    {
-        String[] parts = rawPath.split("/");
-        List<String> reencodedParts = new ArrayList<>();
-        for (String part : parts)
-        {
-            try
-            {
-                String decoded = fullyDecode(part);
-                if (ignoreCase)
-                    decoded = decoded.toLowerCase(Locale.ROOT);
-                String encoded = URLEncoder.encode(decoded, StandardCharsets.UTF_8)
-                        .replace("+", "%20");
-                reencodedParts.add(encoded);
-            }
-            catch (Exception e)
-            {
-                reencodedParts.add(part);
-            }
-        }
-        return "/" + String.join("/", reencodedParts);
-    }
-
-    /**
-     * Repeatedly decode percent-encoded text (handles double-encoded values).
+     * Repeatedly decode encoded segments (handles double-encoding like %2520).
      */
     private static String fullyDecode(String input)
     {
@@ -153,11 +137,39 @@ public class UrlUtil
     }
 
     /**
-     * Selects the best representative URL:
-     * - Prefer HTTPS
-     * - Prefer fewer %25 (double-encoded)
+     * Re-encode path components to strict percent-encoded format.
      */
-    private static String selectBestUrl(List<String> variants)
+    private static String normalizeAndReencodePath(String rawPath, boolean ignoreCase)
+    {
+        String[] parts = rawPath.split("/");
+        List<String> encoded = new ArrayList<>();
+        for (String part : parts)
+        {
+            try
+            {
+                String decoded = fullyDecode(part);
+                if (ignoreCase)
+                {
+                    decoded = decoded.toLowerCase(Locale.ROOT);
+                }
+                String encodedPart = URLEncoder.encode(decoded, StandardCharsets.UTF_8)
+                        .replace("+", "%20");
+                encoded.add(encodedPart);
+            }
+            catch (Exception e)
+            {
+                encoded.add(part); // fallback
+            }
+        }
+        return "/" + String.join("/", encoded);
+    }
+
+    /**
+     * Selects the best variant among URL strings:
+     * - Prefer fewer %25 (less double-encoding)
+     * - Prefer HTTPS
+     */
+    private static String selectBestVariant(List<String> variants)
     {
         String best = null;
         int bestScore = Integer.MAX_VALUE;
@@ -167,7 +179,7 @@ public class UrlUtil
             int score = countOccurrences(v, "%25");
             if (v.toLowerCase(Locale.ROOT).startsWith("https://"))
             {
-                score -= 10; // strong preference
+                score -= 10;
             }
             if (score < bestScore)
             {
@@ -180,15 +192,53 @@ public class UrlUtil
     }
 
     /**
-     * Count occurrences of substring in a string.
+     * Convert possibly non-conforming URL to polished, RFC-compliant form.
+     * Applies encoding, removes default ports, normalizes scheme and host.
+     */
+    private static String polishToRfcSafe(String rawUrl)
+    {
+        try
+        {
+            URL url = new URL(rawUrl);
+            String scheme = url.getProtocol().toLowerCase(Locale.ROOT);
+            String host = url.getHost().toLowerCase(Locale.ROOT);
+            int port = url.getPort();
+            if ((scheme.equals("http") && port == 80) || (scheme.equals("https") && port == 443))
+            {
+                port = -1;
+            }
+
+            String path = normalizeAndReencodePath(url.getPath(), false);
+            String query = url.getQuery();
+            String fragment = url.getRef();
+
+            URI polished = new URI(
+                    scheme,
+                    null,
+                    host,
+                    port,
+                    path,
+                    query,
+                    fragment);
+
+            return polished.toASCIIString(); // return encoded, RFC-compliant URI string
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    /**
+     * Count occurrences of substring in string.
      */
     private static int countOccurrences(String s, String sub)
     {
-        int count = 0, index = 0;
-        while ((index = s.indexOf(sub, index)) != -1)
+        int count = 0, idx = 0;
+        while ((idx = s.indexOf(sub, idx)) != -1)
         {
             count++;
-            index += sub.length();
+            idx += sub.length();
         }
         return count;
     }

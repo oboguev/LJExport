@@ -625,8 +625,13 @@ public class LinkDownloader
                 return false;
 
             String host = url.getHost();
+            
             if (Util.False)
             {
+                /*
+                 * Now handled by DontDownload
+                 */
+
                 // counters
                 // https://xc3.services.livejournal.com/ljcounter
                 if (host != null && host.equalsIgnoreCase("xc3.services.livejournal.com"))
@@ -647,6 +652,10 @@ public class LinkDownloader
 
             String path = url.getPath();
             if (path == null)
+                return false;
+            
+            // HTML pages with document-looking URLs like https://en.wikipedia.org/wiki/File:FD2.png
+            if (URLClassifier.isNonDocumentURL(url))
                 return false;
 
             if (filterDownloadFileTypes)

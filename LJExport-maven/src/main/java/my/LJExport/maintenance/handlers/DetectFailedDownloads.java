@@ -1,6 +1,7 @@
 package my.LJExport.maintenance.handlers;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -361,6 +362,16 @@ public class DetectFailedDownloads extends MaintenanceHandler
                     url = UrlUtil.consolidateUrlVariants(urls, true);
                 if (url != null)
                 {
+                    try
+                    {
+                        new URI(url);
+                    }
+                    catch (Exception ex)
+                    {
+                        // malformed url
+                        throwException("Internal error: consolidateUrlVariants returned malformed url " + url);
+                    }
+
                     urls.clear();
                     addUrl(url);
                 }

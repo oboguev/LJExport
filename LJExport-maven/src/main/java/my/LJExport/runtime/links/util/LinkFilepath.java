@@ -43,11 +43,11 @@ public class LinkFilepath
 
         return sb.toString();
     }
-    
+
     public static String getMediaFileExtension(String path)
     {
         String fn = getLastPathComponent(path.replace(File.separator, "/"));
-        
+
         int dotIndex = fn.lastIndexOf('.');
 
         // no extension or dot is at the end
@@ -55,22 +55,22 @@ public class LinkFilepath
             return null;
 
         String ext = fn.substring(dotIndex + 1);
-        
+
         switch (ext.toLowerCase())
         {
         case "shtml":
         case "xhtml":
             return ext;
         }
-        
+
         if (ext.length() == 0 || ext.length() > 4)
             ext = null;
-        
+
         return ext;
     }
-    
+
     /* ======================================================================== */
-    
+
     private static final int MaxFilePathComponentLength = 90;
     private static final int MaxFilePathLentgh = 230;
 
@@ -80,15 +80,11 @@ public class LinkFilepath
 
         List<StringBuilder> list = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder(linksDir + File.separator);
-        sb.append(url.getHost());
-        int port = url.getPort();
-        if (port > 0 && port != 80 && port != 443)
-            sb.append("__" + port);
+        StringBuilder sb = new StringBuilder(linksDir + File.separator + hostPortPathComponent(href));
         list.add(sb);
         sb = null;
 
-        if (url.getHost().equals("imgprx.livejournal.net"))
+        if (url.getHost().equalsIgnoreCase("imgprx.livejournal.net"))
         {
             int folder = (int) (Math.random() * 100);
             if (folder >= 100)
@@ -182,6 +178,18 @@ public class LinkFilepath
         return result;
     }
 
+    private static String hostPortPathComponent(String href) throws Exception
+    {
+        URL url = new URL(href);
+
+        String pc = url.getHost().toLowerCase();
+        int port = url.getPort();
+        if (port > 0 && port != 80 && port != 443)
+            pc += "__" + port;
+
+        return pc;
+    }
+
     public static String makeSanePathComponent(String component) throws Exception
     {
         /*
@@ -273,12 +281,12 @@ public class LinkFilepath
     {
         return getLastPathComponent(url.getPath());
     }
-    
+
     private static String getLastPathComponent(String path)
     {
         if (path == null)
             return null;
-        
+
         // Trailing slash means "directory", last component is empty
         if (path.isEmpty() || path.endsWith("/"))
             return "";
@@ -288,10 +296,10 @@ public class LinkFilepath
     }
 
     /* ======================================================================== */
-    
-    public static String fallbackFilepath(String linksDir, String oldName) throws Exception
+
+    public static String fallbackFilepath(String linksDir, String href, String oldFileName) throws Exception
     {
-        String actual_filename = linksDir + File.separator + "@@@" + File.separator;
+        String actual_filename = linksDir + File.separator + hostPortPathComponent(href) + "@@@" + File.separator;
 
         int folder = (int) (Math.random() * 100);
         if (folder >= 100)
@@ -299,7 +307,7 @@ public class LinkFilepath
         actual_filename += String.format("x-%02d", folder) + File.separator;
         actual_filename += "x-" + Util.uuid();
 
-        String ext = LinkFilepath.getMediaFileExtension(oldName);
+        String ext = LinkFilepath.getMediaFileExtension(oldFileName);
         if (ext != null)
             actual_filename += "." + ext;
 

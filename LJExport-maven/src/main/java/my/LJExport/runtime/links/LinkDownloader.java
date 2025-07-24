@@ -292,7 +292,7 @@ public class LinkDownloader
                         }
                         catch (UnableCreateDirectoryException dex)
                         {
-                            actual_filename = LinkFilepath.fallbackFilepath(linksDir, f.getName());
+                            actual_filename = LinkFilepath.fallbackFilepath(linksDir, final_name_href_noanchor, f.getName());
                             filename.set(actual_filename);
                             f = new File(actual_filename).getCanonicalFile();
                             Util.mkdir(f.getAbsoluteFile().getParent());

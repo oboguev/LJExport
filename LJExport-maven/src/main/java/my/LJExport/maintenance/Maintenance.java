@@ -99,7 +99,7 @@ public class Maintenance
             // do_users(Users, FixNullLinks.class); // only for nationalism.org
             // do_users(Users, FixDirectoryLinks.class);
             // do_users(Users, FixLongPaths.class);
-            do_users(Users, DetectFailedDownloads.class);
+            // do_users(Users, DetectFailedDownloads.class);
             // --- then run MainRedownloadFailedLinks
             // do_users(Users, FixFileExtensions.class);
 

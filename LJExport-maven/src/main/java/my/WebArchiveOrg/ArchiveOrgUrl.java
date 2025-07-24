@@ -46,6 +46,21 @@ public class ArchiveOrgUrl
      * It may require the use of port.
      * Try combinations http, https, http:80 and https:443.     
      * 
+     *************************************************************************
+     *
+     * https://archive.org/help/wayback_api.php
+     * https://archive.readme.io/reference/website-snapshots
+     * https://gist.github.com/say4n/869705e1081a2bdb276eb187476805bb
+     * https://archive.org/developers/tutorial-get-snapshot-wayback.html
+     * https://www.postman.com/api-evangelist/archive-org/documentation/4xvfnrj/wayback-api
+     * 
+     * https://publication.osintambition.org/5-basic-techniques-for-automating-investigations-using-the-wayback-machine-archive-org-3d1f2b8247d2
+     * https://archive.org/developers/wayback-cdx-server.html
+     * https://support.archive-it.org/hc/en-us/articles/115001790023-Access-Archive-It-s-Wayback-index-with-the-CDX-C-API
+     * https://github.com/internetarchive/wayback/blob/master/wayback-cdx-server/README.md
+     * https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server
+     *     Example: http://web.archive.org/cdx/search/cdx?url=archive.org&fl=timestamp,mimetype&output=json
+     *
      */
 
     public static final String ARCHIVE_PREFIX_HTTPS = "https://web.archive.org/web/";

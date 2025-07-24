@@ -9,6 +9,7 @@ import org.apache.http.HttpException;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
 import my.WebArchiveOrg.ArchiveOrgUrl;
@@ -33,8 +34,8 @@ public class LinkRedownloader
         String threadName = Thread.currentThread().getName();
         Web.Response r = null;
 
-        String host = (new URL(url_noanchor)).getHost();
-        host = host.toLowerCase();
+        URL xurl = new URL(url);
+        String host = xurl.getHost().toLowerCase();
 
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", Config.UserAgentAccept_Download);
@@ -78,9 +79,43 @@ public class LinkRedownloader
             if (r.code < 200 || r.code >= 300 || r.code == 204)
                 throw new HttpException("HTTP code " + r.code + ", reason: " + r.reason);
 
-            // ### examine content
-            // ### make parent dir
-            // ### write
+            String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
+
+            if (contentExt == null)
+            {
+                String headerExt = null;
+                if (r.contentType != null)
+                    headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase());
+                contentExt = headerExt;
+            }
+
+            String urlExt = LinkDownloader.getFileExtension(xurl.getPath());
+
+            if (contentExt != null)
+            {
+                switch (contentExt)
+                {
+                case "html":
+                case "xhtml":
+                case "php":
+                    return false;
+
+                case "txt":
+                    if (urlExt != null && urlExt.equalsIgnoreCase("txt"))
+                        break;
+                    else
+                        return false;
+
+                default:
+                    break;
+                }
+            }
+
+            File fp = new File(fullFilePath).getCanonicalFile();
+            if (!fp.getParentFile().exists())
+                fp.getParentFile().mkdirs();
+
+            Util.writeToFileSafe(fullFilePath, r.binaryBody);
         }
         catch (Exception ex)
         {

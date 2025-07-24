@@ -18,6 +18,7 @@ import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.LinkRedownloader;
+import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 /*
@@ -218,8 +219,8 @@ public class MainRedownloadFailedLinks
         {
             try
             {
-                // ### set name
                 ThreadsControl.backgroundStarting();
+                Thread.currentThread().setName("worker");
                 main.do_redownload();
             }
             catch (Exception ex)
@@ -268,7 +269,7 @@ public class MainRedownloadFailedLinks
                 url = Util.stripStart(url, "document:");
             }
             
-            String referer = null;  // ###
+            String referer = LJUtil.userBase();
             
             if (LinkDownloader.shouldDownload(url, false) && linkRedownloader.redownload(url, relpath, referer, image))
             {
@@ -277,7 +278,7 @@ public class MainRedownloadFailedLinks
             }
             else
             {
-                // ### cannot -> restore original URL in links
+                // ### cannot reload -> restore original URL in links
             }
         }
     }

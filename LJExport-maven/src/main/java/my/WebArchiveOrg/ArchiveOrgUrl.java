@@ -3,19 +3,125 @@ package my.WebArchiveOrg;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import my.LJExport.runtime.Util;
+
 public class ArchiveOrgUrl
 {
+    /*
+     * Synopsis of archive.org URLs: 
+     * 
+     * https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
+     * 
+     *     Shows replay UI page.
+     *     TIMESTAMP format: YYYYMMDDhhmmss
+     *     Example: https://web.archive.org/web/20060215134634/http://www.trilateral.org/library/crisis_of_democracy.pdf
+     * 
+     * https://web.archive.org/web/TIMESTAMPif_/ORIGINAL_URL
+     * 
+     *     Direct download link for programmatic download of media (images, PDFs), but not HTML.
+     *     Skips UI and serves the file.
+     *     Examples: https://web.archive.org/web/20150324141543if_/http://samlib.ru/img/w/wasilxew_wjacheslaw_wasilxewich/ukragit91/referendum3.jpg
+     *               https://web.archive.org/web/20060215134634if_/http://www.trilateral.org:80/library/crisis_of_democracy.pdf
+     *     
+     * https://web.archive.org/web/TIMESTAMPid_/ORIGINAL_URL
+     * 
+     *     Direct download link for programmatic download of HTML, but not media (images or PDFs).
+     *     Directly serves HTML content without UI toolbar.
+     *     Example:  https://web.archive.org/web/20221120034225id_/http://oboguev.net/misc/prisoed-yu-r.html
+     *     
+     *  https://web.archive.org/web/2id_/ORIGINAL_URL   
+     *     
+     *     Directly serves the latest HTML content without UI toolbar.
+     *     Example:  https://web.archive.org/web/2id_/http://oboguev.net/misc/prisoed-yu-r.html
+     *     Works reliably for HTML or images only, not for PDF or other MIMEs.
+     * 
+     * Correct form is inner http:// rather than http:/ although the latter may work sometimes too.
+     * 
+     *************************************************************************
+     * 
+     * There is also a search URL returning JSON:
+     * 
+     *     https://archive.org/wayback/available?url=http://www.trilateral.org:80/library/crisis_of_democracy.pdf
+     *     
+     * It may require the use of port.
+     * Try combinations http, https, http:80 and https:443.     
+     * 
+     */
+
     public static final String ARCHIVE_PREFIX_HTTPS = "https://web.archive.org/web/";
-    public static final String ARCHIVE_PREFIX_HTTP = "https://web.archive.org/web/";
+    public static final String ARCHIVE_PREFIX_HTTP = "http://web.archive.org/web/";
 
     public static final String ARCHIVE_SERVER = "https://web.archive.org";
-    
+
     private static final String ArchiveOrgLatestCaptureWebRoot = "https://web.archive.org/web/2id_/";
 
     public static boolean isArchiveOrgUrl(String url)
     {
         String lc = url.toLowerCase();
         return lc.startsWith(ARCHIVE_PREFIX_HTTP) || lc.startsWith(ARCHIVE_PREFIX_HTTPS);
+    }
+
+    /**
+     * Checks whether the given URL is a simple archive.org timestamp URL of the form:
+     * https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
+     * 
+     * It excludes forms like:
+     * - https://web.archive.org/web/TIMESTAMPif_/...
+     * - https://web.archive.org/web/TIMESTAMPid_/...
+     * - https://web.archive.org/web/2id_/...
+     * - any non-archive.org URLs
+     *
+     * @param url the URL to check
+     * @return true if the URL is in simple TIMESTAMP form; false otherwise
+     */
+    /**
+     * Checks whether the given URL is a simple archive.org timestamp URL of the form:
+     * http[s]://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
+     *
+     * It excludes forms like:
+     * - TIMESTAMPif_/
+     * - TIMESTAMPid_/
+     * - 2id_/
+     * - or any non-archive.org or malformed URLs
+     *
+     * @param url the URL to check
+     * @return true if the URL is in simple TIMESTAMP form; false otherwise
+     */
+    /**
+     * Checks whether the given URL is a simple archive.org timestamp URL of the form:
+     * http[s]://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
+     *
+     * It accepts only numeric TIMESTAMP without "id_", "if_", or any suffixes.
+     * Rejects:
+     * - TIMESTAMPid_/...
+     * - TIMESTAMPif_/...
+     * - 2id_/...
+     * - Non-archive.org URLs
+     *
+     * @param url the URL to check
+     * @return true if the URL is in pure TIMESTAMP form; false otherwise
+     */
+    public static boolean isArchiveOrgSimpleTimestampUrl(String url)
+    {
+        if (url == null || !isArchiveOrgUrl(url))
+            return false;
+
+        String prefix;
+        if (url.startsWith(ARCHIVE_PREFIX_HTTPS))
+            prefix = ARCHIVE_PREFIX_HTTPS;
+        else if (url.startsWith(ARCHIVE_PREFIX_HTTP))
+            prefix = ARCHIVE_PREFIX_HTTP;
+        else
+            return false;
+
+        int pos = url.indexOf('/', prefix.length());
+        if (pos == -1)
+            return false;
+
+        String timestamp = url.substring(prefix.length(), pos);
+
+        // Only allow 14-digit numeric timestamps
+        return timestamp.matches("\\d{14}");
     }
 
     /*
@@ -283,6 +389,58 @@ public class ArchiveOrgUrl
         return ArchiveOrgUrl.ArchiveOrgLatestCaptureWebRoot + original_href;
     }
 
+    /**
+     * Converts a standard archive.org URL to a direct download URL.
+     *
+     * @param archiveOrgUrl Archive.org URL in format https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
+     * @param isHtml true if you want HTML without toolbar (use "id_"), false for binary/media (use "if_")
+     * @return direct download URL with "id_" or "if_" suffix inserted
+     * @throws IllegalArgumentException if URL is not in expected format
+     */
+    /**
+     * Converts a standard archive.org URL to a direct download URL.
+     *
+     * @param archiveOrgUrl Archive.org URL in format https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
+     * @param isHtml true if you want HTML without toolbar (use "id_"), false for binary/media (use "if_")
+     * @return direct download URL with "id_" or "if_" suffix inserted
+     * @throws IllegalArgumentException if URL is not in expected format
+     */
+    public static String toDirectDownloadUrl(String archiveOrgUrl, boolean isHtml)
+    {
+        if (archiveOrgUrl == null)
+            throw new IllegalArgumentException("Input URL is null");
+
+        String url = archiveOrgUrl;
+
+        if (!isArchiveOrgUrl(url))
+            throw new IllegalArgumentException("Not an archive.org URL: " + url);
+
+        String prefix;
+        if (url.startsWith(ARCHIVE_PREFIX_HTTPS))
+            prefix = ARCHIVE_PREFIX_HTTPS;
+        else if (url.startsWith(ARCHIVE_PREFIX_HTTP))
+            prefix = ARCHIVE_PREFIX_HTTP;
+        else
+            throw new IllegalArgumentException("Archive URL must begin with supported prefix");
+
+        int pos = url.indexOf('/', prefix.length());
+        if (pos == -1)
+            throw new IllegalArgumentException("Cannot locate TIMESTAMP portion in URL: " + url);
+
+        String timestamp = url.substring(prefix.length(), pos);
+        String suffix = url.substring(pos + 1);
+
+        if (timestamp.endsWith("if_") || timestamp.endsWith("id_"))
+            return url; // already direct download
+
+        if (!isArchiveOrgTimestamp(timestamp))
+            throw new IllegalArgumentException("Not a valid TIMESTAMP in URL: " + timestamp);
+
+        return prefix + timestamp + (isHtml ? "id_/" : "if_/") + suffix;
+    }
+
+    /* ====================================================================================== */
+
     // Example usage
     public static void main(String[] args)
     {
@@ -297,5 +455,29 @@ public class ArchiveOrgUrl
             String url = "https://web.archive.org/web/20160404043545/http://www.nationalism.org/aziopa/berdyayev2.htm";
             System.out.println(urlMatchesRoot(url, root, true)); // true        
         }
+
+        {
+            String in1 = "https://web.archive.org/web/20060215134634/http://www.trilateral.org/library/crisis_of_democracy.pdf";
+            String in2 = "https://web.archive.org/web/20150324141543if_/http://samlib.ru/img/w/wasilxew_wjacheslaw_wasilxewich/ukragit91/referendum3.jpg";
+            String in3 = "https://web.archive.org/web/20221120034225id_/http://oboguev.net/misc/prisoed-yu-r.html";
+
+            printDirectDownloadUrl(in1, true);
+            printDirectDownloadUrl(in1, false);
+
+            printDirectDownloadUrl(in2, true);
+            printDirectDownloadUrl(in2, false);
+
+            printDirectDownloadUrl(in3, true);
+            printDirectDownloadUrl(in3, false);
+        }
+    }
+
+    private static void printDirectDownloadUrl(String in, boolean isHtml)
+    {
+        String out = toDirectDownloadUrl(in, false);
+        Util.out("");
+        Util.out("isHtml = " + isHtml);
+        Util.out(in);
+        Util.out(out);
     }
 }

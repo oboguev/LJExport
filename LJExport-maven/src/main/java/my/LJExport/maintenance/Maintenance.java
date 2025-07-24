@@ -33,12 +33,12 @@ public class Maintenance
     // private static final String AllUsersFromUser = "a_samovarov";
     private static final String AllUsersFromUser = null;
 
-    // private static final String Users = ALL_USERS;
+    private static final String Users = ALL_USERS;
     // private static final String Users = "1981dn";
     // private static final String Users = "oboguev";
     // private static final String Users = "a_kaminsky";
     // private static final String Users = "1981dn,1981dn_dn,64vlad,_devol_";
-    private static final String Users = "oboguev";
+    // private static final String Users = "oboguev";
     // private static final String Users = "harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "udod99.lj-rossia-org";
 

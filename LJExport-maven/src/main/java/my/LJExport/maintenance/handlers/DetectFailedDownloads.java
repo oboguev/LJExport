@@ -14,14 +14,16 @@ import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileTypeDetector;
+import my.LJExport.runtime.file.KVFile;
+import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.links.InferOriginalURL;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
-import my.LJExport.runtime.url.URLCodec;
 
 public class DetectFailedDownloads extends MaintenanceHandler
 {
-    private static boolean DryRun = true; // ###
+    private static boolean DryRun = false; // ###
     // private static final Safety safety = Safety.UNSAFE;
 
     public DetectFailedDownloads() throws Exception
@@ -74,14 +76,22 @@ public class DetectFailedDownloads extends MaintenanceHandler
     @Override
     protected void endUser() throws Exception
     {
-        List<FailedLinkInfo> flis = new ArrayList<FailedLinkInfo>(failedLinkInfo.values());
-        for (FailedLinkInfo fli : flis)
+        List<KVEntry> list = new ArrayList<>(); 
+
+        for (FailedLinkInfo fli : failedLinkInfo.values())
         {
             fli.prepare();
+        
+            if (fli.urls.size() == 1)
+                list.add(new KVEntry(fli.urls.get(0), fli.relpath));
         }
-
-        // ### if not dry
-        // ### dump failedLinkInfo 
+        
+        if (!DryRun)
+        {
+            new KVFile(linkDirSep + "failed-link-downloads.txt").save(list);
+            trace("Stored failed-link-downloads.txt for user " + Config.User);
+            Util.out("Stored failed-link-downloads.txt for user " + Config.User);
+        }
 
         trace("");
         trace("");
@@ -298,7 +308,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             {
                 if (urls.get(0).contains("%"))
                 {
-                    throwException("Examine link URL: " + urls.get(0));
+                    throwException("Review link URL: " + urls.get(0));
                 }
 
                 if (Util.False && relpath.contains("%"))
@@ -311,18 +321,9 @@ public class DetectFailedDownloads extends MaintenanceHandler
             }
 
             /* infer URL from relpath */
-
-            if (Util.True && relpath.contains("%"))
-            {
-                String prefix = "https://";
-
-                Util.out(spaces(prefix) + relpath);
-                String dmix = prefix + URLCodec.fullyDecodeMixed(relpath);
-                if (dmix.contains("\uFFFD"))
-                    dmix = null;
-                Util.out(dmix);
-                Util.out("");
-            }
+            String url = InferOriginalURL.infer(relpath);
+            if (url != null)
+                urls.add(url);
         }
     }
 
@@ -340,7 +341,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
     private void trace(String msg) throws Exception
     {
-        errorMessageLog.add(msg);
+        // errorMessageLog.add(msg);
         // Util.err(msg);
         traceWriter.write(msg + nl);
         traceWriter.flush();

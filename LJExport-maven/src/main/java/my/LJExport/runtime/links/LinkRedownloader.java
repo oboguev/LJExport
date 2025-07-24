@@ -26,7 +26,75 @@ public class LinkRedownloader
     public boolean redownload(String url, String unixRelFilePath, String referer, boolean image) throws Exception
     {
         String fullFilePath = linksDir + File.separator + unixRelFilePath.replace("/", File.separator);
+        Web.Response r = null;
 
+        URL xurl = new URL(url);
+        String host = xurl.getHost().toLowerCase();
+        String threadName = Thread.currentThread().getName();
+
+        try
+        {
+            r = redownload(url, referer, image);
+
+            setThreadName(threadName, "downloading " + url);
+
+            String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
+
+            if (contentExt == null)
+            {
+                String headerExt = null;
+                if (r.contentType != null)
+                    headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase());
+                contentExt = headerExt;
+            }
+
+            String urlPathExt = LinkDownloader.getFileExtension(xurl.getPath());
+
+            if (contentExt != null)
+            {
+                switch (contentExt)
+                {
+                case "html":
+                case "xhtml":
+                case "php":
+                    return false;
+
+                case "txt":
+                    if (urlPathExt != null && urlPathExt.equalsIgnoreCase("txt"))
+                        break;
+                    else
+                        return false;
+
+                default:
+                    break;
+                }
+            }
+
+            File fp = new File(fullFilePath).getCanonicalFile();
+            if (!fp.getParentFile().exists())
+                fp.getParentFile().mkdirs();
+
+            Util.writeToFileSafe(fullFilePath, r.binaryBody);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // error is not network-related, such as NullPointerException
+            if (!NetErrors.isNetworkException(ex))
+                throw ex;
+
+            LinkDownloader.examineException(host, r, ex);
+            return false;
+        }
+        finally
+        {
+            Thread.currentThread().setName(threadName);
+        }
+    }
+
+    public Web.Response redownload(String url, String referer, boolean image) throws Exception
+    {
         if (ArchiveOrgUrl.isArchiveOrgSimpleTimestampUrl(url))
             url = ArchiveOrgUrl.toDirectDownloadUrl(url, false);
         String url_noanchor = Util.stripAnchor(url);
@@ -66,10 +134,7 @@ public class LinkRedownloader
 
         try
         {
-            String tn2 = threadName;
-            if (tn2.length() != 0)
-                tn2 = tn2 + " ";
-            Thread.currentThread().setName(tn2 + "downloading " + url);
+            setThreadName(threadName, "downloading " + url);
 
             r = Web.get(url_noanchor, Web.BINARY | Web.PROGRESS, headers, (code) ->
             {
@@ -79,59 +144,28 @@ public class LinkRedownloader
             if (r.code < 200 || r.code >= 300 || r.code == 204)
                 throw new HttpException("HTTP code " + r.code + ", reason: " + r.reason);
 
-            String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
-
-            if (contentExt == null)
-            {
-                String headerExt = null;
-                if (r.contentType != null)
-                    headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase());
-                contentExt = headerExt;
-            }
-
-            String urlExt = LinkDownloader.getFileExtension(xurl.getPath());
-
-            if (contentExt != null)
-            {
-                switch (contentExt)
-                {
-                case "html":
-                case "xhtml":
-                case "php":
-                    return false;
-
-                case "txt":
-                    if (urlExt != null && urlExt.equalsIgnoreCase("txt"))
-                        break;
-                    else
-                        return false;
-
-                default:
-                    break;
-                }
-            }
-
-            File fp = new File(fullFilePath).getCanonicalFile();
-            if (!fp.getParentFile().exists())
-                fp.getParentFile().mkdirs();
-
-            Util.writeToFileSafe(fullFilePath, r.binaryBody);
+            return r;
         }
         catch (Exception ex)
         {
             // error is not network-related, such as NullPointerException
             if (!NetErrors.isNetworkException(ex))
-                throw new RuntimeException(ex.getLocalizedMessage(), ex);
-            else
-                LinkDownloader.examineException(host, r, ex);
+                throw ex;
 
-            return false;
+            LinkDownloader.examineException(host, r, ex);
+            return null;
         }
         finally
         {
             Thread.currentThread().setName(threadName);
         }
+    }
 
-        return true;
+    private static void setThreadName(String threadName, String msg)
+    {
+        String tn = threadName;
+        if (tn.length() != 0)
+            tn = tn + " ";
+        Thread.currentThread().setName(tn + msg);
     }
 }

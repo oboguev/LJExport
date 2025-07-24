@@ -426,7 +426,7 @@ public class LinkDownloader
 
     /* ======================================================================== */
 
-    private void examineException(String host, Web.Response r, Exception ex)
+    static void examineException(String host, Web.Response r, Exception ex)
     {
         if (host != null && r != null && r.code != 204 && r.code != 404)
         {
@@ -537,7 +537,7 @@ public class LinkDownloader
         }
     }
 
-    private boolean isCircularRedirect(Exception ex)
+    private static boolean isCircularRedirect(Exception ex)
     {
         return ex instanceof ClientProtocolException && ex.getCause() instanceof CircularRedirectException;
     }
@@ -681,14 +681,14 @@ public class LinkDownloader
         }
     }
 
-    private String extractHost(String href) throws Exception
+    private static String extractHost(String href) throws Exception
     {
         String host = (new URL(href)).getHost();
         host = host.toLowerCase();
         return host;
     }
 
-    private String extractHostSafe(String href)
+    static String extractHostSafe(String href)
     {
         try
         {

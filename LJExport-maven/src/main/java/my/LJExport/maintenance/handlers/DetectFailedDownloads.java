@@ -21,6 +21,11 @@ import my.LJExport.runtime.links.InferOriginalURL;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 
+/*
+ * Detect linked files pointed by IMG.SRC and A.HREF that contain HTML/XHTML/PHP/TXT content -- 
+ * error pages saying that files was unavailable.
+ * List them in failed-link-downloads.txt. 
+ */
 public class DetectFailedDownloads extends MaintenanceHandler
 {
     private static boolean DryRun = false; // ###

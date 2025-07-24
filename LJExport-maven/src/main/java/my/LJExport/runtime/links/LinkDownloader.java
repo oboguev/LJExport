@@ -128,14 +128,12 @@ public class LinkDownloader
     {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);
         AtomicReference<String> filename = new AtomicReference<>(null);
-        String href_noanchor = null;
+        String name_href_noanchor = null;
         String download_href_noanchor = null;
 
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
             threadName = "(unnamed)";
-
-        String href = name_href;
 
         try
         {
@@ -153,25 +151,25 @@ public class LinkDownloader
             if (ArchiveOrgUrl.isArchiveOrgSimpleTimestampUrl(download_href))
                 download_href = ArchiveOrgUrl.toDirectDownloadUrl(download_href, false);
 
-            href_noanchor = Util.stripAnchor(href);
+            name_href_noanchor = Util.stripAnchor(name_href);
             download_href_noanchor = Util.stripAnchor(download_href);
 
             if (failedSet.contains(download_href_noanchor))
                 return null;
 
-            filename.set(buildFilePath(linksDir, href_noanchor));
+            filename.set(buildFilePath(linksDir, name_href_noanchor));
 
             // Main.out(">>> Downloading: " + href + " -> " + filename.get());
 
-            // final String final_href = href;
-            final String final_href_noanchor = href_noanchor;
+            // final String final_name_href = name_href;
+            final String final_name_href_noanchor = name_href_noanchor;
             final String final_download_href = download_href;
             final String final_download_href_noanchor = download_href_noanchor;
             final String final_threadName = threadName;
 
-            Thread.currentThread().setName(threadName + " downloading " + href + " namelock wait");
+            Thread.currentThread().setName(threadName + " downloading " + name_href + " namelock wait");
 
-            urlLocks.interlock(href_noanchor.toLowerCase(), () ->
+            urlLocks.interlock(name_href_noanchor.toLowerCase(), () ->
             {
                 if (failedSet.contains(final_download_href_noanchor))
                     throw new AlreadyFailedException();
@@ -179,7 +177,7 @@ public class LinkDownloader
                 Thread.currentThread().setName(final_threadName + " downloading " + final_download_href_noanchor + " prepare");
 
                 String actual_filename = filename.get();
-                String afn = href2file.getAnyUrlProtocol(final_href_noanchor);
+                String afn = href2file.getAnyUrlProtocol(final_name_href_noanchor);
                 if (afn != null)
                     actual_filename = afn;
 
@@ -199,8 +197,8 @@ public class LinkDownloader
                     filename.set(actual_filename);
                     synchronized (href2file)
                     {
-                        if (null == href2file.getAnyUrlProtocol(final_href_noanchor))
-                            href2file.put(final_href_noanchor, actual_filename);
+                        if (null == href2file.getAnyUrlProtocol(final_name_href_noanchor))
+                            href2file.put(final_name_href_noanchor, actual_filename);
                     }
                 }
                 else
@@ -242,7 +240,7 @@ public class LinkDownloader
                      */
                     if (downloadSource != null)
                     {
-                        byte[] binaryBody = downloadSource.load(final_href_noanchor, abs2rel(actual_filename));
+                        byte[] binaryBody = downloadSource.load(final_name_href_noanchor, abs2rel(actual_filename));
                         if (binaryBody != null)
                         {
                             r = new Web.Response();
@@ -324,7 +322,7 @@ public class LinkDownloader
                             Web.Response final_r = r;
                             Util.NamedFileLocks.interlock(actual_filename.toLowerCase(), () ->
                             {
-                                storeFile(filename, final_r, final_href_noanchor);
+                                storeFile(filename, final_r, final_name_href_noanchor);
                             });
                         }
                     }

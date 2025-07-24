@@ -53,10 +53,16 @@ public class LinkFilepath
             return null;
 
         String ext = fn.substring(dotIndex + 1);
+        
+        switch (ext.toLowerCase())
+        {
+        case "shtml":
+        case "xhtml":
+            return ext;
+        }
+        
         if (ext.length() == 0 || ext.length() > 4)
             ext = null;
-        
-        // ### xhtml shtml
         
         return ext;
     }

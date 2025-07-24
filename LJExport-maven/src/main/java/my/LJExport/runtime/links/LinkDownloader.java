@@ -667,8 +667,6 @@ public class LinkDownloader
         }
     }
 
-    /* ======================================================================== */
-
     /* ======================================================================================= */
 
     /*
@@ -699,6 +697,8 @@ public class LinkDownloader
 
         if (finalExt != null && fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, finalExt))
             return filepath;
+        
+        // ### www.lib.ru lib.ru txt -> html
 
         if (serverExt != null)
         {

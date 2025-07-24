@@ -30,6 +30,7 @@ import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.util.DontDownload;
 import my.LJExport.runtime.links.util.DownloadSource;
+import my.LJExport.runtime.links.util.LinkFilepathUtil;
 import my.LJExport.runtime.links.util.URLClassifier;
 import my.LJExport.runtime.synch.NamedLocks;
 import my.LJExport.runtime.url.URLCodec;
@@ -300,7 +301,7 @@ public class LinkDownloader
                             actual_filename += String.format("x-%02d", folder) + File.separator;
                             actual_filename += "x-" + Util.uuid();
 
-                            String ext = getFileExtension(f.getName());
+                            String ext = LinkFilepathUtil.getMediaFileExtension(f.getName());
                             if (ext != null)
                                 actual_filename += "." + ext;
 
@@ -346,7 +347,7 @@ public class LinkDownloader
                 return null;
 
             String newref = abs2rel(filename.get());
-            newref = linkReferencePrefix + encodePathComponents(newref);
+            newref = linkReferencePrefix + LinkFilepathUtil.encodePathComponents(newref);
             return newref;
         }
         catch (Exception ex)
@@ -394,7 +395,7 @@ public class LinkDownloader
             if (fp.isDirectory() || fp.isFile() && !isSameContent(fp.getCanonicalPath(), r.binaryBody))
             {
                 // change actual_filename to old-path\x-uuid.ext
-                String ext = getFileExtension(fp.getName());
+                String ext = LinkFilepathUtil.getMediaFileExtension(fp.getName());
                 String fn = "x-" + Util.uuid();
                 if (ext != null)
                     fn += "." + ext;
@@ -543,40 +544,6 @@ public class LinkDownloader
     private static boolean isCircularRedirect(Exception ex)
     {
         return ex instanceof ClientProtocolException && ex.getCause() instanceof CircularRedirectException;
-    }
-
-    public static String encodePathComponents(String ref)
-    {
-        StringBuilder sb = new StringBuilder();
-
-        for (String pc : Util.asList(ref, "/"))
-        {
-            if (pc.length() != 0)
-            {
-                if (sb.length() != 0)
-                    sb.append("/");
-                sb.append(URLCodec.encode(pc));
-            }
-        }
-
-        return sb.toString();
-    }
-
-    public static String decodePathComponents(String ref)
-    {
-        StringBuilder sb = new StringBuilder();
-
-        for (String pc : Util.asList(ref, "/"))
-        {
-            if (pc.length() != 0)
-            {
-                if (sb.length() != 0)
-                    sb.append("/");
-                sb.append(URLCodec.decode(pc));
-            }
-        }
-
-        return sb.toString();
     }
 
     private String https2http(String href, String host)
@@ -741,7 +708,7 @@ public class LinkDownloader
                 }
             }
 
-            String ext = (sb == null) ? null : getFileExtension(sb.toString());
+            String ext = (sb == null) ? null : LinkFilepathUtil.getMediaFileExtension(sb.toString());
 
             String query = url.getQuery();
             if (query != null && query.length() != 0)
@@ -798,7 +765,7 @@ public class LinkDownloader
 
             list.add(sb = new StringBuilder("x-" + Util.uuid()));
 
-            String ext = getFileExtension(getLastPathComponent(url));
+            String ext = LinkFilepathUtil.getMediaFileExtension(getLastPathComponent(url));
             if (ext != null)
                 sb.append("." + ext);
 
@@ -844,7 +811,7 @@ public class LinkDownloader
          */
         if (fn.length() > MaxFilePathComponentLength)
         {
-            String ext = getFileExtension(fn);
+            String ext = LinkFilepathUtil.getMediaFileExtension(fn);
             if (ext == null)
                 return "x-" + Util.uuid();
             else
@@ -903,21 +870,6 @@ public class LinkDownloader
         return c == ' ' || c == '\u0009' || c == '\u00A0' || (c >= '\u2000' && c <= '\u200F');
     }
 
-    public static String getFileExtension(String fn)
-    {
-        int dotIndex = fn.lastIndexOf('.');
-
-        // no extension or dot is at the end
-        if (dotIndex == -1 || dotIndex == fn.length() - 1)
-            return null;
-
-        String ext = fn.substring(dotIndex + 1);
-        if (ext.length() == 0 || ext.length() > 4)
-            ext = null;
-        
-        return ext;
-    }
-
     public static class AlreadyFailedException extends Exception
     {
         private static final long serialVersionUID = 1L;
@@ -934,7 +886,7 @@ public class LinkDownloader
     private String adjustExtension(String filepath, Web.Response r) throws Exception
     {
         String filename = new File(filepath).getName();
-        String fnExt = getFileExtension(filename);
+        String fnExt = LinkFilepathUtil.getMediaFileExtension(filename);
 
         String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
 

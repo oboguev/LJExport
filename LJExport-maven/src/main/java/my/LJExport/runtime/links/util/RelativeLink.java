@@ -1,4 +1,4 @@
-package my.LJExport.runtime.links;
+package my.LJExport.runtime.links.util;
 
 import static my.LJExport.runtime.file.FilePath.canonicalFile;
 

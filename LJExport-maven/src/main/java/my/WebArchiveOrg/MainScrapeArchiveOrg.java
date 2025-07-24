@@ -22,7 +22,7 @@ import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.links.RelativeLink;
+import my.LJExport.runtime.links.util.RelativeLink;
 import my.LJExport.runtime.lj.LJExportInformation;
 import my.LJExport.runtime.url.TeleportUrl;
 import my.LJExport.styles.HtmlFileBatchProcessingContext;

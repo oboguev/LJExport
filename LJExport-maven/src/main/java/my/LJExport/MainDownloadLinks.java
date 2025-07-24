@@ -16,7 +16,7 @@ import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
-import my.LJExport.runtime.links.RelativeLink;
+import my.LJExport.runtime.links.util.RelativeLink;
 import my.LJExport.runtime.synch.MonthlyGate;
 import my.LJExport.runtime.synch.ThreadsControl;
 

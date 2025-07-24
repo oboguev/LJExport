@@ -135,6 +135,12 @@ public class FileTypeDetector
         canonicalExtensionMap.put("f4v", "flv");
         canonicalExtensionMap.put("webm", "webm");
 
+        // HTML
+        canonicalExtensionMap.put("html", "html");
+        canonicalExtensionMap.put("htm", "html");
+        canonicalExtensionMap.put("xhtml", "html");
+        canonicalExtensionMap.put("shtml", "html");
+
         commonExtensions = makeCommonExtensions();
     }
 
@@ -204,6 +210,7 @@ public class FileTypeDetector
         xs.add("rtf");
         xs.add("txt");
 
+        xs.add("htm");
         xs.add("html");
         xs.add("xhtml");
         xs.add("php");

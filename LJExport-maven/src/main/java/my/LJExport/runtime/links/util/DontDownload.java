@@ -1,4 +1,4 @@
-package my.LJExport.runtime.links;
+package my.LJExport.runtime.links.util;
 
 import java.util.Set;
 
@@ -10,7 +10,7 @@ public class DontDownload
     
     public static boolean dontDownload(String href) throws Exception
     {
-        synchronized (LinkDownloader.class)
+        synchronized (DontDownload.class)
         {
             if (dontDownload == null)
                 dontDownload = Util.read_set("dont-download.txt");

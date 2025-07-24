@@ -16,7 +16,7 @@ import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.links.RelativeLink;
+import my.LJExport.runtime.links.util.RelativeLink;
 
 /*
  * Fix IMG.SRC and A.HREF links pointing to a directory.

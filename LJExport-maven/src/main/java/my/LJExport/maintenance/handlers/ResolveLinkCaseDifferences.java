@@ -16,8 +16,8 @@ import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.links.RelativeLink;
-import my.LJExport.runtime.links.RelativeLink.InvalidNestedPathException;
+import my.LJExport.runtime.links.util.RelativeLink;
+import my.LJExport.runtime.links.util.RelativeLink.InvalidNestedPathException;
 
 /*
  * Scan HTML files and check that A.HREF and IMG.SRC links have the same case

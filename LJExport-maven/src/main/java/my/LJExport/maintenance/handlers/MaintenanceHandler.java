@@ -12,7 +12,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.links.RelativeLink;
+import my.LJExport.runtime.links.util.RelativeLink;
 
 public abstract class MaintenanceHandler extends Maintenance
 {

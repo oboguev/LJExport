@@ -292,19 +292,7 @@ public class LinkDownloader
                         }
                         catch (UnableCreateDirectoryException dex)
                         {
-                            // ####
-                            actual_filename = linksDir + File.separator + "@@@" + File.separator;
-
-                            int folder = (int) (Math.random() * 100);
-                            if (folder >= 100)
-                                folder = 99;
-                            actual_filename += String.format("x-%02d", folder) + File.separator;
-                            actual_filename += "x-" + Util.uuid();
-
-                            String ext = LinkFilepath.getMediaFileExtension(f.getName());
-                            if (ext != null)
-                                actual_filename += "." + ext;
-
+                            actual_filename = LinkFilepath.fallbackFilepath(linksDir, f.getName());
                             filename.set(actual_filename);
                             f = new File(actual_filename).getCanonicalFile();
                             Util.mkdir(f.getAbsoluteFile().getParent());
@@ -680,8 +668,7 @@ public class LinkDownloader
      */
     private String adjustExtension(String filepath, Web.Response r) throws Exception
     {
-        String filename = new File(filepath).getName();
-        String fnExt = LinkFilepath.getMediaFileExtension(filename);
+        String fnExt = LinkFilepath.getMediaFileExtension(filepath);
 
         String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
 

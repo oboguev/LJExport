@@ -44,8 +44,10 @@ public class LinkFilepath
         return sb.toString();
     }
     
-    public static String getMediaFileExtension(String fn)
+    public static String getMediaFileExtension(String path)
     {
+        String fn = getLastPathComponent(path.replace(File.separator, "/"));
+        
         int dotIndex = fn.lastIndexOf('.');
 
         // no extension or dot is at the end
@@ -269,16 +271,38 @@ public class LinkFilepath
 
     private static String getLastPathComponent(URL url)
     {
-        String path = url.getPath();
-
-        if (path == null || path.isEmpty())
-            return "";
-
+        return getLastPathComponent(url.getPath());
+    }
+    
+    private static String getLastPathComponent(String path)
+    {
+        if (path == null)
+            return null;
+        
         // Trailing slash means "directory", last component is empty
-        if (path.endsWith("/"))
+        if (path.isEmpty() || path.endsWith("/"))
             return "";
 
         int lastSlash = path.lastIndexOf('/');
         return lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
+    }
+
+    /* ======================================================================== */
+    
+    public static String fallbackFilepath(String linksDir, String oldName) throws Exception
+    {
+        String actual_filename = linksDir + File.separator + "@@@" + File.separator;
+
+        int folder = (int) (Math.random() * 100);
+        if (folder >= 100)
+            folder = 99;
+        actual_filename += String.format("x-%02d", folder) + File.separator;
+        actual_filename += "x-" + Util.uuid();
+
+        String ext = LinkFilepath.getMediaFileExtension(oldName);
+        if (ext != null)
+            actual_filename += "." + ext;
+
+        return actual_filename;
     }
 }

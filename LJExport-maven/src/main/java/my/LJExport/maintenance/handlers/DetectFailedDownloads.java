@@ -23,6 +23,7 @@ import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.util.InferOriginalUrl;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 import my.LJExport.runtime.url.UrlUtil;
@@ -245,10 +246,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             /*
              * Get extension from file name 
              */
-            File fp = new File(linkInfo.linkFullFilePath);
-            String fnExt = getFileExtension(fp.getName());
-            if (fnExt != null && (fnExt.length() == 0 || fnExt.length() > 4)) // ###
-                fnExt = null;
+            String fnExt = LinkFilepath.getMediaFileExtension(linkInfo.linkFullFilePath);
 
             /*
              * If it is not one of common media extensions, disregard it  
@@ -405,16 +403,6 @@ public class DetectFailedDownloads extends MaintenanceHandler
     }
 
     /* ===================================================================================================== */
-
-    private String getFileExtension(String fn)
-    {
-        int dotIndex = fn.lastIndexOf('.');
-        // no extension or dot is at the end
-        if (dotIndex == -1 || dotIndex == fn.length() - 1)
-            return null;
-        else
-            return fn.substring(dotIndex + 1);
-    }
 
     private void trace(String msg) throws Exception
     {

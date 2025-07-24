@@ -23,6 +23,7 @@ import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 
@@ -268,10 +269,7 @@ public class FixFileExtensions extends MaintenanceHandler
             /*
              * Get extension from file name 
              */
-            File fp = new File(linkInfo.linkFullFilePath);
-            String fnExt = getFileExtension(fp.getName());
-            if (fnExt != null && (fnExt.length() == 0 || fnExt.length() > 4)) // ###
-                fnExt = null;
+            String fnExt = LinkFilepath.getMediaFileExtension(linkInfo.linkFullFilePath);
 
             /*
              * If it is not one of common media extensions, disregard it  
@@ -738,16 +736,6 @@ public class FixFileExtensions extends MaintenanceHandler
     }
 
     /* ===================================================================================================== */
-
-    private String getFileExtension(String fn)
-    {
-        int dotIndex = fn.lastIndexOf('.');
-        // no extension or dot is at the end
-        if (dotIndex == -1 || dotIndex == fn.length() - 1)
-            return null;
-        else
-            return fn.substring(dotIndex + 1);
-    }
 
     private boolean isSameFileContent(String fp1, String fp2) throws Exception
     {

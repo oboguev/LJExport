@@ -33,9 +33,9 @@ public class Maintenance
     // private static final String AllUsersFromUser = "ru_history";
     private static final String AllUsersFromUser = null;
 
-    private static final String Users = ALL_USERS;
+    // private static final String Users = ALL_USERS;
     // private static final String Users = "1981dn";
-    // private static final String Users = "oboguev";
+    private static final String Users = "oboguev";
     // private static final String Users = "a_kaminsky";
     // private static final String Users = "1981dn,1981dn_dn,64vlad,_devol_";
     // private static final String Users = "oboguev";
@@ -99,7 +99,7 @@ public class Maintenance
             // do_users(Users, FixNullLinks.class); // only for nationalism.org
             // do_users(Users, FixDirectoryLinks.class);
             // do_users(Users, FixLongPaths.class);
-            // do_users(Users, DetectFailedDownloads.class);
+            do_users(Users, DetectFailedDownloads.class);
             // --- then run MainRedownloadFailedLinks
             // do_users(Users, FixFileExtensions.class);
 

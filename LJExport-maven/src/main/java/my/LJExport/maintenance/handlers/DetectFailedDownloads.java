@@ -37,7 +37,7 @@ import my.LJExport.runtime.url.UrlUtil;
  */
 public class DetectFailedDownloads extends MaintenanceHandler
 {
-    private static boolean DryRun = true; // ###
+    private static boolean DryRun = false; // ###
     // private static final Safety safety = Safety.UNSAFE;
 
     public DetectFailedDownloads() throws Exception
@@ -187,125 +187,128 @@ public class DetectFailedDownloads extends MaintenanceHandler
         boolean updated = false;
 
         for (Node n : JSOUP.findElements(pageFlat, tag))
+            process(fullHtmlFilePath, n, tag, attr);
+
+        return updated;
+    }
+
+    private void process(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
+    {
+        String href = getLinkAttribute(n, attr);
+        String href_original = getLinkAttribute(n, "original-" + attr);
+
+        if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
+            return;
+
+        if (isArchiveOrg())
         {
-            String href = getLinkAttribute(n, attr);
-            String href_original = getLinkAttribute(n, "original-" + attr);
+            /* ignore bad links due to former bug in archive loader */
+            if (href.startsWith("../") && href.endsWith("../links/null"))
+                return;
+        }
 
-            if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
-                continue;
+        LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
+        if (linkInfo == null)
+            return;
 
-            if (isArchiveOrg())
+        String ac = file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
+        if (ac == null)
+        {
+            String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
+                    Config.User, href, linkInfo.linkFullFilePath);
+
+            boolean allow = Config.User.equals("d_olshansky") && href.contains("../links/imgprx.livejournal.net/");
+
+            if (DryRun || allow)
             {
-                /* ignore bad links due to former bug in archive loader */
-                if (href.startsWith("../") && href.endsWith("../links/null"))
-                    continue;
-            }
-
-            LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
-            if (linkInfo == null)
-                continue;
-
-            String ac = file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
-            if (ac == null)
-            {
-                String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
-                        Config.User, href, linkInfo.linkFullFilePath);
-
-                boolean allow = Config.User.equals("d_olshansky") && href.contains("../links/imgprx.livejournal.net/");
-
-                if (DryRun || allow)
-                {
-                    trace(msg);
-                    continue;
-                }
-                else
-                {
-                    throwException(msg);
-                }
-            }
-
-            if (!ac.equals(linkInfo.linkFullFilePath))
-                throwException("Mismatching link case");
-
-            /*
-             * Detect implied file extension from actual file content 
-             */
-            String contentExtension = null;
-            if (fileContentExtensionMap.containsKey(linkInfo.linkFullFilePath.toLowerCase()))
-            {
-                contentExtension = fileContentExtensionMap.get(linkInfo.linkFullFilePath.toLowerCase());
+                trace(msg);
+                return;
             }
             else
             {
-                byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
-                contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content);
-                fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
-            }
-
-            if (contentExtension == null || contentExtension.length() == 0)
-                continue;
-
-            /*
-             * Get extension from file name 
-             */
-            String fnExt = LinkFilepath.getMediaFileExtension(linkInfo.linkFullFilePath);
-
-            /*
-             * If it is not one of common media extensions, disregard it  
-             */
-            if (fnExt != null && !FileTypeDetector.commonExtensions().contains(fnExt.toLowerCase()))
-                fnExt = null;
-
-            /*
-             * If it is equivalent to detected file content, do not make any change  
-             */
-            if (fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, contentExtension))
-                continue;
-
-            Decision decision = serverAcceptedContent(href_original, linkInfo.linkFullFilePath, contentExtension, fnExt);
-
-            if (decision.isAccept())
-                continue;
-
-            boolean reject = decision.isReject();
-
-            if (decision.isNeutral())
-            {
-                switch (contentExtension.toLowerCase())
-                {
-                /*
-                 * When downloading IMG link, or other link, server responded with HTML or XHTML or PHP or TXT,
-                 * likely because image was not available, and displaying HTML page with 404 or other error.
-                 * Requests for actual TXT files have already been handled by isEquivalentExtensions above.
-                 */
-                case "html":
-                case "xhtml":
-                case "php":
-                case "txt":
-                    reject = true;
-                    break;
-
-                default:
-                    break;
-                }
-            }
-
-            if (reject)
-            {
-                String relpath = this.abs2rel(linkInfo.linkFullFilePath);
-                FailedLinkInfo fli = failedLinkInfo.get(relpath.toLowerCase());
-                if (fli == null)
-                    failedLinkInfo.put(relpath.toLowerCase(), fli = new FailedLinkInfo(relpath));
-
-                if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
-                    fli.addUrl(href_original);
-
-                if (tag.equalsIgnoreCase("img"))
-                    fli.image = true;
+                throwException(msg);
             }
         }
 
-        return updated;
+        if (!ac.equals(linkInfo.linkFullFilePath))
+            throwException("Mismatching link case");
+
+        /*
+         * Detect implied file extension from actual file content 
+         */
+        String contentExtension = null;
+        if (fileContentExtensionMap.containsKey(linkInfo.linkFullFilePath.toLowerCase()))
+        {
+            contentExtension = fileContentExtensionMap.get(linkInfo.linkFullFilePath.toLowerCase());
+        }
+        else
+        {
+            byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
+            contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content);
+            fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
+        }
+
+        if (contentExtension == null || contentExtension.length() == 0)
+            return;
+
+        /*
+         * Get extension from file name 
+         */
+        String fnExt = LinkFilepath.getMediaFileExtension(linkInfo.linkFullFilePath);
+
+        /*
+         * If it is not one of common media extensions, disregard it  
+         */
+        if (fnExt != null && !FileTypeDetector.commonExtensions().contains(fnExt.toLowerCase()))
+            fnExt = null;
+
+        /*
+         * If it is equivalent to detected file content, do not make any change  
+         */
+        if (fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, contentExtension))
+            return;
+
+        Decision decision = serverAcceptedContent(href_original, linkInfo.linkFullFilePath, contentExtension, fnExt);
+
+        if (decision.isAccept())
+            return;
+
+        boolean reject = decision.isReject();
+
+        if (decision.isNeutral())
+        {
+            switch (contentExtension.toLowerCase())
+            {
+            /*
+             * When downloading IMG link, or other link, server responded with HTML or XHTML or PHP or TXT,
+             * likely because image was not available, and displaying HTML page with 404 or other error.
+             * Requests for actual TXT files have already been handled by isEquivalentExtensions above.
+             */
+            case "html":
+            case "xhtml":
+            case "php":
+            case "txt":
+                reject = true;
+                break;
+
+            default:
+                break;
+            }
+        }
+
+        if (reject)
+        {
+            String relpath = this.abs2rel(linkInfo.linkFullFilePath);
+            FailedLinkInfo fli = failedLinkInfo.get(relpath.toLowerCase());
+            if (fli == null)
+                failedLinkInfo.put(relpath.toLowerCase(), fli = new FailedLinkInfo(relpath));
+
+            if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
+                fli.addUrl(href_original);
+
+            if (tag.equalsIgnoreCase("img"))
+                fli.image = true;
+        }
     }
 
     private Decision serverAcceptedContent(String href_original, String linkFullFilePath, String contentExtension, String fnExt)

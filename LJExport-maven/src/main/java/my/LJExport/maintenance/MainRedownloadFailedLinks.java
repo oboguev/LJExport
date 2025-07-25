@@ -27,6 +27,7 @@ import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.LinkRedownloader;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.synch.ThreadsControl;
 
@@ -541,18 +542,24 @@ public class MainRedownloadFailedLinks
             {
                 if (null == JSOUP.getAttribute(n, "original-" + attr))
                 {
-                    // ### add original-attr to node if missing (url encoded by component)
+                    JSOUP.setAttribute(n, "original-" + attr, e_good.key); // ### encode
                     updated = true;
                 }
             }
 
             if (e_failed != null)
             {
-                // ### change attr to e.key
-                if (null == JSOUP.getAttribute(n, "original-" + attr))
+                String original = JSOUP.getAttribute(n, "original-" + attr);
+
+                if (original != null)
                 {
-                    // ### add original-attr to node if missing (url encoded by component)
+                    // ### change attr to original
                 }
+                else
+                {
+                    JSOUP.setAttribute(n, "original-" + attr, e_failed.key); // ### encode
+                }
+                
                 updated = true;
             }
         }

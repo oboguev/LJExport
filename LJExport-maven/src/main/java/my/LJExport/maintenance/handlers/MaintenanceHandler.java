@@ -93,9 +93,14 @@ public abstract class MaintenanceHandler extends Maintenance
         return href;
     }
 
-    protected void updateLinkAttribute(Node n, String attrname, String newref) throws Exception
+    public void updateLinkAttribute(Node n, String attrname, String newref) throws Exception
     {
         JSOUP.updateAttribute(n, attrname, LinkFilepath.encodePathComponents(newref));
+    }
+
+    public void setLinkAttribute(Node n, String attrname, String newref) throws Exception
+    {
+        JSOUP.setAttribute(n, attrname, LinkFilepath.encodePathComponents(newref));
     }
 
     private String preprocesHref(String href)

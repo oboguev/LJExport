@@ -542,7 +542,8 @@ public class MainRedownloadFailedLinks
             {
                 if (null == JSOUP.getAttribute(n, "original-" + attr))
                 {
-                    JSOUP.setAttribute(n, "original-" + attr, e_good.key); // ### encode -- but in file already encoded
+                    // e.key is already normalized in file and does not need to be URL-encoded
+                    JSOUP.setAttribute(n, "original-" + attr, e_good.key);
                     updated = true;
                 }
             }
@@ -551,7 +552,8 @@ public class MainRedownloadFailedLinks
             {
                 if (null == JSOUP.getAttribute(n, "original-" + attr))
                 {
-                    JSOUP.setAttribute(n, "original-" + attr, e_failed.key); // ### encode -- but in file already encoded
+                    // e.key is already normalized in file and does not need to be URL-encoded
+                    JSOUP.setAttribute(n, "original-" + attr, e_failed.key);
                     updated = true;
                 }
             }

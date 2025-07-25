@@ -15,6 +15,7 @@ import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.MemoryMonitor;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.KVFile;
+import my.LJExport.runtime.file.ServerContent;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.ActivityCounters;
@@ -427,7 +428,7 @@ public class MainRedownloadFailedLinks
 
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
-            // ####
+            // ###
         }
 
         return updated;
@@ -443,6 +444,7 @@ public class MainRedownloadFailedLinks
             return false;
 
         // ### www.lib.ru lib.ru: requests txt, sends back html but inside is <pre> -> ok
+        // ### ServerContent.acceptContent
         // ### may result in longer name, rename, and need to update HTMLs
         
         // ### html content reply is ok for url extensions xhtml and shtml

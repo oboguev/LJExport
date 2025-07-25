@@ -187,6 +187,27 @@ public class MainRedownloadFailedLinks
             }
 
             updateUserHtmlFiles();
+
+            if (Main.isAborting())
+            {
+                Util.err(">>> Aborted redownloading of failed links for user " + Config.User);
+                return;
+            }
+
+            if (!DryRun)
+            {
+                if (kvlist_failed.size() == 0)
+                {
+                    kvfile.delete();
+                    Util.out("Deleted failed-link-downloads.txt for user " + Config.User);
+                }
+                else
+                {
+                    KVEntry.sortByValueIgnoreCase(kvlist_failed);
+                    kvfile.save(kvlist_failed);
+                    Util.out("Updated failed-link-downloads.txt for user " + Config.User);
+                }
+            }
         }
         finally
         {
@@ -516,14 +537,13 @@ public class MainRedownloadFailedLinks
 
             if (e_good != null && e_failed != null)
                 throwException("Entry is both on good or failed lists");
-            
+
             if (e_good != null)
             {
-                // ### remove from kvlist file
                 // ### add original-attr to node if missing
                 updated = true;
             }
-            
+
             if (e_failed != null)
             {
                 // ### cannot reload -> restore original URL in HTML node links

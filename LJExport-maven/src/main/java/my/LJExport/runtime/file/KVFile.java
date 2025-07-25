@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,13 +31,27 @@ public class KVFile
             this.key = key;
             this.value = value;
         }
+
+        public static void sortByValue(List<KVEntry> entries)
+        {
+            Collections.sort(entries, Comparator.comparing(
+                    entry -> entry.value, 
+                    Comparator.nullsFirst(String::compareTo)));
+        }
+
+        public static void sortByValueIgnoreCase(List<KVEntry> entries)
+        {
+            Collections.sort(entries, Comparator.comparing(
+                    entry -> entry.value == null ? null : entry.value.toLowerCase(),
+                    Comparator.nullsFirst(String::compareTo)));
+        }
     }
 
     public KVFile(String path) throws Exception
     {
         this.filePath = new File(path).getCanonicalFile().toPath();
     }
-    
+
     public boolean exists()
     {
         return filePath.toFile().exists();
@@ -52,7 +68,7 @@ public class KVFile
             sb.append(e.value + nl);
             sb.append(SEPARATOR + nl);
         }
-        
+
         Util.writeToFileVerySafe(this.filePath.toAbsolutePath().toString(), sb.toString());
     }
 
@@ -109,10 +125,10 @@ public class KVFile
         }
     }
 
-    public static Map<String,KVEntry> reverseMap(List<KVEntry> list, boolean lowercase) throws Exception
+    public static Map<String, KVEntry> reverseMap(List<KVEntry> list, boolean lowercase) throws Exception
     {
-        Map<String,KVEntry> m = new HashMap<>();
-        
+        Map<String, KVEntry> m = new HashMap<>();
+
         for (KVEntry e : list)
         {
             String key = e.value;
@@ -122,7 +138,7 @@ public class KVFile
                 throw new Exception("Duplicate entry value in KVEntry list");
             m.put(key, e);
         }
-        
+
         return m;
     }
 }

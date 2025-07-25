@@ -11,6 +11,8 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.maintenance.handlers.MaintenanceHandler;
+import my.LJExport.maintenance.handlers.MaintenanceHandlerPassive;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;
@@ -24,6 +26,7 @@ import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.LinkRedownloader;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.synch.ThreadsControl;
 
@@ -439,9 +442,14 @@ public class MainRedownloadFailedLinks
             String tag, String attr) throws Exception
     {
         boolean updated = false;
+        
+        MaintenanceHandler mh = new MaintenanceHandlerPassive();
 
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
+            String href = mh.getLinkAttribute(n, attr);
+            String href_original = mh.getLinkOriginalAttribute(n, "original-" + attr);
+
             // ### in kvlist_good
             // ### OK -> remove from kvlist file
             // ### add original-attr if missing

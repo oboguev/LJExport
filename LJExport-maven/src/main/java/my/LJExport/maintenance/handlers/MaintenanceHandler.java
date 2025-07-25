@@ -68,10 +68,19 @@ public abstract class MaintenanceHandler extends Maintenance
         return sb.toString();
     }
 
-    protected String getLinkAttribute(Node n, String name) throws Exception
+    public String getLinkAttribute(Node n, String name) throws Exception
     {
         String href = JSOUP.getAttribute(n, name);
         href = preprocesHref(href);
+        if (href != null)
+            href = LinkFilepath.decodePathComponents(href);
+        return href;
+    }
+
+    public String getLinkOriginalAttribute(Node n, String name) throws Exception
+    {
+        String href = JSOUP.getAttribute(n, name);
+        href = preprocesOriginalHref(href);
         if (href != null)
             href = LinkFilepath.decodePathComponents(href);
         return href;
@@ -99,6 +108,21 @@ public abstract class MaintenanceHandler extends Maintenance
             href = href.substring(FileProtocol.length());
 
         if (href.isEmpty() || !href.startsWith("../"))
+            return null;
+
+        return href;
+    }
+
+    private String preprocesOriginalHref(String href)
+    {
+        if (href == null)
+            return null;
+
+        href = href.trim();
+        if (href.startsWith(FileProtocol))
+            href = href.substring(FileProtocol.length());
+
+        if (href.isEmpty())
             return null;
 
         return href;

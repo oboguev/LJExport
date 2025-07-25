@@ -492,7 +492,6 @@ public class MainRedownloadFailedLinks
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
             String href = mh.getLinkAttribute(n, attr);
-            String href_original = mh.getLinkOriginalAttribute(n, "original-" + attr);
 
             if (href == null || !mh.isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
@@ -540,13 +539,20 @@ public class MainRedownloadFailedLinks
 
             if (e_good != null)
             {
-                // ### add original-attr to node if missing
-                updated = true;
+                if (null == JSOUP.getAttribute(n, "original-" + attr))
+                {
+                    // ### add original-attr to node if missing (url encoded by component)
+                    updated = true;
+                }
             }
 
             if (e_failed != null)
             {
-                // ### cannot reload -> restore original URL in HTML node links
+                // ### change attr to e.key
+                if (null == JSOUP.getAttribute(n, "original-" + attr))
+                {
+                    // ### add original-attr to node if missing (url encoded by component)
+                }
                 updated = true;
             }
         }

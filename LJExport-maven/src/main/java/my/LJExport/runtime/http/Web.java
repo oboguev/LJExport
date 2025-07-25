@@ -305,8 +305,8 @@ public class Web
                 .setSocketTimeout(Config.WebImageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
                 .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
                 .setRedirectsEnabled(false) // Prevent automatic redirect following
-                .setCircularRedirectsAllowed(true)
-                .setMaxRedirects(20)
+                // .setCircularRedirectsAllowed(true)
+                // .setMaxRedirects(20)
                 .build();
 
         HttpClientBuilder hcb = HttpClients.custom()
@@ -869,7 +869,7 @@ public class Web
             Thread.currentThread().setName(threadName);
         }
     }
-    
+
     private static void reportRedirectError(int statusCode, String referer)
     {
         if (referer != null && Util.False)

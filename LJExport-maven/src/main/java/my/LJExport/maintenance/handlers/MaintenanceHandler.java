@@ -23,7 +23,7 @@ public abstract class MaintenanceHandler extends Maintenance
     
     private static final String FileProtocol = "file://";
 
-    protected static class LinkInfo
+    public static class LinkInfo
     {
         public String linkFullFilePath;
         public String linkRelativeFilePath;
@@ -34,7 +34,7 @@ public abstract class MaintenanceHandler extends Maintenance
     {
     }
 
-    protected LinkInfo linkInfo(String fullHtmlFilePath, String href)
+    public LinkInfo linkInfo(String fullHtmlFilePath, String href)
     {
         if (href == null)
             return null;
@@ -145,7 +145,7 @@ public abstract class MaintenanceHandler extends Maintenance
         return list;
     }
 
-    protected boolean isLinksRepositoryReference(String fullHtmlFilePath, String href) throws Exception
+    public boolean isLinksRepositoryReference(String fullHtmlFilePath, String href) throws Exception
     {
         String href_root = firstRoot(href);
         String abs_root = RelativeLink.resolveFileRelativeLink(fullHtmlFilePath, href_root);
@@ -193,7 +193,7 @@ public abstract class MaintenanceHandler extends Maintenance
         throw new IllegalArgumentException("No root component found in href: " + href);
     }
 
-    protected boolean isArchiveOrg()
+    public boolean isArchiveOrg()
     {
         return Config.User.equals("nationalism.org");
     }
@@ -214,7 +214,7 @@ public abstract class MaintenanceHandler extends Maintenance
     }
 
     // absolute file path of a linked file -> relative Unix path relative to links repository dir  
-    protected String abs2rel(String abs) throws Exception
+    public String abs2rel(String abs) throws Exception
     {
         String rel = Util.stripStart(abs, this.linkDir + File.separator);
         rel = rel.replace(File.separatorChar, '/');

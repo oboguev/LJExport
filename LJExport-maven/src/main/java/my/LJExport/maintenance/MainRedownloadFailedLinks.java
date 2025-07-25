@@ -13,6 +13,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.maintenance.handlers.MaintenanceHandler;
 import my.LJExport.maintenance.handlers.MaintenanceHandlerPassive;
+import my.LJExport.maintenance.handlers.MaintenanceHandler.LinkInfo;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.LimitProcessorUsage;
@@ -26,7 +27,6 @@ import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.LinkRedownloader;
-import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.synch.ThreadsControl;
 
@@ -41,6 +41,26 @@ import my.LJExport.runtime.synch.ThreadsControl;
  */
 public class MainRedownloadFailedLinks
 {
+    private static final String ALL_USERS = "<all>";
+    private static final String AllUsersFromUser = null;
+    // private static final String AllUsersFromUser = "tanya_mass";
+
+    private static final String Users = ALL_USERS;
+    // private static final String Users = "funt";
+    // private static final String Users = "krylov_arhiv,krylov";
+    // private static final String Users = "zhu_s";
+
+    private static boolean DryRun = true;
+
+    /* =============================================================================== */
+
+    /* we can use large number of threads because they usually are network IO bound */
+    private static final int NWorkThreadsDownload = 300;
+    private static final int NMaxWorkThreadsHtmlFiles = 70;
+    private static final int MaxConnectionsPerRoute = 10;
+
+    /* =============================================================================== */
+
     private String userRoot;
     private String linksDir;
 
@@ -55,21 +75,9 @@ public class MainRedownloadFailedLinks
 
     // private List<KVEntry> kvlist_all = new ArrayList<>();
 
-    private static final String ALL_USERS = "<all>";
-    private static final String AllUsersFromUser = null;
-    // private static final String AllUsersFromUser = "tanya_mass";
+    private Map<String, String> file_lc2ac = new HashMap<>();
 
-    private static final String Users = ALL_USERS;
-    // private static final String Users = "funt";
-    // private static final String Users = "krylov_arhiv,krylov";
-    // private static final String Users = "zhu_s";
-
-    /* we can use large number of threads because they usually are network IO bound */
-    private static final int NWorkThreadsDownload = 300;
-    private static final int NMaxWorkThreadsHtmlFiles = 70;
-    private static final int MaxConnectionsPerRoute = 10;
-
-    private static boolean DryRun = true;
+    /* =============================================================================== */
 
     public static void main(String[] args)
     {
@@ -167,6 +175,8 @@ public class MainRedownloadFailedLinks
 
             Util.out(">>> Redownloading of failed links for user " + Config.User);
 
+            build_lc2ac();
+
             if (!redownloadLinkFiles())
                 return;
 
@@ -181,6 +191,19 @@ public class MainRedownloadFailedLinks
         finally
         {
             ThreadsControl.shutdownAfterUser();
+        }
+    }
+
+    /* =================================================================================================== */
+
+    private void build_lc2ac() throws Exception
+    {
+        file_lc2ac = new HashMap<>();
+
+        for (String fp : Util.enumerateFiles(linksDir, null))
+        {
+            fp = linksDir + File.separator + fp;
+            file_lc2ac.put(fp.toLowerCase(), fp);
         }
     }
 
@@ -442,7 +465,7 @@ public class MainRedownloadFailedLinks
             String tag, String attr) throws Exception
     {
         boolean updated = false;
-        
+
         MaintenanceHandler mh = new MaintenanceHandlerPassive();
 
         for (Node n : JSOUP.findElements(pageFlat, tag))
@@ -450,12 +473,62 @@ public class MainRedownloadFailedLinks
             String href = mh.getLinkAttribute(n, attr);
             String href_original = mh.getLinkOriginalAttribute(n, "original-" + attr);
 
-            // ### in kvlist_good
-            // ### OK -> remove from kvlist file
-            // ### add original-attr if missing
+            if (href == null || !mh.isLinksRepositoryReference(fullHtmlFilePath, href))
+                continue;
 
-            // ### in kvlist_failed
-            // ### cannot reload -> restore original URL in HTML links
+            if (mh.isArchiveOrg())
+            {
+                /* ignore bad links due to former bug in archive loader */
+                if (href.startsWith("../") && href.endsWith("../links/null"))
+                    continue;
+            }
+
+            LinkInfo linkInfo = mh.linkInfo(fullHtmlFilePath, href);
+            if (linkInfo == null)
+                continue;
+
+            String ac = file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
+            if (ac == null)
+            {
+                String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
+                        Config.User, href, linkInfo.linkFullFilePath);
+
+                boolean allow = Config.User.equals("d_olshansky") && href.contains("../links/imgprx.livejournal.net/");
+
+                if (DryRun || allow)
+                {
+                    Util.err(msg);
+                    continue;
+                }
+                else
+                {
+                    throwException(msg);
+                }
+            }
+
+            if (!ac.equals(linkInfo.linkFullFilePath))
+                throwException("Mismatching link case");
+
+            String relpath = mh.abs2rel(linkInfo.linkFullFilePath);
+
+            KVEntry e_good = kvmap_good.get(relpath.toLowerCase());
+            KVEntry e_failed = kvmap_failed.get(relpath.toLowerCase());
+
+            if (e_good != null && e_failed != null)
+                throwException("Entry is both on good or failed lists");
+            
+            if (e_good != null)
+            {
+                // ### remove from kvlist file
+                // ### add original-attr to node if missing
+                updated = true;
+            }
+            
+            if (e_failed != null)
+            {
+                // ### cannot reload -> restore original URL in HTML node links
+                updated = true;
+            }
         }
 
         return updated;
@@ -473,5 +546,12 @@ public class MainRedownloadFailedLinks
         // ### use smart link redownloader
 
         return linkRedownloader.redownload(url, relativeLinkFilePath, referer, image);
+    }
+
+    /* ========================================================================================== */
+
+    private static void throwException(String msg) throws Exception
+    {
+        throw new Exception(msg);
     }
 }

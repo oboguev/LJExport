@@ -11,6 +11,9 @@ public class RateLimiter
             .setCoolOff(Config.RateLimit_LiveJournal_PageLoad_CoolOff_Requests, Config.RateLimit_LiveJournal_PageLoad_CoolOff_Interval);
     
     public static final RateLimiter LJ_IMAGES = new RateLimiter("LJ image loading", Config.RateLimit_LiveJournal_Images);
+    
+    public static final RateLimiter WEB_ARCHIVE_ORG = new RateLimiter("web.archive.org loading", Config.RateLimit_WebArchiveOrg_Requests)
+            .setCoolOff(Config.RateLimit_WebArchiveOrg_Requests_CoolOff_Requests, Config.RateLimit_WebArchiveOrg_Requests_CoolOff_Interval);
 
     private final ReentrantLock lock = new ReentrantLock();
     private volatile long lastReturnTime = System.currentTimeMillis();

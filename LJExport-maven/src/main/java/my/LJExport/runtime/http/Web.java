@@ -51,14 +51,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 // GZIP: http://stackoverflow.com/questions/1063004/how-to-decompress-http-response
 
 public class Web
 {
+    /* client for LJ page requests */
     private static CloseableHttpClient httpClient;
+
+    /* client for LJ image requests and non-LJ requests */
     private static CloseableHttpClient httpImageClient;
+
+    /* client for redirect requests */
     private static CloseableHttpClient httpRedirectClient;
+
     private static CookieStore cookieStore;
     private static ThreadLocal<String> lastURL;
     private static PoolingHttpClientConnectionManager connManager;
@@ -221,7 +228,7 @@ public class Web
         // Set max connections per route (i.e., per host)
         connManager.setDefaultMaxPerRoute(Config.MaxConnectionsPerRoute);
 
-        // higher limits for some routes
+        // higher (or lower) limits for some routes
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("l-userpic.livejournal.com", 80, "http")),
                 max(15, Config.MaxConnectionsPerRoute));
 
@@ -252,6 +259,11 @@ public class Web
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh6.googleusercontent.com", 443, "https")),
                 max(20, Config.MaxConnectionsPerRoute));
 
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("web.archive.org", 443, "https")),
+                min(5, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("web.archive.org", 80, "http")),
+                min(5, Config.MaxConnectionsPerRoute));
+
         connManager.setDefaultSocketConfig(SocketConfig.custom()
                 // .setTcpNoDelay(true)
                 .setSndBufSize(65536) // 64KB send buffer
@@ -277,6 +289,15 @@ public class Web
                 .setMaxRedirects(20)
                 .build();
 
+        RequestConfig requestConfigImage = RequestConfig.custom()
+                .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
+                .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
+                .setSocketTimeout(Config.WebImageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
+                .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
+                .setCircularRedirectsAllowed(true)
+                .setMaxRedirects(20)
+                .build();
+
         RequestConfig requestConfigRedirect = RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
                 .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
@@ -287,24 +308,9 @@ public class Web
                 .setMaxRedirects(20)
                 .build();
 
-        RequestConfig requestConfigImage = RequestConfig.custom()
-                .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
-                .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
-                .setSocketTimeout(Config.WebImageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
-                .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
-                .setCircularRedirectsAllowed(true)
-                .setMaxRedirects(20)
-                .build();
-
         HttpClientBuilder hcb = HttpClients.custom()
                 .setConnectionManager(connManager)
                 .setDefaultRequestConfig(requestConfig)
-                .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
-                .setDefaultCookieStore(cookieStore);
-
-        HttpClientBuilder hcbRedirect = HttpClients.custom()
-                .setConnectionManager(connManager)
-                .setDefaultRequestConfig(requestConfigRedirect)
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
                 .setDefaultCookieStore(cookieStore);
 
@@ -314,11 +320,17 @@ public class Web
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
                 .setDefaultCookieStore(cookieStore);
 
+        HttpClientBuilder hcbRedirect = HttpClients.custom()
+                .setConnectionManager(connManager)
+                .setDefaultRequestConfig(requestConfigRedirect)
+                .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setDefaultCookieStore(cookieStore);
+
         if (routePlanner != null)
         {
             hcb = hcb.setRoutePlanner(routePlanner);
-            hcbRedirect = hcbRedirect.setRoutePlanner(routePlanner);
             hcbImage = hcbImage.setRoutePlanner(routePlanner);
+            hcbRedirect = hcbRedirect.setRoutePlanner(routePlanner);
         }
 
         if (Config.TrustAnySSLCertificate)
@@ -451,7 +463,12 @@ public class Web
 
         CloseableHttpClient client = null;
 
-        if (isLivejournalPicture(url))
+        if (isWebArchiveOrg(url))
+        {
+            RateLimiter.WEB_ARCHIVE_ORG.limitRate();
+            client = httpImageClient;
+        }
+        else if (isLivejournalPicture(url))
         {
             RateLimiter.LJ_IMAGES.limitRate();
             client = httpImageClient;
@@ -648,7 +665,7 @@ public class Web
         setHeader(request, headers, "Sec-Fetch-Mode", "navigate");
         setHeader(request, headers, "Sec-Fetch-Site", "none");
         setHeader(request, headers, "Sec-Fetch-User", "?1");
-        
+
         if (headers != null)
         {
             for (String key : headers.keySet())
@@ -711,7 +728,11 @@ public class Web
 
     private static String retry_getRedirectLocation(String url, Map<String, String> headers, boolean lastPass) throws Exception
     {
-        if (isLivejournalPicture(url))
+        if (isWebArchiveOrg(url))
+        {
+            RateLimiter.WEB_ARCHIVE_ORG.limitRate();
+        }
+        else if (isLivejournalPicture(url))
         {
             RateLimiter.LJ_IMAGES.limitRate();
         }
@@ -862,8 +883,7 @@ public class Web
 
     private static boolean isLivejournalPicture(String url) throws Exception
     {
-        String host = (new URL(url)).getHost();
-        host = host.toLowerCase();
+        String host = new URL(url).getHost().toLowerCase();
 
         if (host.equals("l-userpic.livejournal.com") || host.endsWith(".l-userpic.livejournal.com"))
             return true;
@@ -883,6 +903,19 @@ public class Web
 
         if (lc.startsWith("http://imgprx.livejournal.net/") || lc.startsWith("https://imgprx.livejournal.net/"))
             return true;
+
+        return false;
+    }
+
+    private static boolean isWebArchiveOrg(String url) throws Exception
+    {
+        if (url.toLowerCase().contains("web.archive.org"))
+        {
+            String host = new URL(url).getHost().toLowerCase();
+
+            if (host.equals("web.archive.org"))
+                return true;
+        }
 
         return false;
     }

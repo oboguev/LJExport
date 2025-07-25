@@ -44,6 +44,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.IntPredicate;
@@ -386,7 +387,7 @@ public class Web
             connManager = null;
         }
     }
-    
+
     public static void threadExit()
     {
         if (lastURL != null)
@@ -704,7 +705,7 @@ public class Web
         request.setHeader(key, value);
     }
 
-    public static String getRedirectLocation(String url, Map<String, String> headers) throws Exception
+    public static String getRedirectLocation(String url, String referer, Map<String, String> headers) throws Exception
     {
         final int maxpasses = 3;
 
@@ -712,7 +713,7 @@ public class Web
         {
             try
             {
-                return retry_getRedirectLocation(url, headers, pass > maxpasses);
+                return retry_getRedirectLocation(url, referer, headers, pass > maxpasses);
             }
             catch (RedirectLocationException ex)
             {
@@ -737,8 +738,19 @@ public class Web
         }
     }
 
-    private static String retry_getRedirectLocation(String url, Map<String, String> headers, boolean lastPass) throws Exception
+    private static String retry_getRedirectLocation(String url, String referer, Map<String, String> headers, boolean lastPass)
+            throws Exception
     {
+        if (referer != null)
+        {
+            if (headers == null)
+                headers = new HashMap<>();
+            else
+                headers = new HashMap<>(headers);
+
+            headers.put("Referer", referer);
+        }
+
         if (isWebArchiveOrg(url))
         {
             RateLimiter.WEB_ARCHIVE_ORG.limitRate();

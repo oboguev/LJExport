@@ -285,11 +285,11 @@ public abstract class PageParserDirectBase
             {
                 if (ThreadsControl.useLinkDownloadThreads())
                 {
-                    fpUnwrap.add(new AsyncUnwrapImgPrx(n, attr, href));
+                    fpUnwrap.add(new AsyncUnwrapImgPrx(n, attr, href, rurl));
                 }
                 else
                 {
-                    String newref = resolveImgPrxRedirect(href);
+                    String newref = resolveImgPrxRedirect(href, rurl);
                     if (newref != null)
                     {
                         JSOUP.updateAttribute(n, attr, newref);
@@ -308,16 +308,18 @@ public abstract class PageParserDirectBase
         private final Node n;
         private final String attr;
         private final String href;
+        private final String rurl;
 
         // out
         private String newref;
         private Exception ex;
 
-        public AsyncUnwrapImgPrx(Node n, String attr, String href)
+        public AsyncUnwrapImgPrx(Node n, String attr, String href, String rurl)
         {
             this.n = n;
             this.attr = attr;
             this.href = href;
+            this.rurl = rurl;
         }
 
         @Override
@@ -328,7 +330,7 @@ public abstract class PageParserDirectBase
             try
             {
                 Thread.currentThread().setName("webload");
-                newref = resolveImgPrxRedirect(href);
+                newref = resolveImgPrxRedirect(href, rurl);
             }
             catch (Exception ex)
             {
@@ -361,7 +363,7 @@ public abstract class PageParserDirectBase
 
     private static final ConcurrentHashMap<String, Optional<String>> resolvedImgPrxLinks = new ConcurrentHashMap<>();
 
-    private static String resolveImgPrxRedirect(String href) throws Exception
+    private static String resolveImgPrxRedirect(String href, String rurl) throws Exception
     {
         String href_noprotocol = Util.stripProtocol(href);
 
@@ -379,13 +381,24 @@ public abstract class PageParserDirectBase
             }
         }
 
-        String newref = Web.getRedirectLocation(href, LinkDownloader.getImageHeaders());
-        if (newref != null)
+        // already in St format?
+        String newref = LJUtil.decodeImgPrxStLink(href);
+        String newref_noprotocol = Util.stripProtocol(newref);
+        if (newref_noprotocol.equals(href_noprotocol))
+            newref = null;
+
+        if (newref == null || newref.equals(href))
         {
-            newref = LJUtil.decodeImgPrxStLink(newref);
-            String newref_noprotocol = Util.stripProtocol(newref);
-            if (newref_noprotocol.equals(href_noprotocol))
-                newref = null;
+            String referer = (rurl == null) ? null : LJUtil.recordPageURL(rurl);
+            newref = Web.getRedirectLocation(href, referer, LinkDownloader.getImageHeaders());
+        
+            if (newref != null)
+            {
+                newref = LJUtil.decodeImgPrxStLink(newref);
+                newref_noprotocol = Util.stripProtocol(newref);
+                if (newref_noprotocol.equals(href_noprotocol))
+                    newref = null;
+            }
         }
 
         if (newref != null)

@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
+import my.LJExport.runtime.http.Web;
 
 public class ThreadsControl
 {
@@ -83,6 +84,7 @@ public class ThreadsControl
     public static void backgroundFinally()
     {
         ThreadsControl.activeWorkerThreadCount.decrementAndGet();
+        Web.threadExit();
     }
 
     /* ================================================================= */

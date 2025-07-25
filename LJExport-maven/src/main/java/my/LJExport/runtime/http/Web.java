@@ -349,7 +349,12 @@ public class Web
     public static void shutdown() throws Exception
     {
         cookieStore = null;
-        lastURL = null;
+
+        if (lastURL != null)
+        {
+            lastURL.remove();
+            lastURL = null;
+        }
 
         if (httpClient != null)
         {
@@ -380,6 +385,12 @@ public class Web
             connManager.shutdown();
             connManager = null;
         }
+    }
+    
+    public static void threadExit()
+    {
+        if (lastURL != null)
+            lastURL.remove();
     }
 
     public static CookieStore getCookieStore() throws Exception
@@ -878,7 +889,7 @@ public class Web
 
     public static String getLastURL() throws Exception
     {
-        return lastURL.get();
+        return lastURL == null ? null : lastURL.get();
     }
 
     private static boolean isLivejournalPicture(String url) throws Exception

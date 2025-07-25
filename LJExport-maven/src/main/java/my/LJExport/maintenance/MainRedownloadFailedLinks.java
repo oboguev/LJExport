@@ -15,7 +15,6 @@ import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.MemoryMonitor;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.KVFile;
-import my.LJExport.runtime.file.ServerContent;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.ActivityCounters;
@@ -308,6 +307,11 @@ public class MainRedownloadFailedLinks
             }
 
             String referer = LJUtil.userBase();
+            if (Config.isLiveJournal() || Config.isDreamwidthOrg() || Config.isRossiaOrg())
+            {
+                int random = (int)(Math.random() * (7000000 - 1000000 + 1)) + 1000000;
+                referer += String.format("/%07d.html", random); 
+            }
 
             if (redownload(url, relpath, referer, image))
             {
@@ -316,7 +320,7 @@ public class MainRedownloadFailedLinks
                     kvlist_good.add(entry);
                     kvlist_all.add(entry);
                 }
-                // ### OK -> remove from list
+                // ### OK -> remove from kvlist file
                 // ### add original-attr if missing
             }
             else
@@ -326,7 +330,7 @@ public class MainRedownloadFailedLinks
                     kvlist_failed.add(entry);
                     kvlist_all.add(entry);
                 }
-                // ### cannot reload -> restore original URL in links
+                // ### cannot reload -> restore original URL in HTML links
             }
         }
     }
@@ -442,10 +446,13 @@ public class MainRedownloadFailedLinks
 
         if (!LinkDownloader.shouldDownload(url, false))
             return false;
+        
+        // ### use smart link redownloader
 
         // ### www.lib.ru lib.ru: requests txt, sends back html but inside is <pre> -> ok
         // ### ServerContent.acceptContent
-        // ### may result in longer name, rename, and need to update HTMLs
+        // ### may result in longer name, rename, and need to update HTMLs and link map
+        // ### do not perform in DryRun
         
         // ### html content reply is ok for url extensions xhtml and shtml
         // ### ALWAYS need referer for image hosting sites

@@ -19,6 +19,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.conn.HttpHostConnectException;
 
 import my.LJExport.Config;
+import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.Util.UnableCreateDirectoryException;
 import my.LJExport.runtime.file.FileBackedMap;
@@ -676,7 +677,7 @@ public class LinkDownloader
         if (finalExt != null && fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, finalExt))
             return filepath;
         
-        Decision decision = ServerContent.acceptContent(href, serverExt, fnExt, r.binaryBody, r);
+        Decision decision = ServerContent.acceptContent(href, serverExt, fnExt, new ContentProvider(r.binaryBody), r);
         if (decision.isReject())
         {
             return null;

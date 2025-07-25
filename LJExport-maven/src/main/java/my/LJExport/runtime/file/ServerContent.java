@@ -2,6 +2,7 @@ package my.LJExport.runtime.file;
 
 import java.net.URL;
 
+import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.Web;
 
@@ -45,7 +46,11 @@ public class ServerContent
         }
     }
 
-    public static Decision acceptContent(String href, String serverExt, String fnExt, byte[] content, Web.Response r)
+    public static final Decision DecisionNeutral = new Decision(DecisionStatus.Neutral);
+    public static final Decision DecisionReject = new Decision(DecisionStatus.Reject);
+
+    public static Decision acceptContent(String href, String serverExt, String fnExt, ContentProvider contentProvider,
+            Web.Response r)
             throws Exception
     {
         String host = new URL(href).getHost().toLowerCase();
@@ -56,10 +61,10 @@ public class ServerContent
          */
         if (Util.in(host, "lib.ru", "www.lib.ru") && Util.eqi(fnExt, "txt") && Util.eq(serverExt, "html"))
         {
-            if (Util.containsCaseInsensitive(content, "<pre>"))
+            if (Util.containsCaseInsensitive(contentProvider.get(), "<pre>"))
                 return new Decision(DecisionStatus.Accept, "html");
         }
 
-        return new Decision(DecisionStatus.Neutral);
+        return DecisionNeutral;
     }
 }

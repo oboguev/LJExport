@@ -40,6 +40,8 @@ import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
  */
 public class FixFileExtensions extends MaintenanceHandler
 {
+    // ### add handling for lib.ru and www.lib.ru: aaa.txt -> aaa.txt.html
+    
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;
 

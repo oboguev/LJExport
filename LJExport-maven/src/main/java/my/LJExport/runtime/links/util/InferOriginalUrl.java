@@ -2,6 +2,7 @@ package my.LJExport.runtime.links.util;
 
 import java.net.URLEncoder;
 
+import my.LJExport.maintenance.handlers.util.ShortFilePath;
 import my.LJExport.runtime.url.URLCodec;
 
 /*
@@ -17,6 +18,9 @@ public class InferOriginalUrl
      */
     public static String infer(String relpath) throws Exception
     {
+        if (ShortFilePath.isGeneratedUnixRelativePath(relpath))
+            return null;
+
         // 1. Decode if needed
         if (relpath.contains("%"))
         {

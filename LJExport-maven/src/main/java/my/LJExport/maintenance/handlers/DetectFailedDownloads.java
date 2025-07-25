@@ -12,14 +12,16 @@ import java.util.Objects;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
-import my.LJExport.maintenance.handlers.util.ShortFilePath;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
+import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.file.KVFile;
 import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.file.KVFile.KVEntry;
+import my.LJExport.runtime.file.ServerContent;
+import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.util.InferOriginalUrl;
@@ -260,7 +262,14 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, contentExtension))
                 continue;
 
-            if (tag.equalsIgnoreCase("img") || tag.equalsIgnoreCase("a"))
+            Decision decision = serverAcceptedContent(href_original, linkInfo.linkFullFilePath, contentExtension, fnExt);
+
+            if (decision.isAccept())
+                continue;
+
+            boolean reject = decision.isReject();
+
+            if (decision.isNeutral())
             {
                 switch (contentExtension.toLowerCase())
                 {
@@ -273,26 +282,50 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 case "xhtml":
                 case "php":
                 case "txt":
-                    String relpath = this.abs2rel(linkInfo.linkFullFilePath);
-                    FailedLinkInfo fli = failedLinkInfo.get(relpath.toLowerCase());
-                    if (fli == null)
-                        failedLinkInfo.put(relpath.toLowerCase(), fli = new FailedLinkInfo(relpath));
-
-                    if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
-                        fli.addUrl(href_original);
-
-                    if (tag.equalsIgnoreCase("img"))
-                        fli.image = true;
-
+                    reject = true;
                     break;
 
                 default:
                     break;
                 }
             }
+
+            if (reject)
+            {
+                String relpath = this.abs2rel(linkInfo.linkFullFilePath);
+                FailedLinkInfo fli = failedLinkInfo.get(relpath.toLowerCase());
+                if (fli == null)
+                    failedLinkInfo.put(relpath.toLowerCase(), fli = new FailedLinkInfo(relpath));
+
+                if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
+                    fli.addUrl(href_original);
+
+                if (tag.equalsIgnoreCase("img"))
+                    fli.image = true;
+            }
         }
 
         return updated;
+    }
+
+    private Decision serverAcceptedContent(String href_original, String linkFullFilePath, String contentExtension, String fnExt)
+            throws Exception
+    {
+        String href = null;
+
+        if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
+            href = href_original;
+
+        if (href == null)
+        {
+            String relpath = this.abs2rel(linkFullFilePath);
+            href = InferOriginalUrl.infer(relpath);
+        }
+
+        if (href == null)
+            return ServerContent.DecisionNeutral;
+        else
+            return ServerContent.acceptContent(href, contentExtension, fnExt, new ContentProvider(linkFullFilePath), null);
     }
 
     /* ===================================================================================================== */
@@ -387,9 +420,6 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 return;
 
             /* infer URL from relpath */
-            if (ShortFilePath.isGeneratedUnixRelativePath(relpath))
-                return;
-
             String url = InferOriginalUrl.infer(relpath);
             if (url != null)
                 addUrl(url);

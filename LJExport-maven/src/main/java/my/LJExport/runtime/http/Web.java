@@ -841,12 +841,14 @@ public class Web
                     throw new RetryableException("Not a redirect (status " + statusCode + ")");
 
                 case 412:
+                    reportRedirectError(statusCode, referer);
                     if (url.startsWith("https://imgprx.livejournal.net/") || url.startsWith("http://imgprx.livejournal.net/"))
                         return null;
                     else
                         throw new RedirectLocationException("Not a redirect (status " + statusCode + ") for " + url);
 
                 default:
+                    reportRedirectError(statusCode, referer);
                     throw new RedirectLocationException("Not a redirect (status " + statusCode + ") for " + url);
                 }
             }
@@ -871,7 +873,11 @@ public class Web
     private static void reportRedirectError(int statusCode, String referer)
     {
         if (referer != null && Util.True)
+        {
+            // ###
             Util.err(String.format("REDIR %03d %s", statusCode, referer));
+            Util.noop();
+        }
     }
 
     public static class RetryableException extends Exception

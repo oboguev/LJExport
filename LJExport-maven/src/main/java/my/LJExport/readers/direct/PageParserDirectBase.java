@@ -236,9 +236,9 @@ public abstract class PageParserDirectBase
         try
         {
             unwrapped |= unwrapImgPrx(root, "img", "src", fpUnwrap);
-            unwrapped |= unwrapImgPrx(root, "img", "original-src", fpUnwrap);
+            // unwrapped |= unwrapImgPrx(root, "img", "original-src", fpUnwrap);
             unwrapped |= unwrapImgPrx(root, "a", "href", fpUnwrap);
-            unwrapped |= unwrapImgPrx(root, "a", "original-href", fpUnwrap);
+            // unwrapped |= unwrapImgPrx(root, "a", "original-href", fpUnwrap);
 
             fpUnwrap.start();
 
@@ -292,6 +292,9 @@ public abstract class PageParserDirectBase
                     String newref = resolveImgPrxRedirect(href, rurl);
                     if (newref != null)
                     {
+                        if (JSOUP.getAttribute(n, "original-" + attr) == null)
+                            JSOUP.setAttribute(n, "original-" + attr, href);
+
                         JSOUP.updateAttribute(n, attr, newref);
                         unwrapped = true;
                     }
@@ -351,6 +354,9 @@ public abstract class PageParserDirectBase
 
             if (newref != null)
             {
+                if (JSOUP.getAttribute(n, "original-" + attr) == null)
+                    JSOUP.setAttribute(n, "original-" + attr, href);
+
                 JSOUP.updateAttribute(n, attr, newref);
                 return true;
             }
@@ -391,7 +397,7 @@ public abstract class PageParserDirectBase
         {
             String referer = (rurl == null) ? null : LJUtil.recordPageURL(rurl);
             newref = Web.getRedirectLocation(href, referer, LinkDownloader.getImageHeaders());
-        
+
             if (newref != null)
             {
                 newref = LJUtil.decodeImgPrxStLink(newref);
@@ -439,7 +445,8 @@ public abstract class PageParserDirectBase
                     if (newref != null)
                     {
                         JSOUP.updateAttribute(n, attr, newref);
-                        JSOUP.setAttribute(n, "original-" + attr, href);
+                        if (JSOUP.getAttribute(n, "original-" + attr) == null)
+                            JSOUP.setAttribute(n, "original-" + attr, href);
                         downloaded = true;
                     }
                 }
@@ -504,7 +511,8 @@ public abstract class PageParserDirectBase
             if (newref != null)
             {
                 JSOUP.updateAttribute(n, attr, newref);
-                JSOUP.setAttribute(n, "original-" + attr, href);
+                if (JSOUP.getAttribute(n, "original-" + attr) == null)
+                    JSOUP.setAttribute(n, "original-" + attr, href);
                 return true;
             }
             else

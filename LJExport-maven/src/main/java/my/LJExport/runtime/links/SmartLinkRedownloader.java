@@ -14,6 +14,11 @@ public class SmartLinkRedownloader
     public boolean redownload(String url, String unixRelFilePath, String referer, boolean image) throws Exception
     {
         // ### add handling via archive.org
+        // ### strip anchor for arheive.org
+        // ### use ArchiveOrgSourceUrl.variants
+        // ### limit rate to 1.2
+        // ### concurrency 5
+        // ### handle 429
         return false;
     }
 }

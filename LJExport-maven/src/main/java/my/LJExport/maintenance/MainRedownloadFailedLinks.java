@@ -449,14 +449,6 @@ public class MainRedownloadFailedLinks
         
         // ### use smart link redownloader
 
-        // ### www.lib.ru lib.ru: requests txt, sends back html but inside is <pre> -> ok
-        // ### ServerContent.acceptContent
-        // ### may result in longer name, rename, and need to update HTMLs and link map
-        // ### do not perform in DryRun
-        
-        // ### html content reply is ok for url extensions xhtml and shtml
-        // ### ALWAYS need referer for image hosting sites
-
         return linkRedownloader.redownload(url, relativeLinkFilePath, referer, image);
     }
 }

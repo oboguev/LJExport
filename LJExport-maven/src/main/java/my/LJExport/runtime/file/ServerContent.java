@@ -55,12 +55,6 @@ public class ServerContent
     {
         String host = new URL(href).getHost().toLowerCase();
         
-        if (Util.in(host, "lib.ru", "www.lib.ru"))
-        {
-            // ###
-            Util.noop();
-        }
-
         /*
          * www.lib.ru and lib.ru respond to TXT URL request with the reply of HTML content,
          * but inside is the <pre> block

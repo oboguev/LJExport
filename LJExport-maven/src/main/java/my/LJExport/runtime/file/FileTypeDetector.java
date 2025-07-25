@@ -178,6 +178,33 @@ public class FileTypeDetector
                 lc.endsWith(".webp");
     }
 
+    public static boolean isImageExtension(String ext)
+    {
+        if (ext == null)
+            return false;
+
+        switch (ext.toLowerCase())
+        {
+        case "avif":
+        case "bmp":
+        case "dib":
+        case "gif":
+        case "ico":
+        case "icon":
+        case "jpeg":
+        case "jpg":
+        case "png":
+        case "svg":
+        case "tif":
+        case "tiff":
+        case "webp":
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
     /* ==================================================================================== */
 
     public static Set<String> commonExtensions()

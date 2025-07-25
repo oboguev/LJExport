@@ -24,7 +24,7 @@ public class LinkRedownloader
         this.linksDir = linksDir;
     }
 
-    public boolean redownload(String url, String unixRelFilePath, String referer, boolean image) throws Exception
+    public boolean redownload(boolean image, String url, String unixRelFilePath, String referer) throws Exception
     {
         String fullFilePath = linksDir + File.separator + unixRelFilePath.replace("/", File.separator);
         Web.Response r = null;
@@ -35,7 +35,7 @@ public class LinkRedownloader
 
         try
         {
-            r = redownload(url, referer, image);
+            r = redownload(image, url, referer);
 
             setThreadName(threadName, "downloading " + url);
 
@@ -50,6 +50,13 @@ public class LinkRedownloader
             }
 
             String urlPathExt = LinkFilepath.getMediaFileExtension(xurl.getPath());
+            
+            if (image || FileTypeDetector.isImageExtension(urlPathExt))
+            {
+                /* expected image but content is not image */
+                if (!FileTypeDetector.isImageExtension(contentExt))
+                    return false;
+            }
 
             if (contentExt != null)
             {
@@ -94,7 +101,7 @@ public class LinkRedownloader
         }
     }
 
-    public Web.Response redownload(String url, String referer, boolean image) throws Exception
+    public Web.Response redownload(boolean image, String url, String referer) throws Exception
     {
         if (ArchiveOrgUrl.isArchiveOrgSimpleTimestampUrl(url))
             url = ArchiveOrgUrl.toDirectDownloadUrl(url, false);

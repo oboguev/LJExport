@@ -206,9 +206,6 @@ public class LinkDownloader
                 }
                 else
                 {
-                    String host = (new URL(final_download_href_noanchor)).getHost();
-                    host = host.toLowerCase();
-
                     Map<String, String> headers = new HashMap<>();
                     
                     if (referer != null && referer.length() != 0)
@@ -291,7 +288,7 @@ public class LinkDownloader
                          * Adjust filename extension based on file actual content and Content-Type header.
                          * Will return null if detected error response page such as HTML or PHP.
                          */
-                        actual_filename = adjustExtension(final_name_href_noanchor, actual_filename, r);
+                        actual_filename = adjustExtension(image, final_name_href_noanchor, actual_filename, r);
                         filename.set(actual_filename);
 
                         /*
@@ -655,7 +652,7 @@ public class LinkDownloader
      * 
      * Return null if server replied with error pages such as HTML/XHTML/PHP or TXT.
      */
-    private String adjustExtension(String href, String filepath, Web.Response r) throws Exception
+    private String adjustExtension(boolean image, String href, String filepath, Web.Response r) throws Exception
     {
         String fnExt = LinkFilepath.getMediaFileExtension(filepath);
 
@@ -710,6 +707,15 @@ public class LinkDownloader
             default:
                 break;
             }
+        }
+        
+        URL xurl = new URL(href);
+        String urlPathExt = LinkFilepath.getMediaFileExtension(xurl.getPath());
+        if (image || FileTypeDetector.isImageExtension(urlPathExt))
+        {
+            /* expected image but content is not image */
+            if (!FileTypeDetector.isImageExtension(contentExt))
+                return null;
         }
 
         if (finalExt != null && finalExt.length() != 0)

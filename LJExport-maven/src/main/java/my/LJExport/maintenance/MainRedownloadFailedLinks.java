@@ -27,7 +27,6 @@ import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.LinkRedownloader;
-import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.synch.ThreadsControl;
 
@@ -371,7 +370,7 @@ public class MainRedownloadFailedLinks
                 referer += String.format("/%07d.html", random);
             }
 
-            if (redownload(url, relpath, referer, image))
+            if (redownload(image, url, relpath, referer))
             {
                 synchronized (kvlist)
                 {
@@ -564,7 +563,7 @@ public class MainRedownloadFailedLinks
 
     /* ========================================================================================== */
 
-    public boolean redownload(String url, String relativeLinkFilePath, String referer, boolean image) throws Exception
+    public boolean redownload(boolean image, String url, String relativeLinkFilePath, String referer) throws Exception
     {
         LinkRedownloader linkRedownloader = new LinkRedownloader(linksDir);
 
@@ -573,7 +572,7 @@ public class MainRedownloadFailedLinks
 
         // ### use smart link redownloader
 
-        return linkRedownloader.redownload(url, relativeLinkFilePath, referer, image);
+        return linkRedownloader.redownload(image, url, relativeLinkFilePath, referer);
     }
 
     /* ========================================================================================== */

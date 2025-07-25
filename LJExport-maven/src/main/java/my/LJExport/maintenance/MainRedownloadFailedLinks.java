@@ -187,6 +187,7 @@ public class MainRedownloadFailedLinks
         }
         else
         {
+            // ### make map lc.value -> entry, verify values are unique
             int parallelism = Math.min(NWorkThreadsDownload, kvlist.size());
             runWorkers(parallelism, WorkType.RedownloadLinkFiles);
             return true;
@@ -442,6 +443,8 @@ public class MainRedownloadFailedLinks
             return false;
 
         // ### www.lib.ru lib.ru: requests txt, sends back html but inside is <pre> -> ok
+        // ### may result in longer name, rename, and need to update HTMLs
+        
         // ### html content reply is ok for url extensions xhtml and shtml
         // ### ALWAYS need referer for image hosting sites
 

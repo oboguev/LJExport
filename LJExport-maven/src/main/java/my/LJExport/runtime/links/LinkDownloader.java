@@ -210,32 +210,19 @@ public class LinkDownloader
                     host = host.toLowerCase();
 
                     Map<String, String> headers = new HashMap<>();
-                    headers.put("Accept", Config.UserAgentAccept_Download);
                     
-                    // ### ALWAYS need referer for image hosting sites
-
                     if (referer != null && referer.length() != 0)
-                    {
-                        if (host.equals("snag.gy") || host.endsWith(".snag.gy") ||
-                                host.equals("snipboard.io") || host.endsWith(".snipboard.io"))
-                        {
-                            // use referer and accept
-                            headers.put("Referer", referer);
-                            headers.put("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
-                        }
-                        else
-                        {
-                            headers.put("Referer", referer);
-                        }
+                        headers.put("Referer", referer);
 
-                        if (image)
-                        {
-                            addImageHeaders(headers);
-                        }
-                        else
-                        {
-                            addDocumentHeaders(headers);
-                        }
+                    if (image)
+                    {
+                        headers.put("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+                        addImageHeaders(headers);
+                    }
+                    else
+                    {
+                        headers.put("Accept", Config.UserAgentAccept_Download);
+                        addDocumentHeaders(headers);
                     }
 
                     Web.Response r = null;

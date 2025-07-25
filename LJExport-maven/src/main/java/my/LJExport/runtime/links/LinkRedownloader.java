@@ -100,38 +100,27 @@ public class LinkRedownloader
             url = ArchiveOrgUrl.toDirectDownloadUrl(url, false);
         String url_noanchor = Util.stripAnchor(url);
 
-        String threadName = Thread.currentThread().getName();
-        Web.Response r = null;
-
         URL xurl = new URL(url);
         String host = xurl.getHost().toLowerCase();
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Accept", Config.UserAgentAccept_Download);
 
         if (referer != null && referer.length() != 0)
-        {
-            if (host.equals("snag.gy") || host.endsWith(".snag.gy") ||
-                    host.equals("snipboard.io") || host.endsWith(".snipboard.io"))
-            {
-                // use referer and accept
-                headers.put("Referer", referer);
-                headers.put("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
-            }
-            else
-            {
-                headers.put("Referer", referer);
-            }
+            headers.put("Referer", referer);
 
-            if (image)
-            {
-                LinkDownloader.addImageHeaders(headers);
-            }
-            else
-            {
-                LinkDownloader.addDocumentHeaders(headers);
-            }
+        if (image)
+        {
+            headers.put("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+            LinkDownloader.addImageHeaders(headers);
         }
+        else
+        {
+            headers.put("Accept", Config.UserAgentAccept_Download);
+            LinkDownloader.addDocumentHeaders(headers);
+        }
+
+        String threadName = Thread.currentThread().getName();
+        Web.Response r = null;
 
         try
         {

@@ -872,10 +872,9 @@ public class Web
     
     private static void reportRedirectError(int statusCode, String referer)
     {
-        if (referer != null && Util.True)
+        if (referer != null && Util.False)
         {
-            // ###
-            Util.err(String.format("REDIR %03d %s", statusCode, referer));
+            Util.err(String.format("REDIR error %03d %s", statusCode, referer));
             Util.noop();
         }
     }

@@ -18,7 +18,7 @@ public class SmartLinkRedownloader
         // ### use ArchiveOrgSourceUrl.variants
         // ### limit rate to 1.2
         // ### concurrency 5
-        // ### handle 429
+        // ### handle http 429 (cool off and retry)
         return false;
     }
 }

@@ -138,12 +138,6 @@ public class LinkDownloader
         if (threadName == null)
             threadName = "(unnamed)";
         
-        if (name_href.contains("www.expert.ru/images") || name_href.contains("damama.ru/wp-content/uploads/2008/11"))
-        {
-            // ###
-            Util.noop();
-        }
-
         try
         {
             // avoid HTTPS certificate problem

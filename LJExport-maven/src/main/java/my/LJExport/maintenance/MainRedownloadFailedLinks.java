@@ -462,7 +462,7 @@ public class MainRedownloadFailedLinks
     private void processHtmlFile(String fullHtmlFilePath) throws Exception
     {
         PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
-        parser.rid = parser.rurl = null;
+        parser.rid = parser.rurl = Util.extractFileName(fullHtmlFilePath);
         parser.pageSource = Util.readFileAsString(fullHtmlFilePath);
         parser.parseHtml(parser.pageSource);
         processHtmlFile(fullHtmlFilePath, parser, JSOUP.flatten(parser.pageRoot));

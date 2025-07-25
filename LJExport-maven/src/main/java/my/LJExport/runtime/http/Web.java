@@ -471,19 +471,7 @@ public class Web
         Response r = new Response();
 
         HttpGet request = new HttpGet(url);
-
         setCommon(request, headers);
-        if (headers != null)
-        {
-            for (String key : headers.keySet())
-            {
-                String value = headers.get(key);
-                if (value != null)
-                    request.setHeader(key, value);
-                else
-                    request.removeHeaders(key);
-            }
-        }
 
         ActivityCounters.startedWebRequest();
         if (isRequest_LJPage)
@@ -660,6 +648,18 @@ public class Web
         setHeader(request, headers, "Sec-Fetch-Mode", "navigate");
         setHeader(request, headers, "Sec-Fetch-Site", "none");
         setHeader(request, headers, "Sec-Fetch-User", "?1");
+        
+        if (headers != null)
+        {
+            for (String key : headers.keySet())
+            {
+                String value = headers.get(key);
+                if (value != null)
+                    request.setHeader(key, value);
+                else
+                    request.removeHeaders(key);
+            }
+        }
     }
 
     private static void setHeader(HttpRequestBase request, Map<String, String> headers, String key, String value) throws Exception
@@ -723,13 +723,7 @@ public class Web
         lastURL.set(url);
 
         HttpGet request = new HttpGet(url);
-
         setCommon(request, headers);
-        if (headers != null)
-        {
-            for (String key : headers.keySet())
-                request.setHeader(key, headers.get(key));
-        }
 
         ActivityCounters.startedWebRequest();
 

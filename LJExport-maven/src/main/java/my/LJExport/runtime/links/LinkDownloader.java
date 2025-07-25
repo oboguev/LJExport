@@ -126,7 +126,7 @@ public class LinkDownloader
         return fn;
     }
 
-    public String download(boolean image, String name_href, String download_href, String referer, 
+    public String download(boolean image, String name_href, String download_href, String referer,
             String linkReferencePrefix, DownloadSource downloadSource)
     {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);
@@ -207,7 +207,7 @@ public class LinkDownloader
                 else
                 {
                     Map<String, String> headers = new HashMap<>();
-                    
+
                     if (referer != null && referer.length() != 0)
                         headers.put("Referer", referer);
 
@@ -673,7 +673,7 @@ public class LinkDownloader
 
         if (finalExt != null && fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, finalExt))
             return filepath;
-        
+
         Decision decision = ServerContent.acceptContent(href, serverExt, fnExt, new ContentProvider(r.binaryBody), r);
         if (decision.isReject())
         {
@@ -708,7 +708,7 @@ public class LinkDownloader
                 break;
             }
         }
-        
+
         URL xurl = new URL(href);
         String urlPathExt = LinkFilepath.getMediaFileExtension(xurl.getPath());
         if (image || FileTypeDetector.isImageExtension(urlPathExt))
@@ -727,6 +727,20 @@ public class LinkDownloader
         {
             return filepath;
         }
+    }
+
+    public static Map<String, String> getImageHeaders()
+    {
+        Map<String, String> headers = new HashMap<>();
+        addImageHeaders(headers);
+        return headers;
+    }
+
+    public static Map<String, String> getDocumentHeaders()
+    {
+        Map<String, String> headers = new HashMap<>();
+        addDocumentHeaders(headers);
+        return headers;
     }
 
     public static void addImageHeaders(Map<String, String> headers)

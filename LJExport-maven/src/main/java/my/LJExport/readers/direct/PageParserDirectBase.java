@@ -379,7 +379,7 @@ public abstract class PageParserDirectBase
             }
         }
 
-        String newref = Web.getRedirectLocation(href, null);
+        String newref = Web.getRedirectLocation(href, LinkDownloader.getImageHeaders());
         if (newref != null)
         {
             newref = LJUtil.decodeImgPrxStLink(newref);

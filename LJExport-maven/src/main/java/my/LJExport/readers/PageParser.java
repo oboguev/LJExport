@@ -751,7 +751,7 @@ public abstract class PageParser
 
             if (href != null && Web.isLivejournalImgPrx(href))
             {
-                String newref = Web.getRedirectLocation(href, null);
+                String newref = Web.getRedirectLocation(href, LinkDownloader.getImageHeaders());
                 if (newref != null)
                     JSOUP.updateAttribute(n, attr, newref);
             }

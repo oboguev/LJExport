@@ -1,5 +1,9 @@
 package my.WebArchiveOrg;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -335,7 +339,7 @@ public class ArchiveOrgUrl
             Pattern.CASE_INSENSITIVE);
 
     /**
-     * Returns {@code true} iff the supplied {@code path} is a Wayback-Machine capture URL in one of the two recognised variants.
+     * Returns {@code true} if the supplied {@code path} is a Wayback-Machine capture URL in one of the two recognised variants.
      */
     public static boolean isArchiveOrgUriPath(String path)
     {
@@ -454,6 +458,31 @@ public class ArchiveOrgUrl
         return prefix + timestamp + (isHtml ? "id_/" : "if_/") + suffix;
     }
 
+    private static final DateTimeFormatter ARCHIVE_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+            .withZone(ZoneOffset.UTC);
+
+    public static String timestamp(Instant instant)
+    {
+        return ARCHIVE_TIMESTAMP_FORMATTER.format(instant);
+    }
+
+    public static String timestamp(int yyyy, int month, int dd, int hh, int minute, int ss)
+    {
+        return timestamp(forTime(yyyy, month, dd, hh, minute, ss));
+    }
+
+    public static Instant forTime(int yyyy, int month, int dd, int hh, int minute, int ss)
+    {
+        LocalDateTime ldt = LocalDateTime.of(yyyy, month, dd, hh, minute, ss);
+        return ldt.toInstant(ZoneOffset.UTC);
+    }
+    
+    // https://web.archive.org/web/TIMESTAMPif_/ORIGINAL_URL
+    public static String latestMediaUrl(String originalUrl, String timestamp)
+    {
+        return String.format("%s%sif_/%s", ARCHIVE_PREFIX_HTTPS, timestamp, originalUrl);
+    }
+    
     /* ====================================================================================== */
 
     // Example usage

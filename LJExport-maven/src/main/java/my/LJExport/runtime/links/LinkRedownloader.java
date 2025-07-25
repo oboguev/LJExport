@@ -50,7 +50,7 @@ public class LinkRedownloader
             }
 
             String urlPathExt = LinkFilepath.getMediaFileExtension(xurl.getPath());
-            
+
             if (image || FileTypeDetector.isImageExtension(urlPathExt))
             {
                 /* expected image but content is not image */
@@ -103,17 +103,7 @@ public class LinkRedownloader
 
     public Web.Response redownload(boolean image, String url, String referer) throws Exception
     {
-        if (ArchiveOrgUrl.isArchiveOrgSimpleTimestampUrl(url))
-            url = ArchiveOrgUrl.toDirectDownloadUrl(url, false);
-        String url_noanchor = Util.stripAnchor(url);
-
-        URL xurl = new URL(url);
-        String host = xurl.getHost().toLowerCase();
-
         Map<String, String> headers = new HashMap<>();
-
-        if (referer != null && referer.length() != 0)
-            headers.put("Referer", referer);
 
         if (image)
         {
@@ -124,6 +114,33 @@ public class LinkRedownloader
         {
             headers.put("Accept", Config.UserAgentAccept_Download);
             LinkDownloader.addDocumentHeaders(headers);
+        }
+
+        return redownload(headers, url, referer);
+    }
+
+    public Web.Response redownload_json(String url, String referer) throws Exception
+    {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Accept", "application/json");
+        // headers.put("Accept", Config.UserAgentAccept_Download);
+        LinkDownloader.addDocumentHeaders(headers);
+        return redownload(headers, url, referer);
+    }
+
+    public Web.Response redownload(Map<String, String> headers, String url, String referer) throws Exception
+    {
+        if (ArchiveOrgUrl.isArchiveOrgSimpleTimestampUrl(url))
+            url = ArchiveOrgUrl.toDirectDownloadUrl(url, false);
+        String url_noanchor = Util.stripAnchor(url);
+
+        URL xurl = new URL(url);
+        String host = xurl.getHost().toLowerCase();
+
+        if (referer != null && referer.length() != 0)
+        {
+            headers = new HashMap<>(headers);
+            headers.put("Referer", referer);
         }
 
         String threadName = Thread.currentThread().getName();

@@ -173,7 +173,6 @@ public class Web
             else
                 return null;
         }
-
     }
 
     public static void init() throws Exception

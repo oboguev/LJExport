@@ -1,7 +1,16 @@
 package my.LJExport.runtime.links;
 
+import java.io.File;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import my.LJExport.Config;
 import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileTypeDetector;
@@ -9,6 +18,7 @@ import my.LJExport.runtime.file.ServerContent;
 import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.util.LinkFilepath;
+import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public class SmartLinkRedownloader
 {
@@ -18,26 +28,105 @@ public class SmartLinkRedownloader
     public SmartLinkRedownloader(String linksDir)
     {
         this.linksDir = linksDir;
-        this.linkRedownloader = new LinkRedownloader(linksDir); 
+        this.linkRedownloader = new LinkRedownloader(linksDir);
     }
-    
+
     public boolean redownload(boolean image, String href, String unixRelFilePath, String referer) throws Exception
     {
+        String href_noanchor = Util.stripAnchor(href);
+
+        Web.Response r = smart_load(image, href_noanchor, referer);
+
         // ### add handling via archive.org
-        // ### strip anchor for arheive.org
-        // ### use ArchiveOrgSourceUrl.variants
-        // ### limit rate to 1.2
-        // ### concurrency 5
         // ### handle http 429 (cool off and retry)
-        return false;
+        return r != null;
     }
-    
+
+    /* ================================================================================================== */
+
+    private Web.Response smart_load(boolean image, String href, String referer) throws Exception
+    {
+        /*
+         * Load live online copy
+         */
+        Web.Response r = load_good(image, href, referer);
+        if (r != null)
+            return r;
+        
+        /*
+         * Load from acrhive.org
+         */
+        // was already an archive.org URL? 
+        if (ArchiveOrgUrl.isArchiveOrgUrl(href))
+            return null;
+        
+        /*
+         * Query available acrhive.org snapshots 
+         */
+        String queryUrl = "https://archive.org/wayback/available?timestamp=20010101&url=" + href;
+        JsonNode jroot = load_json(queryUrl, null);
+        
+        JsonNode closest = jroot.path("archived_snapshots").path("closest");
+
+        // No snapshot data available
+        if (closest.isMissingNode() || !closest.isObject()) 
+            return null;
+
+        String status = closest.path("status").asText(null);
+        boolean available = closest.path("available").asBoolean(false);
+        String archivedUrl = closest.path("url").asText(null);
+
+        // No snapshot data available
+        if (status == null || archivedUrl == null || !available || !status.equals("200"))        
+            return null;
+
+        /*
+         * Load the snapshot
+         */
+        archivedUrl = ArchiveOrgUrl.toDirectDownloadUrl(archivedUrl, false);
+        r = load_good(image, archivedUrl , null);
+        if (r != null)
+            return r;
+        
+        return null;
+    }
+
+    /* ================================================================================================== */
+
+    private Web.Response load_good(boolean image, String href, String referer) throws Exception
+    {
+        Web.Response r = linkRedownloader.redownload(image, href, referer);
+        if (r != null && isGoodResponse(image, href, r))
+            return r;
+        else
+            return null;
+    }
+
+    private JsonNode load_json(String href, String referer) throws Exception
+    {
+        Web.Response r = linkRedownloader.redownload_json(href, referer);
+        if (r == null || r.code != 200)
+            return null;
+
+        Charset cs = r.extractCharset(true);
+        if (cs == null)
+            throw new Exception("Incompatible charset");
+        String json = new String(r.binaryBody, cs);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(json);
+
+        return root;
+    }
+
     private boolean isGoodResponse(boolean image, String href, Web.Response r) throws Exception
     {
         if (r.code != 200)
             return false;
-        
-        // ### archive prefix
+
+        if (ArchiveOrgUrl.isArchiveOrgUrl(href))
+            href = ArchiveOrgUrl.extractArchivedUrlPart(href);
+
         String urlPathExt = LinkFilepath.getMediaFileExtension(new URL(href).getPath());
 
         String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
@@ -45,11 +134,11 @@ public class SmartLinkRedownloader
         String headerExt = null;
         if (r.contentType != null)
             headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase());
-        
+
         String serverExt = contentExt;
         if (serverExt == null)
             serverExt = headerExt;
-        
+
         if (serverExt != null && urlPathExt != null && FileTypeDetector.isEquivalentExtensions(urlPathExt, serverExt))
             return true;
 
@@ -58,13 +147,37 @@ public class SmartLinkRedownloader
             return false;
         if (decision.isAccept())
             return true;
-        
+
         if (image || FileTypeDetector.isImageExtension(urlPathExt))
             return FileTypeDetector.isImageExtension(contentExt);
-        
+
         if (urlPathExt == null || FileTypeDetector.isServletExtension(urlPathExt))
             return true;
 
         return false;
+    }
+
+    /* =============================================================================================== */
+
+    public static void main(String[] args)
+    {
+        try
+        {
+            Config.init("");
+            Web.init();
+            Config.mangleUser();
+            Config.autoconfigureSite();
+
+            SmartLinkRedownloader self = new SmartLinkRedownloader(
+                    Config.DownloadRoot + File.separator + Config.User + File.separator + "links");
+            String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
+            boolean b = self.redownload(false, href, null, null);
+            Util.noop();
+        }
+        catch (Exception ex)
+        {
+            Util.err("** Exception: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }
     }
 }

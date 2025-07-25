@@ -5,6 +5,7 @@ import java.net.URL;
 import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.Web;
+import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public class ServerContent
 {
@@ -53,7 +54,8 @@ public class ServerContent
             Web.Response r)
             throws Exception
     {
-        // ### strip archive.org
+        if (ArchiveOrgUrl.isArchiveOrgUrl(href))
+            href = ArchiveOrgUrl.extractArchivedUrlPart(href);
 
         String host = new URL(href).getHost().toLowerCase();
         

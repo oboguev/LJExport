@@ -137,6 +137,12 @@ public class LinkDownloader
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
             threadName = "(unnamed)";
+        
+        if (name_href.contains("www.expert.ru/images") || name_href.contains("damama.ru/wp-content/uploads/2008/11"))
+        {
+            // ###
+            Util.noop();
+        }
 
         try
         {
@@ -270,21 +276,6 @@ public class LinkDownloader
                     try
                     {
                         /*
-                         * If path cannot be created, redirect to catch-all directory
-                         */
-                        try
-                        {
-                            Util.mkdir(f.getAbsoluteFile().getParent());
-                        }
-                        catch (UnableCreateDirectoryException dex)
-                        {
-                            actual_filename = LinkFilepath.fallbackFilepath(linksDir, final_name_href_noanchor, f.getName());
-                            filename.set(actual_filename);
-                            f = new File(actual_filename).getCanonicalFile();
-                            Util.mkdir(f.getAbsoluteFile().getParent());
-                        }
-
-                        /*
                          * Adjust filename extension based on file actual content and Content-Type header.
                          * Will return null if detected error response page such as HTML or PHP.
                          */
@@ -297,6 +288,22 @@ public class LinkDownloader
                          */
                         if (actual_filename != null)
                         {
+                            /*
+                             * If path cannot be created, redirect to catch-all directory
+                             */
+                            try
+                            {
+                                f = new File(actual_filename).getCanonicalFile();
+                                Util.mkdir(f.getAbsoluteFile().getParent());
+                            }
+                            catch (UnableCreateDirectoryException dex)
+                            {
+                                actual_filename = LinkFilepath.fallbackFilepath(linksDir, final_name_href_noanchor, actual_filename);
+                                filename.set(actual_filename);
+                                f = new File(actual_filename).getCanonicalFile();
+                                Util.mkdir(f.getAbsoluteFile().getParent());
+                            }
+
                             Web.Response final_r = r;
                             Util.NamedFileLocks.interlock(actual_filename.toLowerCase(), () ->
                             {

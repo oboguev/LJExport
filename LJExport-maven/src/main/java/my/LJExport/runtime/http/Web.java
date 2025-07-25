@@ -792,6 +792,7 @@ public class Web
                         return response.getFirstHeader("Location").getValue();
                     // sometimes imgproxy responds with no Location header and XML reply body
                     // throw new RedirectLocationException("Redirect response received, but no Location header present");
+                    reportRedirectError(statusCode, referer);
                     return null;
 
                 case 200:
@@ -806,6 +807,7 @@ public class Web
 
                 case 403:
                     /* ??? */
+                    reportRedirectError(statusCode, referer);
                     return null;
 
                 case 303:
@@ -823,6 +825,7 @@ public class Web
                 case 508:
                 case 530:
                     /* cannot map */
+                    reportRedirectError(statusCode, referer);
                     return null;
 
                 case 500:
@@ -832,6 +835,7 @@ public class Web
                 case 520:
                 case 521:
                 case 523:
+                    reportRedirectError(statusCode, referer);
                     if (lastPass)
                         return null;
                     throw new RetryableException("Not a redirect (status " + statusCode + ")");
@@ -862,6 +866,12 @@ public class Web
         {
             Thread.currentThread().setName(threadName);
         }
+    }
+    
+    private static void reportRedirectError(int statusCode, String referer)
+    {
+        if (referer != null && Util.True)
+            Util.err(String.format("REDIR %03d %s", statusCode, referer));
     }
 
     public static class RetryableException extends Exception

@@ -35,10 +35,10 @@ public class MainDownloadLinks
     private int countFetched = 0;
 
     private static final String ALL_USERS = "<all>";
-    private static final String AllUsersFromUser = null;
-    // private static final String AllUsersFromUser = "tanya_mass";
+    // private static final String AllUsersFromUser = null;
+    private static final String AllUsersFromUser = "um_plus";
 
-    private static final String Users = ALL_USERS;
+    // private static final String Users = ALL_USERS;
 
     // private static final String Users = "funt";
     // private static final String Users = "_devol_,1981dn,1981dn_dn,64vlad,a_bugaev,a_kaminsky,a_samovarov,a_sevastianov,abcdefgh,afanarizm,afrika_sl,aleksei";
@@ -57,9 +57,10 @@ public class MainDownloadLinks
     // private static final String Users = "pikitan,schloenski,pravoe_org,piligrim,trufanov";
     // private static final String Users = "krylov_arhiv,krylov";
     // private static final String Users = "zhu_s";
-    // private static final String Users = "harmfulgrumpy.dreamwidth-org";
+    // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "udod99.lj-rossia-org,colonelcassad.my_comments,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "1981dn.pre-2025,1981dn_dn.pre-2025,a_kaminsky.pre-2025,a_samovarov.pre-2025,bantaputu.pre-2025,hokma.pre-2025,krylov.pre-2025,oboguev.pre-2025,pioneer_lj.pre-2025,polit_ec.pre-2025,zhenziyou.pre-2025";
+    private static final String Users = "sergeytsvetkov";
 
     /* we can use large number of threads because they usually are network IO bound */
     private static final int NWorkThreads = 300;

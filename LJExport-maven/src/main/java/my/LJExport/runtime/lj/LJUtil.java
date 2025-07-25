@@ -355,10 +355,6 @@ public class LJUtil
             if (host == null || !host.equalsIgnoreCase("imgprx.livejournal.net"))
                 return url;
 
-            // Check for embedded query or fragment — we want to know about this!
-            if (url.contains("?") || url.contains("#"))
-                throw new IllegalArgumentException("LiveJournal image proxy URL contains '?' or '#': " + url);
-
             String path = parsedUrl.getPath(); // starts with /
             if (path == null || path.isEmpty())
                 return url;
@@ -368,8 +364,7 @@ public class LJUtil
             if (components.length < 3)
                 return url; // need at least /st/key/...
 
-            // Skip first component (empty string before first slash)
-            // Skip second component ("st" or similar)
+            // Locate original host and path
             for (int i = 2; i < components.length; i++)
             {
                 if (looksLikeHost(components[i]))
@@ -379,14 +374,26 @@ public class LJUtil
                     {
                         originalParts.add(components[j]);
                     }
+
                     String reconstructed = String.join("/", originalParts);
-                    return "https://" + decodePercent(reconstructed);
+                    // reconstructed = decodePercent(reconstructed);
+                    StringBuilder finalUrl = new StringBuilder("https://").append(reconstructed);
+
+                    String query = parsedUrl.getQuery();
+                    if (query != null && !query.isEmpty())
+                        finalUrl.append('?').append(query);
+
+                    String fragment = parsedUrl.getRef();
+                    if (fragment != null && !fragment.isEmpty())
+                        finalUrl.append('#').append(fragment);
+
+                    return finalUrl.toString();
                 }
             }
         }
         catch (Exception ex)
         {
-            throw new Exception("Unable to decode LiveJournal image proxy URL" + url, ex);
+            throw new Exception("Unable to decode LiveJournal image proxy URL " + url, ex);
         }
 
         return url;
@@ -400,6 +407,7 @@ public class LJUtil
         return s.matches("(?i)[a-z0-9.-]+");
     }
 
+    @SuppressWarnings("unused")
     private static String decodePercent(String s)
     {
         try

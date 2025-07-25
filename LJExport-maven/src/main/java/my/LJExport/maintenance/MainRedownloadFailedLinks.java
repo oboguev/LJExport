@@ -542,25 +542,18 @@ public class MainRedownloadFailedLinks
             {
                 if (null == JSOUP.getAttribute(n, "original-" + attr))
                 {
-                    JSOUP.setAttribute(n, "original-" + attr, e_good.key); // ### encode
+                    JSOUP.setAttribute(n, "original-" + attr, e_good.key); // ### encode -- but in file already encoded
                     updated = true;
                 }
             }
 
             if (e_failed != null)
             {
-                String original = JSOUP.getAttribute(n, "original-" + attr);
-
-                if (original != null)
+                if (null == JSOUP.getAttribute(n, "original-" + attr))
                 {
-                    // ### change attr to original
+                    JSOUP.setAttribute(n, "original-" + attr, e_failed.key); // ### encode -- but in file already encoded
+                    updated = true;
                 }
-                else
-                {
-                    JSOUP.setAttribute(n, "original-" + attr, e_failed.key); // ### encode
-                }
-                
-                updated = true;
             }
         }
 

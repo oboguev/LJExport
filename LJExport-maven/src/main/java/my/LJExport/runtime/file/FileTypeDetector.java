@@ -205,6 +205,38 @@ public class FileTypeDetector
         }
     }
 
+    public static boolean isServletExtension(String ext)
+    {
+        if (ext == null)
+            return false;
+
+        switch (ext.toLowerCase())
+        {
+        case "action":
+        case "api":
+        case "asp":
+        case "aspx":
+        case "cgi":
+        case "dll":
+        case "do":
+        case "exe":
+        case "fcgi":
+        case "jsp":
+        case "php":
+        case "php3":
+        case "php4":
+        case "phtml":
+        case "pl":
+        case "py":
+        case "rb":
+        case "svc":
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
     /* ==================================================================================== */
 
     public static Set<String> commonExtensions()

@@ -53,6 +53,8 @@ public class ServerContent
             Web.Response r)
             throws Exception
     {
+        // ### strip archive.org
+
         String host = new URL(href).getHost().toLowerCase();
         
         /*

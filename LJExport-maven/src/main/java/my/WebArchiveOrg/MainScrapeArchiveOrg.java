@@ -813,7 +813,7 @@ public class MainScrapeArchiveOrg
         {
             String download_href = ArchiveOrgUrl.getLatestCaptureUrl(name_href);
             String newref = Main.linkDownloader.download(FileTypeDetector.isImagePath(name_href),
-                    name_href, download_href, null, true, "");
+                    name_href, download_href, null, "");
             if (newref == null)
             {
                 Util.err("Failed to download " + name_href);
@@ -900,7 +900,7 @@ public class MainScrapeArchiveOrg
         if (!LinkDownloader.shouldDownload(naming_href, attr.equalsIgnoreCase("href")))
             return false;
 
-        String newref = Main.linkDownloader.download(image, naming_href, download_href, null, true, "");
+        String newref = Main.linkDownloader.download(image, naming_href, download_href, null, "");
 
         if (newref == null)
         {

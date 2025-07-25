@@ -95,9 +95,9 @@ public class LinkDownloader
         return rel.replace(File.separator, "/");
     }
 
-    public String download(boolean image, String href, String referer, boolean wantFileTypeExtension, String linkReferencePrefix)
+    public String download(boolean image, String href, String referer, String linkReferencePrefix)
     {
-        return download(image, href, href, referer, wantFileTypeExtension, linkReferencePrefix);
+        return download(image, href, href, referer, linkReferencePrefix);
     }
 
     /*
@@ -109,10 +109,9 @@ public class LinkDownloader
      * download_href is archived url such as https://web.archive.org/web/20160528141306/http:/nationalism.org/library/science/politics/golosov/golosov-cpcs-2002.pdf
      * and name_href is http://nationalism.org/library/science/politics/golosov/golosov-cpcs-2002.pdf
      */
-    public String download(boolean image, String name_href, String download_href, String referer, boolean wantFileTypeExtension,
-            String linkReferencePrefix)
+    public String download(boolean image, String name_href, String download_href, String referer, String linkReferencePrefix)
     {
-        return download(image, name_href, download_href, referer, wantFileTypeExtension, linkReferencePrefix, null);
+        return download(image, name_href, download_href, referer, linkReferencePrefix, null);
     }
 
     public String adviseFileName(String name_href) throws Exception
@@ -126,7 +125,7 @@ public class LinkDownloader
         return fn;
     }
 
-    public String download(boolean image, String name_href, String download_href, String referer, boolean wantFileTypeExtension,
+    public String download(boolean image, String name_href, String download_href, String referer, 
             String linkReferencePrefix, DownloadSource downloadSource)
     {
         AtomicReference<Web.Response> response = new AtomicReference<>(null);

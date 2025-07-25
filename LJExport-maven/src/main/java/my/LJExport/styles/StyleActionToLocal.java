@@ -447,11 +447,11 @@ public class StyleActionToLocal
              * Download CSS file to local repository (residing in local file system).
              * Returns path relative to repository root, with url-encoded path components.
              */
-            newref = linkDownloader.download(false, naming_href, download_href, null, false, "", downloadSource);
+            newref = linkDownloader.download(false, naming_href, download_href, null, "", downloadSource);
             if (newref == null && !naming_href.equals(download_href))
             {
                 download_href = ArchiveOrgUrl.getLatestCaptureUrl(naming_href);
-                newref = linkDownloader.download(false, naming_href, download_href, null, false, "", downloadSource);
+                newref = linkDownloader.download(false, naming_href, download_href, null, "", downloadSource);
                 // TODO: add alias download_href if does not exist -> newref (decodePathCopmonents first)
                 // TODO: add alias cssFileURL if does not exist -> newref (decodePathCopmonents first)
             }
@@ -1058,11 +1058,11 @@ public class StyleActionToLocal
          * Returns path relative to repository root, with url-encoded path components.
          */
         boolean image = FileTypeDetector.isImagePath(naming_href);
-        String rel = linkDownloader.download(image, naming_href, download_href, null, true, "", downloadSource);
+        String rel = linkDownloader.download(image, naming_href, download_href, null, "", downloadSource);
         if (rel == null && !naming_href.equals(download_href))
         {
             download_href = ArchiveOrgUrl.getLatestCaptureUrl(naming_href);
-            rel = linkDownloader.download(image, naming_href, download_href, null, true, "", downloadSource);
+            rel = linkDownloader.download(image, naming_href, download_href, null, "", downloadSource);
             // TODO: add alias download_href if does not exist -> rel (decodePathCopmonents first)
             // TODO: add alias absoluteUrl if does not exist -> rel (decodePathCopmonents first)
         }

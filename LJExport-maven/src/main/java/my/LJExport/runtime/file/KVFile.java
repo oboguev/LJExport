@@ -7,7 +7,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import my.LJExport.runtime.Util;
 
@@ -105,5 +107,22 @@ public class KVFile
         {
             throw new IOException("Failed to delete file: " + filePath, ex);
         }
+    }
+
+    public static Map<String,KVEntry> reverseMap(List<KVEntry> list, boolean lowercase) throws Exception
+    {
+        Map<String,KVEntry> m = new HashMap<>();
+        
+        for (KVEntry e : list)
+        {
+            String key = e.value;
+            if (lowercase)
+                key = key.toLowerCase();
+            if (m.containsKey(key))
+                throw new Exception("Duplicate entry value in KVEntry list");
+            m.put(key, e);
+        }
+        
+        return m;
     }
 }

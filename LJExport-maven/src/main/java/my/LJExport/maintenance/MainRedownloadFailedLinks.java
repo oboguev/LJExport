@@ -2,7 +2,9 @@ package my.LJExport.maintenance;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.jsoup.nodes.Node;
@@ -38,11 +40,17 @@ public class MainRedownloadFailedLinks
 {
     private String userRoot;
     private String linksDir;
+
     private KVFile kvfile;
     private List<KVEntry> kvlist;
+
     private List<KVEntry> kvlist_good = new ArrayList<>();
+    private Map<String, KVEntry> kvmap_good = new HashMap<>();
+
     private List<KVEntry> kvlist_failed = new ArrayList<>();
-    private List<KVEntry> kvlist_all = new ArrayList<>();
+    private Map<String, KVEntry> kvmap_failed = new HashMap<>();
+
+    // private List<KVEntry> kvlist_all = new ArrayList<>();
 
     private static final String ALL_USERS = "<all>";
     private static final String AllUsersFromUser = null;
@@ -187,7 +195,9 @@ public class MainRedownloadFailedLinks
         }
         else
         {
-            // ### make map lc.value -> entry, verify values are unique
+            // verify no duplicate entries for file paths
+            KVFile.reverseMap(kvlist, true);
+
             int parallelism = Math.min(NWorkThreadsDownload, kvlist.size());
             runWorkers(parallelism, WorkType.RedownloadLinkFiles);
             return true;
@@ -309,8 +319,8 @@ public class MainRedownloadFailedLinks
             String referer = LJUtil.userBase();
             if (Config.isLiveJournal() || Config.isDreamwidthOrg() || Config.isRossiaOrg())
             {
-                int random = (int)(Math.random() * (7000000 - 1000000 + 1)) + 1000000;
-                referer += String.format("/%07d.html", random); 
+                int random = (int) (Math.random() * (7000000 - 1000000 + 1)) + 1000000;
+                referer += String.format("/%07d.html", random);
             }
 
             if (redownload(url, relpath, referer, image))
@@ -318,19 +328,16 @@ public class MainRedownloadFailedLinks
                 synchronized (kvlist)
                 {
                     kvlist_good.add(entry);
-                    kvlist_all.add(entry);
+                    // kvlist_all.add(entry);
                 }
-                // ### OK -> remove from kvlist file
-                // ### add original-attr if missing
             }
             else
             {
                 synchronized (kvlist)
                 {
                     kvlist_failed.add(entry);
-                    kvlist_all.add(entry);
+                    // kvlist_all.add(entry);
                 }
-                // ### cannot reload -> restore original URL in HTML links
             }
         }
     }
@@ -341,6 +348,9 @@ public class MainRedownloadFailedLinks
 
     private void updateUserHtmlFiles() throws Exception
     {
+        kvmap_good = KVFile.reverseMap(kvlist_good, true);
+        kvmap_failed = KVFile.reverseMap(kvlist_failed, true);
+
         List<String> list = new ArrayList<>();
 
         addDirFiles(list, "pages");
@@ -432,7 +442,12 @@ public class MainRedownloadFailedLinks
 
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
-            // ###
+            // ### in kvlist_good
+            // ### OK -> remove from kvlist file
+            // ### add original-attr if missing
+
+            // ### in kvlist_failed
+            // ### cannot reload -> restore original URL in HTML links
         }
 
         return updated;
@@ -446,7 +461,7 @@ public class MainRedownloadFailedLinks
 
         if (!LinkDownloader.shouldDownload(url, false))
             return false;
-        
+
         // ### use smart link redownloader
 
         return linkRedownloader.redownload(url, relativeLinkFilePath, referer, image);

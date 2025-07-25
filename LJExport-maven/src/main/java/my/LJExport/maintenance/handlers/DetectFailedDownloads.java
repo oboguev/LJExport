@@ -275,6 +275,18 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         boolean reject = decision.isReject();
 
+        if (!reject)
+        {
+            /*
+             * Accept one kind of image for another image kind (e.g. if x.jpg actually contains png, a common case)
+             */
+            if (tag.equalsIgnoreCase("img") || FileTypeDetector.isImageExtension(fnExt))
+            {
+                if (FileTypeDetector.isImageExtension(contentExtension))
+                    return;
+            }
+        }
+
         if (decision.isNeutral())
         {
             switch (contentExtension.toLowerCase())

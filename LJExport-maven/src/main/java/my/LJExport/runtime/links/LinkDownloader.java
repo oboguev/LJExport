@@ -718,9 +718,13 @@ public class LinkDownloader
             if (!FileTypeDetector.isImageExtension(contentExt))
                 return null;
         }
-
+        
         if (finalExt != null && finalExt.length() != 0)
         {
+            /* same */
+            if (fnExt != null && fnExt.equalsIgnoreCase(finalExt))
+                return filepath;
+
             /* appends to any possibly existing extension, e.g. aaa.txt.html or aaa.jpg.png */
             return filepath + "." + finalExt;
         }

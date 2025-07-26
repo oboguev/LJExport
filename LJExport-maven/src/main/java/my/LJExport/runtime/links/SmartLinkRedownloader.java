@@ -107,7 +107,7 @@ public class SmartLinkRedownloader
 
         String urlPathExt = LinkFilepath.getMediaFileExtension(new URL(href).getPath());
 
-        String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
+        String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody, urlPathExt);
 
         String headerExt = null;
         if (r.contentType != null)

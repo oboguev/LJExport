@@ -39,7 +39,8 @@ public class LinkRedownloader
 
             setThreadName(threadName, "downloading " + url);
 
-            String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
+            String urlPathExt = LinkFilepath.getMediaFileExtension(xurl.getPath());
+            String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody, urlPathExt);
 
             if (contentExt == null)
             {
@@ -48,8 +49,6 @@ public class LinkRedownloader
                     headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase());
                 contentExt = headerExt;
             }
-
-            String urlPathExt = LinkFilepath.getMediaFileExtension(xurl.getPath());
 
             if (image || FileTypeDetector.isImageExtension(urlPathExt))
             {

@@ -251,6 +251,11 @@ public class FixFileExtensions extends MaintenanceHandler
                 throwException("Mismatching link case");
 
             /*
+             * Get extension from file name 
+             */
+            String fnExt = LinkFilepath.getMediaFileExtension(linkInfo.linkFullFilePath);
+
+            /*
              * Detect implied file extension from actual file content 
              */
             String contentExtension = null;
@@ -261,17 +266,12 @@ public class FixFileExtensions extends MaintenanceHandler
             else
             {
                 byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
-                contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content);
+                contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt );
                 fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
             }
 
             if (contentExtension == null || contentExtension.length() == 0)
                 continue;
-
-            /*
-             * Get extension from file name 
-             */
-            String fnExt = LinkFilepath.getMediaFileExtension(linkInfo.linkFullFilePath);
 
             /*
              * If it is not one of common media extensions, disregard it  

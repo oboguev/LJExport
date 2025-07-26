@@ -33,10 +33,20 @@ public class FileTypeDetector
         XMLReaderUtils.setPoolSize(nTikaMaxThreads + 10);
     }
 
-    public static String fileExtensionFromActualFileContent(byte[] fileBytes) throws Exception
+    public static String fileExtensionFromActualFileContent(byte[] fileBytes, String pathExtension) throws Exception
     {
         String detectedMimeType = mimeTypeFromActualFileContent(fileBytes);
-        return fileExtensionFromMimeType(detectedMimeType);
+
+        if (!detectedMimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
+            return fileExtensionFromMimeType(detectedMimeType);
+
+        if (pathExtension != null && pathExtension.equalsIgnoreCase("txt"))
+        {
+            if (shareOfUnprintableBytes(fileBytes) * 100 < 0.5)
+                return "txt";
+        }
+
+        return null;
     }
 
     public static String mimeTypeFromActualFileContent(byte[] fileBytes) throws Exception
@@ -289,5 +299,37 @@ public class FileTypeDetector
         xs.add("qt");
 
         return xs;
+    }
+
+    /* ==================================================================================== */
+
+    /*
+     * Share of bytes with unprintable characters, 0 to 1.
+     * Can be used on KOI-8 or Win-1251 text files.
+     */
+    public static double shareOfUnprintableBytes(byte[] content)
+    {
+        if (content == null || content.length == 0)
+            return 0.0; // define empty content as fully printable
+
+        int unprintable = 0;
+        int total = content.length;
+
+        for (int i = 0; i < total; i++)
+        {
+            int b = content[i] & 0xFF;
+
+            // Accept ASCII printable and whitespace
+            if ((b >= 32 && b <= 126) || b == 9 || b == 10 || b == 13)
+                continue;
+
+            // Accept common printable range for KOI8-R and CP1251
+            if (b >= 128 && b <= 255)
+                continue;
+
+            unprintable++;
+        }
+
+        return (double) unprintable / total;
     }
 }

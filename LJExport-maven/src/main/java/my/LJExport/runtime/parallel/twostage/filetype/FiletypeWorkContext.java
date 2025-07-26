@@ -8,6 +8,9 @@ public class FiletypeWorkContext extends WorkContext<String>
 {
     public String fullFilePath;
     public String contentExtension;
+    public boolean empty;
+    public long size;
+    public boolean zeroes;
 
     public FiletypeWorkContext(String fullFilePath)
     {

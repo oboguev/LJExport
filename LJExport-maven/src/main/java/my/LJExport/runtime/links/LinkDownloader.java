@@ -657,7 +657,7 @@ public class LinkDownloader
     {
         String fnExt = LinkFilepath.getMediaFileExtension(filepath);
 
-        String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody);
+        String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody, fnExt);
 
         String headerExt = null;
         if (r.contentType != null)

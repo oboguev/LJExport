@@ -26,7 +26,7 @@ public class DemoFileTypeDetector
     {
         byte[] ba = Util.readFileAsByteArray(path);
         String mime = FileTypeDetector.mimeTypeFromActualFileContent(ba); // image/png
-        String ext = FileTypeDetector.fileExtensionFromActualFileContent(ba); // .png
+        String ext = FileTypeDetector.fileExtensionFromActualFileContent(ba, null); // .png
         Util.unused(mime, ext);
     }
 

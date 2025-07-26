@@ -42,16 +42,15 @@ import my.LJExport.runtime.url.UrlUtil;
  */
 public class DetectFailedDownloads extends MaintenanceHandler
 {
-    private static boolean DryRun = false; // ###
+    private static boolean DryRun = true; // ###
     // private static final Safety safety = Safety.UNSAFE;
 
-    static enum Phase 
+    static enum Phase
     {
-        ScanLinks,
-        UpdateMissingOriginalLinks
+        ScanLinks, UpdateMissingOriginalLinks
     }
-    
-    private Phase phase = Phase.ScanLinks; 
+
+    private Phase phase = Phase.ScanLinks;
     private boolean needUpdateMissingOriginalLinks = false;
 
     public DetectFailedDownloads() throws Exception
@@ -101,7 +100,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             build_lc2ac();
             loadLinkMapFile();
             prefillFileContentExtensionMap();
-            
+
             stageFileCount = this.getStageProcessedFileCount();
 
             trace("");
@@ -117,7 +116,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             trace("");
             trace("================================= Updating HTML files for user " + Config.User);
             trace("");
-        
+
             Util.out("Updating HTML files for user " + Config.User + " ...");
         }
     }
@@ -152,7 +151,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 trace("Stored failed-link-downloads.txt for user " + Config.User);
                 Util.out("Stored failed-link-downloads.txt for user " + Config.User);
             }
-            
+
             if (needUpdateMissingOriginalLinks)
             {
                 this.repeatUser();
@@ -168,7 +167,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             printCompletedUser();
         }
     }
-    
+
     private void printCompletedUser() throws Exception
     {
         trace("");
@@ -235,7 +234,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             List<Node> pageFlat, String tag, String attr) throws Exception
     {
         boolean updated = false;
-        
+
         if (phase == Phase.ScanLinks)
         {
             for (Node n : JSOUP.findElements(pageFlat, tag))
@@ -244,7 +243,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         else if (phase == Phase.UpdateMissingOriginalLinks)
         {
             for (Node n : JSOUP.findElements(pageFlat, tag))
-            updated |= processUpdateMissingOriginalLinks(fullHtmlFilePath, n, tag, attr);
+                updated |= processUpdateMissingOriginalLinks(fullHtmlFilePath, n, tag, attr);
         }
 
         return updated;
@@ -292,6 +291,11 @@ public class DetectFailedDownloads extends MaintenanceHandler
             throwException("Mismatching link case");
 
         /*
+         * Get extension from file name 
+         */
+        String fnExt = LinkFilepath.getMediaFileExtension(linkInfo.linkFullFilePath);
+
+        /*
          * Detect implied file extension from actual file content 
          */
         String contentExtension = null;
@@ -302,17 +306,12 @@ public class DetectFailedDownloads extends MaintenanceHandler
         else
         {
             byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
-            contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content);
+            contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt);
             fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
         }
 
         if (contentExtension == null || contentExtension.length() == 0)
             return;
-
-        /*
-         * Get extension from file name 
-         */
-        String fnExt = LinkFilepath.getMediaFileExtension(linkInfo.linkFullFilePath);
 
         /*
          * If it is not one of common media extensions, disregard it  
@@ -378,7 +377,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
             if (tag.equalsIgnoreCase("img"))
                 fli.image = true;
-            
+
             if (href_original == null)
                 needUpdateMissingOriginalLinks = true;
         }
@@ -423,7 +422,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
                 Objects.requireNonNull(wcx.fullFilePath, "fullFilePath is null");
 
-                if (wcx.contentExtension == null)
+                if (wcx.contentExtension == null && !wcx.empty && !wcx.zeroes && wcx.size > 10)
                 {
                     // Objects.requireNonNull(wcx.contentExtension, "extension is null");
                     Util.noop();
@@ -461,7 +460,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 for (LinkMapEntry e : entries)
                     addUrl(e.key);
             }
-            
+
             MiscUrls.uniqYimgCom(urls);
 
             if (urls.size() > 1)
@@ -511,7 +510,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (!urls.contains(url))
                 urls.add(url);
         }
-        
+
         private String unwrap(String url) throws Exception
         {
             for (;;)
@@ -522,11 +521,11 @@ public class DetectFailedDownloads extends MaintenanceHandler
                     return url;
             }
         }
-        
+
         private String unwrapPass(String url) throws Exception
         {
             url = Util.stripAnchor(url);
-            
+
             try
             {
                 url = LJUtil.decodeImgPrxStLink(url);
@@ -537,7 +536,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             }
 
             url = MiscUrls.unwrapImagesGoogleCom(url);
-            
+
             return url;
         }
 
@@ -592,7 +591,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
     }
 
     /* ===================================================================================================== */
-    
+
     private boolean processUpdateMissingOriginalLinks(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
     {
         String href_original = getLinkOriginalAttribute(n, "original-" + attr);
@@ -625,7 +624,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         FailedLinkInfo fli = failedLinkInfo.get(relpath.toLowerCase());
         if (fli == null || fli.urls.size() != 1)
             return false;
-        
+
         String url = fli.urls.get(0);
         JSOUP.setAttribute(n, "original-" + attr, url);
         return true;

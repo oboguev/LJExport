@@ -30,6 +30,16 @@ import my.LJExport.runtime.links.SmartLinkRedownloader;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.synch.ThreadsControl;
 
+// #### change:
+// #### -- add original-xxxx in DetectFailedDownloads
+// #### ---- 2 HTML passes
+// #### ---- 1st pass build map to href to FailedLinkInfo 
+// #### ---- 2nd pass get original url from FailedLinkInfo (after prepare, and only if one)
+// #### -- remove HTML updates here in MainRedownloadFailedLinks
+// #### -- during redownload keep remaining list and write it (safe) after every 50 files loaded
+// #### -- do not delete from remaining if redownload failed
+// #### -- at the end write file with all remaining
+
 /*
  * Redownload linked files listed in failed-link-downloads.txt.
  * The list is built by maintenance tool DetectFailedDownloads.

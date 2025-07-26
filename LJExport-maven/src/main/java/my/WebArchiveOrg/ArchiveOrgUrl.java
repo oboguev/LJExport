@@ -1,5 +1,7 @@
 package my.WebArchiveOrg;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -126,9 +128,9 @@ public class ArchiveOrgUrl
             return false;
 
         String prefix;
-        if (url.startsWith(ARCHIVE_PREFIX_HTTPS))
+        if (url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
             prefix = ARCHIVE_PREFIX_HTTPS;
-        else if (url.startsWith(ARCHIVE_PREFIX_HTTP))
+        else if (url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP))
             prefix = ARCHIVE_PREFIX_HTTP;
         else
             return false;
@@ -435,9 +437,9 @@ public class ArchiveOrgUrl
             throw new IllegalArgumentException("Not an archive.org URL: " + url);
 
         String prefix;
-        if (url.startsWith(ARCHIVE_PREFIX_HTTPS))
+        if (url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
             prefix = ARCHIVE_PREFIX_HTTPS;
-        else if (url.startsWith(ARCHIVE_PREFIX_HTTP))
+        else if (url.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP))
             prefix = ARCHIVE_PREFIX_HTTP;
         else
             throw new IllegalArgumentException("Archive URL must begin with supported prefix");
@@ -457,7 +459,7 @@ public class ArchiveOrgUrl
 
         return prefix + timestamp + (isHtml ? "id_/" : "if_/") + suffix;
     }
-    
+
     public static String directDownloadUrl(String originalUrl, String timestamp, boolean isHtml)
     {
         return ARCHIVE_PREFIX_HTTPS + String.format("%s%s/%s", timestamp, isHtml ? "id_" : "if_", originalUrl);
@@ -481,13 +483,42 @@ public class ArchiveOrgUrl
         LocalDateTime ldt = LocalDateTime.of(yyyy, month, dd, hh, minute, ss);
         return ldt.toInstant(ZoneOffset.UTC);
     }
-    
+
     // https://web.archive.org/web/TIMESTAMPif_/ORIGINAL_URL
     public static String latestMediaUrl(String originalUrl, String timestamp)
     {
         return String.format("%s%sif_/%s", ARCHIVE_PREFIX_HTTPS, timestamp, originalUrl);
     }
-    
+
+    public static String decodeArchiveUrl(String archiveUrl)
+    {
+        String prefix;
+        if (archiveUrl.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTP))
+        {
+            prefix = ARCHIVE_PREFIX_HTTP;
+        }
+        else if (archiveUrl.toLowerCase().startsWith(ARCHIVE_PREFIX_HTTPS))
+        {
+            prefix = ARCHIVE_PREFIX_HTTPS;
+        }
+        else
+        {
+            // Not an archive.org URL — decode everything
+            return URLDecoder.decode(archiveUrl, StandardCharsets.UTF_8);
+        }
+
+        String rest = archiveUrl.substring(prefix.length());
+        int sep = rest.indexOf('/');
+        if (sep < 0)
+            return archiveUrl; // malformed
+
+        String timestamp = rest.substring(0, sep);
+        String encodedOriginalUrl = rest.substring(sep + 1);
+
+        String decodedOriginalUrl = URLDecoder.decode(encodedOriginalUrl, StandardCharsets.UTF_8);
+        return prefix + timestamp + "/" + decodedOriginalUrl;
+    }
+
     /* ====================================================================================== */
 
     // Example usage

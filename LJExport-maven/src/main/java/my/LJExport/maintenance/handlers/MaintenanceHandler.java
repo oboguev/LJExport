@@ -13,14 +13,17 @@ import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.RelativeLink;
+import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public abstract class MaintenanceHandler extends Maintenance
 {
-    protected final String userDir = isEmpty(Config.User) ? null : FilePath.getFilePathActualCase(Config.DownloadRoot + File.separator + Config.User);
-    protected final String linksDir = isEmpty(Config.User) ? null : FilePath.getFilePathActualCase(userDir + File.separator + "links");
+    protected final String userDir = isEmpty(Config.User) ? null
+            : FilePath.getFilePathActualCase(Config.DownloadRoot + File.separator + Config.User);
+    protected final String linksDir = isEmpty(Config.User) ? null
+            : FilePath.getFilePathActualCase(userDir + File.separator + "links");
     protected final String linksDirSep = isEmpty(Config.User) ? null : linksDir + File.separator;
     protected final List<String> validNonLinkRoots = validNonLinkRoots();
-    
+
     private static final String FileProtocol = "file://";
 
     public static class LinkInfo
@@ -29,7 +32,7 @@ public abstract class MaintenanceHandler extends Maintenance
         public String linkRelativeFilePath;
         public String linkRelativeUnixPath;
     }
-    
+
     public MaintenanceHandler() throws Exception
     {
     }
@@ -82,7 +85,7 @@ public abstract class MaintenanceHandler extends Maintenance
         String href = JSOUP.getAttribute(n, name);
         href = preprocesOriginalHref(href);
         if (href != null)
-            href = LinkFilepath.decodePathComponents(href);
+            href = ArchiveOrgUrl.decodeArchiveUrl(href);
         return href;
     }
 
@@ -139,7 +142,7 @@ public abstract class MaintenanceHandler extends Maintenance
             return null;
 
         List<String> list = new ArrayList<>();
-        
+
         list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "profile");
         list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "pages");
         list.add(Config.DownloadRoot + File.separator + Config.User + File.separator + "reposts");
@@ -243,7 +246,7 @@ public abstract class MaintenanceHandler extends Maintenance
         String href = RelativeLink.fileRelativeLink(abs, fullHtmlFilePath, this.userDir);
         return href;
     }
-    
+
     private static boolean isEmpty(String s)
     {
         return s == null || s.isEmpty();

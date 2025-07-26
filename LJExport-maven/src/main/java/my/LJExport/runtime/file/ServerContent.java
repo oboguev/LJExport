@@ -1,5 +1,6 @@
 package my.LJExport.runtime.file;
 
+import java.net.URI;
 import java.net.URL;
 
 import my.LJExport.runtime.ContentProvider;
@@ -57,8 +58,19 @@ public class ServerContent
         if (ArchiveOrgUrl.isArchiveOrgUrl(href))
             href = ArchiveOrgUrl.extractArchivedUrlPart(href);
 
-        String host = new URL(href).getHost().toLowerCase();
-        
+        String host = null;
+        try
+        {
+            if (Util.isAbsoluteURL(href))
+                host = new URI(href).getHost().toLowerCase();
+            else
+                host = new URI("https://" + href).getHost().toLowerCase();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+
         /*
          * www.lib.ru and lib.ru respond to TXT URL request with the reply of HTML content,
          * but inside is the <pre> block

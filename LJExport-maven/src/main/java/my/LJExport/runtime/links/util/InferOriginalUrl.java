@@ -28,6 +28,20 @@ public class InferOriginalUrl
             if (relpath.contains("\uFFFD"))
                 return null; // corrupted
         }
+        
+        // 1.5 Special case for archive.org stored URLs
+        if (relpath.startsWith("web.archive.org/web/"))
+        {
+            String suffix = relpath.substring("web.archive.org/web/".length());
+            int slash = suffix.indexOf('/');
+            if (slash > 0 && slash + 1 < suffix.length())
+            {
+                String timestamp = suffix.substring(0, slash);
+                String encodedOriginal = suffix.substring(slash + 1);
+                String decodedOriginal = java.net.URLDecoder.decode(encodedOriginal, java.nio.charset.StandardCharsets.UTF_8.name());
+                return schema + "web.archive.org/web/" + timestamp + "/" + decodedOriginal;
+            }
+        }        
 
         // 2. Restore host[:port] structure
         relpath = restoreHostPort(relpath);

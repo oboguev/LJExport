@@ -1,5 +1,7 @@
 package my.LJExport.runtime.http;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 import my.LJExport.Config;
@@ -8,12 +10,15 @@ import my.LJExport.Main;
 public class RateLimiter
 {
     public static final RateLimiter LJ_PAGES = new RateLimiter("LJ page loading", Config.RateLimit_LiveJournal_PageLoad)
-            .setCoolOff(Config.RateLimit_LiveJournal_PageLoad_CoolOff_Requests, Config.RateLimit_LiveJournal_PageLoad_CoolOff_Interval);
-    
+            .setCoolOff(Config.RateLimit_LiveJournal_PageLoad_CoolOff_Requests,
+                    Config.RateLimit_LiveJournal_PageLoad_CoolOff_Interval);
+
     public static final RateLimiter LJ_IMAGES = new RateLimiter("LJ image loading", Config.RateLimit_LiveJournal_Images);
-    
-    public static final RateLimiter WEB_ARCHIVE_ORG = new RateLimiter("web.archive.org loading", Config.RateLimit_WebArchiveOrg_Requests)
-            .setCoolOff(Config.RateLimit_WebArchiveOrg_Requests_CoolOff_Requests, Config.RateLimit_WebArchiveOrg_Requests_CoolOff_Interval);
+
+    public static final RateLimiter WEB_ARCHIVE_ORG = new RateLimiter("web.archive.org loading",
+            Config.RateLimit_WebArchiveOrg_Requests)
+                    .setCoolOff(Config.RateLimit_WebArchiveOrg_Requests_CoolOff_Requests,
+                            Config.RateLimit_WebArchiveOrg_Requests_CoolOff_Interval);
 
     private final ReentrantLock lock = new ReentrantLock();
     private volatile long lastReturnTime = System.currentTimeMillis();
@@ -23,6 +28,9 @@ public class RateLimiter
 
     private long cooloffRequestCount = 0;
     private long cooloffInterval = 0;
+
+    private final Set<Thread> sleepers = ConcurrentHashMap.newKeySet();
+    private volatile boolean aborting = false;
 
     private static final Boolean RandomizeDelay = true;
 
@@ -56,7 +64,7 @@ public class RateLimiter
             limitRate(delay);
         }
     }
-    
+
     private long randomizedDelay(long ms)
     {
         // Apply ±30% jitter to reduce bot-like constant-interval appearance 
@@ -87,12 +95,12 @@ public class RateLimiter
             long timeSinceLastReturn = currentTime - lastReturnTime;
 
             requestCount++;
-            
-            if (cooloffRequestCount != 0 && (requestCount % cooloffRequestCount) == 0)
+
+            if (!aborting && cooloffRequestCount != 0 && (requestCount % cooloffRequestCount) == 0)
             {
                 long actualCooloffInterval = randomizedDelay(cooloffInterval);
                 ms += actualCooloffInterval;
-                
+
                 if (actualCooloffInterval > 30 * 1000)
                 {
                     Main.out(String.format("Waiting for %s cool-off interval %d seconds ...", name, actualCooloffInterval / 1000));
@@ -100,8 +108,11 @@ public class RateLimiter
                 }
             }
 
-            if (timeSinceLastReturn < ms)
+            if (!aborting && timeSinceLastReturn < ms)
             {
+                Thread current = Thread.currentThread();
+                sleepers.add(current);
+
                 try
                 {
                     Thread.sleep(ms - timeSinceLastReturn);
@@ -109,6 +120,10 @@ public class RateLimiter
                 catch (InterruptedException e)
                 {
                     Thread.currentThread().interrupt();
+                }
+                finally
+                {
+                    sleepers.remove(current);
                 }
             }
 
@@ -118,8 +133,16 @@ public class RateLimiter
         {
             if (showCooloff)
                 Main.out(String.format("Resuming after %s cool-off interval", name));
-            
+
             lock.unlock();
         }
+    }
+
+    public void aborting()
+    {
+        aborting = true;
+
+        for (Thread t : sleepers)
+            t.interrupt();
     }
 }

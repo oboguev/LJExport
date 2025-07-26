@@ -3,6 +3,7 @@ package my.LJExport.maintenance.handlers;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -453,22 +454,37 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         private void weedOutImgPrx()
         {
-            Set<String> xs = new HashSet<>();
+            Set<String> xs_imgprx_st = new HashSet<>();
+            Set<String> xs_imgprx = new HashSet<>();
             boolean hasOther = false;
             
             for (String s : urls)
             {
-                if (isImgPrx(s))
-                    xs.add(s);
+                if (isImgPrxSt(s))
+                    xs_imgprx_st.add(s);
+                else if (isImgPrx(s))
+                    xs_imgprx.add(s);
                 else
                     hasOther = true;
             }
             
             if (hasOther)
             {
-                for (String s : xs)
-                    urls.remove(s);
+                removeUrls(xs_imgprx_st);
+                removeUrls(xs_imgprx);
             }
+            else if (xs_imgprx_st.size() != 0)
+            {
+                removeUrls(xs_imgprx);
+            }
+        }
+        
+        private boolean isImgPrxSt(String url)
+        {
+            String lc = url.toLowerCase();
+            return lc.startsWith("https://imgprx.livejournal.net/st/") ||
+                    lc.startsWith("http://imgprx.livejournal.net/st/") ||
+                    lc.startsWith("imgprx.livejournal.net/st/");
         }
         
         private boolean isImgPrx(String url)
@@ -477,6 +493,12 @@ public class DetectFailedDownloads extends MaintenanceHandler
             return lc.startsWith("https://imgprx.livejournal.net/") ||
                     lc.startsWith("http://imgprx.livejournal.net/") ||
                     lc.startsWith("imgprx.livejournal.net/");
+        }
+        
+        private void removeUrls(Collection<String> xs)
+        {
+            for (String s : xs)
+                urls.remove(s);
         }
     }
 

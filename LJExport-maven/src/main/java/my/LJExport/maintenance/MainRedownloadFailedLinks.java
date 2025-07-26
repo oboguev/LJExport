@@ -34,7 +34,7 @@ import my.LJExport.runtime.synch.ThreadsControl;
 // #### -- add original-xxxx in DetectFailedDownloads
 // #### ---- 2 HTML passes
 // #### ---- 1st pass build map to href to FailedLinkInfo 
-// #### ---- 2nd pass get original url from FailedLinkInfo (after prepare, and only if one)
+// #### ---- 2nd pass get original url from FailedLinkInfo indexed by relpath.toLowerCase (after prepare, and only if one)
 // #### -- remove HTML updates here in MainRedownloadFailedLinks
 // #### -- during redownload keep remaining list and write it (safe) after every 50 files loaded
 // #### -- do not delete from remaining if redownload failed

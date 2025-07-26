@@ -26,9 +26,11 @@ import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.file.ServerContent;
 import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.http.MiscUrls;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.util.InferOriginalUrl;
 import my.LJExport.runtime.links.util.LinkFilepath;
+import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 import my.LJExport.runtime.url.UrlUtil;
@@ -407,7 +409,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (urls.size() > 1)
             {
                 weedOutImgPrx();
-                
+
                 String url = UrlUtil.consolidateUrlVariants(urls, false);
                 if (url == null)
                     url = UrlUtil.consolidateUrlVariants(urls, true);
@@ -447,9 +449,38 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         private void addUrl(String url) throws Exception
         {
-            url = Util.stripAnchor(url);
+            url = unwrap(url);
             if (!urls.contains(url))
                 urls.add(url);
+        }
+        
+        private String unwrap(String url) throws Exception
+        {
+            for (;;)
+            {
+                String prev = url;
+                url = unwrapPass(url);
+                if (url.equals(prev))
+                    return url;
+            }
+        }
+        
+        private String unwrapPass(String url) throws Exception
+        {
+            url = Util.stripAnchor(url);
+            
+            try
+            {
+                url = LJUtil.decodeImgPrxStLink(url);
+            }
+            catch (Exception ex)
+            {
+                Util.noop();
+            }
+
+            url = MiscUrls.unwrapImagesGoogleCom(url);
+            
+            return url;
         }
 
         private void weedOutImgPrx()
@@ -457,7 +488,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             Set<String> xs_imgprx_st = new HashSet<>();
             Set<String> xs_imgprx = new HashSet<>();
             boolean hasOther = false;
-            
+
             for (String s : urls)
             {
                 if (isImgPrxSt(s))
@@ -467,7 +498,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 else
                     hasOther = true;
             }
-            
+
             if (hasOther)
             {
                 removeUrls(xs_imgprx_st);
@@ -478,7 +509,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 removeUrls(xs_imgprx);
             }
         }
-        
+
         private boolean isImgPrxSt(String url)
         {
             String lc = url.toLowerCase();
@@ -486,7 +517,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                     lc.startsWith("http://imgprx.livejournal.net/st/") ||
                     lc.startsWith("imgprx.livejournal.net/st/");
         }
-        
+
         private boolean isImgPrx(String url)
         {
             String lc = url.toLowerCase();
@@ -494,7 +525,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                     lc.startsWith("http://imgprx.livejournal.net/") ||
                     lc.startsWith("imgprx.livejournal.net/");
         }
-        
+
         private void removeUrls(Collection<String> xs)
         {
             for (String s : xs)

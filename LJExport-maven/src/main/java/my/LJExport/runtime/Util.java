@@ -1205,7 +1205,8 @@ public class Util
         try
         {
             // First parse using URL (more lenient)
-            URL parsedUrl = new URL(url);
+            // http://alexey_ivanov.users.photofile.ru/photo/alexey_ivanov/96510278/xlarge/119913775.jpg
+            URL parsedUrl = new URL(url.replace("_", "-"));
 
             // Reconstruct the URI safely
             String scheme = parsedUrl.getProtocol();

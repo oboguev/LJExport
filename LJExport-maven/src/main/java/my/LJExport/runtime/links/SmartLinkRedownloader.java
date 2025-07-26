@@ -38,8 +38,6 @@ public class SmartLinkRedownloader
             Util.writeToFileSafe(fullFilePath, r.binaryBody);
         }
 
-        // ### handle archive.org http 429 (cool off and retry)
-
         return r != null;
     }
 

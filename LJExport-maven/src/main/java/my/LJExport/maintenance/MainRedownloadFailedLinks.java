@@ -26,7 +26,7 @@ import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
-import my.LJExport.runtime.links.LinkRedownloader;
+import my.LJExport.runtime.links.SmartLinkRedownloader;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.synch.ThreadsControl;
 
@@ -565,14 +565,23 @@ public class MainRedownloadFailedLinks
 
     public boolean redownload(boolean image, String url, String relativeLinkFilePath, String referer) throws Exception
     {
-        LinkRedownloader linkRedownloader = new LinkRedownloader(linksDir);
+        SmartLinkRedownloader smartLinkRedownloader = new SmartLinkRedownloader(linksDir);
 
         if (!LinkDownloader.shouldDownload(url, false))
             return false;
 
-        // ### use smart link redownloader
-
-        return linkRedownloader.redownload(image, url, relativeLinkFilePath, referer);
+        boolean result = smartLinkRedownloader.redownload(image, url, relativeLinkFilePath, referer);
+        
+        if (result)
+        {
+            Util.out(String.format("Downloaded [%s] link file %s", Config.User, relativeLinkFilePath));
+        }
+        else
+        {
+            Util.err(String.format("Unable to download [%s] link file %s", Config.User, relativeLinkFilePath));
+        }
+        
+        return result;
     }
 
     /* ========================================================================================== */

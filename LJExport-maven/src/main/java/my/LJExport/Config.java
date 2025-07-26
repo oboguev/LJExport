@@ -33,8 +33,8 @@ public class Config
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    // public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
-    public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
+    // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
@@ -51,7 +51,7 @@ public class Config
     public static final int RateLimit_LiveJournal_Images = 200;
     public static final int RateLimit_LiveJournal_PageLoad_CoolOff_Requests = 750;
     public static final int RateLimit_LiveJournal_PageLoad_CoolOff_Interval = 80 * 1000;
-    
+
     /* Rate limits (ms between requests) for web.archive.org */
     public static final int RateLimit_WebArchiveOrg_Requests = 1200;
     public static final int RateLimit_WebArchiveOrg_Requests_CoolOff_Requests = 750;

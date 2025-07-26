@@ -35,21 +35,15 @@ public class FileTypeDetector
 
     public static String fileExtensionFromActualFileContent(byte[] fileBytes, String pathExtension) throws Exception
     {
-        String detectedMimeType = mimeTypeFromActualFileContent(fileBytes);
+        String detectedMimeType = mimeTypeFromActualFileContent(fileBytes, pathExtension);
 
         if (!detectedMimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
             return fileExtensionFromMimeType(detectedMimeType);
 
-        if (pathExtension != null && pathExtension.equalsIgnoreCase("txt"))
-        {
-            if (shareOfUnprintableBytes(fileBytes) * 100 < 0.5)
-                return "txt";
-        }
-
         return null;
     }
 
-    public static String mimeTypeFromActualFileContent(byte[] fileBytes) throws Exception
+    public static String mimeTypeFromActualFileContent(byte[] fileBytes, String pathExtension) throws Exception
     {
         Tika tika = new Tika();
         String detectedMimeType = tika.detect(fileBytes);
@@ -65,6 +59,15 @@ public class FileTypeDetector
 
         if (isRAR(fileBytes))
             return "application/vnd.rar";
+
+        if (pathExtension != null && pathExtension.equalsIgnoreCase("txt"))
+        {
+            if (shareOfUnprintableBytes(fileBytes) * 100 < 0.5)
+                return "plain/text";
+        }
+        
+        if (fileBytes.length > 100 && isAsciiText(fileBytes))
+            return "plain/text";
 
         return MIME_OCTET_STREAM;
     }
@@ -382,6 +385,22 @@ public class FileTypeDetector
         {
             if (d[k] != sig[k])
                 return false;
+        }
+
+        return true;
+    }
+
+    public static boolean isAsciiText(byte[] d)
+    {
+        if (d == null)
+            return false;
+
+        for (byte b : d)
+        {
+            int value = b & 0xFF;
+            if (value >= 0x20 && value <= 0x7E || value == 0x09 || value == 0x0A || value == 0x0D)
+                continue; // valid
+            return false; // invalid byte
         }
 
         return true;

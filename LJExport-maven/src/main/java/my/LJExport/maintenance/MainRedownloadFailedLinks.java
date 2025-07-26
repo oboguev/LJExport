@@ -3,8 +3,10 @@ package my.LJExport.maintenance;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.jsoup.nodes.Node;
@@ -16,6 +18,7 @@ import my.LJExport.maintenance.handlers.MaintenanceHandlerPassive;
 import my.LJExport.maintenance.handlers.MaintenanceHandler.LinkInfo;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.EnumUsers;
+import my.LJExport.runtime.IdentityWrapper;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.MemoryMonitor;
 import my.LJExport.runtime.Util;
@@ -29,12 +32,6 @@ import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.SmartLinkRedownloader;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.synch.ThreadsControl;
-
-// #### change:
-// #### -- remove HTML updates here in MainRedownloadFailedLinks
-// #### -- during redownload keep remaining list and write it (safe) after every 50 files loaded
-// #### -- do not delete from remaining if redownload failed
-// #### -- at the end write file with all remaining
 
 /*
  * Redownload linked files listed in failed-link-downloads.txt.
@@ -73,13 +70,13 @@ public class MainRedownloadFailedLinks
     private KVFile kvfile;
     private List<KVEntry> kvlist;
 
+    Set<IdentityWrapper<KVEntry>> kvset_remaining = new LinkedHashSet<>();
+
     private List<KVEntry> kvlist_good = new ArrayList<>();
     private Map<String, KVEntry> kvmap_good = new HashMap<>();
 
     private List<KVEntry> kvlist_failed = new ArrayList<>();
     private Map<String, KVEntry> kvmap_failed = new HashMap<>();
-
-    // private List<KVEntry> kvlist_all = new ArrayList<>();
 
     private Map<String, String> file_lc2ac = new HashMap<>();
 
@@ -189,9 +186,10 @@ public class MainRedownloadFailedLinks
             if (Main.isAborting())
             {
                 Util.err(">>> Aborted redownloading of failed links for user " + Config.User);
+                saveControlFile(true);
                 return;
             }
-            
+
             if (Config.False)
             {
                 updateUserHtmlFiles();
@@ -199,28 +197,44 @@ public class MainRedownloadFailedLinks
                 if (Main.isAborting())
                 {
                     Util.err(">>> Aborted redownloading of failed links for user " + Config.User);
+                    saveControlFile(true);
                     return;
                 }
             }
 
-            if (!DryRun)
-            {
-                if (kvlist_failed.size() == 0)
-                {
-                    kvfile.delete();
-                    Util.out("Deleted failed-link-downloads.txt for user " + Config.User);
-                }
-                else
-                {
-                    KVEntry.sortByValueIgnoreCase(kvlist_failed);
-                    kvfile.save(kvlist_failed);
-                    Util.out("Updated failed-link-downloads.txt for user " + Config.User);
-                }
-            }
+            saveControlFile(true);
         }
         finally
         {
             ThreadsControl.shutdownAfterUser();
+        }
+    }
+
+    private void saveControlFile(boolean finalSave) throws Exception
+    {
+        if (DryRun || kvset_remaining == null)
+            return;
+
+        synchronized (kvset_remaining)
+        {
+            List<KVEntry> list = new ArrayList<>();
+
+            for (IdentityWrapper<KVEntry> wrap : kvset_remaining)
+                list.add(wrap.get());
+
+            if (list.size() == 0)
+            {
+                kvfile.delete();
+                if (finalSave)
+                    Util.out("Deleted failed-link-downloads.txt for user " + Config.User);
+            }
+            else
+            {
+                KVEntry.sortByValueIgnoreCase(list);
+                kvfile.save(list);
+                if (finalSave)
+                    Util.out("Updated failed-link-downloads.txt for user " + Config.User);
+            }
         }
     }
 
@@ -251,6 +265,9 @@ public class MainRedownloadFailedLinks
         }
         else
         {
+            for (KVEntry entry : kvlist)
+                kvset_remaining.add(new IdentityWrapper<>(entry));
+
             // verify no duplicate entries for file paths
             KVFile.reverseMap(kvlist, true);
 
@@ -381,10 +398,19 @@ public class MainRedownloadFailedLinks
 
             if (redownload(image, url, relpath, referer))
             {
+                int ncompleted;
+
                 synchronized (kvlist)
                 {
                     kvlist_good.add(entry);
-                    // kvlist_all.add(entry);
+                    ncompleted = kvlist_good.size();
+                }
+
+                synchronized (kvset_remaining)
+                {
+                    kvset_remaining.remove(new IdentityWrapper<>(entry));
+                    if ((ncompleted % 20) == 0)
+                        saveControlFile(false);
                 }
             }
             else
@@ -392,7 +418,6 @@ public class MainRedownloadFailedLinks
                 synchronized (kvlist)
                 {
                     kvlist_failed.add(entry);
-                    // kvlist_all.add(entry);
                 }
             }
         }
@@ -580,7 +605,7 @@ public class MainRedownloadFailedLinks
             return false;
 
         boolean result = smartLinkRedownloader.redownload(image, url, relativeLinkFilePath, referer);
-        
+
         if (result)
         {
             Util.out(String.format("Downloaded [%s] link file %s", Config.User, relativeLinkFilePath));
@@ -589,7 +614,7 @@ public class MainRedownloadFailedLinks
         {
             Util.err(String.format("Unable to download [%s] link file %s", Config.User, relativeLinkFilePath));
         }
-        
+
         return result;
     }
 

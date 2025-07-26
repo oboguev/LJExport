@@ -56,6 +56,8 @@ public class Maintenance
     protected static BufferedWriter traceWriter;
 
     protected static final int FileTypeDetectionThreads = 100;
+    
+    private boolean repeatUser = false;
 
     public static void main(String[] args)
     {
@@ -271,24 +273,35 @@ public class Maintenance
     {
         try
         {
-            beginUser();
-
-            processDir("pages", ParallelismDefault);
-            processDir("reposts", ParallelismDefault);
-            processDir("profile", ParallelismDefault);
-
-            if (Util.False)
+            do
             {
-                processDir("monthly-pages", ParallelismMonthly);
-                processDir("monthly-reposts", ParallelismMonthly);
-            }
+                repeatUser = false ;
+                
+                beginUser();
 
-            endUser();
+                processDir("pages", ParallelismDefault);
+                processDir("reposts", ParallelismDefault);
+                processDir("profile", ParallelismDefault);
+
+                if (Util.False)
+                {
+                    processDir("monthly-pages", ParallelismMonthly);
+                    processDir("monthly-reposts", ParallelismMonthly);
+                }
+
+                endUser();
+            }
+            while (repeatUser);
         }
         finally
         {
             ThreadsControl.shutdownAfterUser();
         }
+    }
+    
+    protected void repeatUser()
+    {
+        repeatUser = true;
     }
 
     /* ================================================= */

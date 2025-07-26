@@ -17,15 +17,18 @@ import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public abstract class MaintenanceHandler extends Maintenance
 {
-    protected final String userDir = isEmpty(Config.User) ? null
-            : FilePath.getFilePathActualCase(Config.DownloadRoot + File.separator + Config.User);
-    protected final String linksDir = isEmpty(Config.User) ? null
-            : FilePath.getFilePathActualCase(userDir + File.separator + "links");
+    protected final String userDir = isEmpty(Config.User) ? null :
+            FilePath.getFilePathActualCase(Config.DownloadRoot + File.separator + Config.User);
+    
+    protected final String linksDir = isEmpty(Config.User) ? null :
+            FilePath.getFilePathActualCase(userDir + File.separator + "links");
+    
     protected final String linksDirSep = isEmpty(Config.User) ? null : linksDir + File.separator;
+    
     protected final List<String> validNonLinkRoots = validNonLinkRoots();
 
     private static final String FileProtocol = "file://";
-
+    
     public static class LinkInfo
     {
         public String linkFullFilePath;

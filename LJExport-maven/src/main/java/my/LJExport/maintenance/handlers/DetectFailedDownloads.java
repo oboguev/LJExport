@@ -45,6 +45,15 @@ public class DetectFailedDownloads extends MaintenanceHandler
     private static boolean DryRun = false; // ###
     // private static final Safety safety = Safety.UNSAFE;
 
+    static enum Phase 
+    {
+        ScanLinks,
+        UpdateMissingOriginalLinks
+    }
+    
+    private Phase phase = Phase.ScanLinks; 
+    private boolean needUpdateMissingOriginalLinks = false;
+
     public DetectFailedDownloads() throws Exception
     {
     }
@@ -77,55 +86,84 @@ public class DetectFailedDownloads extends MaintenanceHandler
     @Override
     protected void beginUser() throws Exception
     {
-        /* clear for new user */
-        file_lc2ac = new HashMap<>();
-        fileContentExtensionMap = new HashMap<>();
-        failedLinkInfo = new HashMap<>();
-        linkMapEntries = null;
-        relpath2entry = null;
+        if (phase == Phase.ScanLinks)
+        {
+            /* clear for new user */
+            file_lc2ac = new HashMap<>();
+            fileContentExtensionMap = new HashMap<>();
+            failedLinkInfo = new HashMap<>();
+            linkMapEntries = null;
+            relpath2entry = null;
 
-        txLog.writeLine("Starting user " + Config.User);
-        super.beginUser();
-        build_lc2ac();
-        loadLinkMapFile();
-        prefillFileContentExtensionMap();
+            txLog.writeLine("Starting user " + Config.User);
+            super.beginUser();
+            build_lc2ac();
+            loadLinkMapFile();
+            prefillFileContentExtensionMap();
 
-        trace("");
-        trace("");
-        trace("================================= Beginning user " + Config.User);
-        trace("");
-        trace("");
+            trace("");
+            trace("");
+            trace("================================= Beginning user " + Config.User);
+            trace("");
+            trace("");
+        }
+        else if (phase == Phase.UpdateMissingOriginalLinks)
+        {
+            trace("");
+            trace("================================= Updating HTML files for user " + Config.User);
+            trace("");
+        }
     }
 
     @Override
     protected void endUser() throws Exception
     {
-        List<KVEntry> list = new ArrayList<>();
-
-        for (FailedLinkInfo fli : failedLinkInfo.values())
+        if (phase == Phase.ScanLinks)
         {
-            fli.prepare(relpath2entry);
+            List<KVEntry> list = new ArrayList<>();
 
-            if (fli.urls.size() == 1)
+            for (FailedLinkInfo fli : failedLinkInfo.values())
             {
-                String url = fli.urls.get(0);
+                fli.prepare(relpath2entry);
 
-                if (fli.image)
-                    url = "image:" + url;
-                else
-                    url = "document:" + url;
+                if (fli.urls.size() == 1)
+                {
+                    String url = fli.urls.get(0);
 
-                list.add(new KVEntry(url, fli.relpath));
+                    if (fli.image)
+                        url = "image:" + url;
+                    else
+                        url = "document:" + url;
+
+                    list.add(new KVEntry(url, fli.relpath));
+                }
+            }
+
+            if (!DryRun)
+            {
+                new KVFile(linksDirSep + "failed-link-downloads.txt").save(list);
+                trace("Stored failed-link-downloads.txt for user " + Config.User);
+                Util.out("Stored failed-link-downloads.txt for user " + Config.User);
+            }
+            
+            if (needUpdateMissingOriginalLinks)
+            {
+                this.repeatUser();
+                phase = Phase.UpdateMissingOriginalLinks;
+            }
+            else
+            {
+                printCompletedUser();
             }
         }
-
-        if (!DryRun)
+        else if (phase == Phase.UpdateMissingOriginalLinks)
         {
-            new KVFile(linksDirSep + "failed-link-downloads.txt").save(list);
-            trace("Stored failed-link-downloads.txt for user " + Config.User);
-            Util.out("Stored failed-link-downloads.txt for user " + Config.User);
+            printCompletedUser();
         }
-
+    }
+    
+    private void printCompletedUser() throws Exception
+    {
         trace("");
         trace("");
         trace("================================= Completed user " + Config.User);
@@ -179,7 +217,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         updated |= process(fullHtmlFilePath, relativeFilePath, parser, pageFlat, "a", "href");
         updated |= process(fullHtmlFilePath, relativeFilePath, parser, pageFlat, "img", "src");
 
-        if (updated && !DryRun && Util.False)
+        if (updated && !DryRun && phase == Phase.UpdateMissingOriginalLinks)
         {
             String html = JSOUP.emitHtml(parser.pageRoot);
             Util.writeToFileSafe(fullHtmlFilePath, html);
@@ -190,14 +228,22 @@ public class DetectFailedDownloads extends MaintenanceHandler
             List<Node> pageFlat, String tag, String attr) throws Exception
     {
         boolean updated = false;
-
-        for (Node n : JSOUP.findElements(pageFlat, tag))
-            process(fullHtmlFilePath, n, tag, attr);
+        
+        if (phase == Phase.ScanLinks)
+        {
+            for (Node n : JSOUP.findElements(pageFlat, tag))
+                processScanLinks(fullHtmlFilePath, n, tag, attr);
+        }
+        else if (phase == Phase.UpdateMissingOriginalLinks)
+        {
+            for (Node n : JSOUP.findElements(pageFlat, tag))
+            updated |= processUpdateMissingOriginalLinks(fullHtmlFilePath, n, tag, attr);
+        }
 
         return updated;
     }
 
-    private void process(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
+    private void processScanLinks(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
     {
         String href = getLinkAttribute(n, attr);
         String href_original = getLinkOriginalAttribute(n, "original-" + attr);
@@ -325,6 +371,9 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
             if (tag.equalsIgnoreCase("img"))
                 fli.image = true;
+            
+            if (href_original == null)
+                needUpdateMissingOriginalLinks = true;
         }
     }
 
@@ -533,6 +582,46 @@ public class DetectFailedDownloads extends MaintenanceHandler
             for (String s : xs)
                 urls.remove(s);
         }
+    }
+
+    /* ===================================================================================================== */
+    
+    private boolean processUpdateMissingOriginalLinks(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
+    {
+        String href_original = getLinkOriginalAttribute(n, "original-" + attr);
+        if (href_original != null)
+            return false;
+
+        String href = getLinkAttribute(n, attr);
+        if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
+            return false;
+
+        if (isArchiveOrg())
+        {
+            /* ignore bad links due to former bug in archive loader */
+            if (href.startsWith("../") && href.endsWith("../links/null"))
+                return false;
+        }
+
+        LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
+        if (linkInfo == null)
+            return false;
+
+        String ac = file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
+        if (ac == null)
+            return false;
+
+        if (!ac.equals(linkInfo.linkFullFilePath))
+            throwException("Mismatching link case");
+
+        String relpath = this.abs2rel(linkInfo.linkFullFilePath);
+        FailedLinkInfo fli = failedLinkInfo.get(relpath.toLowerCase());
+        if (fli == null || fli.urls.size() != 1)
+            return false;
+        
+        String url = fli.urls.get(0);
+        JSOUP.setAttribute(n, "original-" + attr, url);
+        return true;
     }
 
     /* ===================================================================================================== */

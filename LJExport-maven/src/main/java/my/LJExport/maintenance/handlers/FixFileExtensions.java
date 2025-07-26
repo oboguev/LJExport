@@ -126,6 +126,8 @@ public class FixFileExtensions extends MaintenanceHandler
         trace("================================= Completed user " + Config.User);
         trace("");
         trace("");
+        
+        super.endUser();
     }
 
     private void build_lc2ac() throws Exception

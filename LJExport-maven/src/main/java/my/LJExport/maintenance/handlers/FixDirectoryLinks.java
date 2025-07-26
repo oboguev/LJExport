@@ -86,6 +86,8 @@ public class FixDirectoryLinks extends MaintenanceHandler
         }
 
         txLog.writeLine("Completed user " + Config.User);
+        
+        super.endUser();
     }
 
     private void build_lc2ac() throws Exception

@@ -39,6 +39,18 @@ public abstract class MaintenanceHandler extends Maintenance
     public MaintenanceHandler() throws Exception
     {
     }
+    
+    @Override
+    protected void beginUser() throws Exception
+    {
+        super.beginUser();
+    }
+
+    @Override
+    protected void endUser() throws Exception
+    {
+        super.endUser();
+    }
 
     public LinkInfo linkInfo(String fullHtmlFilePath, String href)
     {

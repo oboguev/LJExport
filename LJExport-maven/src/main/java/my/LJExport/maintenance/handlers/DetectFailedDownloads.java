@@ -163,11 +163,13 @@ public class DetectFailedDownloads extends MaintenanceHandler
             else
             {
                 printCompletedUser();
+                super.endUser();
             }
         }
         else if (phase == Phase.UpdateMissingOriginalLinks)
         {
             printCompletedUser();
+            super.endUser();
         }
     }
 

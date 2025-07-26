@@ -175,6 +175,8 @@ public class FixLongPaths extends MaintenanceHandler
                 Util.err(sb.toString());
             }
         }
+        
+        super.endUser();
     }
 
     /* ===================================================================================================== */

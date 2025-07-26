@@ -138,11 +138,14 @@ public class RateLimiter
         }
     }
 
-    public void aborting()
+    public void aborting(boolean aborting)
     {
-        aborting = true;
-
-        for (Thread t : sleepers)
-            t.interrupt();
+        this.aborting = aborting;
+        
+        if (aborting)
+        {
+            for (Thread t : sleepers)
+                t.interrupt();
+        }
     }
 }

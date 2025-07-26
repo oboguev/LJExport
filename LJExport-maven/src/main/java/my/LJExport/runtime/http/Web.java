@@ -189,6 +189,10 @@ public class Web
         lastURL = new ThreadLocal<String>();
         semaphoreArchiveOrg = new Semaphore(Config.WebArchiveOrg_ConcurrenRequests);
 
+        RateLimiter.LJ_PAGES.aborting(false);
+        RateLimiter.LJ_IMAGES.aborting(false);
+        RateLimiter.WEB_ARCHIVE_ORG.aborting(false);
+
         if (Config.TrustStore != null)
         {
             System.setProperty("javax.net.ssl.trustStore", Config.TrustStore);
@@ -358,7 +362,9 @@ public class Web
         if (semaphoreArchiveOrg != null)
             semaphoreArchiveOrg.release(10000);
         
-        // ### wakeup ratelimites
+        RateLimiter.LJ_PAGES.aborting(true);
+        RateLimiter.LJ_IMAGES.aborting(true);
+        RateLimiter.WEB_ARCHIVE_ORG.aborting(true);
     }
 
     public static void shutdown() throws Exception

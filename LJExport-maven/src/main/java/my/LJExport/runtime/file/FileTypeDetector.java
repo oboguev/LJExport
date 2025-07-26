@@ -65,7 +65,7 @@ public class FileTypeDetector
             if (shareOfUnprintableBytes(fileBytes) * 100 < 0.5)
                 return "plain/text";
         }
-        
+
         if (fileBytes.length > 100 && isAsciiText(fileBytes))
             return "plain/text";
 
@@ -371,16 +371,19 @@ public class FileTypeDetector
 
     private static boolean isRAR50(byte[] d)
     {
-        return beginsWith(d, 0x52, 0x61, 0x72, 0x21, 0x1a, 0x07, 0x01, 0x00);
+        return d.length >= 100 && beginsWith(d, 0x52, 0x61, 0x72, 0x21, 0x1a, 0x07, 0x01, 0x00);
     }
 
     private static boolean isRAR47(byte[] d)
     {
-        return beginsWith(d, 0x52, 0x61, 0x72, 0x21, 0x1a, 0x07, 0x00);
+        return d.length >= 20 && beginsWith(d, 0x52, 0x61, 0x72, 0x21, 0x1a, 0x07, 0x00);
     }
 
     private static boolean beginsWith(byte[] d, int... sig)
     {
+        if (d.length < sig.length)
+            return false;
+        
         for (int k = 0; k < sig.length; k++)
         {
             if (d[k] != sig[k])

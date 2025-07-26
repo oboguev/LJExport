@@ -68,8 +68,9 @@ public class Web
     private static CloseableHttpClient httpRedirectClient;
 
     private static CookieStore cookieStore;
-    private static ThreadLocal<String> lastURL;
     private static PoolingHttpClientConnectionManager connManager;
+    private static ThreadLocal<String> lastURL;
+    private static CooloffMode cooloffArchiveOrg = new CooloffMode(Config.WebArchiveOrg_Http429_Cooloff_Interval);
 
     public static final int BINARY = (1 << 0);
     public static final int PROGRESS = (1 << 1);
@@ -471,13 +472,15 @@ public class Web
         final boolean progress = 0 != (flags & PROGRESS);
 
         boolean isRequest_LJPage = false;
+        boolean isArchiveOrg = false;
 
         CloseableHttpClient client = null;
 
-        if (isWebArchiveOrg(url))
+        if (isArchiveOrg(url))
         {
             RateLimiter.WEB_ARCHIVE_ORG.limitRate();
             client = httpImageClient;
+            isArchiveOrg = true;
         }
         else if (isLivejournalPicture(url))
         {
@@ -505,12 +508,42 @@ public class Web
         if (isRequest_LJPage)
             ActivityCounters.startedLJPageWebRequest();
 
+        if (isArchiveOrg(url))
+        {
+            if (Main.isAborting())
+                throw new Exception("Application is aborting");
+
+            cooloffArchiveOrg.waitIfCoolingOff();
+            
+            if (Main.isAborting())
+                throw new Exception("Application is aborting");
+        }
+
         HttpClientContext context = HttpClientContext.create();
         CloseableHttpResponse response = client.execute(request, context);
+        r.code = response.getStatusLine().getStatusCode();
+
+        if (isArchiveOrg && r.code == 429)
+        {
+            do
+            {
+                if (Main.isAborting())
+                    throw new Exception("Application is aborting");
+                
+                cooloffArchiveOrg.signalStart();
+                cooloffArchiveOrg.waitIfCoolingOff();
+
+                if (Main.isAborting())
+                    throw new Exception("Application is aborting");
+
+                response = client.execute(request, context);
+                r.code = response.getStatusLine().getStatusCode();
+            }
+            while (r.code == 429);
+        }
 
         try
         {
-            r.code = response.getStatusLine().getStatusCode();
             r.reason = response.getStatusLine().getReasonPhrase();
             r.setFinalUrl(request, context, url);
             if (response.containsHeader("Location"))
@@ -750,7 +783,7 @@ public class Web
             headers.put("Referer", referer);
         }
 
-        if (isWebArchiveOrg(url))
+        if (isArchiveOrg(url))
         {
             RateLimiter.WEB_ARCHIVE_ORG.limitRate();
         }
@@ -944,13 +977,13 @@ public class Web
         return false;
     }
 
-    private static boolean isWebArchiveOrg(String url) throws Exception
+    private static boolean isArchiveOrg(String url) throws Exception
     {
-        if (url.toLowerCase().contains("web.archive.org"))
+        if (url.toLowerCase().contains("archive.org"))
         {
             String host = new URL(url).getHost().toLowerCase();
 
-            if (host.equals("web.archive.org"))
+            if (host.equals("archive.org") || host.endsWith(".archive.org"))
                 return true;
         }
 

@@ -2,12 +2,8 @@ package my.LJExport.runtime.links;
 
 import java.io.File;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import my.LJExport.Config;
@@ -15,9 +11,11 @@ import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.file.ServerContent;
+import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.util.LinkFilepath;
+import my.WebArchiveOrg.ArchiveOrgQuery;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public class SmartLinkRedownloader
@@ -52,42 +50,33 @@ public class SmartLinkRedownloader
         Web.Response r = load_good(image, href, referer);
         if (r != null)
             return r;
-        
+
         /*
          * Load from acrhive.org
          */
         // was already an archive.org URL? 
         if (ArchiveOrgUrl.isArchiveOrgUrl(href))
             return null;
-        
+
         /*
          * Query available acrhive.org snapshots 
          */
-        String queryUrl = "https://archive.org/wayback/available?timestamp=20010101&url=" + href;
-        JsonNode jroot = load_json(queryUrl, null);
-        
-        JsonNode closest = jroot.path("archived_snapshots").path("closest");
-
-        // No snapshot data available
-        if (closest.isMissingNode() || !closest.isObject()) 
-            return null;
-
-        String status = closest.path("status").asText(null);
-        boolean available = closest.path("available").asBoolean(false);
-        String archivedUrl = closest.path("url").asText(null);
-
-        // No snapshot data available
-        if (status == null || archivedUrl == null || !available || !status.equals("200"))        
+        List<KVEntry> entries = ArchiveOrgQuery.querySnapshots(href, 1);
+        if (entries == null || entries.size() == 0)
             return null;
 
         /*
          * Load the snapshot
          */
-        archivedUrl = ArchiveOrgUrl.toDirectDownloadUrl(archivedUrl, false);
-        r = load_good(image, archivedUrl , null);
+        KVEntry e = entries.get(0);
+        String timestamp = e.key;
+        String original = e.value;
+
+        String archivedUrl = ArchiveOrgUrl.directDownloadUrl(original, timestamp, false);
+        r = load_good(image, archivedUrl, null);
         if (r != null)
             return r;
-        
+
         return null;
     }
 
@@ -95,28 +84,11 @@ public class SmartLinkRedownloader
 
     private Web.Response load_good(boolean image, String href, String referer) throws Exception
     {
-        Web.Response r = linkRedownloader.redownload(image, href, referer);
+        Web.Response r = LinkRedownloader.redownload(image, href, referer);
         if (r != null && isGoodResponse(image, href, r))
             return r;
         else
             return null;
-    }
-
-    private JsonNode load_json(String href, String referer) throws Exception
-    {
-        Web.Response r = linkRedownloader.redownload_json(href, referer);
-        if (r == null || r.code != 200)
-            return null;
-
-        Charset cs = r.extractCharset(true);
-        if (cs == null)
-            throw new Exception("Incompatible charset");
-        String json = new String(r.binaryBody, cs);
-
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(json);
-
-        return root;
     }
 
     private boolean isGoodResponse(boolean image, String href, Web.Response r) throws Exception
@@ -172,7 +144,7 @@ public class SmartLinkRedownloader
                     Config.DownloadRoot + File.separator + Config.User + File.separator + "links");
             String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
             boolean b = self.redownload(false, href, null, null);
-            Util.noop();
+            Util.unused(b);
         }
         catch (Exception ex)
         {

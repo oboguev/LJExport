@@ -457,6 +457,11 @@ public class ArchiveOrgUrl
 
         return prefix + timestamp + (isHtml ? "id_/" : "if_/") + suffix;
     }
+    
+    public static String directDownloadUrl(String originalUrl, String timestamp, boolean isHtml)
+    {
+        return ARCHIVE_PREFIX_HTTPS + String.format("%s%s/%s", timestamp, isHtml ? "id_" : "if_", originalUrl);
+    }
 
     private static final DateTimeFormatter ARCHIVE_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
             .withZone(ZoneOffset.UTC);

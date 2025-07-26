@@ -101,7 +101,7 @@ public class LinkRedownloader
         }
     }
 
-    public Web.Response redownload(boolean image, String url, String referer) throws Exception
+    public static Web.Response redownload(boolean image, String url, String referer) throws Exception
     {
         Map<String, String> headers = new HashMap<>();
 
@@ -119,7 +119,7 @@ public class LinkRedownloader
         return redownload(headers, url, referer);
     }
 
-    public Web.Response redownload_json(String url, String referer) throws Exception
+    public static Web.Response redownload_json(String url, String referer) throws Exception
     {
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
@@ -128,7 +128,7 @@ public class LinkRedownloader
         return redownload(headers, url, referer);
     }
 
-    public Web.Response redownload(Map<String, String> headers, String url, String referer) throws Exception
+    public static Web.Response redownload(Map<String, String> headers, String url, String referer) throws Exception
     {
         if (ArchiveOrgUrl.isArchiveOrgSimpleTimestampUrl(url))
             url = ArchiveOrgUrl.toDirectDownloadUrl(url, false);

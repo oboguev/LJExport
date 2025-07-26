@@ -32,6 +32,13 @@ public class KVFile
             this.value = value;
         }
 
+        public static void sortByKey(List<KVEntry> entries)
+        {
+            Collections.sort(entries, Comparator.comparing(
+                    entry -> entry.key, 
+                    Comparator.nullsFirst(String::compareTo)));
+        }
+
         public static void sortByValue(List<KVEntry> entries)
         {
             Collections.sort(entries, Comparator.comparing(

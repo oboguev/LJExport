@@ -43,16 +43,21 @@ public class FileTypeDetector
         return null;
     }
 
+    private static final Tika tika = new Tika();
+    private static final MimeTypes allMimeTypes = MimeTypes.getDefaultMimeTypes();
+
     public static String mimeTypeFromActualFileContent(byte[] fileBytes, String pathExtension) throws Exception
     {
-        Tika tika = new Tika();
         String detectedMimeType = tika.detect(fileBytes);
         if (!detectedMimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
             return detectedMimeType;
-
-        detectedMimeType = detectMimeTypeWithNio(fileBytes);
-        if (detectedMimeType != null && !detectedMimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
-            return detectedMimeType;
+        
+        if (Config.False)
+        {
+            detectedMimeType = detectMimeTypeWithNio(fileBytes);
+            if (detectedMimeType != null && !detectedMimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
+                return detectedMimeType;
+        }
 
         if (isDjvu(fileBytes))
             return "image/vnd.djvu";
@@ -63,7 +68,7 @@ public class FileTypeDetector
         if (pathExtension != null && pathExtension.equalsIgnoreCase("txt"))
         {
             if (shareOfUnprintableBytes(fileBytes) * 100 < 0.5)
-                return "plain/text";
+                return "text/plain";
         }
 
         if (fileBytes.length > 100 && isAsciiText(fileBytes))
@@ -91,22 +96,11 @@ public class FileTypeDetector
         if (mimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
             return null;
 
-        switch (mimeType.toLowerCase())
-        {
-        case "image/x-djvu":
-        case "image/vnd.djvu":
-            return "djvu";
-
-        case "application/vnd.rar":
-            return "rar";
-
-        default:
-            break;
-        }
-
-        MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
-        MimeType mimeTypeInfo = allTypes.forName(mimeType);
+        String lc = mimeType.toLowerCase();
+        
+        MimeType mimeTypeInfo = allMimeTypes.forName(mimeType);
         String extension = mimeTypeInfo.getExtension(); // e.g. ".svg"
+        
         if (extension != null)
         {
             extension = extension.toLowerCase();
@@ -115,6 +109,29 @@ public class FileTypeDetector
             if (extension.equals("bin") || extension.isBlank())
                 extension = null;
         }
+        
+        if (extension == null)
+        {
+            switch (lc)
+            {
+            case "image/x-djvu":
+            case "image/vnd.djvu":
+                return "djvu";
+
+            case "application/vnd.rar":
+                return "rar";
+
+            default:
+                break;
+            }
+            
+            if (lc.startsWith("application/x-rar-compressed"))
+                return "rar";
+            
+            if (lc.startsWith("text/"))
+                return "txt";
+        }
+        
         return extension;
     }
 

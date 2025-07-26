@@ -1199,32 +1199,88 @@ public class Util
 
     public static boolean isAbsoluteURL(String url)
     {
+        if (url == null || url.trim().isEmpty())
+            return false;
+
         try
         {
-            if (url == null || url.trim().isEmpty())
+            // First parse using URL (more lenient)
+            URL parsedUrl = new URL(url);
+
+            // Reconstruct the URI safely
+            String scheme = parsedUrl.getProtocol();
+            String host = parsedUrl.getHost();
+            int port = parsedUrl.getPort();
+            String path = parsedUrl.getPath();
+            String query = parsedUrl.getQuery();
+
+            if (scheme == null || host == null || host.trim().isEmpty())
                 return false;
 
-            URI uri = new URI(url.trim());
+            String schemeLower = scheme.toLowerCase();
+            if (!schemeLower.equals("http") && !schemeLower.equals("https"))
+                throw new RuntimeException("Unexpected URL scheme " + scheme + "://");
 
-            if (uri.getScheme() == null || uri.getHost() == null)
-                return false;
-
-            switch (uri.getScheme().toLowerCase())
+            // Encode the path
+            String[] parts = path.split("/");
+            StringBuilder encodedPath = new StringBuilder();
+            for (String part : parts)
             {
-            case "http":
-            case "https":
-                break;
-
-            default:
-                throw new RuntimeException("Unexpected URL scheme " + uri.getScheme() + "://");
+                if (!part.isEmpty())
+                {
+                    encodedPath.append('/').append(URLEncoder.encode(part, StandardCharsets.UTF_8));
+                }
             }
+            if (path.endsWith("/"))
+                encodedPath.append('/');
 
-            return 0 != uri.getHost().trim().length();
+            URI safeUri = new URI(
+                    scheme,
+                    null,
+                    host,
+                    port,
+                    encodedPath.toString(),
+                    query,
+                    null);
+
+            // Final validation on path
+            String finalPath = safeUri.getPath();
+            return finalPath == null || finalPath.trim().isEmpty() || finalPath.startsWith("/");
         }
-        catch (URISyntaxException e)
+        catch (Exception e)
         {
             return false;
         }
+    }
+
+    private static final Pattern VALID_HOST_PATTERN = Pattern.compile("^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+
+    public static String extractHost(String href) throws Exception
+    {
+        if (href == null || href.trim().isEmpty())
+            return null;
+
+        String input = href.trim();
+
+        // If it already has http or https, use URL directly
+        if (input.matches("(?i)^https?://.*"))
+        {
+            URL url = new URL(input);
+            String host = url.getHost();
+            if (host == null || host.isEmpty())
+                return null;
+            return host;
+        }
+
+        // No scheme — treat as relative or scheme-less absolute
+        int slash = input.indexOf('/');
+        String firstComponent = (slash >= 0) ? input.substring(0, slash) : input;
+
+        // Check if it looks like a valid domain name (must include dot)
+        if (VALID_HOST_PATTERN.matcher(firstComponent).matches())
+            return firstComponent;
+        else
+            return null;
     }
 
     private static boolean equalsIgnoreCase(String a, String b)

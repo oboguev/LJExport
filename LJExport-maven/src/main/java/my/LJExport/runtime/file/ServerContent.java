@@ -2,6 +2,7 @@ package my.LJExport.runtime.file;
 
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
@@ -51,31 +52,20 @@ public class ServerContent
     public static final Decision DecisionNeutral = new Decision(DecisionStatus.Neutral);
     public static final Decision DecisionReject = new Decision(DecisionStatus.Reject);
 
-    public static Decision acceptContent(String href, String serverExt, String fnExt, ContentProvider contentProvider,
-            Web.Response r)
+    public static Decision acceptContent(String href, String serverExt, String fnExt,
+            ContentProvider contentProvider, Web.Response r)
             throws Exception
     {
         if (ArchiveOrgUrl.isArchiveOrgUrl(href))
             href = ArchiveOrgUrl.extractArchivedUrlPart(href);
 
-        String host = null;
-        try
-        {
-            if (Util.isAbsoluteURL(href))
-                host = new URI(href).getHost().toLowerCase();
-            else
-                host = new URI("https://" + href).getHost().toLowerCase();
-        }
-        catch (Exception ex)
-        {
-            throw ex;
-        }
+        String host = Util.extractHost(href);
 
         /*
          * www.lib.ru and lib.ru respond to TXT URL request with the reply of HTML content,
          * but inside is the <pre> block
          */
-        if (Util.in(host, "lib.ru", "www.lib.ru") && Util.eqi(fnExt, "txt") && Util.eq(serverExt, "html"))
+        if (host != null && Util.in(host, "lib.ru", "www.lib.ru") && Util.eqi(fnExt, "txt") && Util.eq(serverExt, "html"))
         {
             if (Util.containsCaseInsensitive(contentProvider.get(), "<pre>"))
                 return new Decision(DecisionStatus.Accept, "html");

@@ -101,6 +101,9 @@ public class SmartLinkRedownloader
 
         if (ArchiveOrgUrl.isArchiveOrgUrl(href))
             href = ArchiveOrgUrl.extractArchivedUrlPart(href);
+        
+        if (!Util.isAbsoluteURL(href))
+            href = "https://" + href;
 
         String urlPathExt = LinkFilepath.getMediaFileExtension(new URL(href).getPath());
 

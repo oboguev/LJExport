@@ -371,6 +371,22 @@ public class Maintenance
 
         stageProcessedFileCount++;
     }
+    
+    protected int getStageProcessedFileCount()
+    {
+        return stageProcessedFileCount;
+    }
+
+    protected void setStageProcessedFileCount(int count)
+    {
+        stageProcessedFileCount = count;
+
+        if (consoleProgress != null)
+        {
+            double pct = (100.0 * stageProcessedFileCount) / TotalFileCount;
+            consoleProgress.update("Processing user " + Config.User, pct);
+        }
+    }
 
     /* ================================================= */
 

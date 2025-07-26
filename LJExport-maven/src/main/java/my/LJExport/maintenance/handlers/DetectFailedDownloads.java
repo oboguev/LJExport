@@ -42,7 +42,7 @@ import my.LJExport.runtime.url.UrlUtil;
  */
 public class DetectFailedDownloads extends MaintenanceHandler
 {
-    private static boolean DryRun = false; // ###
+    private static boolean DryRun = true; // ###
     // private static final Safety safety = Safety.UNSAFE;
 
     static enum Phase 
@@ -82,6 +82,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
     private Map<String, FailedLinkInfo> failedLinkInfo = new HashMap<>();
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
+    private int stageFileCount;
 
     @Override
     protected void beginUser() throws Exception
@@ -100,6 +101,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
             build_lc2ac();
             loadLinkMapFile();
             prefillFileContentExtensionMap();
+            
+            stageFileCount = this.getStageProcessedFileCount();
 
             trace("");
             trace("");
@@ -109,9 +112,13 @@ public class DetectFailedDownloads extends MaintenanceHandler
         }
         else if (phase == Phase.UpdateMissingOriginalLinks)
         {
+            this.setStageProcessedFileCount(stageFileCount);
+
             trace("");
             trace("================================= Updating HTML files for user " + Config.User);
             trace("");
+        
+            Util.out("Updating HTML files for user " + Config.User + " ...");
         }
     }
 

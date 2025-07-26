@@ -33,9 +33,9 @@ public class Maintenance
     // private static final String AllUsersFromUser = "ru_history";
     private static final String AllUsersFromUser = null;
 
-    private static final String Users = ALL_USERS;
+    // private static final String Users = ALL_USERS;
     // private static final String Users = "1981dn";
-    // private static final String Users = "oboguev";
+    private static final String Users = "oboguev";
     // private static final String Users = "a_kaminsky";
     // private static final String Users = "1981dn,1981dn_dn,64vlad,_devol_";
     // private static final String Users = "oboguev";
@@ -56,7 +56,7 @@ public class Maintenance
     protected static BufferedWriter traceWriter;
 
     protected static final int FileTypeDetectionThreads = 100;
-    
+
     private boolean repeatUser = false;
 
     public static void main(String[] args)
@@ -275,8 +275,8 @@ public class Maintenance
         {
             do
             {
-                repeatUser = false ;
-                
+                repeatUser = false;
+
                 beginUser();
 
                 processDir("pages", ParallelismDefault);
@@ -298,7 +298,7 @@ public class Maintenance
             ThreadsControl.shutdownAfterUser();
         }
     }
-    
+
     protected void repeatUser()
     {
         repeatUser = true;
@@ -371,7 +371,7 @@ public class Maintenance
 
         stageProcessedFileCount++;
     }
-    
+
     protected int getStageProcessedFileCount()
     {
         return stageProcessedFileCount;

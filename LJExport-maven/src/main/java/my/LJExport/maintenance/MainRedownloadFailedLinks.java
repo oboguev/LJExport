@@ -244,8 +244,13 @@ public class MainRedownloadFailedLinks
     {
         file_lc2ac = new HashMap<>();
 
+        MaintenanceHandler mh = new MaintenanceHandlerPassive();
+
         for (String fp : Util.enumerateFiles(linksDir, null))
         {
+            if (mh.isLinksRootFileRelativePathSyntax(fp))
+                continue;
+
             fp = linksDir + File.separator + fp;
             file_lc2ac.put(fp.toLowerCase(), fp);
         }

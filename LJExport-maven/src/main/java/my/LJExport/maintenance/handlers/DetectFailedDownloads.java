@@ -184,6 +184,9 @@ public class DetectFailedDownloads extends MaintenanceHandler
     {
         for (String fp : Util.enumerateFiles(linksDir, null))
         {
+            if (isLinksRootFileRelativePathSyntax(fp))
+                continue;
+            
             fp = linksDir + File.separator + fp;
             file_lc2ac.put(fp.toLowerCase(), fp);
         }
@@ -312,6 +315,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
             contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt);
             fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
         }
+
+        // ### apply content-type.txt as override for contentExtension (or fallback if null) 
 
         if (contentExtension == null || contentExtension.length() == 0)
             return;

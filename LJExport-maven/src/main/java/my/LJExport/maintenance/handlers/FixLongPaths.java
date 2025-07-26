@@ -183,6 +183,9 @@ public class FixLongPaths extends MaintenanceHandler
     {
         for (String fp : Util.enumerateFiles(linksDir, null))
         {
+            if (isLinksRootFileRelativePathSyntax(fp))
+                continue;
+
             fp = linksDir + File.separator + fp;
             file_lc2ac.put(fp.toLowerCase(), fp);
         }

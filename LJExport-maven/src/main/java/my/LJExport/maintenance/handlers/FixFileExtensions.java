@@ -132,6 +132,9 @@ public class FixFileExtensions extends MaintenanceHandler
     {
         for (String fp : Util.enumerateFiles(linksDir, null))
         {
+            if (isLinksRootFileRelativePathSyntax(fp))
+                continue;
+
             fp = linksDir + File.separator + fp;
             file_lc2ac.put(fp.toLowerCase(), fp);
         }
@@ -254,7 +257,7 @@ public class FixFileExtensions extends MaintenanceHandler
              * Get extension from file name 
              */
             String fnExt = LinkFilepath.getMediaFileExtension(linkInfo.linkFullFilePath);
-
+            
             /*
              * Detect implied file extension from actual file content 
              */
@@ -269,6 +272,8 @@ public class FixFileExtensions extends MaintenanceHandler
                 contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt );
                 fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
             }
+
+            // ### apply content-type.txt as override for contentExtension (or fallback if null) 
 
             if (contentExtension == null || contentExtension.length() == 0)
                 continue;

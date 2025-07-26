@@ -254,4 +254,22 @@ public abstract class MaintenanceHandler extends Maintenance
     {
         return s == null || s.isEmpty();
     }
+    
+    public boolean isLinksRootFileRelativePathSyntax(String relPath)
+    {
+        return relPath.replace(File.separator, "/").contains("/");
+    }
+
+    public boolean isLinksRootFileRelativePath(String relPath) throws Exception
+    {
+        if (!isLinksRootFileRelativePathSyntax(relPath))
+            return false;
+        
+        File fp = new File(this.linksDirSep + relPath.replace("/", File.separator)).getCanonicalFile();
+        
+        if (!fp.exists())
+            throw new Exception("Unexpected: file does not exist: " + fp.getCanonicalPath());
+        
+        return fp.isFile();
+    }
 }

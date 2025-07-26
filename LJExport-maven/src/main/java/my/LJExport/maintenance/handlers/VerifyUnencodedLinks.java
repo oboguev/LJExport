@@ -67,6 +67,9 @@ public class VerifyUnencodedLinks extends MaintenanceHandler
     {
         for (String fp : Util.enumerateFilesAndDirectories(linksDir))
         {
+            if (isLinksRootFileRelativePath(fp))
+                continue;
+
             String relpath = fp.replace(File.separatorChar, '/');
             rel_filedir_lc2ac.put(relpath.toLowerCase(), relpath);
         }

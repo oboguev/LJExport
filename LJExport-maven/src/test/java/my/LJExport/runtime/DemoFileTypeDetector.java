@@ -48,6 +48,7 @@ public class DemoFileTypeDetector
     private static void test3() throws Exception
     {
         String ext = FileTypeDetector.fileExtensionFromMimeType("text/plain; charset=windows-1251");
+        Util.unused(ext);
 
         // txt
         test3("F:/WINAPPS/LJExport/journals/krylov/links/www.lib.ru/ANEKDOTY/PODDEREV/pavlik.txt_Ascii.txt");

@@ -15,6 +15,7 @@ import org.apache.tika.mime.MimeTypes;
 import org.apache.tika.utils.XMLReaderUtils;
 
 import my.LJExport.Config;
+import my.LJExport.runtime.Util;
 
 // image/png => png
 // application/octet-stream => null
@@ -51,7 +52,7 @@ public class FileTypeDetector
         String detectedMimeType = tika.detect(fileBytes);
         if (!detectedMimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
             return detectedMimeType;
-        
+
         if (Config.False)
         {
             detectedMimeType = detectMimeTypeWithNio(fileBytes);
@@ -73,6 +74,13 @@ public class FileTypeDetector
 
         if (fileBytes.length > 100 && isAsciiText(fileBytes))
             return "plain/text";
+
+        if (shareOfUnprintableBytes(fileBytes) * 100 < 0.5)
+        {
+            String fileAsciiText = new String(fileBytes, java.nio.charset.StandardCharsets.US_ASCII);
+            if (fileAsciiText.contains("<style>") && fileAsciiText.contains("<div ") )
+                return "text/plain";
+        }
 
         return MIME_OCTET_STREAM;
     }
@@ -97,16 +105,16 @@ public class FileTypeDetector
             return null;
 
         String lc = mimeType.toLowerCase();
-        
+
         MimeType mimeTypeInfo = allMimeTypes.forName(mimeType);
         String extension = mimeTypeInfo.getExtension(); // e.g. ".svg"
-        
+
         if (extension != null)
         {
             extension = extension.toLowerCase();
             if (extension.startsWith("."))
                 extension = extension.substring(1);
-            
+
             switch (extension)
             {
             case "gtar":
@@ -117,12 +125,12 @@ public class FileTypeDetector
                 extension = "tif";
                 break;
             }
-            
+
             if (extension.equals("bin") || extension.isBlank())
                 extension = null;
-            
+
         }
-        
+
         if (extension == null)
         {
             switch (lc)
@@ -137,14 +145,14 @@ public class FileTypeDetector
             default:
                 break;
             }
-            
+
             if (lc.startsWith("application/x-rar-compressed"))
                 return "rar";
-            
+
             if (lc.startsWith("text/"))
                 return "txt";
         }
-        
+
         return extension;
     }
 
@@ -381,6 +389,9 @@ public class FileTypeDetector
             // Accept common printable range for KOI8-R and CP1251
             if (b >= 128 && b <= 255)
                 continue;
+            
+            if (Util.False && b == 127)
+                continue;
 
             unprintable++;
         }
@@ -416,7 +427,7 @@ public class FileTypeDetector
     {
         if (d.length < sig.length)
             return false;
-        
+
         for (int k = 0; k < sig.length; k++)
         {
             if (d[k] != sig[k])

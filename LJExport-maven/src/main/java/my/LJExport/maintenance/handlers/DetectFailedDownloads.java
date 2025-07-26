@@ -117,7 +117,10 @@ public class DetectFailedDownloads extends MaintenanceHandler
             trace("================================= Updating HTML files for user " + Config.User);
             trace("");
 
-            Util.out("Updating HTML files for user " + Config.User + " ...");
+            if (DryRun)
+                Util.out("Updating HTML files for user " + Config.User + " ... [DRY RUN]");
+            else
+                Util.out("Updating HTML files for user " + Config.User + " ...");
         }
     }
 
@@ -494,7 +497,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 String msg = "Multiple URLs for link file: " + relpath;
                 Util.err(msg);
                 if (Util.True && DryRun)
-                {   
+                {
                     // ####
                     for (String s : urls)
                         Util.err("    " + s);

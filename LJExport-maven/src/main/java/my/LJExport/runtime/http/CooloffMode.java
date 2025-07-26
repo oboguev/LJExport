@@ -3,33 +3,43 @@ package my.LJExport.runtime.http;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import my.LJExport.Main;
 import my.LJExport.runtime.Util;
+
 
 public class CooloffMode
 {
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition resumeCondition = lock.newCondition();
-    private volatile long cooloffUntil = 0;
 
     private final long durationMillis;
+    private volatile long cooloffUntil = 0;
+    private volatile boolean timerRunning = false;
 
     public CooloffMode(long durationMillis)
     {
         this.durationMillis = durationMillis;
     }
 
-    // Call this BEFORE a request: will block if cool-off is active
     public void waitIfCoolingOff()
     {
+        if (Main.isAborting())
+            return;
+
         lock.lock();
         try
         {
-            long now;
-            while ((now = System.currentTimeMillis()) < cooloffUntil)
+            while (true)
             {
+                long now = System.currentTimeMillis();
+                if (Main.isAborting())
+                    return;
+                if (now >= cooloffUntil)
+                    return;
+
+                long waitTime = cooloffUntil - now;
                 try
                 {
-                    long waitTime = cooloffUntil - now;
                     resumeCondition.awaitNanos(waitTime * 1_000_000);
                 }
                 catch (InterruptedException ignored)
@@ -43,41 +53,72 @@ public class CooloffMode
         }
     }
 
-    // Call this AFTER detecting 429: will activate if not already cooling
     public void signalStart()
+    {
+        long now = System.currentTimeMillis();
+        boolean wasCooling;
+
+        lock.lock();
+        try
+        {
+            wasCooling = (now < cooloffUntil);
+            cooloffUntil = now + durationMillis;
+
+            if (!wasCooling && !timerRunning)
+            {
+                Util.out("Archive.org cool-off mode activated for " + (durationMillis / 1000) + " sec");
+                timerRunning = true;
+
+                new Thread(() ->
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            long sleepMillis;
+                            lock.lock();
+                            try
+                            {
+                                long nowInner = System.currentTimeMillis();
+                                if (Main.isAborting())
+                                    return;
+
+                                sleepMillis = cooloffUntil - nowInner;
+                                if (sleepMillis <= 0)
+                                {
+                                    timerRunning = false;
+                                    Util.out("Archive.org cool-off mode completed");
+                                    resumeCondition.signalAll();
+                                    return;
+                                }
+                            }
+                            finally
+                            {
+                                lock.unlock();
+                            }
+                            Thread.sleep(sleepMillis);
+                        }
+                        catch (InterruptedException ignored)
+                        {
+                        }
+                    }
+                }, "CooloffTimer").start();
+            }
+        }
+        finally
+        {
+            lock.unlock();
+        }
+    }
+
+    public void cancelCoolingOff()
     {
         lock.lock();
         try
         {
-            long now = System.currentTimeMillis();
-            if (now < cooloffUntil)
-                return; // already cooling
-
-            cooloffUntil = now + durationMillis;
-            Util.out("Archive.org cool-off mode activated for " + (durationMillis / 1000) + " sec");
-
-            // Schedule resume message + notification
-            new Thread(() ->
-            {
-                try
-                {
-                    Thread.sleep(durationMillis);
-                    lock.lock();
-                    try
-                    {
-                        Util.out("Archive.org cool-off mode completed");
-                        resumeCondition.signalAll();
-                    }
-                    finally
-                    {
-                        lock.unlock();
-                    }
-                }
-                catch (InterruptedException ignored)
-                {
-                }
-            }, "CooloffTimer").start();
-
+            cooloffUntil = 0;
+            timerRunning = false;
+            resumeCondition.signalAll();
         }
         finally
         {

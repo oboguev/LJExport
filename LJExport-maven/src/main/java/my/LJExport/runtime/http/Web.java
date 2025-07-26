@@ -347,8 +347,17 @@ public class Web
         httpImageClient = hcbImage.build();
     }
 
+    public static void aborting()
+    {
+        if (cooloffArchiveOrg != null)
+            cooloffArchiveOrg.cancelCoolingOff();
+    }
+
     public static void shutdown() throws Exception
     {
+        if (cooloffArchiveOrg != null)
+            cooloffArchiveOrg.cancelCoolingOff();
+        
         cookieStore = null;
 
         if (lastURL != null)

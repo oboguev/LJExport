@@ -89,6 +89,7 @@ public class Main
     public static void setAborting()
     {
         aborting = true;
+        Web.aborting();
     }
 
     public static boolean isAborting()

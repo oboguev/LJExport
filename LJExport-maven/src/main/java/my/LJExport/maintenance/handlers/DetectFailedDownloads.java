@@ -5,9 +5,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.jsoup.nodes.Node;
 
@@ -403,6 +405,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
             if (urls.size() > 1)
             {
+                weedOutImgPrx();
+                
                 String url = UrlUtil.consolidateUrlVariants(urls, false);
                 if (url == null)
                     url = UrlUtil.consolidateUrlVariants(urls, true);
@@ -445,6 +449,34 @@ public class DetectFailedDownloads extends MaintenanceHandler
             url = Util.stripAnchor(url);
             if (!urls.contains(url))
                 urls.add(url);
+        }
+
+        private void weedOutImgPrx()
+        {
+            Set<String> xs = new HashSet<>();
+            boolean hasOther = false;
+            
+            for (String s : urls)
+            {
+                if (isImgPrx(s))
+                    xs.add(s);
+                else
+                    hasOther = true;
+            }
+            
+            if (hasOther)
+            {
+                for (String s : xs)
+                    urls.remove(s);
+            }
+        }
+        
+        private boolean isImgPrx(String url)
+        {
+            String lc = url.toLowerCase();
+            return lc.startsWith("https://imgprx.livejournal.net/") ||
+                    lc.startsWith("http://imgprx.livejournal.net/") ||
+                    lc.startsWith("imgprx.livejournal.net/");
         }
     }
 

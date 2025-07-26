@@ -64,6 +64,31 @@ public class DemoFileTypeDetector
         test3("F:/WINAPPS/LJExport/journals/a_bugaev/links/cumatoid.narod.ru/publications/rozov_monograf_2006.rar");
         test3("F:/WINAPPS/LJExport/journals/alexandrov_g/links/left.ru/bib/barbarossa.rar");
 
+        String DIR = "P:\\@downloads\\mime\\";
+
+        test3(DIR + "a.7z");
+        test3(DIR + "a.avif");
+        test3(DIR + "a.bmp");
+        test3(DIR + "a.dib");
+        test3(DIR + "a.djvu");
+        test3(DIR + "a.doc");
+        test3(DIR + "a.docx");
+        test3(DIR + "a.gif");
+        test3(DIR + "a.jpeg");
+        test3(DIR + "a.jpg");
+        test3(DIR + "a.odt");
+        test3(DIR + "a.pdf");
+        test3(DIR + "a.png");
+        test3(DIR + "a.rar");
+        test3(DIR + "a.rtf");
+        test3(DIR + "a.svg");
+        test3(DIR + "a.tar");
+        test3(DIR + "a.tar.gz");
+        test3(DIR + "a.tgz");
+        test3(DIR + "a.tif");
+        test3(DIR + "a.tiff");
+        test3(DIR + "a.webp");
+        test3(DIR + "a.zip");
     }
 
     private static void test3(String path) throws Exception
@@ -72,7 +97,7 @@ public class DemoFileTypeDetector
         String fnExt = LinkFilepath.getMediaFileExtension(path);
         byte[] ba = Util.readFileAsByteArray(path);
         String ext = FileTypeDetector.fileExtensionFromActualFileContent(ba, fnExt);
-        
+
         Util.out(String.format("%s => %s", path, ext == null ? "<null>" : ext));
     }
 }

@@ -493,7 +493,20 @@ public class DetectFailedDownloads extends MaintenanceHandler
             {
                 String msg = "Multiple URLs for link file: " + relpath;
                 Util.err(msg);
-                throwException(msg);
+                if (Util.True && DryRun)
+                {   
+                    // ####
+                    for (String s : urls)
+                        Util.err("    " + s);
+                    Util.err("------------------------------");
+                    String url = urls.get(0);
+                    urls.clear();
+                    urls.add(url);
+                }
+                else
+                {
+                    throwException(msg);
+                }
                 Util.noop();
             }
 

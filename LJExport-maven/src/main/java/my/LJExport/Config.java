@@ -130,7 +130,7 @@ public class Config
     /* Download linked files of the listed types locally, so they can be accessed offline */
     // public static List<String> DownloadFileTypes = null;
     public static final List<String> DownloadFileTypes = Util
-            .asList("jpg,jpeg,gif,png,webp,avif,bmp,svg,pdf,djvu,tif,tiff,txt,doc,docx,odt,rtf,zip,rar,7z,7zip,tar,tgz");
+            .asList("jpg,jpeg,gif,png,webp,avif,bmp,svg,pdf,djvu,tif,tiff,txt,doc,docx,odt,rtf,zip,rar,7z,tar,tgz,gz");
     public static String UserAgentAccept_Download = "image/*, application/pdf, application/x-djvu, application/msword, " +
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document, " +
             "application/rtf, application/zip, application/x-rar-compressed, application/x-tar, " +

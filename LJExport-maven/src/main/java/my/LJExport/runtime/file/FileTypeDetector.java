@@ -106,8 +106,21 @@ public class FileTypeDetector
             extension = extension.toLowerCase();
             if (extension.startsWith("."))
                 extension = extension.substring(1);
+            
+            switch (extension)
+            {
+            case "gtar":
+                extension = "tar";
+                break;
+
+            case "tiff":
+                extension = "tif";
+                break;
+            }
+            
             if (extension.equals("bin") || extension.isBlank())
                 extension = null;
+            
         }
         
         if (extension == null)
@@ -189,6 +202,10 @@ public class FileTypeDetector
         canonicalExtensionMap.put("htm", "html");
         canonicalExtensionMap.put("xhtml", "html");
         canonicalExtensionMap.put("shtml", "html");
+
+        // archives
+        canonicalExtensionMap.put("tgz", "gz");
+        canonicalExtensionMap.put("gz", "gz");
 
         commonExtensions = makeCommonExtensions();
     }
@@ -302,7 +319,6 @@ public class FileTypeDetector
         xs.addAll(Config.DownloadFileTypes);
 
         xs.add("7z");
-        xs.add("7zip");
         xs.add("gz");
         xs.add("rar");
         xs.add("tar");

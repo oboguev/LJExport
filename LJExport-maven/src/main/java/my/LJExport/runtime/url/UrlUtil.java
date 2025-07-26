@@ -143,11 +143,21 @@ public class UrlUtil
         for (int i = 0; i < pairs.length; i++)
         {
             String[] kv = pairs[i].split("=", 2);
-            String key = fullyDecode(kv[0]);
-            String val = kv.length > 1 ? fullyDecode(kv[1]) : "";
+            String rawKey = kv[0];
+            String rawVal = (kv.length > 1) ? kv[1] : "";
 
-            String encKey = URLEncoder.encode(key, StandardCharsets.UTF_8).replace("+", "%20");
-            String encVal = URLEncoder.encode(val, StandardCharsets.UTF_8).replace("+", "%20");
+            String decodedKey = fullyDecode(rawKey);
+            String decodedVal = fullyDecode(rawVal);
+
+            // Try to polish all values that appear to be URLs
+            String polished = polishToRfcSafe(decodedVal);
+            if (polished != null && (decodedVal.startsWith("http://") || decodedVal.startsWith("https://")))
+            {
+                decodedVal = polished;
+            }
+
+            String encKey = URLEncoder.encode(decodedKey, StandardCharsets.UTF_8).replace("+", "%20");
+            String encVal = URLEncoder.encode(decodedVal, StandardCharsets.UTF_8).replace("+", "%20");
 
             if (i > 0)
                 result.append("&");

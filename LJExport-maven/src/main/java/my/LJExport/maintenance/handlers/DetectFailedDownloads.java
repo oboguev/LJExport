@@ -426,6 +426,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 {
                     // Objects.requireNonNull(wcx.contentExtension, "extension is null");
                     Util.noop();
+                    // ###
+                    Util.err("TYPE: " + wcx.fullFilePath);
                 }
 
                 fileContentExtensionMap.put(wcx.fullFilePath.toLowerCase(), wcx.contentExtension);

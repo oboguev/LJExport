@@ -63,6 +63,9 @@ public class FileTypeDetector
         if (isDjvu(fileBytes))
             return "image/vnd.djvu";
 
+        if (isRAR(fileBytes))
+            return "application/vnd.rar";
+
         return MIME_OCTET_STREAM;
     }
 
@@ -85,8 +88,18 @@ public class FileTypeDetector
         if (mimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
             return null;
 
-        if (mimeType.equalsIgnoreCase("image/vnd.djvu") || mimeType.equalsIgnoreCase("image/x-djvu"))
+        switch (mimeType.toLowerCase())
+        {
+        case "image/x-djvu":
+        case "image/vnd.djvu":
             return "djvu";
+
+        case "application/vnd.rar":
+            return "rar";
+
+        default:
+            break;
+        }
 
         MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
         MimeType mimeTypeInfo = allTypes.forName(mimeType);
@@ -339,12 +352,38 @@ public class FileTypeDetector
         return (double) unprintable / total;
     }
 
-    private static boolean isDjvu(byte[] data)
+    private static boolean isDjvu(byte[] d)
     {
-        if (data.length < 88)
+        if (d.length < 88)
             return false;
 
-        return data[0] == 'A' && data[1] == 'T' && data[2] == '&' && data[3] == 'T' &&
-                data[12] == 'D' && data[13] == 'J' && data[14] == 'V';
+        return d[0] == 'A' && d[1] == 'T' && d[2] == '&' && d[3] == 'T' &&
+                d[12] == 'D' && d[13] == 'J' && d[14] == 'V';
+    }
+
+    private static boolean isRAR(byte[] d)
+    {
+        return isRAR50(d) || isRAR47(d);
+    }
+
+    private static boolean isRAR50(byte[] d)
+    {
+        return beginsWith(d, 0x52, 0x61, 0x72, 0x21, 0x1a, 0x07, 0x01, 0x00);
+    }
+
+    private static boolean isRAR47(byte[] d)
+    {
+        return beginsWith(d, 0x52, 0x61, 0x72, 0x21, 0x1a, 0x07, 0x00);
+    }
+
+    private static boolean beginsWith(byte[] d, int... sig)
+    {
+        for (int k = 0; k < sig.length; k++)
+        {
+            if (d[k] != sig[k])
+                return false;
+        }
+
+        return true;
     }
 }

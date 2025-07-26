@@ -47,6 +47,8 @@ public class DemoFileTypeDetector
 
     private static void test3() throws Exception
     {
+        String ext = FileTypeDetector.fileExtensionFromMimeType("text/plain; charset=windows-1251");
+
         // txt
         test3("F:/WINAPPS/LJExport/journals/krylov/links/www.lib.ru/ANEKDOTY/PODDEREV/pavlik.txt_Ascii.txt");
         Util.out("");
@@ -58,7 +60,7 @@ public class DemoFileTypeDetector
         test3("F:/WINAPPS/LJExport/journals/oboguev/links/politikus.ru/uploads/posts/2014-11/1415736098_871223.jpg");
         test3("F:/WINAPPS/LJExport/journals/tanya_mass/links/politikus.ru/uploads/forum/images/1376453236.jpg");
         Util.out("");
-        
+
         // none (http response with headers)
         test3("F:/WINAPPS/LJExport/journals/oboguev/links/www.loveplanet.lv/host/humor/c7/b_h38599.jpg");
         Util.out("");
@@ -73,7 +75,7 @@ public class DemoFileTypeDetector
         test3("F:/WINAPPS/LJExport/journals/pioneer_lj/links/timesmachine.nytimes.com/timesmachine/1872/03/12/121600740.pdf");
         test3("F:/WINAPPS/LJExport/journals/pioneer_lj/links/timesmachine.nytimes.com/timesmachine/1899/06/27/101127854.pdf");
         Util.out("");
-        
+
         // ....................
 
         // doc

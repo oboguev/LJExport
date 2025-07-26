@@ -1,9 +1,5 @@
 package my.LJExport.runtime.file;
 
-import java.net.URI;
-import java.net.URL;
-import java.net.URLEncoder;
-
 import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.Web;

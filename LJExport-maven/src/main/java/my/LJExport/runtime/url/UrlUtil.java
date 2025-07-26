@@ -28,6 +28,11 @@ public class UrlUtil
      * 
      * in the latter case it is resolved to https://i.imgur.com/TWqVwm5.jpg
      * 
+     * or:
+     * 
+     *   https://external.xx.fbcdn.net/safe_image.php?d=AQCGFA0tZwkf8pbu&w=130&h=130&url=http://gotoroad.ru/img/map-index-life.jpg&cfs=1&_nc_hash=AQC6OxfHDMHpoNRy
+     *   https://external.xx.fbcdn.net/safe_image.php?d=AQCGFA0tZwkf8pbu&w=130&h=130&url=http%3A%2F%2Fgotoroad.ru%2Fimg%2Fmap-index-life.jpg&cfs=1&_nc_hash=AQC6OxfHDMHpoNRy
+     * 
      * If urls is empty collection, returns null.
      * If urls contains only one element, returns this element.
      * If urls contains multiple elements of different shapes of the same URL (protocol, encodings), tries to consolidate them to one canonic form and return it.
@@ -66,14 +71,10 @@ public class UrlUtil
         if (normalizedToOriginals.size() != 1)
             return null;
 
-        List<String> variants = normalizedToOriginals.values().iterator().next();
-        String best = selectBestVariant(variants);
+        String best = selectBestVariant(normalizedToOriginals.values().iterator().next());
         return polishToRfcSafe(best);
     }
 
-    /**
-     * Normalize a URL for equivalence comparison.
-     */
     private static String normalizeUrlForComparison(String urlString, boolean ignorePathCase)
     {
         try
@@ -89,11 +90,11 @@ public class UrlUtil
             }
 
             String path = normalizeAndReencodePath(url.getPath(), ignorePathCase);
-            String query = url.getQuery();
+            String query = normalizeQuery(url.getQuery());
             String fragment = url.getRef();
 
             URI normalized = new URI(
-                    "scheme", // placeholder to unify http/https
+                    "scheme",
                     null,
                     host,
                     port,
@@ -109,9 +110,53 @@ public class UrlUtil
         }
     }
 
-    /**
-     * Repeatedly decode encoded segments (handles double-encoding like %2520).
-     */
+    private static String normalizeAndReencodePath(String rawPath, boolean ignoreCase)
+    {
+        String[] parts = rawPath.split("/");
+        List<String> encoded = new ArrayList<>();
+        for (String part : parts)
+        {
+            try
+            {
+                String decoded = fullyDecode(part);
+                if (ignoreCase)
+                    decoded = decoded.toLowerCase(Locale.ROOT);
+                String encodedPart = URLEncoder.encode(decoded, StandardCharsets.UTF_8).replace("+", "%20");
+                encoded.add(encodedPart);
+            }
+            catch (Exception e)
+            {
+                encoded.add(part);
+            }
+        }
+        return "/" + String.join("/", encoded);
+    }
+
+    private static String normalizeQuery(String rawQuery)
+    {
+        if (rawQuery == null || rawQuery.isEmpty())
+            return null;
+
+        StringBuilder result = new StringBuilder();
+        String[] pairs = rawQuery.split("&");
+
+        for (int i = 0; i < pairs.length; i++)
+        {
+            String[] kv = pairs[i].split("=", 2);
+            String key = fullyDecode(kv[0]);
+            String val = kv.length > 1 ? fullyDecode(kv[1]) : "";
+
+            String encKey = URLEncoder.encode(key, StandardCharsets.UTF_8).replace("+", "%20");
+            String encVal = URLEncoder.encode(val, StandardCharsets.UTF_8).replace("+", "%20");
+
+            if (i > 0)
+                result.append("&");
+            result.append(encKey).append("=").append(encVal);
+        }
+
+        return result.toString();
+    }
+
     private static String fullyDecode(String input)
     {
         String prev;
@@ -128,39 +173,6 @@ public class UrlUtil
         return current;
     }
 
-    /**
-     * Re-encode path components to strict percent-encoded format.
-     */
-    private static String normalizeAndReencodePath(String rawPath, boolean ignoreCase)
-    {
-        String[] parts = rawPath.split("/");
-        List<String> encoded = new ArrayList<>();
-        for (String part : parts)
-        {
-            try
-            {
-                String decoded = fullyDecode(part);
-                if (ignoreCase)
-                {
-                    decoded = decoded.toLowerCase(Locale.ROOT);
-                }
-                String encodedPart = URLEncoder.encode(decoded, StandardCharsets.UTF_8)
-                        .replace("+", "%20");
-                encoded.add(encodedPart);
-            }
-            catch (Exception e)
-            {
-                encoded.add(part); // fallback
-            }
-        }
-        return "/" + String.join("/", encoded);
-    }
-
-    /**
-     * Selects the best variant among URL strings:
-     * - Prefer fewer %25 (less double-encoding)
-     * - Prefer HTTPS
-     */
     private static String selectBestVariant(List<String> variants)
     {
         String best = null;
@@ -170,23 +182,16 @@ public class UrlUtil
         {
             int score = countOccurrences(v, "%25");
             if (v.toLowerCase(Locale.ROOT).startsWith("https://"))
-            {
                 score -= 10;
-            }
             if (score < bestScore)
             {
-                best = v;
                 bestScore = score;
+                best = v;
             }
         }
-
         return best;
     }
 
-    /**
-     * Convert possibly non-conforming URL to polished, RFC-compliant form.
-     * Applies encoding, removes default ports, normalizes scheme and host.
-     */
     private static String polishToRfcSafe(String rawUrl)
     {
         try
@@ -201,7 +206,7 @@ public class UrlUtil
             }
 
             String path = normalizeAndReencodePath(url.getPath(), false);
-            String query = url.getQuery();
+            String query = normalizeQuery(url.getQuery());
             String fragment = url.getRef();
 
             URI polished = new URI(
@@ -213,7 +218,7 @@ public class UrlUtil
                     query,
                     fragment);
 
-            return polished.toASCIIString(); // return encoded, RFC-compliant URI string
+            return polished.toASCIIString();
         }
         catch (Exception e)
         {
@@ -221,9 +226,6 @@ public class UrlUtil
         }
     }
 
-    /**
-     * Count occurrences of substring in string.
-     */
     private static int countOccurrences(String s, String sub)
     {
         int count = 0, idx = 0;

@@ -442,6 +442,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         private void addUrl(String url) throws Exception
         {
+            url = Util.stripAnchor(url);
             if (!urls.contains(url))
                 urls.add(url);
         }

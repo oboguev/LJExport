@@ -121,8 +121,8 @@ public class LowercaseLinks extends MaintenanceHandler
 
     private void lowercaseLinkFilePaths() throws Exception
     {
-        lowercaseFilesysNames(new File(this.linkDir), false);
-        lowercaseFilesysNames(new File(this.linkDir), true);
+        lowercaseFilesysNames(new File(this.linksDir), false);
+        lowercaseFilesysNames(new File(this.linksDir), true);
     }
 
     private void lowercaseFilesysNames(File indir, boolean apply) throws Exception
@@ -193,7 +193,7 @@ public class LowercaseLinks extends MaintenanceHandler
 
     private void lowercaseLinksMap() throws Exception
     {
-        String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+        String mapFilePath = this.linksDir + File.separator + LinkDownloader.LinkMapFileName;
         boolean update = false;
 
         List<LinkMapEntry> list = FileBackedMap.readMapFile(mapFilePath);

@@ -111,7 +111,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
         if (updatedMap && !DryRun)
         {
-            String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+            String mapFilePath = this.linksDir + File.separator + LinkDownloader.LinkMapFileName;
 
             txLog.writeLine("updating links map " + mapFilePath);
             String content = FileBackedMap.recomposeMapFile(linkMapEntries);
@@ -130,15 +130,15 @@ public class FixFileExtensions extends MaintenanceHandler
 
     private void build_lc2ac() throws Exception
     {
-        for (String fp : Util.enumerateFiles(linkDir, null))
+        for (String fp : Util.enumerateFiles(linksDir, null))
         {
-            fp = linkDir + File.separator + fp;
+            fp = linksDir + File.separator + fp;
             file_lc2ac.put(fp.toLowerCase(), fp);
         }
 
-        for (String fp : Util.enumerateDirectories(linkDir))
+        for (String fp : Util.enumerateDirectories(linksDir))
         {
-            fp = linkDir + File.separator + fp;
+            fp = linksDir + File.separator + fp;
             dir_lc2ac.put(fp.toLowerCase(), fp);
         }
 
@@ -156,7 +156,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
     private void loadLinkMapFile() throws Exception
     {
-        String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+        String mapFilePath = this.linksDir + File.separator + LinkDownloader.LinkMapFileName;
         linkMapEntries = FileBackedMap.readMapFile(mapFilePath);
 
         relpath2entry = new HashMap<>();

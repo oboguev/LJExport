@@ -69,7 +69,7 @@ public class FixUnencodedLinks extends MaintenanceHandler
 
     private void build_lc2ac() throws Exception
     {
-        for (String fp : Util.enumerateFilesAndDirectories(linkDir))
+        for (String fp : Util.enumerateFilesAndDirectories(linksDir))
         {
             String relpath = fp.replace(File.separatorChar, '/');
             rel_filedir_lc2ac.put(relpath.toLowerCase(), relpath);

@@ -116,7 +116,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         if (!DryRun)
         {
-            new KVFile(linkDirSep + "failed-link-downloads.txt").save(list);
+            new KVFile(linksDirSep + "failed-link-downloads.txt").save(list);
             trace("Stored failed-link-downloads.txt for user " + Config.User);
             Util.out("Stored failed-link-downloads.txt for user " + Config.User);
         }
@@ -130,16 +130,16 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
     private void build_lc2ac() throws Exception
     {
-        for (String fp : Util.enumerateFiles(linkDir, null))
+        for (String fp : Util.enumerateFiles(linksDir, null))
         {
-            fp = linkDir + File.separator + fp;
+            fp = linksDir + File.separator + fp;
             file_lc2ac.put(fp.toLowerCase(), fp);
         }
     }
 
     private void loadLinkMapFile() throws Exception
     {
-        String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+        String mapFilePath = this.linksDir + File.separator + LinkDownloader.LinkMapFileName;
         linkMapEntries = FileBackedMap.readMapFile(mapFilePath);
 
         relpath2entry = new HashMap<>();

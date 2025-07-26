@@ -4,8 +4,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import my.LJExport.Config;
 import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
@@ -21,29 +19,36 @@ import my.WebArchiveOrg.ArchiveOrgUrl;
 public class SmartLinkRedownloader
 {
     private final String linksDir;
-    private final LinkRedownloader linkRedownloader;
 
     public SmartLinkRedownloader(String linksDir)
     {
         this.linksDir = linksDir;
-        this.linkRedownloader = new LinkRedownloader(linksDir);
     }
 
     public boolean redownload(boolean image, String href, String unixRelFilePath, String referer) throws Exception
     {
-        String href_noanchor = Util.stripAnchor(href);
+        Web.Response r = smartDownload(image, href, referer);
+        
+        if (r != null)
+        {
+            String fullFilePath = this.linksDir + File.separator + unixRelFilePath.replace('/', File.separatorChar);
+            File fp = new File(fullFilePath).getCanonicalFile();
+            if (!fp.exists())
+                fp.mkdirs();
+            Util.writeToFileSafe(fullFilePath, r.binaryBody);
+        }
 
-        Web.Response r = smart_load(image, href_noanchor, referer);
+        // ### handle archive.org http 429 (cool off and retry)
 
-        // ### add handling via archive.org
-        // ### handle http 429 (cool off and retry)
         return r != null;
     }
 
     /* ================================================================================================== */
 
-    private Web.Response smart_load(boolean image, String href, String referer) throws Exception
+    public static Web.Response smartDownload(boolean image, String href, String referer) throws Exception
     {
+        href = Util.stripAnchor(href);
+
         /*
          * Load live online copy
          */
@@ -82,7 +87,7 @@ public class SmartLinkRedownloader
 
     /* ================================================================================================== */
 
-    private Web.Response load_good(boolean image, String href, String referer) throws Exception
+    private static Web.Response load_good(boolean image, String href, String referer) throws Exception
     {
         Web.Response r = LinkRedownloader.redownload(image, href, referer);
         if (r != null && isGoodResponse(image, href, r))
@@ -91,7 +96,7 @@ public class SmartLinkRedownloader
             return null;
     }
 
-    private boolean isGoodResponse(boolean image, String href, Web.Response r) throws Exception
+    private static boolean isGoodResponse(boolean image, String href, Web.Response r) throws Exception
     {
         if (r.code != 200)
             return false;

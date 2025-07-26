@@ -17,8 +17,8 @@ import my.LJExport.runtime.links.util.RelativeLink;
 public abstract class MaintenanceHandler extends Maintenance
 {
     protected final String userDir = isEmpty(Config.User) ? null : FilePath.getFilePathActualCase(Config.DownloadRoot + File.separator + Config.User);
-    protected final String linkDir = isEmpty(Config.User) ? null : FilePath.getFilePathActualCase(userDir + File.separator + "links");
-    protected final String linkDirSep = isEmpty(Config.User) ? null : linkDir + File.separator;
+    protected final String linksDir = isEmpty(Config.User) ? null : FilePath.getFilePathActualCase(userDir + File.separator + "links");
+    protected final String linksDirSep = isEmpty(Config.User) ? null : linksDir + File.separator;
     protected final List<String> validNonLinkRoots = validNonLinkRoots();
     
     private static final String FileProtocol = "file://";
@@ -43,7 +43,7 @@ public abstract class MaintenanceHandler extends Maintenance
         fp = new File(fp, ("../" + href).replace("/", File.separator));
         fp = FilePath.canonicalFile(fp);
         String linkFullFilePath = fp.toString();
-        if (!linkFullFilePath.startsWith(linkDirSep))
+        if (!linkFullFilePath.startsWith(linksDirSep))
         {
             return null;
         }
@@ -51,7 +51,7 @@ public abstract class MaintenanceHandler extends Maintenance
         {
             LinkInfo info = new LinkInfo();
             info.linkFullFilePath = linkFullFilePath;
-            info.linkRelativeFilePath = linkFullFilePath.substring(linkDirSep.length());
+            info.linkRelativeFilePath = linkFullFilePath.substring(linksDirSep.length());
             info.linkRelativeUnixPath = info.linkRelativeFilePath.replace(File.separatorChar, '/');
             return info;
         }
@@ -161,7 +161,7 @@ public abstract class MaintenanceHandler extends Maintenance
                 return false;
         }
 
-        if (!abs_root.equals(this.linkDir))
+        if (!abs_root.equals(this.linksDir))
         {
             if (this.isArchiveOrg())
                 return false;
@@ -214,14 +214,14 @@ public abstract class MaintenanceHandler extends Maintenance
     // href -> absolute file path of a linked file
     protected String href2abs(String href, String fullHtmlFilePath) throws Exception
     {
-        String abs = RelativeLink.resolveFileRelativeLink(fullHtmlFilePath, href, this.linkDir);
+        String abs = RelativeLink.resolveFileRelativeLink(fullHtmlFilePath, href, this.linksDir);
         return abs;
     }
 
     // absolute file path of a linked file -> relative Unix path relative to links repository dir  
     public String abs2rel(String abs) throws Exception
     {
-        String rel = Util.stripStart(abs, this.linkDir + File.separator);
+        String rel = Util.stripStart(abs, this.linksDir + File.separator);
         rel = rel.replace(File.separatorChar, '/');
         return rel;
     }
@@ -229,7 +229,7 @@ public abstract class MaintenanceHandler extends Maintenance
     // relative Unix path relative to links repository dir -> absolute file path of a linked file  
     protected String rel2abs(String rel)
     {
-        return this.linkDir + File.separator + rel.replace('/', File.separatorChar);
+        return this.linksDir + File.separator + rel.replace('/', File.separatorChar);
     }
 
     protected String rel2href(String rel, String fullHtmlFilePath) throws Exception

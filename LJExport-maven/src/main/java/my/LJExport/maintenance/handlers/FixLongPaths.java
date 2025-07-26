@@ -70,7 +70,7 @@ public class FixLongPaths extends MaintenanceHandler
     private Map<String, String> unused_renames_old_lc2ac = new HashMap<>();
 
     private static final int MaxFilePath = 245;
-    private final int MaxRelativeFilePath = MaxFilePath - linkDirSep.length();
+    private final int MaxRelativeFilePath = MaxFilePath - linksDirSep.length();
 
     @Override
     protected void beginUser() throws Exception
@@ -134,7 +134,7 @@ public class FixLongPaths extends MaintenanceHandler
 
             if (updatedMap && !DryRun)
             {
-                String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+                String mapFilePath = this.linksDir + File.separator + LinkDownloader.LinkMapFileName;
 
                 Util.out("Updating links map " + mapFilePath);
                 txLog.writeLine("updating links map " + mapFilePath);
@@ -181,15 +181,15 @@ public class FixLongPaths extends MaintenanceHandler
 
     private void build_lc2ac() throws Exception
     {
-        for (String fp : Util.enumerateFiles(linkDir, null))
+        for (String fp : Util.enumerateFiles(linksDir, null))
         {
-            fp = linkDir + File.separator + fp;
+            fp = linksDir + File.separator + fp;
             file_lc2ac.put(fp.toLowerCase(), fp);
         }
 
-        for (String fp : Util.enumerateDirectories(linkDir))
+        for (String fp : Util.enumerateDirectories(linksDir))
         {
-            fp = linkDir + File.separator + fp;
+            fp = linksDir + File.separator + fp;
             dir_lc2ac.put(fp.toLowerCase(), fp);
         }
 
@@ -207,7 +207,7 @@ public class FixLongPaths extends MaintenanceHandler
 
     private void loadLinkMapFile() throws Exception
     {
-        String mapFilePath = this.linkDir + File.separator + LinkDownloader.LinkMapFileName;
+        String mapFilePath = this.linksDir + File.separator + LinkDownloader.LinkMapFileName;
         linkMapEntries = FileBackedMap.readMapFile(mapFilePath);
 
         relpath2entry = new HashMap<>();
@@ -233,7 +233,7 @@ public class FixLongPaths extends MaintenanceHandler
 
     private List<KVEntry> prepareRenames() throws Exception
     {
-        KVFile kvfile = new KVFile(this.linkDir + File.separator + "rename-history.txt");
+        KVFile kvfile = new KVFile(this.linksDir + File.separator + "rename-history.txt");
 
         if (Util.True)
         {

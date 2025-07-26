@@ -405,6 +405,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 for (LinkMapEntry e : entries)
                     addUrl(e.key);
             }
+            
+            MiscUrls.uniqYimgCom(urls);
 
             if (urls.size() > 1)
             {

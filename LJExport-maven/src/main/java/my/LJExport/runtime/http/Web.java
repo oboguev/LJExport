@@ -47,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 import java.util.function.IntPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,6 +72,7 @@ public class Web
     private static PoolingHttpClientConnectionManager connManager;
     private static ThreadLocal<String> lastURL;
     private static CooloffMode cooloffArchiveOrg = new CooloffMode(Config.WebArchiveOrg_Http429_Cooloff_Interval);
+    private static Semaphore semaphoreArchiveOrg;
 
     public static final int BINARY = (1 << 0);
     public static final int PROGRESS = (1 << 1);
@@ -185,6 +187,7 @@ public class Web
 
         cookieStore = new BasicCookieStore();
         lastURL = new ThreadLocal<String>();
+        semaphoreArchiveOrg = new Semaphore(Config.WebArchiveOrg_ConcurrenRequests);
 
         if (Config.TrustStore != null)
         {
@@ -261,9 +264,9 @@ public class Web
                 max(20, Config.MaxConnectionsPerRoute));
 
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("web.archive.org", 443, "https")),
-                min(5, Config.MaxConnectionsPerRoute));
+                min(Config.WebArchiveOrg_ConcurrenRequests, Config.MaxConnectionsPerRoute));
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("web.archive.org", 80, "http")),
-                min(5, Config.MaxConnectionsPerRoute));
+                min(Config.WebArchiveOrg_ConcurrenRequests, Config.MaxConnectionsPerRoute));
 
         connManager.setDefaultSocketConfig(SocketConfig.custom()
                 // .setTcpNoDelay(true)
@@ -351,10 +354,21 @@ public class Web
     {
         if (cooloffArchiveOrg != null)
             cooloffArchiveOrg.cancelCoolingOff();
+        
+        if (semaphoreArchiveOrg != null)
+            semaphoreArchiveOrg.release(10000);
+        
+        // ### wakeup ratelimites
     }
 
     public static void shutdown() throws Exception
     {
+        if (semaphoreArchiveOrg != null)
+        {
+            semaphoreArchiveOrg.release(10000);
+            semaphoreArchiveOrg = null;
+        }
+        
         if (cooloffArchiveOrg != null)
             cooloffArchiveOrg.cancelCoolingOff();
         
@@ -512,43 +526,63 @@ public class Web
 
         HttpGet request = new HttpGet(url);
         setCommon(request, headers);
+        HttpClientContext context = HttpClientContext.create();
+        CloseableHttpResponse response = null;        
 
         ActivityCounters.startedWebRequest();
         if (isRequest_LJPage)
             ActivityCounters.startedLJPageWebRequest();
 
-        if (isArchiveOrg(url))
+        if (Main.isAborting())
+            throw new Exception("Application is aborting");
+
+        if (isArchiveOrg)
         {
+            semaphoreArchiveOrg.acquire();
+            
             if (Main.isAborting())
+            {
+                semaphoreArchiveOrg.release();
                 throw new Exception("Application is aborting");
+            }
 
             cooloffArchiveOrg.waitIfCoolingOff();
             
             if (Main.isAborting())
-                throw new Exception("Application is aborting");
-        }
-
-        HttpClientContext context = HttpClientContext.create();
-        CloseableHttpResponse response = client.execute(request, context);
-        r.code = response.getStatusLine().getStatusCode();
-
-        if (isArchiveOrg && r.code == 429)
-        {
-            do
             {
-                if (Main.isAborting())
-                    throw new Exception("Application is aborting");
-                
-                cooloffArchiveOrg.signalStart();
-                cooloffArchiveOrg.waitIfCoolingOff();
-
-                if (Main.isAborting())
-                    throw new Exception("Application is aborting");
-
-                response = client.execute(request, context);
-                r.code = response.getStatusLine().getStatusCode();
+                semaphoreArchiveOrg.release();
+                throw new Exception("Application is aborting");
             }
-            while (r.code == 429);
+        }
+        
+        try
+        {
+            response = client.execute(request, context);
+            r.code = response.getStatusLine().getStatusCode();
+
+            if (isArchiveOrg && r.code == 429)
+            {
+                do
+                {
+                    if (Main.isAborting())
+                        throw new Exception("Application is aborting");
+                    
+                    cooloffArchiveOrg.signalStart();
+                    cooloffArchiveOrg.waitIfCoolingOff();
+
+                    if (Main.isAborting())
+                        throw new Exception("Application is aborting");
+
+                    response = client.execute(request, context);
+                    r.code = response.getStatusLine().getStatusCode();
+                }
+                while (r.code == 429);
+            }
+        }
+        finally
+        {
+            if (isArchiveOrg)
+                semaphoreArchiveOrg.release();
         }
 
         try
@@ -604,6 +638,8 @@ public class Web
         }
         finally
         {
+            if (isArchiveOrg)
+                semaphoreArchiveOrg.release();
             response.close();
         }
 

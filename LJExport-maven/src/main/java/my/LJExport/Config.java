@@ -57,6 +57,7 @@ public class Config
     public static final int RateLimit_WebArchiveOrg_Requests_CoolOff_Requests = 750;
     public static final int RateLimit_WebArchiveOrg_Requests_CoolOff_Interval = 80 * 1000;
     public static final int WebArchiveOrg_Http429_Cooloff_Interval = 180 * 1000;
+    public static final int WebArchiveOrg_ConcurrenRequests = 5;
 
     /* Web timeouts */
     public static final int WebConnectTimeout = 1 * 60 * 1000;

@@ -57,8 +57,11 @@ public class FileTypeDetector
             return detectedMimeType;
 
         detectedMimeType = detectMimeTypeWithNio(fileBytes);
-        if (detectedMimeType != null)
+        if (detectedMimeType != null && !detectedMimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
             return detectedMimeType;
+
+        if (isDjvu(fileBytes))
+            return "image/vnd.djvu";
 
         return MIME_OCTET_STREAM;
     }
@@ -81,6 +84,9 @@ public class FileTypeDetector
     {
         if (mimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
             return null;
+
+        if (mimeType.equalsIgnoreCase("image/vnd.djvu") || mimeType.equalsIgnoreCase("image/x-djvu"))
+            return "djvu";
 
         MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
         MimeType mimeTypeInfo = allTypes.forName(mimeType);
@@ -307,7 +313,7 @@ public class FileTypeDetector
      * Share of bytes with unprintable characters, 0 to 1.
      * Can be used on KOI-8 or Win-1251 text files.
      */
-    public static double shareOfUnprintableBytes(byte[] content)
+    private static double shareOfUnprintableBytes(byte[] content)
     {
         if (content == null || content.length == 0)
             return 0.0; // define empty content as fully printable
@@ -331,5 +337,14 @@ public class FileTypeDetector
         }
 
         return (double) unprintable / total;
+    }
+
+    private static boolean isDjvu(byte[] data)
+    {
+        if (data.length < 88)
+            return false;
+
+        return data[0] == 'A' && data[1] == 'T' && data[2] == '&' && data[3] == 'T' &&
+                data[12] == 'D' && data[13] == 'J' && data[14] == 'V';
     }
 }

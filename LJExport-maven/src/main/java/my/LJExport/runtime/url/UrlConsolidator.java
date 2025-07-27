@@ -217,7 +217,7 @@ public class UrlConsolidator
 
     private static String decodeOnce(String s)
     {
-        return decodeUrl(s, false);
+        return decodeUrl(s, true);
     }
 
     private static String encodePath(String path)

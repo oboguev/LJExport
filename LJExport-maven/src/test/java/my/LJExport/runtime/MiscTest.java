@@ -4,7 +4,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
-import my.LJExport.runtime.lj.LJUtil;
+import my.LJExport.runtime.url.AwayLinks;
 import my.LJExport.runtime.url.UrlConsolidator;
 import my.LJExport.runtime.url.UrlUtil;
 
@@ -25,6 +25,7 @@ public class MiscTest
         }
     }
     
+    @SuppressWarnings("unused")
     private static void test_1() throws Exception
     {
         test_1("https://vk.com/away.php?to=http%3A%2F%2Frigort.livejournal.com%2F1788988.html%3Futm_source%3Dvksharing%26utm_medium%3Dsocial&amp;post=-89424527_119771&amp;cc_key=");
@@ -148,7 +149,7 @@ public class MiscTest
     private static void test_unwrap(String s) throws Exception
     {
         Util.out("   " + s); 
-        Util.out("D  " + LJUtil.unwrapAwayLinkDecoded(s)); 
+        Util.out("D  " + AwayLinks.unwrapAwayLinkDecoded(s)); 
         Util.out(""); 
     }
 }

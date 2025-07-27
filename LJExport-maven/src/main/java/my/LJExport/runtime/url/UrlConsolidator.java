@@ -169,11 +169,16 @@ public class UrlConsolidator
             log("decodeRecursive: decoded to " + current);
         }
         while (!current.equals(prev));
-        return current.replace("%0A", "");
+
+        String result = current.replace("%0A", "");
+        log("decodeRecursive: ended with " + input);
+
+        return result;
     }
 
     private static String sanitizeEmbeddedUrlsInQuery(String url)
     {
+        log("");
         log("sanitizeEmbeddedUrlsInQuery: before = " + url);
 
         try
@@ -213,6 +218,7 @@ public class UrlConsolidator
 
             String rebuilt = prefix + "?" + newQuery;
             log("sanitizeEmbeddedUrlsInQuery: after = " + rebuilt);
+            log("");
 
             return rebuilt;
         }

@@ -89,18 +89,24 @@ public class MiscTest
     {
         List<String> urls = Arrays.asList(ar);
         urls = prepare(urls);
+        
+        Util.out("=========================================================");
+        for (String s : urls)
+            Util.out("" + s);
 
         String url = UrlConsolidator.consolidateUrlVariants(urls, false);
 
         if (url == null)
+        {
             url = UrlConsolidator.consolidateUrlVariants(urls, true);
+            Util.out("");
+            Util.out("=== SECOND PASS ===");
+            Util.out("");
+        }
 
         if (url == null)
         {
             Util.out("FAILED =======================");
-            for (String s : urls)
-                Util.out("     " + s);
-            Util.out("");
         }
         else
         {
@@ -108,10 +114,7 @@ public class MiscTest
             {
                 new URI(url);
                 Util.out("OK  =======================");
-                for (String s : urls)
-                    Util.out("     " + s);
                 Util.out("  => " + url);
-                Util.out("");
             }
             catch (Exception ex)
             {
@@ -119,6 +122,8 @@ public class MiscTest
                 Util.err("consolidateUrlVariants returned malformed url " + url);
             }
         }
+
+        Util.out("");
     }
 
     private static List<String> prepare(List<String> urls) throws Exception

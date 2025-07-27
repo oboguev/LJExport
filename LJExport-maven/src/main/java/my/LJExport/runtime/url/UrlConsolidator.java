@@ -112,7 +112,7 @@ public class UrlConsolidator
                 url = url.substring(0, fragmentIndex);
 
             url = url.replace(" ", "%20");
-            url = decodeRecursive(url);
+            url = decodeRecursive(url, DecodeAs.FORM);
             url = sanitizeEmbeddedUrlsInQuery(url);
             url = encodeIllegalCharacters(url);
 
@@ -149,7 +149,7 @@ public class UrlConsolidator
         try
         {
             String stripped = url.replace(" ", "%20");
-            stripped = decodeRecursive(stripped);
+            stripped = decodeRecursive(stripped, DecodeAs.FORM);
             URI uri = new URI(stripped);
 
             String scheme = uri.getScheme() == null ? "http" : uri.getScheme().toLowerCase();
@@ -172,7 +172,7 @@ public class UrlConsolidator
         }
     }
 
-    private static String decodeRecursive(String input)
+    private static String decodeRecursive(String input, DecodeAs decodeAs)
     {
         log("decodeRecursive: starting with " + input);
 
@@ -181,7 +181,7 @@ public class UrlConsolidator
         do
         {
             prev = current;
-            current = decodeUrl(prev, DecodeAs.FORM); // ### false => works OK
+            current = decodeUrl(prev, decodeAs); // ### FORM => works OK
             log("decodeRecursive: decoded to " + current);
         }
         while (!current.equals(prev));
@@ -219,7 +219,7 @@ public class UrlConsolidator
 
                 String decodedOnce = decodeOnce(value);
                 String stripped = decodedOnce.replaceAll("(%0A|%0D|\\r|\\n)", "");
-                String decoded = decodeRecursive(stripped);
+                String decoded = decodeRecursive(stripped, DecodeAs.FORM);
 
                 if (looksLikeBase64(decoded))
                 {

@@ -1,7 +1,5 @@
 package my.LJExport.runtime.links.util;
 
-import java.net.URLEncoder;
-
 import my.LJExport.maintenance.handlers.util.ShortFilePath;
 import my.LJExport.runtime.url.URLCodec;
 import my.LJExport.runtime.url.UrlUtil;

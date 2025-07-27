@@ -91,8 +91,10 @@ public class MiscTest
         urls = prepare(urls);
         
         Util.out("=========================================================");
+        Util.out("");
         for (String s : urls)
-            Util.out("" + s);
+            Util.out("    " + s);
+        Util.out("");
 
         String url = UrlConsolidator.consolidateUrlVariants(urls, false);
 
@@ -114,6 +116,7 @@ public class MiscTest
             {
                 new URI(url);
                 Util.out("OK  =======================");
+                Util.out("");
                 Util.out("  => " + url);
             }
             catch (Exception ex)

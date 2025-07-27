@@ -42,6 +42,7 @@ public class FixFileExtensions extends MaintenanceHandler
 {
     // ### add handling for lib.ru and www.lib.ru: aaa.txt -> aaa.txt.html
     // ### update rename-history.txt
+    // ### look into AwayLinks, also decoded vs encoded
     
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;

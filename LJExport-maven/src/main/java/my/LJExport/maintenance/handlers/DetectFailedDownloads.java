@@ -34,6 +34,7 @@ import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 import my.LJExport.runtime.url.UrlConsolidator;
+import my.LJExport.runtime.url.UrlUtil;
 
 /*
  * Detect linked files pointed by IMG.SRC and A.HREF that contain HTML/XHTML/PHP/TXT content -- 
@@ -627,8 +628,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
     private boolean processUpdateMissingOriginalLinks(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
     {
-        String href_original = getLinkOriginalAttribute(n, "original-" + attr);
-        if (href_original != null)
+        if (null != getLinkOriginalAttribute(n, "original-" + attr))
             return false;
 
         String href = getLinkAttribute(n, attr);
@@ -659,7 +659,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             return false;
 
         String url = fli.urls.get(0);
-        JSOUP.setAttribute(n, "original-" + attr, url);
+        JSOUP.setAttribute(n, "original-" + attr, UrlUtil.encodeUrlForHtmlAttr(url));
         return true;
     }
 

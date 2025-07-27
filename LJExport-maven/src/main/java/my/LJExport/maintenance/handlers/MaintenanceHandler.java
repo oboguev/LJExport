@@ -45,7 +45,7 @@ public abstract class MaintenanceHandler extends Maintenance
         public List<KVEntry> list;
         public Map<String, String> lcrel2ctype = new HashMap<>();
 
-        public void load(String linksDir) throws Exception
+        void load(String linksDir) throws Exception
         {
             KVFile kvfile = new KVFile(linksDir + File.separator + "content-type.txt");
             if (kvfile.exists())
@@ -58,7 +58,7 @@ public abstract class MaintenanceHandler extends Maintenance
                 lcrel2ctype.put(entry.key.toLowerCase(), entry.value);
         }
         
-        String contentTypeForLcUnixRelpath(String rel)
+        public String contentTypeForLcUnixRelpath(String rel)
         {
             return lcrel2ctype.get(rel.toLowerCase());
         }

@@ -101,7 +101,7 @@ public class FileTypeDetector
 
     public static String fileExtensionFromMimeType(String mimeType) throws Exception
     {
-        if (mimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
+        if (mimeType == null || mimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
             return null;
 
         String lc = mimeType.toLowerCase();

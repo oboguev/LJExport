@@ -97,7 +97,8 @@ public class FixFileExtensions extends MaintenanceHandler
         updatedMap = false;
         loadLinkMapFile();
         prefillFileContentExtensionMap();
-
+        loadFileContentTypeInformation();
+        
         trace("");
         trace("");
         trace("================================= Beginning user " + Config.User);
@@ -276,7 +277,12 @@ public class FixFileExtensions extends MaintenanceHandler
                 fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
             }
 
-            // ### apply content-type.txt as override for contentExtension (or fallback if null) 
+            if (contentExtension == null || contentExtension.length() == 0)
+            {
+                String relpath = this.abs2rel(linkInfo.linkFullFilePath);
+                String contentType = this.fileContentTypeInformation.contentTypeForLcUnixRelpath(relpath);
+                contentExtension = FileTypeDetector.fileExtensionFromMimeType(contentType);
+            }
 
             if (contentExtension == null || contentExtension.length() == 0)
                 continue;

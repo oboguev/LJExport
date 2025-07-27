@@ -100,6 +100,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             build_lc2ac();
             loadLinkMapFile();
             prefillFileContentExtensionMap();
+            loadFileContentTypeInformation();
 
             stageFileCount = this.getStageProcessedFileCount();
 
@@ -317,10 +318,15 @@ public class DetectFailedDownloads extends MaintenanceHandler
             contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt);
             fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
         }
-
-        // ### apply content-type.txt as override for contentExtension (or fallback if null) 
-
+        
         if (contentExtension == null || contentExtension.length() == 0)
+        {
+            String relpath = this.abs2rel(linkInfo.linkFullFilePath);
+            String contentType = this.fileContentTypeInformation.contentTypeForLcUnixRelpath(relpath);
+            contentExtension = FileTypeDetector.fileExtensionFromMimeType(contentType);
+        }
+
+        if (contentExtension == null || contentExtension.length() == 0) // ### do include as bad!!!!
             return;
 
         /*
@@ -505,7 +511,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 Util.err(msg);
                 if (Util.True && DryRun)
                 {
-                    // ####
+                    // ###
                     for (String s : urls)
                         Util.err("    " + s);
                     Util.err("------------------------------");

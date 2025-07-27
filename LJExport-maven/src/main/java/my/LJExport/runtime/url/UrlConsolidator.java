@@ -115,7 +115,6 @@ public class UrlConsolidator
         }
     }
 
-
     private static String decodeRecursive(String input)
     {
         String prev;
@@ -127,30 +126,6 @@ public class UrlConsolidator
         }
         while (!current.equals(prev));
         return current.replace("%0A", "");
-    }
-
-    private static String normalizeQuery(String query)
-    {
-        StringBuilder result = new StringBuilder();
-        String[] pairs = query.split("&");
-        for (int i = 0; i < pairs.length; i++)
-        {
-            int idx = pairs[i].indexOf('=');
-            if (idx == -1)
-            {
-                result.append(pairs[i]);
-            }
-            else
-            {
-                String key = pairs[i].substring(0, idx);
-                String value = pairs[i].substring(idx + 1);
-                String decoded = decodeRecursive(value);
-                result.append(key).append("=").append(decoded);
-            }
-            if (i < pairs.length - 1)
-                result.append("&");
-        }
-        return result.toString();
     }
 
     private static String polishUrl(String url)
@@ -185,65 +160,66 @@ public class UrlConsolidator
 
     private static String sanitizeEmbeddedUrlsInQuery(String url)
     {
-        int queryIndex = url.indexOf('?');
-        if (queryIndex < 0)
-            return url;
-
-        String base = url.substring(0, queryIndex);
-        String query = url.substring(queryIndex + 1);
-        StringBuilder newQuery = new StringBuilder();
-
-        String[] parts = query.split("&");
-        for (int i = 0; i < parts.length; i++)
+        try
         {
-            String part = parts[i];
-            int eq = part.indexOf('=');
-            if (eq < 0)
+            int qPos = url.indexOf('?');
+            if (qPos < 0)
+                return url;
+
+            String prefix = url.substring(0, qPos);
+            String query = url.substring(qPos + 1);
+
+            StringBuilder newQuery = new StringBuilder();
+            String[] parts = query.split("&");
+
+            for (int i = 0; i < parts.length; i++)
             {
-                newQuery.append(part);
-            }
-            else
-            {
-                String key = part.substring(0, eq);
-                String value = part.substring(eq + 1);
+                if (i > 0)
+                    newQuery.append('&');
+                String[] kv = parts[i].split("=", 2);
+                String key = kv[0];
+                String value = (kv.length > 1) ? kv[1] : "";
 
-                String decoded;
-                try
+                String decodedOnce = decodeOnce(value);
+                String stripped = decodedOnce.replaceAll("(%0A|%0D|\\r|\\n)", ""); // remove newlines
+                String decoded = decodeRecursive(stripped);
+
+                if (looksLikeBase64(decoded))
                 {
-                    decoded = URLDecoder.decode(value, StandardCharsets.UTF_8.name());
+                    // re-encode sanitized value to canonical form
+                    String canon = URLEncoder.encode(decoded, StandardCharsets.UTF_8.name()).replace("+", "%20");
+                    newQuery.append(key).append('=').append(canon);
                 }
-                catch (Exception e)
+                else
                 {
-                    decoded = value;
+                    newQuery.append(parts[i]);
                 }
-
-                // Heuristic: re-encode if the decoded value contains illegal chars for query values
-                if (decoded.contains("://") || decoded.contains(" ") || decoded.contains("&") || decoded.contains("?"))
-                {
-                    if (decoded.startsWith("http://") || decoded.startsWith("https://"))
-                    {
-                        int hash = decoded.indexOf('#');
-                        if (hash >= 0)
-                            decoded = decoded.substring(0, hash); // drop fragment from embedded URL
-
-                        String polished = polishUrl(decoded);
-                        value = URLEncoder.encode(polished != null ? polished : decoded, StandardCharsets.UTF_8)
-                                .replace("+", "%20");
-                    }
-                    else
-                    {
-                        value = URLEncoder.encode(decoded, StandardCharsets.UTF_8).replace("+", "%20");
-                    }
-                }
-
-                newQuery.append(key).append('=').append(value);
             }
 
-            if (i < parts.length - 1)
-                newQuery.append('&');
+            return prefix + "?" + newQuery;
         }
+        catch (Exception e)
+        {
+            return url;
+        }
+    }
 
-        return base + '?' + newQuery;
+    private static boolean looksLikeBase64(String s)
+    {
+        // crude heuristic: long string with A-Z, a-z, 0-9, +, / and maybe ending in =
+        return s.length() >= 20 && s.matches("^[A-Za-z0-9+/=\\r\\n]+$");
+    }
+
+    private static String decodeOnce(String s)
+    {
+        try
+        {
+            return URLDecoder.decode(s, StandardCharsets.UTF_8.name());
+        }
+        catch (Exception e)
+        {
+            return s;
+        }
     }
 
     private static String encodePath(String path)

@@ -516,7 +516,7 @@ public class ArchiveOrgUrl
         String timestamp = rest.substring(0, sep);
         String encodedOriginalUrl = rest.substring(sep + 1);
 
-        String decodedOriginalUrl = URLDecoder.decode(encodedOriginalUrl.replace("+", "%2B"), StandardCharsets.UTF_8);
+        String decodedOriginalUrl = UrlUtil.decodeUrl(encodedOriginalUrl);
         return prefix + timestamp + "/" + decodedOriginalUrl;
     }
 

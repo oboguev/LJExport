@@ -126,7 +126,7 @@ public class AwayLinks
     private static String fixOverencoding(String href)
     {
         if (Util.startsWith(href.toLowerCase(), null, "https%3a", "http%3a"))
-            return URLDecoder.decode(href.replace("+", "%2B"), StandardCharsets.UTF_8);
+            return UrlUtil.decodeUrl(href);
         else
             return href;
     }

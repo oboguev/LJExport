@@ -18,14 +18,14 @@ public class UrlUtil
         return decodeUrl(htmlUrl);
     }
 
-    public static String decodeUrl(String url)
+    public static String decodeUrl(String encodedUrl)
     {
         /*
          * URLDecoder decodes + as space, which is correct only for application/x-www-form-urlencoded (form data).
          * But in URLs like <a href=...> and <img src=...>, a literal + should stay +.
          * Thus temporarily replace '+' with its percent-encoded version
          */
-        return URLDecoder.decode(url.replace("+", "%2B"), StandardCharsets.UTF_8);
+        return URLDecoder.decode(encodedUrl.replace("+", "%2B"), StandardCharsets.UTF_8);
     }
 
     /* ================================================================================================== */
@@ -145,10 +145,10 @@ public class UrlUtil
                 String rawKey = pair.substring(0, idx);
                 String rawValue = pair.substring(idx + 1);
 
-                String key = URLDecoder.decode(rawKey.replace("+", "%2B"), StandardCharsets.UTF_8.name());
+                String key = UrlUtil.decodeUrl(rawKey);
                 if (key.equals(parameterName))
                 {
-                    return URLDecoder.decode(rawValue.replace("+", "%2B"), StandardCharsets.UTF_8.name());
+                    return UrlUtil.decodeUrl(rawValue);
                 }
             }
         }

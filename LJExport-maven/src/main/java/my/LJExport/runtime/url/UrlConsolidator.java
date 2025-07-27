@@ -112,7 +112,7 @@ public class UrlConsolidator
                 url = url.substring(0, fragmentIndex);
 
             url = url.replace(" ", "%20");
-            url = decodeRecursive(url, DecodeAs.FORM); // ### fails if URL
+            url = decodeRecursive(url, DecodeAs.FORM); // ### works as FORM, fails as URL
             url = sanitizeEmbeddedUrlsInQuery(url);
             url = encodeIllegalCharacters(url);
 
@@ -181,7 +181,7 @@ public class UrlConsolidator
         do
         {
             prev = current;
-            current = decodeUrl(prev, decodeAs); // ### FORM => works OK
+            current = decodeUrl(prev, decodeAs);
             log("decodeRecursive: decoded to " + current);
         }
         while (!current.equals(prev));
@@ -340,6 +340,24 @@ public class UrlConsolidator
         }
     }
 
+    @SuppressWarnings("unused")
+    private static DecodeAs chooseDecodingStrategy(String key, String value)
+    {
+        DecodeAs mode;
+
+        // Heuristics for embedded URLs or base64-style parameters
+        if (value.startsWith("http") || value.contains("http%3A") || value.contains("https%3A"))
+            mode = DecodeAs.URL;
+        else if (key.equalsIgnoreCase("img_url") || key.equalsIgnoreCase("imgrefurl") || key.equalsIgnoreCase("q"))
+            mode = DecodeAs.URL;
+        else
+            mode = DecodeAs.FORM;
+
+        log("chooseDecodingStrategy: key=" + key + " => mode=" + mode);
+
+        return mode;
+    }
+
     private static String encodeSegment(String segment)
     {
         return UrlUtil.encodeSegment(segment);
@@ -353,7 +371,7 @@ public class UrlConsolidator
             return UrlUtil.decodeUrl(encodedUrl);
     }
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private static void log(String message)
     {

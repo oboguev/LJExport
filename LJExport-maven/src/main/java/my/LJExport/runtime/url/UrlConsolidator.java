@@ -75,6 +75,11 @@ public class UrlConsolidator
         String best = originalVariants.stream()
                 .min(Comparator.comparingInt(UrlConsolidator::scoreUrlVariant))
                 .orElse(originalVariants.get(0));
+
+        log("");
+        log("best selected = " + best);
+        log("");
+        
         return polishUrl(encodeIllegalCharacters(best));
     }
 
@@ -92,7 +97,8 @@ public class UrlConsolidator
 
     private static String normalizeUrlForComparison(String url, boolean ignorePathCase)
     {
-        log("normalizeQuery: input = " + url);
+        log("");
+        log("normalizeUrlForComparison: input = " + url);
         
         try
         {
@@ -119,7 +125,12 @@ public class UrlConsolidator
             String encodedQuery = (query != null) ? encodeQuery(query) : null;
 
             URI uri = new URI(scheme, null, host, port, encodedPath, encodedQuery, null);
-            return uri.toASCIIString();
+            String result = uri.toASCIIString();
+
+            log("normalizeUrlForComparison: result = " + result);
+            log("");
+            
+            return result;
         }
         catch (Exception e)
         {

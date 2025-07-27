@@ -59,16 +59,16 @@ public class MiscTest
     private static void consolidate() throws Exception
     {
         consolidate(
+                "https://yandex.ru/images/search?pos=26&from=tabbar&img_url=https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=619377832930905&get_thumbnail=1&text=стапелии цветы&rpt=simage&lr=121704",
+                "https://yandex.ru/images/search?pos=26&from=tabbar&img_url=https%3A%2F%2Flookaside.fbsbx.com%2Flookaside%2Fcrawler%2Fmedia%2F%3Fmedia_id%3D619377832930905%26get_thumbnail%3D1&text=стапелии+цветы&rpt=simage&lr=121704");
+
+        consolidate(
                 "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/v/t1.0-9/14102445_852529494848760_1139406795505667796_n.jpg?oh=214146c3d68ec8711cbd07d56c04f209&oe=584A844B",
                 "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fv%2Ft1.0-9%2F14102445_852529494848760_1139406795505667796_n.jpg%3Foh%3D214146c3d68ec8711cbd07d56c04f209%26oe%3D584A844B");
 
         consolidate(
                 "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/hphotos-xap1/v/t1.0-9/12410525_10153839742786462_7478520602963466481_n.jpg?oh=2f2e045d9cf31274d398a913d38f0595&oe=5749916A",
                 "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fhphotos-xap1%2Fv%2Ft1.0-9%2F12410525_10153839742786462_7478520602963466481_n.jpg%3Foh%3D2f2e045d9cf31274d398a913d38f0595%26oe%3D5749916A");
-
-        consolidate(
-                "https://yandex.ru/images/search?pos=26&from=tabbar&img_url=https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=619377832930905&get_thumbnail=1&text=стапелии цветы&rpt=simage&lr=121704",
-                "https://yandex.ru/images/search?pos=26&from=tabbar&img_url=https%3A%2F%2Flookaside.fbsbx.com%2Flookaside%2Fcrawler%2Fmedia%2F%3Fmedia_id%3D619377832930905%26get_thumbnail%3D1&text=стапелии+цветы&rpt=simage&lr=121704");
 
         consolidate(
                 "https://yandex.ru/images/search?text=чехов фото&from=tabbar&pos=1&img_url=https://scontent-hel2-1.cdninstagram.com/v/t51.2885-15/e35/107960072_123678059088779_6456558451797944288_n.jpg?_nc_ht=scontent-hel2-1.cdninstagram.com&_nc_cat=111&_nc_ohc=QQqFsRcwNW8AX_pIgGw&oh=553fbfc6b0eff463f233fa76a5500048&oe=5F3C31B0&rpt=simage",

@@ -326,9 +326,6 @@ public class DetectFailedDownloads extends MaintenanceHandler
             contentExtension = FileTypeDetector.fileExtensionFromMimeType(contentType);
         }
 
-        if (contentExtension == null || contentExtension.length() == 0) // ### do include as bad!!!!
-            return;
-
         /*
          * If it is not one of common media extensions, disregard it  
          */
@@ -362,22 +359,29 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         if (decision.isNeutral())
         {
-            switch (contentExtension.toLowerCase())
+            if (contentExtension == null || contentExtension.length() == 0)
             {
-            /*
-             * When downloading IMG link, or other link, server responded with HTML or XHTML or PHP or TXT,
-             * likely because image was not available, and displaying HTML page with 404 or other error.
-             * Requests for actual TXT files have already been handled by isEquivalentExtensions above.
-             */
-            case "html":
-            case "xhtml":
-            case "php":
-            case "txt":
                 reject = true;
-                break;
+            }
+            else
+            {
+                switch (contentExtension.toLowerCase())
+                {
+                /*
+                 * When downloading IMG link, or other link, server responded with HTML or XHTML or PHP or TXT,
+                 * likely because image was not available, and displaying HTML page with 404 or other error.
+                 * Requests for actual TXT files have already been handled by isEquivalentExtensions above.
+                 */
+                case "html":
+                case "xhtml":
+                case "php":
+                case "txt":
+                    reject = true;
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
+                }
             }
         }
 

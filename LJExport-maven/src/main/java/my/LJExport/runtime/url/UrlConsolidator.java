@@ -85,7 +85,7 @@ public class UrlConsolidator
         log("best selected = " + best);
         log("");
 
-        return polishUrl(encodeIllegalCharacters(best));
+        return UrlUtil.encodeNonAscii(polishUrl(best));
     }
 
     private static int scoreUrlVariant(String url)
@@ -112,7 +112,10 @@ public class UrlConsolidator
                 url = url.substring(0, fragmentIndex);
 
             url = url.replace(" ", "%20");
-            url = decodeRecursive(url, DecodeAs.FORM); // ### works as FORM, fails as URL
+
+            // used to works as FORM, fails as URL, but now we dynamically guess mode 
+            url = decodeRecursive(url, DecodeAs.FORM);
+
             url = sanitizeEmbeddedUrlsInQuery(url);
             url = encodeIllegalCharacters(url);
 
@@ -148,8 +151,12 @@ public class UrlConsolidator
     {
         try
         {
-            String stripped = url.replace(" ", "%20");
-            stripped = decodeRecursive(stripped, DecodeAs.URL);
+            log("");
+            log("polishUrl: starting with " + url);
+
+            String stripped = url;
+            // String stripped = stripped.replace(" ", "%20");
+            // stripped = decodeRecursive(stripped, DecodeAs.URL);
             URI uri = new URI(stripped);
 
             String scheme = uri.getScheme() == null ? "http" : uri.getScheme().toLowerCase();
@@ -163,10 +170,15 @@ public class UrlConsolidator
 
             String query = uri.getRawQuery();
             URI rebuilt = new URI(scheme, host, path, query, null);
+            
+            log("polishUrl: rebuilt       " + rebuilt);
+            log("");
+            
             return rebuilt.toASCIIString();
         }
         catch (Exception e)
         {
+            log("polishUrl: exception");
             // throw new RuntimeException(e);
             return url;
         }
@@ -181,7 +193,12 @@ public class UrlConsolidator
         do
         {
             prev = current;
-            current = decodeUrl(prev, decodeAs);
+
+            // ### current = decodeUrl(prev, decodeAs);
+            DecodeAs mode = guessDecodeMode(prev);
+            log("decodeRecursive: guessed mode = " + mode);
+            current = decodeUrl(prev, mode);
+
             log("decodeRecursive: decoded to " + current);
         }
         while (!current.equals(prev));
@@ -190,6 +207,13 @@ public class UrlConsolidator
         log("decodeRecursive: ended with " + input);
 
         return result;
+    }
+
+    private static DecodeAs guessDecodeMode(String s)
+    {
+        if (s.contains("+") && !s.toLowerCase().contains("%2b"))
+            return DecodeAs.FORM;
+        return DecodeAs.URL;
     }
 
     private static String sanitizeEmbeddedUrlsInQuery(String url)
@@ -219,7 +243,7 @@ public class UrlConsolidator
 
                 String decodedOnce = decodeOnce(value);
                 String stripped = decodedOnce.replaceAll("(%0A|%0D|\\r|\\n)", "");
-                String decoded = decodeRecursive(stripped, DecodeAs.URL); // works as URL
+                String decoded = decodeRecursive(stripped, DecodeAs.URL);
 
                 if (looksLikeBase64(decoded))
                 {
@@ -371,7 +395,7 @@ public class UrlConsolidator
             return UrlUtil.decodeUrl(encodedUrl);
     }
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static void log(String message)
     {

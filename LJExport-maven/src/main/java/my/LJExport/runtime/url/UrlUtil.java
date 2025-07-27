@@ -165,4 +165,28 @@ public class UrlUtil
 
         return null;
     }
+
+    /* ================================================================================================== */
+
+    public static String encodeNonAscii(String input)
+    {
+        StringBuilder sb = new StringBuilder();
+        
+        for (char c : input.toCharArray())
+        {
+            if (c <= 0x20 || c >= 0x7F)
+            {
+                byte[] bytes = String.valueOf(c).getBytes(StandardCharsets.UTF_8);
+                for (byte b : bytes)
+                {
+                    sb.append(String.format("%%%02X", b));
+                }
+            }
+            else
+            {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
 }

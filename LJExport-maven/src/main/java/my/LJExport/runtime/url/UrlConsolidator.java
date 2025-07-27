@@ -348,7 +348,7 @@ public class UrlConsolidator
             return UrlUtil.decodeUrlForm(encodedUrl);
     }
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static void log(String message)
     {

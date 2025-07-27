@@ -19,6 +19,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.parallel.twostage.parser.ParserParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.parser.ParserWorkContext;
 import my.LJExport.runtime.synch.ThreadsControl;
@@ -221,28 +222,10 @@ public class MainForAllHtmlFiles
     private void unwrapAwayLinks(String fullFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
             List<Node> pageFlat) throws Exception
     {
-        final String prefix = "https://www.livejournal.com/away?to=";
-
         boolean updated = false;
 
         for (Node n : JSOUP.findElements(pageFlat, "a"))
-        {
-            String href = JSOUP.getAttribute(n, "href");
-            if (href != null && href.startsWith(prefix))
-            {
-                String original_href = href;
-                
-                href = href.substring(prefix.length());
-                String decoded_href = URLDecoder.decode(href, StandardCharsets.UTF_8.toString());
-
-                JSOUP.updateAttribute(n, "href", decoded_href);
-
-                if (JSOUP.getAttribute(n, "original-href") == null)
-                    JSOUP.setAttribute(n, "original-href", original_href);
-
-                updated = true;
-            }
-        }
+            updated |= LJUtil.unwrapAwayLink(n, "href");
 
         if (updated)
         {

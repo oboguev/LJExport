@@ -2,8 +2,6 @@ package my.LJExport.runtime.url;
 
 import java.net.URI;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -160,7 +158,7 @@ public class UrlConsolidator
         do
         {
             prev = current;
-            current = URLDecoder.decode(prev, StandardCharsets.UTF_8);
+            current = decodeUrl(prev, false);
         }
         while (!current.equals(prev));
         return current.replace("%0A", "");
@@ -219,15 +217,7 @@ public class UrlConsolidator
 
     private static String decodeOnce(String s)
     {
-        try
-        {
-            return URLDecoder.decode(s, StandardCharsets.UTF_8.name());
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException(e);
-            // return s;
-        }
+        return decodeUrl(s, false);
     }
 
     private static String encodePath(String path)
@@ -314,14 +304,17 @@ public class UrlConsolidator
             // return url;
         }
     }
-    
+
     private static String encodeSegment(String segment)
     {
         return UrlUtil.encodeSegment(segment);
     }
 
-    private static String decodeUrl(String encodedUrl)
+    private static String decodeUrl(String encodedUrl, boolean isUrl)
     {
-        return UrlUtil.decodeUrl(encodedUrl);       
+        if (isUrl)
+            return UrlUtil.decodeUrlForm(encodedUrl);
+        else
+            return UrlUtil.decodeUrlForm(encodedUrl);
     }
 }

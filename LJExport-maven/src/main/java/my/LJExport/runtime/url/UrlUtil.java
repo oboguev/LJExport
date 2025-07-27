@@ -28,6 +28,14 @@ public class UrlUtil
         return URLDecoder.decode(encodedUrl.replace("+", "%2B"), StandardCharsets.UTF_8);
     }
 
+    public static String decodeUrlForm(String encodedUrl)
+    {
+        /*
+         * URLDecoder decodes + as space, which is correct only for application/x-www-form-urlencoded (form data).
+         */
+        return URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8);
+    }
+
     /* ================================================================================================== */
 
     public static String encodeSegment(String segment)

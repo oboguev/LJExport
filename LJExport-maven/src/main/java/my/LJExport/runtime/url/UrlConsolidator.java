@@ -3,7 +3,6 @@ package my.LJExport.runtime.url;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -195,7 +194,7 @@ public class UrlConsolidator
 
                 if (looksLikeBase64(decoded))
                 {
-                    String canon = UrlUtil.encodeSegment(decoded);
+                    String canon = encodeSegment(decoded);
                     newQuery.append(key).append('=').append(canon);
                 }
                 else
@@ -255,7 +254,7 @@ public class UrlConsolidator
 
     private static String safeEncodeComponent(String s)
     {
-        return UrlUtil.encodeSegment(s);
+        return encodeSegment(s);
     }
 
     private static String encodeIllegalCharacters(String url)
@@ -279,7 +278,7 @@ public class UrlConsolidator
                 if (!segment.isEmpty())
                 {
                     result.append('/');
-                    result.append(UrlUtil.encodeSegment(segment).replace("%2F", "/"));
+                    result.append(encodeSegment(segment).replace("%2F", "/"));
                 }
             }
             if (path.endsWith("/"))
@@ -296,13 +295,13 @@ public class UrlConsolidator
                     int eq = params[i].indexOf('=');
                     if (eq >= 0)
                     {
-                        result.append(URLEncoder.encode(params[i].substring(0, eq), StandardCharsets.UTF_8.name()))
+                        result.append(encodeSegment(params[i]))
                                 .append('=')
-                                .append(URLEncoder.encode(params[i].substring(eq + 1), StandardCharsets.UTF_8.name()));
+                                .append(encodeSegment(params[i]));
                     }
                     else
                     {
-                        result.append(URLEncoder.encode(params[i], StandardCharsets.UTF_8.name()));
+                        result.append(encodeSegment(params[i]));
                     }
                 }
             }
@@ -314,5 +313,15 @@ public class UrlConsolidator
             throw new RuntimeException(e);
             // return url;
         }
+    }
+    
+    private static String encodeSegment(String segment)
+    {
+        return UrlUtil.encodeSegment(segment);
+    }
+
+    private static String decodeUrl(String encodedUrl)
+    {
+        return UrlUtil.decodeUrl(encodedUrl);       
     }
 }

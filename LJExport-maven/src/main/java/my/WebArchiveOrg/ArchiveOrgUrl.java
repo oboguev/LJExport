@@ -504,7 +504,7 @@ public class ArchiveOrgUrl
         else
         {
             // Not an archive.org URL — decode everything
-            return URLDecoder.decode(archiveUrl, StandardCharsets.UTF_8);
+            return URLDecoder.decode(archiveUrl.replace("+", "%2B"), StandardCharsets.UTF_8);
         }
 
         String rest = archiveUrl.substring(prefix.length());
@@ -515,7 +515,7 @@ public class ArchiveOrgUrl
         String timestamp = rest.substring(0, sep);
         String encodedOriginalUrl = rest.substring(sep + 1);
 
-        String decodedOriginalUrl = URLDecoder.decode(encodedOriginalUrl, StandardCharsets.UTF_8);
+        String decodedOriginalUrl = URLDecoder.decode(encodedOriginalUrl.replace("+", "%2B"), StandardCharsets.UTF_8);
         return prefix + timestamp + "/" + decodedOriginalUrl;
     }
 

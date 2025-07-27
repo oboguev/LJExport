@@ -163,19 +163,24 @@ public class DemoFileTypeDetector
 
         consolidate("https://www.livejournal.com/away/?to=https://dzen.ru/a/aA8bUsz0HUyQsaVt",
                 "https://www.livejournal.com/away/?to=https%3A%2F%2Fdzen.ru%2Fa%2FaA8bUsz0HUyQsaVt%23hramozdatelstvo_knyazya_vladimira%3A%7E%3Atext%3D%25D0%25AD%25D1%2582%25D1%2583%2520%25D1%2581%25D1%2582%25D0%25B0%25D1%2582%25D1%258C%25D1%258E%2520%25D0%25BC%25D0%25BE%25D0%25B6%25D0%25B5%25D1%2582,%25D0%25A5%25D1%2580%25D0%25B0%25D0%25BC%25D0%25BE%25D0%25B7%25D0%25B4%25D0%25B0%25D1%2582%25D0%25B5%25D0%25BB%25D1%258C%25D1%2581%25D1%2582%25D0%25B2%25D0%25BE%2520%25D0%25BA%25D0%25BD%25D1%258F%25D0%25B7%25D1%258F%2520%25D0%2592%25D0%25BB%25D0%25B0%25D0%25B4%25D0%25B8%25D0%25BC%25D0%25B8%25D1%2580%25D0%25B0");
+
+        consolidate(
+                "http://s1.proxypy.org/p?q=Z3BqLmdpcm9fZjg5ZGExZGNfZjlkMDExXzAvMzkyLjM4NDU4MTk2LzQxOTIvdGVnL3VyLnhlZG5heS5pa3RvZi1nbWkvLzpzcHR0aA==",
+                "http://s1.proxypy.org/p?q=Z3BqLmdpcm9fZjg5ZGExZGNfZjlkMDExXzAvMzkyLjM4NDU4MTk2LzQxOTIvdGVnL3VyLnhlZG5h%0AeS5pa3RvZi1nbWkvLzpzcHR0aA%3D%3D%0A");
+
+        consolidate("http://stanishevsky.com/write/img/fPushkin.ttf/s24/c704F32/bFBEABD/tа кто из вас либерал?.png",
+                "http://stanishevsky.com/write/img/fPushkin.ttf/s24/c704F32/bFBEABD/t%D0%B0%20%D0%BA%D1%82%D0%BE%20%D0%B8%D0%B7%20%D0%B2%D0%B0%D1%81%20%D0%BB%D0%B8%D0%B1%D0%B5%D1%80%D0%B0%D0%BB%3F.png");
     }
 
     private static void consolidate(String... ar) throws Exception
     {
-        List<String> urls = new ArrayList<>();
-        for (String s : ar)
-            urls.add(s);
+        List<String> urls = Arrays.asList(ar);
 
         String url = UrlConsolidator.consolidateUrlVariants(urls, false);
 
         if (url == null)
             url = UrlConsolidator.consolidateUrlVariants(urls, true);
-        
+
         if (url == null)
             Util.out("FAILED");
         else

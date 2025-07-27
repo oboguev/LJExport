@@ -5,6 +5,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -120,6 +121,8 @@ public class UrlConsolidator
             try
             {
                 String decoded = fullyDecode(part);
+                // Normalize Unicode form
+                decoded = Normalizer.normalize(decoded, Normalizer.Form.NFC);
                 if (ignoreCase)
                     decoded = decoded.toLowerCase(Locale.ROOT);
                 String encodedPart = URLEncoder.encode(decoded, StandardCharsets.UTF_8).replace("+", "%20");
@@ -148,7 +151,20 @@ public class UrlConsolidator
             String rawVal = (kv.length > 1) ? kv[1] : "";
 
             String decodedKey = fullyDecode(rawKey);
-            String decodedVal = fullyDecode(rawVal);
+
+            String preDecoded = rawVal;
+            // Remove broken %0A if base64-like
+            if (preDecoded.contains("%0A") || preDecoded.contains("%0a"))
+            {
+                String base64ish = preDecoded.replace("%0A", "").replace("%0a", "");
+                String maybeDecoded = fullyDecode(base64ish);
+                if (maybeDecoded.matches("^[A-Za-z0-9+/=\\s]{40,}$"))
+                {
+                    preDecoded = base64ish; // strip linebreaks
+                }
+            }
+
+            String decodedVal = fullyDecode(preDecoded);
 
             String encVal;
 
@@ -173,20 +189,17 @@ public class UrlConsolidator
         return result.toString();
     }
 
-    private static String fullyDecode(String input)
+    private static String fullyDecode(String s)
     {
         String prev;
-        String current = input;
-        int maxDepth = 5;
-        int count = 0;
+        String curr = s;
         do
         {
-            prev = current;
-            current = URLDecoder.decode(prev, StandardCharsets.UTF_8);
-            count++;
+            prev = curr;
+            curr = URLDecoder.decode(prev, StandardCharsets.UTF_8);
         }
-        while (!prev.equals(current) && count < maxDepth);
-        return current;
+        while (!curr.equals(prev));
+        return curr;
     }
 
     private static String selectBestVariant(List<String> variants)

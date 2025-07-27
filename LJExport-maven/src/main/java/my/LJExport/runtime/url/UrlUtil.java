@@ -14,7 +14,7 @@ public class UrlUtil
     {
         if (rawUrl == null)
             return null;
-        
+
         /*
          * URLDecoder decodes + as space, which is correct only for application/x-www-form-urlencoded (form data).
          * But in URLs like <a href=...> and <img src=...>, a literal + should stay +.
@@ -23,7 +23,7 @@ public class UrlUtil
         String safe = rawUrl.replace("+", "%2B");
         return URLDecoder.decode(safe, StandardCharsets.UTF_8);
     }
-    
+
     /* ================================================================================================== */
 
     /*
@@ -121,5 +121,39 @@ public class UrlUtil
             return null;
         return URLEncoder.encode(fragment, StandardCharsets.UTF_8)
                 .replace("+", "%20");
+    }
+
+    /* ================================================================================================== */
+
+    public static String extractQueryParameter(String url, String parameterName) throws Exception
+    {
+        try
+        {
+            URI uri = new URI(url);
+            String query = uri.getRawQuery();
+            if (query == null)
+                return null;
+
+            String[] pairs = query.split("&");
+            for (String pair : pairs)
+            {
+                int idx = pair.indexOf('=');
+                if (idx >= 0)
+                {
+                    String key = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8.name());
+                    if (key.equals(parameterName))
+                    {
+                        String value = pair.substring(idx + 1);
+                        return URLDecoder.decode(value, StandardCharsets.UTF_8.name());
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+
+        return null;
     }
 }

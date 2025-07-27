@@ -1,15 +1,11 @@
 package my.LJExport.runtime;
 
 import java.io.File;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.links.util.LinkFilepath;
-import my.LJExport.runtime.url.UrlConsolidator;
 
 public class DemoFileTypeDetector
 {

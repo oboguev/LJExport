@@ -13,6 +13,7 @@ import org.jsoup.nodes.Element;
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.url.UrlFixCP1251;
 import my.LJExport.runtime.url.UrlUtil;
 
 public class LJUtil
@@ -434,7 +435,7 @@ public class LJUtil
      * Unwrap the link taken from JSOUP.getAttribute and then decoded.
      * Result needs to be re-encoded before inserting into JSOUP.setAttribute  
      */
-    public static String unwrapAwayLinkDecoded(String decoded_href)
+    public static String unwrapAwayLinkDecoded(String decoded_href) throws Exception
     {
         while (isWrapped(decoded_href))
             decoded_href = unwrapOneLevel(decoded_href);
@@ -447,9 +448,9 @@ public class LJUtil
      */
     public static String unwrapAwayLinkEncoded(String encoded_href) throws Exception
     {
-        if(encoded_href == null)
+        if (encoded_href == null)
             return null;
-        
+
         String initial_encoded_href = encoded_href;
 
         String decoded_href = UrlUtil.decodeHtmlAttrLink(encoded_href);
@@ -487,18 +488,29 @@ public class LJUtil
         return updated;
     }
 
-    private static final String[] wrap_prefixes_1 = { "https://www.livejournal.com/away?to=",
+    private static final String[] wrap_prefixes_1 = {
+            "https://www.livejournal.com/away?to=",
             "https://www.livejournal.com/away/?to=",
             "https://vk.com/away.php?to=",
             "https://vk.com/away.php/?to="
     };
 
+    private static final String[] wrap_prefixes_fb = {
+            "https://www.facebook.com/l.php?",
+            "http://www.facebook.com/l.php?",
+            "https://l.facebook.com/l.php?",
+            "http://l.facebook.com/l.php?"
+    };
+
     private static boolean isWrapped(String decoded_href)
     {
-        return decoded_href != null && Util.startsWith(decoded_href, null, wrap_prefixes_1);
+        if (decoded_href == null)
+            return false;
+
+        return Util.startsWith(decoded_href, null, wrap_prefixes_1) || Util.startsWith(decoded_href, null, wrap_prefixes_fb);
     }
 
-    private static String unwrapOneLevel(String decoded_href)
+    private static String unwrapOneLevel(String decoded_href) throws Exception
     {
         MutableObject<String> prefix = new MutableObject<>();
 
@@ -506,7 +518,16 @@ public class LJUtil
         {
             decoded_href = decoded_href.substring(prefix.getValue().length());
             decoded_href = fixOverencoding(decoded_href);
+            decoded_href = UrlFixCP1251.fixUrlCp1251Sequences(decoded_href);
             return decoded_href;
+        }
+        else if (Util.startsWith(decoded_href, prefix, wrap_prefixes_fb))
+        {
+            String u = UrlUtil.extractQueryParameter(decoded_href, "u");
+            if (u == null || !Util.startsWith(u, null, "http://", "https://"))
+                throw new Exception("Malstructured wrap link");
+            u = UrlFixCP1251.fixUrlCp1251Sequences(u);
+            return u;
         }
         else
         {

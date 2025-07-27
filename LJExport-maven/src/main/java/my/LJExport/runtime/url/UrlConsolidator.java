@@ -158,7 +158,7 @@ public class UrlConsolidator
         do
         {
             prev = current;
-            current = decodeUrl(prev, false);
+            current = decodeUrl(prev, true);
         }
         while (!current.equals(prev));
         return current.replace("%0A", "");

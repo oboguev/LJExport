@@ -1,7 +1,9 @@
 package my.LJExport.runtime.url;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -160,7 +162,7 @@ public class UrlConsolidator
         do
         {
             prev = current;
-            current = UrlUtil.decodeUrl(prev);
+            current = URLDecoder.decode(prev, StandardCharsets.UTF_8);
         }
         while (!current.equals(prev));
         return current.replace("%0A", "");
@@ -194,7 +196,7 @@ public class UrlConsolidator
 
                 if (looksLikeBase64(decoded))
                 {
-                    String canon = UrlUtil.encodeSegment(decoded);
+                    String canon = URLEncoder.encode(decoded, StandardCharsets.UTF_8.name()).replace("+", "%20");
                     newQuery.append(key).append('=').append(canon);
                 }
                 else
@@ -221,7 +223,7 @@ public class UrlConsolidator
     {
         try
         {
-            return UrlUtil.decodeUrl(s);
+            return URLDecoder.decode(s, StandardCharsets.UTF_8.name());
         }
         catch (Exception e)
         {
@@ -254,7 +256,14 @@ public class UrlConsolidator
 
     private static String safeEncodeComponent(String s)
     {
-        return UrlUtil.encodeSegment(s);
+        try
+        {
+            return URLEncoder.encode(s, StandardCharsets.UTF_8.name()).replace("+", "%20");
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
     private static String encodeIllegalCharacters(String url)
@@ -278,7 +287,9 @@ public class UrlConsolidator
                 if (!segment.isEmpty())
                 {
                     result.append('/');
-                    result.append(UrlUtil.encodeSegment(segment).replace("%2F", "/"));
+                    result.append(URLEncoder.encode(segment, StandardCharsets.UTF_8.name())
+                            .replace("+", "%20")
+                            .replace("%2F", "/"));
                 }
             }
             if (path.endsWith("/"))
@@ -295,13 +306,13 @@ public class UrlConsolidator
                     int eq = params[i].indexOf('=');
                     if (eq >= 0)
                     {
-                        result.append(UrlUtil.encodeSegment(params[i].substring(0, eq)))
+                        result.append(URLEncoder.encode(params[i].substring(0, eq), StandardCharsets.UTF_8.name()))
                                 .append('=')
-                                .append(UrlUtil.encodeSegment(params[i].substring(eq + 1)));
+                                .append(URLEncoder.encode(params[i].substring(eq + 1), StandardCharsets.UTF_8.name()));
                     }
                     else
                     {
-                        result.append(UrlUtil.encodeSegment(params[i]));
+                        result.append(URLEncoder.encode(params[i], StandardCharsets.UTF_8.name()));
                     }
                 }
             }

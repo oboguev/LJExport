@@ -1,6 +1,7 @@
 package my.LJExport.runtime;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -181,8 +182,21 @@ public class DemoFileTypeDetector
             url = UrlConsolidator.consolidateUrlVariants(urls, true);
 
         if (url == null)
+        {
             Util.out("FAILED");
+        }
         else
-            Util.out("OK");
+        {
+            try
+            {
+                new URI(url);
+                Util.out("OK");
+            }
+            catch (Exception ex)
+            {
+                // malformed url
+                Util.err("consolidateUrlVariants returned malformed url " + url);
+            }
+        }
     }
 }

@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -72,23 +73,37 @@ public class UrlConsolidator
             return null;
 
         List<String> originalVariants = normalizedToOriginals.values().iterator().next();
-        return polishUrl(originalVariants.get(0));
+        String best = originalVariants.stream()
+                .min(Comparator.comparingInt(UrlConsolidator::scoreUrlVariant))
+                .orElse(originalVariants.get(0));
+        return encodeIllegalCharacters(polishUrl(best));
+    }
+
+    private static int scoreUrlVariant(String url)
+    {
+        int score = 0;
+        if (url.startsWith("https://"))
+            score -= 10;
+        if (url.contains("%25"))
+            score += 10;
+        if (url.contains("%20"))
+            score += 5;
+        return score + url.length() / 100;
     }
 
     private static String normalizeUrlForComparison(String url, boolean ignorePathCase)
     {
         try
         {
-            // Remove fragment part (e.g., #section)
             int fragmentIndex = url.indexOf('#');
             if (fragmentIndex >= 0)
                 url = url.substring(0, fragmentIndex);
 
-            url = url.replace(" ", "%20"); // crude pre-clean
+            url = url.replace(" ", "%20");
             url = decodeRecursive(url);
-            url = sanitizeEmbeddedUrlsInQuery(url); // applies to parameters like img_url, to, q, etc.
+            url = sanitizeEmbeddedUrlsInQuery(url);
+            url = encodeIllegalCharacters(url);
 
-            // Parse into components
             URL rawUrl = new URL(url);
             String scheme = rawUrl.getProtocol();
             String host = rawUrl.getHost();
@@ -96,36 +111,19 @@ public class UrlConsolidator
             String path = rawUrl.getPath();
             String query = rawUrl.getQuery();
 
-            // Normalize path
             if (ignorePathCase && path != null)
                 path = path.toLowerCase(Locale.ROOT);
 
-            // Encode components safely
             String encodedPath = encodePath(path);
             String encodedQuery = (query != null) ? encodeQuery(query) : null;
 
             URI uri = new URI(scheme, null, host, port, encodedPath, encodedQuery, null);
-
             return uri.toASCIIString();
         }
         catch (Exception e)
         {
-            // Return null if URL is invalid or can't be normalized
             return null;
         }
-    }
-
-    private static String decodeRecursive(String input)
-    {
-        String prev;
-        String current = input;
-        do
-        {
-            prev = current;
-            current = URLDecoder.decode(prev, java.nio.charset.StandardCharsets.UTF_8);
-        }
-        while (!current.equals(prev));
-        return current.replace("%0A", "");
     }
 
     private static String polishUrl(String url)
@@ -146,16 +144,26 @@ public class UrlConsolidator
                 path = "";
 
             String query = uri.getRawQuery();
-            String fragment = null;
-            // skip fragment
-
-            URI rebuilt = new URI(scheme, host, path, query, fragment);
+            URI rebuilt = new URI(scheme, host, path, query, null);
             return rebuilt.toASCIIString();
         }
         catch (Exception e)
         {
             return url;
         }
+    }
+
+    private static String decodeRecursive(String input)
+    {
+        String prev;
+        String current = input;
+        do
+        {
+            prev = current;
+            current = URLDecoder.decode(prev, StandardCharsets.UTF_8);
+        }
+        while (!current.equals(prev));
+        return current.replace("%0A", "");
     }
 
     private static String sanitizeEmbeddedUrlsInQuery(String url)
@@ -181,12 +189,11 @@ public class UrlConsolidator
                 String value = (kv.length > 1) ? kv[1] : "";
 
                 String decodedOnce = decodeOnce(value);
-                String stripped = decodedOnce.replaceAll("(%0A|%0D|\\r|\\n)", ""); // remove newlines
+                String stripped = decodedOnce.replaceAll("(%0A|%0D|\\r|\\n)", "");
                 String decoded = decodeRecursive(stripped);
 
                 if (looksLikeBase64(decoded))
                 {
-                    // re-encode sanitized value to canonical form
                     String canon = URLEncoder.encode(decoded, StandardCharsets.UTF_8.name()).replace("+", "%20");
                     newQuery.append(key).append('=').append(canon);
                 }
@@ -206,7 +213,6 @@ public class UrlConsolidator
 
     private static boolean looksLikeBase64(String s)
     {
-        // crude heuristic: long string with A-Z, a-z, 0-9, +, / and maybe ending in =
         return s.length() >= 20 && s.matches("^[A-Za-z0-9+/=\\r\\n]+$");
     }
 
@@ -248,12 +254,70 @@ public class UrlConsolidator
     {
         try
         {
-            return URLEncoder.encode(s, StandardCharsets.UTF_8.name())
-                    .replace("+", "%20"); // URLEncoder uses + for space
+            return URLEncoder.encode(s, StandardCharsets.UTF_8.name()).replace("+", "%20");
         }
         catch (UnsupportedEncodingException e)
         {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static String encodeIllegalCharacters(String url)
+    {
+        try
+        {
+            URL u = new URL(url);
+            String protocol = u.getProtocol();
+            String host = u.getHost();
+            int port = u.getPort();
+            String path = u.getPath();
+            String query = u.getQuery();
+
+            StringBuilder result = new StringBuilder();
+            result.append(protocol).append("://").append(host);
+            if (port != -1)
+                result.append(":").append(port);
+
+            for (String segment : path.split("/"))
+            {
+                if (!segment.isEmpty())
+                {
+                    result.append('/');
+                    result.append(URLEncoder.encode(segment, StandardCharsets.UTF_8.name())
+                            .replace("+", "%20")
+                            .replace("%2F", "/"));
+                }
+            }
+            if (path.endsWith("/"))
+                result.append('/');
+
+            if (query != null)
+            {
+                result.append('?');
+                String[] params = query.split("&");
+                for (int i = 0; i < params.length; i++)
+                {
+                    if (i > 0)
+                        result.append('&');
+                    int eq = params[i].indexOf('=');
+                    if (eq >= 0)
+                    {
+                        result.append(URLEncoder.encode(params[i].substring(0, eq), StandardCharsets.UTF_8.name()))
+                                .append('=')
+                                .append(URLEncoder.encode(params[i].substring(eq + 1), StandardCharsets.UTF_8.name()));
+                    }
+                    else
+                    {
+                        result.append(URLEncoder.encode(params[i], StandardCharsets.UTF_8.name()));
+                    }
+                }
+            }
+
+            return result.toString();
+        }
+        catch (Exception e)
+        {
+            return url;
         }
     }
 }

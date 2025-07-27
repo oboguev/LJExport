@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.url.UrlUtil;
 
 public class ArchiveOrgUrl
 {
@@ -504,7 +505,7 @@ public class ArchiveOrgUrl
         else
         {
             // Not an archive.org URL — decode everything
-            return URLDecoder.decode(archiveUrl.replace("+", "%2B"), StandardCharsets.UTF_8);
+            return UrlUtil.decodeUrl(archiveUrl);
         }
 
         String rest = archiveUrl.substring(prefix.length());

@@ -10,18 +10,22 @@ public class UrlUtil
     /*
      * Decode link taken from A.HREF or IMG.SRC or LINK.HREF
      */
-    public static String decodeHtmlAttrLink(String rawUrl)
+    public static String decodeHtmlAttrLink(String htmlUrl)
     {
-        if (rawUrl == null)
+        if (htmlUrl == null)
             return null;
+        
+        return decodeUrl(htmlUrl);
+    }
 
+    public static String decodeUrl(String url)
+    {
         /*
          * URLDecoder decodes + as space, which is correct only for application/x-www-form-urlencoded (form data).
          * But in URLs like <a href=...> and <img src=...>, a literal + should stay +.
          * Thus temporarily replace '+' with its percent-encoded version
          */
-        String safe = rawUrl.replace("+", "%2B");
-        return URLDecoder.decode(safe, StandardCharsets.UTF_8);
+        return URLDecoder.decode(url.replace("+", "%2B"), StandardCharsets.UTF_8);
     }
 
     /* ================================================================================================== */
@@ -127,31 +131,26 @@ public class UrlUtil
 
     public static String extractQueryParameter(String url, String parameterName) throws Exception
     {
-        try
-        {
-            URI uri = new URI(url);
-            String query = uri.getRawQuery();
-            if (query == null)
-                return null;
+        URI uri = new URI(url);
+        String query = uri.getRawQuery();
+        if (query == null)
+            return null;
 
-            String[] pairs = query.split("&");
-            for (String pair : pairs)
+        String[] pairs = query.split("&");
+        for (String pair : pairs)
+        {
+            int idx = pair.indexOf('=');
+            if (idx >= 0)
             {
-                int idx = pair.indexOf('=');
-                if (idx >= 0)
+                String rawKey = pair.substring(0, idx);
+                String rawValue = pair.substring(idx + 1);
+
+                String key = URLDecoder.decode(rawKey.replace("+", "%2B"), StandardCharsets.UTF_8.name());
+                if (key.equals(parameterName))
                 {
-                    String key = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8.name());
-                    if (key.equals(parameterName))
-                    {
-                        String value = pair.substring(idx + 1);
-                        return URLDecoder.decode(value, StandardCharsets.UTF_8.name());
-                    }
+                    return URLDecoder.decode(rawValue.replace("+", "%2B"), StandardCharsets.UTF_8.name());
                 }
             }
-        }
-        catch (Exception e)
-        {
-            throw e;
         }
 
         return null;

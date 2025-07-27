@@ -436,27 +436,9 @@ public class LJUtil
      */
     public static String unwrapAwayLinkDecoded(String decoded_href)
     {
-        if (decoded_href == null)
-            return null;
-
-        final String[] prefixes = { "https://www.livejournal.com/away?to=",
-                "https://www.livejournal.com/away/?to=",
-                "https://vk.com/away.php?to=",
-                "https://vk.com/away.php/?to="
-        };
-
-        final String initial_decoded_href = decoded_href;
-        boolean changed = false;
-
-        MutableObject<String> prefix = new MutableObject<>();
-        while (Util.startsWith(decoded_href, prefix, prefixes))
-        {
-            decoded_href = decoded_href.substring(prefix.getValue().length());
-            decoded_href = fixOverencoding(decoded_href);
-            changed = true;
-        }
-
-        return changed ? decoded_href : initial_decoded_href;
+        while (isWrapped(decoded_href))
+            decoded_href = unwrapOneLevel(decoded_href);
+        return decoded_href;
     }
 
     /*
@@ -465,6 +447,9 @@ public class LJUtil
      */
     public static String unwrapAwayLinkEncoded(String encoded_href) throws Exception
     {
+        if(encoded_href == null)
+            return null;
+        
         String initial_encoded_href = encoded_href;
 
         String decoded_href = UrlUtil.decodeHtmlAttrLink(encoded_href);
@@ -500,6 +485,33 @@ public class LJUtil
         }
 
         return updated;
+    }
+
+    private static final String[] wrap_prefixes_1 = { "https://www.livejournal.com/away?to=",
+            "https://www.livejournal.com/away/?to=",
+            "https://vk.com/away.php?to=",
+            "https://vk.com/away.php/?to="
+    };
+
+    private static boolean isWrapped(String decoded_href)
+    {
+        return decoded_href != null && Util.startsWith(decoded_href, null, wrap_prefixes_1);
+    }
+
+    private static String unwrapOneLevel(String decoded_href)
+    {
+        MutableObject<String> prefix = new MutableObject<>();
+
+        if (Util.startsWith(decoded_href, prefix, wrap_prefixes_1))
+        {
+            decoded_href = decoded_href.substring(prefix.getValue().length());
+            decoded_href = fixOverencoding(decoded_href);
+            return decoded_href;
+        }
+        else
+        {
+            return decoded_href;
+        }
     }
 
     private static String fixOverencoding(String href)

@@ -12,6 +12,9 @@ public class UrlUtil
      */
     public static String decodeHtmlAttrLink(String rawUrl)
     {
+        if (rawUrl == null)
+            return null;
+        
         /*
          * URLDecoder decodes + as space, which is correct only for application/x-www-form-urlencoded (form data).
          * But in URLs like <a href=...> and <img src=...>, a literal + should stay +.
@@ -28,6 +31,9 @@ public class UrlUtil
      */
     public static String encodeUrlForHtmlAttr(String url) throws Exception
     {
+        if (url == null)
+            return null;
+
         URI uri = new URI(url); // parsed into components
 
         String scheme = uri.getScheme();

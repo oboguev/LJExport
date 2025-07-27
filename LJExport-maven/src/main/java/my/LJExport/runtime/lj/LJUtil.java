@@ -407,17 +407,4 @@ public class LJUtil
             return false;
         return s.matches("(?i)[a-z0-9.-]+");
     }
-
-    @SuppressWarnings("unused")
-    private static String decodePercent(String s)
-    {
-        try
-        {
-            return java.net.URLDecoder.decode(s, "UTF-8");
-        }
-        catch (Exception e)
-        {
-            return s;
-        }
-    }
 }

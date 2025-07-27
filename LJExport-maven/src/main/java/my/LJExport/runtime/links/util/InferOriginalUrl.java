@@ -4,6 +4,7 @@ import java.net.URLEncoder;
 
 import my.LJExport.maintenance.handlers.util.ShortFilePath;
 import my.LJExport.runtime.url.URLCodec;
+import my.LJExport.runtime.url.UrlUtil;
 
 /*
  * Infer original URL from relative path name in link repository
@@ -38,7 +39,7 @@ public class InferOriginalUrl
             {
                 String timestamp = suffix.substring(0, slash);
                 String encodedOriginal = suffix.substring(slash + 1);
-                String decodedOriginal = java.net.URLDecoder.decode(encodedOriginal, java.nio.charset.StandardCharsets.UTF_8.name());
+                String decodedOriginal = UrlUtil.decodeUrl(encodedOriginal);
                 return schema + "web.archive.org/web/" + timestamp + "/" + decodedOriginal;
             }
         }        

@@ -35,6 +35,7 @@ import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.lj.LJUtil;
+import my.LJExport.runtime.url.UrlUtil;
 
 /*
  * Загрузить страницы профиля пользователя.
@@ -339,8 +340,8 @@ public class ReadProfile
             int idx = pair.indexOf('=');
             if (idx != -1)
             {
-                String key = URLDecoder.decode(pair.substring(0, idx), "UTF-8");
-                String value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
+                String key = UrlUtil.decodeUrl(pair.substring(0, idx));
+                String value = UrlUtil.decodeUrl(pair.substring(idx + 1));
                 if (key.equals("keyword") && value.equals(keywordValue))
                     return true;
             }

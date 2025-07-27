@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import my.LJExport.runtime.url.UrlUtil;
+
 public class MiscUrls
 {
     public static String unwrapImagesGoogleCom(String url)
@@ -46,7 +48,7 @@ public class MiscUrls
             if (m.find())
             {
                 String encodedImgUrl = m.group(2);
-                return URLDecoder.decode(encodedImgUrl, StandardCharsets.UTF_8.name());
+                return UrlUtil.decodeUrl(encodedImgUrl);
             }
 
             return url;

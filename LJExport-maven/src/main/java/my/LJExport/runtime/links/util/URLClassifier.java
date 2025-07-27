@@ -3,6 +3,8 @@ package my.LJExport.runtime.links.util;
 import java.net.URI;
 import java.util.regex.Pattern;
 
+import my.LJExport.runtime.url.UrlUtil;
+
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
@@ -56,7 +58,7 @@ public class URLClassifier
         if (path == null)
             return false;
 
-        String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
+        String decodedPath = UrlUtil.decodeUrl(path);
 
         if (host.matches("(?i)^[a-z]+\\.wikipedia\\.org") && WIKIPEDIA_PATTERN.matcher(decodedPath).matches())
             return true;

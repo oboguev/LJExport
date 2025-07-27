@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.url.UrlUtil;
 
 public class Comment
 {
@@ -476,7 +477,7 @@ public class Comment
 
     private String url_decode(String s) throws Exception
     {
-        return URLDecoder.decode(s, "UTF-8");
+        return UrlUtil.decodeUrl(s);
     }
 
     private void checkMatchArticle(Object f1, Object f2, String fname)

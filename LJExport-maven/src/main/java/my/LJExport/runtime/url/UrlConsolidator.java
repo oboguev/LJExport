@@ -162,7 +162,7 @@ public class UrlConsolidator
         do
         {
             prev = current;
-            current = URLDecoder.decode(prev, StandardCharsets.UTF_8);
+            current = UrlUtil.decodeUrl(prev);
         }
         while (!current.equals(prev));
         return current.replace("%0A", "");
@@ -223,7 +223,7 @@ public class UrlConsolidator
     {
         try
         {
-            return URLDecoder.decode(s, StandardCharsets.UTF_8.name());
+            return UrlUtil.decodeUrl(s);
         }
         catch (Exception e)
         {

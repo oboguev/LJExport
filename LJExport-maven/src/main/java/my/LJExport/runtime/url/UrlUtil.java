@@ -14,7 +14,7 @@ public class UrlUtil
     {
         if (htmlUrl == null)
             return null;
-        
+
         return decodeUrl(htmlUrl);
     }
 
@@ -29,6 +29,11 @@ public class UrlUtil
     }
 
     /* ================================================================================================== */
+
+    public static String encodeSegment(String segment)
+    {
+        return URLEncoder.encode(segment, StandardCharsets.UTF_8).replace("+", "%20");
+    }
 
     /*
      * Encode link before putting in into A.HREF or IMG.SRC or LINK.HREF
@@ -87,8 +92,7 @@ public class UrlUtil
         String[] parts = path.split("/");
         for (int i = 0; i < parts.length; i++)
         {
-            parts[i] = URLEncoder.encode(parts[i], StandardCharsets.UTF_8)
-                    .replace("+", "%20");
+            parts[i] = encodeSegment(parts[i]);
         }
         return String.join("/", parts);
     }
@@ -104,15 +108,13 @@ public class UrlUtil
             int eq = pairs[i].indexOf('=');
             if (eq >= 0)
             {
-                String key = URLEncoder.encode(pairs[i].substring(0, eq), StandardCharsets.UTF_8)
-                        .replace("+", "%20");
-                String val = URLEncoder.encode(pairs[i].substring(eq + 1), StandardCharsets.UTF_8)
-                        .replace("+", "%20");
+                String key = encodeSegment(pairs[i].substring(0, eq));
+                String val = encodeSegment(pairs[i].substring(eq + 1));
                 pairs[i] = key + "=" + val;
             }
             else
             {
-                pairs[i] = URLEncoder.encode(pairs[i], StandardCharsets.UTF_8).replace("+", "%20");
+                pairs[i] = encodeSegment(pairs[i]);
             }
         }
         return String.join("&", pairs);
@@ -123,8 +125,8 @@ public class UrlUtil
     {
         if (fragment == null)
             return null;
-        return URLEncoder.encode(fragment, StandardCharsets.UTF_8)
-                .replace("+", "%20");
+        else
+            return encodeSegment(fragment);
     }
 
     /* ================================================================================================== */

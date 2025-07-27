@@ -23,6 +23,7 @@ import my.LJExport.runtime.parallel.twostage.parser.ParserParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.parser.ParserWorkContext;
 import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.runtime.url.AwayLinks;
+import my.LJExport.runtime.url.UrlUtil;
 
 public class MainForAllHtmlFiles
 {
@@ -212,7 +213,7 @@ public class MainForAllHtmlFiles
             if (href != null && href.startsWith(prefix))
             {
                 href = href.substring(prefix.length());
-                String decoded_href = URLDecoder.decode(href, StandardCharsets.UTF_8.toString());
+                String decoded_href = UrlUtil.decodeUrl(href);
                 Util.out("AWAY: " + decoded_href);
             }
         }

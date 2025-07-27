@@ -13,6 +13,7 @@ import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.url.URLCodec;
+import my.LJExport.runtime.url.UrlUtil;
 
 /*
  * Verify that local URL links are properly URL-encoded in IMG.SRC and A.HREF tags
@@ -127,7 +128,7 @@ public class VerifyUnencodedLinks extends MaintenanceHandler
             /*
              * Check if decoded value points to a file, then everything is fine
              */
-            String decoded_href = URLDecoder.decode(href_raw, StandardCharsets.UTF_8.toString());
+            String decoded_href = UrlUtil.decodeUrl(href_raw);
 
             if (!URLCodec.unixRelativePathContainsFilesysReservedChars(decoded_href))
             {

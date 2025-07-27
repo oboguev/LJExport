@@ -75,7 +75,7 @@ public class InferOriginalUrl
         // 6. Compose final URL
         String url = schema + encodedPath;
         if (query != null && !query.isEmpty())
-            url += "?" + URLEncoder.encode(query, "UTF-8"); // query needs encoding too
+            url += "?" + UrlUtil.encodeSegment(query);
 
         return url;
     }

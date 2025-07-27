@@ -49,6 +49,7 @@ import java.util.regex.Pattern;
 import org.json.JSONObject;
 
 import my.LJExport.runtime.synch.NamedLocks;
+import my.LJExport.runtime.url.UrlUtil;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.json.JSONArray;
@@ -1145,16 +1146,8 @@ public class Util
         String fragment = url.substring(hashIndex + 1);
 
         // Encode using UTF-8 and percent-encode
-        try
-        {
-            String encodedFragment = URLEncoder.encode(fragment, StandardCharsets.UTF_8.toString())
-                    .replace("+", "%20"); // URLEncoder encodes spaces as +, but in URI they should be %20
-            return beforeFragment + "#" + encodedFragment;
-        }
-        catch (UnsupportedEncodingException e)
-        {
-            throw new Exception("UTF-8 not supported", e);
-        }
+        String encodedFragment = UrlUtil.encodeSegment(fragment);
+        return beforeFragment + "#" + encodedFragment;
     }
 
     public static boolean isSameURL(String url1, String url2)
@@ -1230,7 +1223,7 @@ public class Util
             {
                 if (!part.isEmpty())
                 {
-                    encodedPath.append('/').append(URLEncoder.encode(part, StandardCharsets.UTF_8));
+                    encodedPath.append('/').append(UrlUtil.encodeSegment(part));
                 }
             }
             if (path.endsWith("/"))

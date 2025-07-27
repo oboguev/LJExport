@@ -295,13 +295,13 @@ public class UrlConsolidator
                     int eq = params[i].indexOf('=');
                     if (eq >= 0)
                     {
-                        result.append(URLEncoder.encode(params[i].substring(0, eq), StandardCharsets.UTF_8.name()))
+                        result.append(UrlUtil.encodeSegment(params[i].substring(0, eq)))
                                 .append('=')
-                                .append(URLEncoder.encode(params[i].substring(eq + 1), StandardCharsets.UTF_8.name()));
+                                .append(UrlUtil.encodeSegment(params[i].substring(eq + 1)));
                     }
                     else
                     {
-                        result.append(URLEncoder.encode(params[i], StandardCharsets.UTF_8.name()));
+                        result.append(UrlUtil.encodeSegment(params[i]));
                     }
                 }
             }

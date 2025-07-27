@@ -158,7 +158,7 @@ public class UrlConsolidator
         do
         {
             prev = current;
-            current = decodeUrl(prev, true);
+            current = decodeUrl(prev, false);
         }
         while (!current.equals(prev));
         return current.replace("%0A", "");
@@ -313,7 +313,7 @@ public class UrlConsolidator
     private static String decodeUrl(String encodedUrl, boolean isUrl)
     {
         if (isUrl)
-            return UrlUtil.decodeUrlForm(encodedUrl);
+            return UrlUtil.decodeUrl(encodedUrl);
         else
             return UrlUtil.decodeUrlForm(encodedUrl);
     }

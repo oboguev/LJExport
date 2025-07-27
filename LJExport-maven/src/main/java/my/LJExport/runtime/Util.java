@@ -50,6 +50,7 @@ import org.json.JSONObject;
 
 import my.LJExport.runtime.synch.NamedLocks;
 
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.json.JSONArray;
 
 public class Util
@@ -1598,6 +1599,47 @@ public class Util
                     continue outer;
             }
             return true; // Match found
+        }
+
+        return false;
+    }
+
+    /*
+     * Check if s starts with one of prefixes.
+     * If yes, return the prefix in the "prefix" variable.
+     */
+    public static boolean startsWith(String s, MutableObject<String> prefix, String... prefixes)
+    {
+        prefix.setValue(null);
+
+        for (String px : prefixes)
+        {
+            if (s.startsWith(px))
+            {
+                prefix.setValue(px);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /*
+     * Check if s starts with one of prefixes.
+     * If yes, return the prefix in the "prefix" variable, with exact case.
+     */
+    public static boolean startsWithIgnoreCase(String s, MutableObject<String> prefix, String... prefixes)
+    {
+        prefix.setValue(null);
+        String slc = s.toLowerCase();
+
+        for (String px : prefixes)
+        {
+            if (slc.startsWith(px.toLowerCase()))
+            {
+                prefix.setValue(s.substring(0, px.length()));
+                return true;
+            }
         }
 
         return false;

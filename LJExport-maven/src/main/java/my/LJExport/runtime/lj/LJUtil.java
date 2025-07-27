@@ -4,8 +4,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.mutable.MutableObject;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.Element;
+
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.url.UrlUtil;
 
 public class LJUtil
 {
@@ -418,5 +424,74 @@ public class LJUtil
         {
             return s;
         }
+    }
+
+    /* =========================================================== */
+
+    /*
+     * Unwrap the link taken from JSOUP.getAttribute and then decoded.
+     * Result needs to be re-encoded before inserting into JSOUP.setAttribute  
+     */
+    public static String unwrapAwayLinkDecoded(String decoded_href)
+    {
+        if (decoded_href == null)
+            return null;
+
+        final String[] prefixes = { "https://www.livejournal.com/away?to=", "https://vk.com/away.php?to=" };
+
+        final String initial_decoded_href = decoded_href;
+        boolean changed = false;
+
+        MutableObject<String> prefix = new MutableObject<>();
+        while (Util.startsWith(decoded_href, prefix, prefixes))
+        {
+            decoded_href = decoded_href.substring(prefix.getValue().length());
+            changed = true;
+        }
+
+        return changed ? decoded_href : initial_decoded_href;
+    }
+
+    /*
+     * Unwrap the link taken from JSOUP.getAttribute raw as-is i.e. encoded.
+     * Result nees to be reinserted into JSOUP.setAttribute as-is since it is encoded.  
+     */
+    public static String unwrapAwayLinkEncoded(String encoded_href) throws Exception
+    {
+        String initial_encoded_href = encoded_href;
+
+        String decoded_href = UrlUtil.decodeHtmlAttrLink(encoded_href);
+        String unwrapped_decoded_href = unwrapAwayLinkDecoded(decoded_href);
+        if (unwrapped_decoded_href.equals(decoded_href))
+            return initial_encoded_href;
+
+        String unwrapped_encoded_href = UrlUtil.encodeUrlForHtmlAttr(unwrapped_decoded_href);
+        return unwrapped_encoded_href;
+    }
+
+    public static boolean unwrapAwayLink(Node n, String attr) throws Exception
+    {
+        if (!(n instanceof Element))
+            return false;
+
+        String href = JSOUP.getAttribute(n, attr);
+        if (href == null)
+            return false;
+
+        String original_href = href;
+        boolean updated = false;
+
+        String newref = LJUtil.unwrapAwayLinkEncoded(href);
+        if (!newref.equals(href))
+        {
+            JSOUP.updateAttribute(n, attr, newref);
+
+            if (JSOUP.getAttribute(n, "original-" + attr) == null)
+                JSOUP.setAttribute(n, "original-" + attr, original_href);
+
+            updated = true;
+        }
+
+        return updated;
     }
 }

@@ -76,7 +76,7 @@ public class UrlConsolidator
         String best = originalVariants.stream()
                 .min(Comparator.comparingInt(UrlConsolidator::scoreUrlVariant))
                 .orElse(originalVariants.get(0));
-        return encodeIllegalCharacters(polishUrl(best));
+        return polishUrl(encodeIllegalCharacters(best));
     }
 
     private static int scoreUrlVariant(String url)
@@ -122,7 +122,8 @@ public class UrlConsolidator
         }
         catch (Exception e)
         {
-            return null;
+            throw new RuntimeException(e);
+            //  return null;
         }
     }
 
@@ -149,6 +150,7 @@ public class UrlConsolidator
         }
         catch (Exception e)
         {
+         // throw new RuntimeException(e);
             return url;
         }
     }
@@ -207,7 +209,8 @@ public class UrlConsolidator
         }
         catch (Exception e)
         {
-            return url;
+            throw new RuntimeException(e);
+            // return url;
         }
     }
 
@@ -224,7 +227,8 @@ public class UrlConsolidator
         }
         catch (Exception e)
         {
-            return s;
+            throw new RuntimeException(e);
+            // return s;
         }
     }
 
@@ -317,7 +321,8 @@ public class UrlConsolidator
         }
         catch (Exception e)
         {
-            return url;
+            throw new RuntimeException(e);
+            // return url;
         }
     }
 }

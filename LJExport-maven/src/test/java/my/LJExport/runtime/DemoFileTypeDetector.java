@@ -145,6 +145,12 @@ public class DemoFileTypeDetector
 
     private static void consolidate() throws Exception
     {
+        consolidate(false);
+        consolidate(true);
+    }
+
+    private static void consolidate(boolean consolidateTestMode) throws Exception
+    {
         consolidate(
                 "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/v/t1.0-9/14102445_852529494848760_1139406795505667796_n.jpg?oh=214146c3d68ec8711cbd07d56c04f209&oe=584A844B",
                 "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fv%2Ft1.0-9%2F14102445_852529494848760_1139406795505667796_n.jpg%3Foh%3D214146c3d68ec8711cbd07d56c04f209%26oe%3D584A844B");
@@ -183,14 +189,21 @@ public class DemoFileTypeDetector
 
         if (url == null)
         {
-            Util.out("FAILED");
+            Util.out("FAILED =======================");
+            for (String s : urls)
+                Util.out("     " + s);
+            Util.out("");
         }
         else
         {
             try
             {
                 new URI(url);
-                Util.out("OK");
+                Util.out("OK  =======================");
+                for (String s : urls)
+                    Util.out("     " + s);
+                Util.out("  => " + url);
+                Util.out("");
             }
             catch (Exception ex)
             {

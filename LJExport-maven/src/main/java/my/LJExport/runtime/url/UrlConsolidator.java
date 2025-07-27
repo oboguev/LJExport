@@ -66,7 +66,10 @@ public class UrlConsolidator
         }
 
         if (normalizedToOriginals.size() != 1)
+        {
+            log("consolidateUrlVariants returned ambiguous map: " + normalizedToOriginals);
             return null;
+        }
 
         List<String> originalVariants = normalizedToOriginals.values().iterator().next();
         String best = originalVariants.stream()
@@ -89,6 +92,8 @@ public class UrlConsolidator
 
     private static String normalizeUrlForComparison(String url, boolean ignorePathCase)
     {
+        log("normalizeQuery: input = " + url);
+        
         try
         {
             int fragmentIndex = url.indexOf('#');
@@ -153,12 +158,15 @@ public class UrlConsolidator
 
     private static String decodeRecursive(String input)
     {
+        log("decodeRecursive: starting with " + input);
+
         String prev;
         String current = input;
         do
         {
             prev = current;
-            current = decodeUrl(prev, true);  // ### false => works OK
+            current = decodeUrl(prev, false); // ### false => works OK
+            log("decodeRecursive: decoded to " + current);
         }
         while (!current.equals(prev));
         return current.replace("%0A", "");
@@ -166,6 +174,8 @@ public class UrlConsolidator
 
     private static String sanitizeEmbeddedUrlsInQuery(String url)
     {
+        log("sanitizeEmbeddedUrlsInQuery: before = " + url);
+
         try
         {
             int qPos = url.indexOf('?');
@@ -201,7 +211,10 @@ public class UrlConsolidator
                 }
             }
 
-            return prefix + "?" + newQuery;
+            String rebuilt = prefix + "?" + newQuery;
+            log("sanitizeEmbeddedUrlsInQuery: after = " + rebuilt);
+
+            return rebuilt;
         }
         catch (Exception e)
         {
@@ -316,5 +329,13 @@ public class UrlConsolidator
             return UrlUtil.decodeUrl(encodedUrl);
         else
             return UrlUtil.decodeUrlForm(encodedUrl);
+    }
+
+    private static final boolean DEBUG = true;
+
+    private static void log(String message)
+    {
+        if (DEBUG)
+            System.out.println("    [UrlConsolidator] " + message);
     }
 }

@@ -120,6 +120,11 @@ public class KVFile
         return result;
     }
 
+    public List<KVEntry> getEmptyList() throws Exception
+    {
+        return new ArrayList<KVEntry>();
+    }
+
     public void delete() throws Exception
     {
         try

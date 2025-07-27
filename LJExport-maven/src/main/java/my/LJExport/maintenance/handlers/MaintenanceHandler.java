@@ -2,7 +2,9 @@ package my.LJExport.maintenance.handlers;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jsoup.nodes.Node;
 
@@ -10,6 +12,8 @@ import my.LJExport.Config;
 import my.LJExport.maintenance.Maintenance;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FilePath;
+import my.LJExport.runtime.file.KVFile;
+import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.RelativeLink;
@@ -17,18 +21,18 @@ import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public abstract class MaintenanceHandler extends Maintenance
 {
-    protected final String userDir = isEmpty(Config.User) ? null :
-            FilePath.getFilePathActualCase(Config.DownloadRoot + File.separator + Config.User);
-    
-    protected final String linksDir = isEmpty(Config.User) ? null :
-            FilePath.getFilePathActualCase(userDir + File.separator + "links");
-    
+    protected final String userDir = isEmpty(Config.User) ? null
+            : FilePath.getFilePathActualCase(Config.DownloadRoot + File.separator + Config.User);
+
+    protected final String linksDir = isEmpty(Config.User) ? null
+            : FilePath.getFilePathActualCase(userDir + File.separator + "links");
+
     protected final String linksDirSep = isEmpty(Config.User) ? null : linksDir + File.separator;
-    
+
     protected final List<String> validNonLinkRoots = validNonLinkRoots();
 
     private static final String FileProtocol = "file://";
-    
+
     public static class LinkInfo
     {
         public String linkFullFilePath;
@@ -36,19 +40,47 @@ public abstract class MaintenanceHandler extends Maintenance
         public String linkRelativeUnixPath;
     }
 
+    public static class FileContentTypeInformation
+    {
+        public List<KVEntry> list;
+        public Map<String, String> lcrel2ctype = new HashMap<>();
+
+        public void load(String linksDir) throws Exception
+        {
+            KVFile kvfile = new KVFile(linksDir + File.separator + "content-type.txt");
+            if (kvfile.exists())
+                list = kvfile.load(true);
+            else
+                list = kvfile.getEmptyList();
+
+            lcrel2ctype = new HashMap<>();
+            for (KVEntry entry : list)
+                lcrel2ctype.put(entry.key.toLowerCase(), entry.value);
+        }
+        
+        String contentTypeForLcUnixRelpath(String rel)
+        {
+            return lcrel2ctype.get(rel.toLowerCase());
+        }
+    }
+
+    protected FileContentTypeInformation fileContentTypeInformation;
+
     public MaintenanceHandler() throws Exception
     {
     }
-    
+
     @Override
     protected void beginUser() throws Exception
     {
         super.beginUser();
+        fileContentTypeInformation = null;
     }
 
     @Override
     protected void endUser() throws Exception
     {
+        fileContentTypeInformation = null;
         super.endUser();
     }
 
@@ -266,7 +298,7 @@ public abstract class MaintenanceHandler extends Maintenance
     {
         return s == null || s.isEmpty();
     }
-    
+
     public boolean isLinksRootFileRelativePathSyntax(String relPath)
     {
         return relPath.replace(File.separator, "/").contains("/");
@@ -276,12 +308,18 @@ public abstract class MaintenanceHandler extends Maintenance
     {
         if (!isLinksRootFileRelativePathSyntax(relPath))
             return false;
-        
+
         File fp = new File(this.linksDirSep + relPath.replace("/", File.separator)).getCanonicalFile();
-        
+
         if (!fp.exists())
             throw new Exception("Unexpected: file does not exist: " + fp.getCanonicalPath());
-        
+
         return fp.isFile();
+    }
+
+    protected void loadFileContentTypeInformation() throws Exception
+    {
+        fileContentTypeInformation = new FileContentTypeInformation();
+        fileContentTypeInformation.load(linksDir);
     }
 }

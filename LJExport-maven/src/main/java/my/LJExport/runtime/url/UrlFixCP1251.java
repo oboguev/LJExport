@@ -1,8 +1,6 @@
 package my.LJExport.runtime.url;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.net.URLEncoder;
 import java.util.regex.*;
 
 /**
@@ -57,7 +55,7 @@ public class UrlFixCP1251
             try
             {
                 String decoded = new String(bytes, Charset.forName("windows-1251"));
-                String reencoded = URLEncoder.encode(decoded, StandardCharsets.UTF_8.name()).replace("+", "%20");
+                String reencoded = UrlUtil.encodeSegment(decoded);
                 matcher.appendReplacement(result, Matcher.quoteReplacement(reencoded));
             }
             catch (Exception e)

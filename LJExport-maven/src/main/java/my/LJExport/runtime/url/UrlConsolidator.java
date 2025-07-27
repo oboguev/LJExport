@@ -1,9 +1,7 @@
 package my.LJExport.runtime.url;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -196,7 +194,7 @@ public class UrlConsolidator
 
                 if (looksLikeBase64(decoded))
                 {
-                    String canon = URLEncoder.encode(decoded, StandardCharsets.UTF_8.name()).replace("+", "%20");
+                    String canon = UrlUtil.encodeSegment(decoded);
                     newQuery.append(key).append('=').append(canon);
                 }
                 else
@@ -256,14 +254,7 @@ public class UrlConsolidator
 
     private static String safeEncodeComponent(String s)
     {
-        try
-        {
-            return URLEncoder.encode(s, StandardCharsets.UTF_8.name()).replace("+", "%20");
-        }
-        catch (UnsupportedEncodingException e)
-        {
-            throw new RuntimeException(e);
-        }
+        return UrlUtil.encodeSegment(s);
     }
 
     private static String encodeIllegalCharacters(String url)
@@ -287,9 +278,7 @@ public class UrlConsolidator
                 if (!segment.isEmpty())
                 {
                     result.append('/');
-                    result.append(URLEncoder.encode(segment, StandardCharsets.UTF_8.name())
-                            .replace("+", "%20")
-                            .replace("%2F", "/"));
+                    result.append(UrlUtil.encodeSegment(segment).replace("%2F", "/"));
                 }
             }
             if (path.endsWith("/"))

@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.net.URLEncoder;
 
 import org.jsoup.nodes.DataNode;
 import org.jsoup.nodes.Element;
@@ -46,6 +45,7 @@ import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.RelativeLink;
 import my.LJExport.runtime.synch.IntraInterprocessLock;
 import my.LJExport.runtime.url.UrlSetMatcher;
+import my.LJExport.runtime.url.UrlUtil;
 import my.LJExport.test.StyleTest;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
@@ -560,7 +560,7 @@ public class StyleActionToLocal
             else
             {
                 // Encode and manually replace '+' with '%20'
-                String encodedComp = URLEncoder.encode(comp, "UTF-8").replace("+", "%20");
+                String encodedComp = UrlUtil.encodeSegment(comp);
                 encoded.append(encodedComp);
             }
         }
@@ -585,7 +585,7 @@ public class StyleActionToLocal
             if (seg.equals(".") || seg.equals(".."))
                 encodedPath.append(seg);
             else
-                encodedPath.append(URLEncoder.encode(seg, "UTF-8").replace("+", "%20"));
+                encodedPath.append(UrlUtil.encodeSegment(seg));
         }
 
         StringBuilder result = new StringBuilder();

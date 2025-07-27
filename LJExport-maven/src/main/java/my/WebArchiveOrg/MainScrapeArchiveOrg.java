@@ -1,7 +1,6 @@
 package my.WebArchiveOrg;
 
 import java.io.File;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +24,7 @@ import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.util.RelativeLink;
 import my.LJExport.runtime.lj.LJExportInformation;
 import my.LJExport.runtime.url.TeleportUrl;
+import my.LJExport.runtime.url.UrlUtil;
 import my.LJExport.styles.HtmlFileBatchProcessingContext;
 import my.LJExport.styles.StyleProcessor;
 import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
@@ -661,7 +661,7 @@ public class MainScrapeArchiveOrg
 
         String newref = RelativeLink.createRelativeLink(encodeUnsafeFileNameChars(linkRelPath), loadedFileRelPath);
 
-        newref = URLEncoder.encode(newref, "UTF-8").replace("+", "%20").replace("%2F", "/");
+        newref = UrlUtil.encodeSegment(newref).replace("%2F", "/");
 
         if (anchor != null)
             newref += anchor;

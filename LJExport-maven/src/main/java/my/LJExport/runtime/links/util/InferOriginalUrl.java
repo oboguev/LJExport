@@ -124,6 +124,6 @@ public class InferOriginalUrl
     {
         // encode segment safely: Cyrillic, space, etc.
         // prevent space → +
-        return URLEncoder.encode(segment, "UTF-8").replace("+", "%20");
+        return UrlUtil.encodeSegment(segment);
     }
 }

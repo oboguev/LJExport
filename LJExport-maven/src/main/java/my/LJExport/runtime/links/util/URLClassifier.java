@@ -5,9 +5,6 @@ import java.util.regex.Pattern;
 
 import my.LJExport.runtime.url.UrlUtil;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-
 public class URLClassifier
 {
     private static final Pattern WIKIPEDIA_PATTERN = Pattern.compile("^/(wiki/)(File|Image):.+", Pattern.CASE_INSENSITIVE);

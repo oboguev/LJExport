@@ -39,6 +39,11 @@ public class UrlConsolidator
      * If consolidation is impossible, returns null.
      */
 
+    public static enum DecodeAs
+    {
+        FORM, URL
+    }
+
     /**
      * Consolidates a collection of URLs into a canonical form.
      * Prefers HTTPS and less double-encoding (e.g., %2520).
@@ -79,7 +84,7 @@ public class UrlConsolidator
         log("");
         log("best selected = " + best);
         log("");
-        
+
         return polishUrl(encodeIllegalCharacters(best));
     }
 
@@ -99,7 +104,7 @@ public class UrlConsolidator
     {
         log("");
         log("normalizeUrlForComparison: input = " + url);
-        
+
         try
         {
             int fragmentIndex = url.indexOf('#');
@@ -129,7 +134,7 @@ public class UrlConsolidator
 
             log("normalizeUrlForComparison: result = " + result);
             log("");
-            
+
             return result;
         }
         catch (Exception e)
@@ -176,7 +181,7 @@ public class UrlConsolidator
         do
         {
             prev = current;
-            current = decodeUrl(prev, false); // ### false => works OK
+            current = decodeUrl(prev, DecodeAs.FORM); // ### false => works OK
             log("decodeRecursive: decoded to " + current);
         }
         while (!current.equals(prev));
@@ -247,7 +252,7 @@ public class UrlConsolidator
 
     private static String decodeOnce(String s)
     {
-        return decodeUrl(s, true);
+        return decodeUrl(s, DecodeAs.URL);
     }
 
     private static String encodePath(String path)
@@ -340,12 +345,12 @@ public class UrlConsolidator
         return UrlUtil.encodeSegment(segment);
     }
 
-    private static String decodeUrl(String encodedUrl, boolean isUrl)
+    private static String decodeUrl(String encodedUrl, DecodeAs decodeAs)
     {
-        if (isUrl)
-            return UrlUtil.decodeUrl(encodedUrl);
-        else
+        if (decodeAs == DecodeAs.FORM)
             return UrlUtil.decodeUrlForm(encodedUrl);
+        else
+            return UrlUtil.decodeUrl(encodedUrl);
     }
 
     private static final boolean DEBUG = false;

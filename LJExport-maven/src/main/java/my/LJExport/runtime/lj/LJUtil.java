@@ -1,6 +1,8 @@
 package my.LJExport.runtime.lj;
 
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -437,7 +439,11 @@ public class LJUtil
         if (decoded_href == null)
             return null;
 
-        final String[] prefixes = { "https://www.livejournal.com/away?to=", "https://vk.com/away.php?to=" };
+        final String[] prefixes = { "https://www.livejournal.com/away?to=",
+                "https://www.livejournal.com/away/?to=",
+                "https://vk.com/away.php?to=",
+                "https://vk.com/away.php/?to="
+        };
 
         final String initial_decoded_href = decoded_href;
         boolean changed = false;
@@ -446,6 +452,7 @@ public class LJUtil
         while (Util.startsWith(decoded_href, prefix, prefixes))
         {
             decoded_href = decoded_href.substring(prefix.getValue().length());
+            decoded_href = fixOverencoding(decoded_href);
             changed = true;
         }
 
@@ -493,5 +500,13 @@ public class LJUtil
         }
 
         return updated;
+    }
+
+    private static String fixOverencoding(String href)
+    {
+        if (Util.startsWith(href.toLowerCase(), null, "https%3a", "http%3a"))
+            return URLDecoder.decode(href.replace("+", "%2B"), StandardCharsets.UTF_8);
+        else
+            return href;
     }
 }

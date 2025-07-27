@@ -1610,13 +1610,15 @@ public class Util
      */
     public static boolean startsWith(String s, MutableObject<String> prefix, String... prefixes)
     {
-        prefix.setValue(null);
+        if (prefix != null)
+            prefix.setValue(null);
 
         for (String px : prefixes)
         {
             if (s.startsWith(px))
             {
-                prefix.setValue(px);
+                if (prefix != null)
+                    prefix.setValue(px);
                 return true;
             }
         }
@@ -1630,18 +1632,57 @@ public class Util
      */
     public static boolean startsWithIgnoreCase(String s, MutableObject<String> prefix, String... prefixes)
     {
-        prefix.setValue(null);
+        if (prefix != null)
+            prefix.setValue(null);
+
         String slc = s.toLowerCase();
 
         for (String px : prefixes)
         {
             if (slc.startsWith(px.toLowerCase()))
             {
-                prefix.setValue(s.substring(0, px.length()));
+                if (prefix != null)
+                    prefix.setValue(s.substring(0, px.length()));
                 return true;
             }
         }
 
         return false;
+    }
+
+    public static String stripPrefixes(String s, boolean recursive, String... prefixes)
+    {
+        MutableObject<String> prefix = new MutableObject<>();
+        
+        if (recursive)
+        {
+            while (startsWith(s, prefix, prefixes))
+                s = s.substring(prefix.getValue().length());
+        }
+        else
+        {
+            if (startsWith(s, prefix, prefixes))
+                s = s.substring(prefix.getValue().length());
+        }
+        
+        return s;
+    }
+
+    public static String stripPrefixesIgnoreCase(String s, boolean recursive, String... prefixes)
+    {
+        MutableObject<String> prefix = new MutableObject<>();
+        
+        if (recursive)
+        {
+            while (startsWithIgnoreCase(s, prefix, prefixes))
+                s = s.substring(prefix.getValue().length());
+        }
+        else
+        {
+            if (startsWithIgnoreCase(s, prefix, prefixes))
+                s = s.substring(prefix.getValue().length());
+        }
+        
+        return s;
     }
 }

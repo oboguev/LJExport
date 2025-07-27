@@ -10,7 +10,7 @@ import my.LJExport.runtime.html.JSOUP;
 /*
  * Unwrap redirection links
  */
-public class AwayLinks
+public class AwayLink
 {
     /*
      * Unwrap the link taken from JSOUP.getAttribute and then decoded.
@@ -55,7 +55,7 @@ public class AwayLinks
         String original_href = href;
         boolean updated = false;
 
-        String newref = AwayLinks.unwrapAwayLinkEncoded(href);
+        String newref = AwayLink.unwrapAwayLinkEncoded(href);
         if (!newref.equals(href))
         {
             JSOUP.updateAttribute(n, attr, newref);

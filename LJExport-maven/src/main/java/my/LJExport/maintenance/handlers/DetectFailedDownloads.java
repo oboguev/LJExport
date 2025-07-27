@@ -43,6 +43,9 @@ import my.LJExport.runtime.url.UrlUtil;
  */
 public class DetectFailedDownloads extends MaintenanceHandler
 {
+    // ### remove anchors
+    // ### resolve away links
+
     private static boolean DryRun = true; // ###
     // private static final Safety safety = Safety.UNSAFE;
 

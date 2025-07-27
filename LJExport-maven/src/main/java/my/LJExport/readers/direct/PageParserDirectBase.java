@@ -28,7 +28,7 @@ import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.synch.AppendToThreadName;
 import my.LJExport.runtime.synch.FutureProcessor;
 import my.LJExport.runtime.synch.ThreadsControl;
-import my.LJExport.runtime.url.AwayLinks;
+import my.LJExport.runtime.url.AwayLink;
 
 public abstract class PageParserDirectBase
 {
@@ -1246,7 +1246,7 @@ public abstract class PageParserDirectBase
         boolean updated = false;
 
         for (Node n : JSOUP.findElements(pageRoot, "a"))
-            updated |= AwayLinks.unwrapAwayLink(n, "href");
+            updated |= AwayLink.unwrapAwayLink(n, "href");
 
         return updated;
     }

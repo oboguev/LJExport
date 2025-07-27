@@ -20,7 +20,7 @@ import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.parallel.twostage.parser.ParserParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.parser.ParserWorkContext;
 import my.LJExport.runtime.synch.ThreadsControl;
-import my.LJExport.runtime.url.AwayLinks;
+import my.LJExport.runtime.url.AwayLink;
 import my.LJExport.runtime.url.UrlUtil;
 
 public class MainForAllHtmlFiles
@@ -224,7 +224,7 @@ public class MainForAllHtmlFiles
         boolean updated = false;
 
         for (Node n : JSOUP.findElements(pageFlat, "a"))
-            updated |= AwayLinks.unwrapAwayLink(n, "href");
+            updated |= AwayLink.unwrapAwayLink(n, "href");
 
         if (updated)
         {

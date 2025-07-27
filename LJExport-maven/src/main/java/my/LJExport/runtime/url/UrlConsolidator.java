@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class UrlUtil
+public class UrlConsolidator
 {
     /*
      * Generate unique canonical representation of URL variants such as:
@@ -48,6 +48,7 @@ public class UrlUtil
      * @param ignorePathCase  Whether to treat path case-insensitively
      * @return A preferred canonical URL (from the input set), or null if conflict
      */
+
     public static String consolidateUrlVariants(Collection<String> urls, boolean ignorePathCase)
     {
         if (urls == null || urls.isEmpty())
@@ -94,7 +95,7 @@ public class UrlUtil
             String fragment = url.getRef();
 
             URI normalized = new URI(
-                    "scheme",
+                    "scheme", // placeholder to unify http/https
                     null,
                     host,
                     port,
@@ -126,7 +127,7 @@ public class UrlUtil
             }
             catch (Exception e)
             {
-                encoded.add(part);
+                encoded.add(part); // fallback
             }
         }
         return "/" + String.join("/", encoded);
@@ -149,15 +150,20 @@ public class UrlUtil
             String decodedKey = fullyDecode(rawKey);
             String decodedVal = fullyDecode(rawVal);
 
-            // Try to polish all values that appear to be URLs
-            String polished = polishToRfcSafe(decodedVal);
-            if (polished != null && (decodedVal.startsWith("http://") || decodedVal.startsWith("https://")))
+            String encVal;
+
+            // If value looks like a URL, polish and preserve its encoded form
+            if (decodedVal.startsWith("http://") || decodedVal.startsWith("https://"))
             {
-                decodedVal = polished;
+                String polished = polishToRfcSafe(decodedVal);
+                encVal = (polished != null) ? polished : decodedVal;
+            }
+            else
+            {
+                encVal = URLEncoder.encode(decodedVal, StandardCharsets.UTF_8).replace("+", "%20");
             }
 
             String encKey = URLEncoder.encode(decodedKey, StandardCharsets.UTF_8).replace("+", "%20");
-            String encVal = URLEncoder.encode(decodedVal, StandardCharsets.UTF_8).replace("+", "%20");
 
             if (i > 0)
                 result.append("&");
@@ -217,7 +223,7 @@ public class UrlUtil
 
             String path = normalizeAndReencodePath(url.getPath(), false);
             String query = normalizeQuery(url.getQuery());
-            String fragment = url.getRef();
+            // String fragment = url.getRef();
 
             URI polished = new URI(
                     scheme,
@@ -226,7 +232,7 @@ public class UrlUtil
                     port,
                     path,
                     query,
-                    fragment);
+                    null);
 
             return polished.toASCIIString();
         }

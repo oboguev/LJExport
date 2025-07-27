@@ -301,7 +301,7 @@ public abstract class MaintenanceHandler extends Maintenance
 
     public boolean isLinksRootFileRelativePathSyntax(String relPath)
     {
-        return relPath.replace(File.separator, "/").contains("/");
+        return !relPath.replace(File.separator, "/").contains("/");
     }
 
     public boolean isLinksRootFileRelativePath(String relPath) throws Exception

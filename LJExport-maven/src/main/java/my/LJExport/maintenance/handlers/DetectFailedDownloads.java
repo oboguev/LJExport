@@ -33,7 +33,7 @@ import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
-import my.LJExport.runtime.url.UrlUtil;
+import my.LJExport.runtime.url.UrlConsolidator;
 
 /*
  * Detect linked files pointed by IMG.SRC and A.HREF that contain HTML/XHTML/PHP/TXT content -- 
@@ -444,10 +444,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
                 if (wcx.contentExtension == null && !wcx.empty && !wcx.zeroes && wcx.size > 10)
                 {
-                    // Objects.requireNonNull(wcx.contentExtension, "extension is null");
+                    Util.err("Unrecognized file content: " + wcx.fullFilePath);
                     Util.noop();
-                    // ###
-                    Util.err("TYPE: " + wcx.fullFilePath);
                 }
 
                 fileContentExtensionMap.put(wcx.fullFilePath.toLowerCase(), wcx.contentExtension);
@@ -489,9 +487,9 @@ public class DetectFailedDownloads extends MaintenanceHandler
             {
                 weedOutImgPrx();
 
-                String url = UrlUtil.consolidateUrlVariants(urls, false);
+                String url = UrlConsolidator.consolidateUrlVariants(urls, false);
                 if (url == null)
-                    url = UrlUtil.consolidateUrlVariants(urls, true);
+                    url = UrlConsolidator.consolidateUrlVariants(urls, true);
                 if (url != null)
                 {
                     try
@@ -513,12 +511,13 @@ public class DetectFailedDownloads extends MaintenanceHandler
             {
                 String msg = "Multiple URLs for link file: " + relpath;
                 Util.err(msg);
+                for (String s : urls)
+                    Util.err("    " + s);
+                Util.err("------------------------------");
+
                 if (Util.True && DryRun)
                 {
                     // ###
-                    for (String s : urls)
-                        Util.err("    " + s);
-                    Util.err("------------------------------");
                     String url = urls.get(0);
                     urls.clear();
                     urls.add(url);
@@ -527,7 +526,6 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 {
                     throwException(msg);
                 }
-                Util.noop();
             }
 
             if (urls.size() == 1)

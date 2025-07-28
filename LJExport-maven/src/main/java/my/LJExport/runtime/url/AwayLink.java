@@ -10,6 +10,7 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.lj.LJUtil;
 
 /*
  * Unwrap redirection links
@@ -98,7 +99,8 @@ public class AwayLink
 
         return Util.startsWith(decoded_href, null, wrap_prefixes_1) ||
                 Util.startsWith(decoded_href, null, wrap_prefixes_fb) ||
-                isWrapedImagesGoogleCom(decoded_href);
+                isWrapedImagesGoogleCom(decoded_href) ||
+                isWrapedLivejournalImgPrxSt(decoded_href);
     }
 
     private static String unwrapOneLevel(String decoded_href) throws Exception
@@ -123,6 +125,12 @@ public class AwayLink
         else if (isWrapedImagesGoogleCom(decoded_href))
         {
             String u = unwrapImagesGoogleCom(decoded_href);
+            u = UrlFixCP1251.fixUrlCp1251Sequences(u);
+            return u;
+        }
+        else if (isWrapedLivejournalImgPrxSt(decoded_href))
+        {
+            String u = unwrapLivejournalImgPrxSt(decoded_href);
             u = UrlFixCP1251.fixUrlCp1251Sequences(u);
             return u;
         }
@@ -186,5 +194,32 @@ public class AwayLink
     {
         String result = unwrapImagesGoogleCom(url);
         return !result.equals(url);
+    }
+
+    /* =================================================================== */
+    
+    private static boolean isWrapedLivejournalImgPrxSt(String url)
+    {
+        try
+        {
+            String xurl = LJUtil.decodeImgPrxStLink(url);
+            return !xurl.equals(url);
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    private static String unwrapLivejournalImgPrxSt(String url)
+    {
+        try
+        {
+            return LJUtil.decodeImgPrxStLink(url);
+        }
+        catch (Exception ex)
+        {
+            return url;
+        }
     }
 }

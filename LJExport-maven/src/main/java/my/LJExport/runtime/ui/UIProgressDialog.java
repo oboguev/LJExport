@@ -78,7 +78,7 @@ public class UIProgressDialog
             if (last_msg != null && last_msg.equals(msg) && last_pct != null && Math.abs(pct - last_pct) < 0.1)
                 return;
 
-            if (last_pct == null || pct == 0 || pct < last_pct)
+            if (last_pct == null || pct == 0 /* || pct < last_pct */)
                 startTime = System.currentTimeMillis();
 
             last_msg = msg;

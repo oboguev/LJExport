@@ -168,13 +168,16 @@ public class UrlUtil
 
     /* ================================================================================================== */
 
-    public static String encodeNonAscii(String input)
+    /*
+     * Encode only those characters not allowed in URL
+     */
+    public static String encodeMinimal(String input)
     {
         StringBuilder sb = new StringBuilder();
-        
+
         for (char c : input.toCharArray())
         {
-            if (c <= 0x20 || c >= 0x7F || c == '\"')
+            if (isIllegalForURI(c))
             {
                 byte[] bytes = String.valueOf(c).getBytes(StandardCharsets.UTF_8);
                 for (byte b : bytes)
@@ -188,5 +191,10 @@ public class UrlUtil
             }
         }
         return sb.toString();
+    }
+
+    private static boolean isIllegalForURI(char c)
+    {
+        return c <= 0x20 || c >= 0x7F || "\"<>\\^`{}|[]".indexOf(c) >= 0;
     }
 }

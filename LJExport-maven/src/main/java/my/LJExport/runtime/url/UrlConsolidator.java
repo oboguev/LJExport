@@ -99,7 +99,7 @@ public class UrlConsolidator
         log("best selected = " + best);
         log("");
 
-        return polishUrl(UrlUtil.encodeNonAscii(best));
+        return polishUrl(UrlUtil.encodeMinimal(best));
     }
 
     private static int scoreUrlVariant(String url)

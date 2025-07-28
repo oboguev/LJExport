@@ -248,7 +248,7 @@ public class AwayLink
             {
                 redir = UrlUtil.decodeUrl(redir);
                 if (Util.startsWithIgnoreCase(redir, null, "https://", "http://"))
-                    return UrlUtil.encodeNonAscii(redir);
+                    return UrlUtil.encodeMinimal(redir);
             }
         }
         catch (Exception ex)

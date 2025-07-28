@@ -269,11 +269,13 @@ public class ArchiveOrgUrl
         return result;
     }
 
-    private static final Pattern fixSingleSlashInProtocolPattern = Pattern.compile("^(https?):/([^/])", Pattern.CASE_INSENSITIVE);
-
     /*
-     * Change http:/xxx -> http://xxx
-     *        https:/xxx -> https://xxx
+     * Changes:
+     *    HTTP:/xxx    → http://xxx
+     *    Https:/xxx   → https://xxx
+     *    http:/xxx    → http://xxx
+     *    https:/xxx   → https://xxx
+     * Leaves valid URLs (http://, https://) or invalid formats unchanged.
      */
     public static String fixSingleSlashInProtocol(String url)
     {
@@ -282,10 +284,16 @@ public class ArchiveOrgUrl
 
         Matcher matcher = fixSingleSlashInProtocolPattern.matcher(url);
         if (matcher.find())
-            return matcher.replaceFirst(matcher.group(1).toLowerCase() + "://" + matcher.group(2));
-        else
-            return url;
+        {
+            String protocol = matcher.group(1).toLowerCase(); // Force lowercase protocol
+            return matcher.replaceFirst(protocol + "://" + matcher.group(2));
+        }
+
+        return url;
     }
+
+    // (?i) = case-insensitive matching for protocol
+    private static final Pattern fixSingleSlashInProtocolPattern = Pattern.compile("^(?i)(https?):/([^/])");
 
     // Extract timestamp part between archive prefix and archived URL
     private static String extractTimestamp(String url)

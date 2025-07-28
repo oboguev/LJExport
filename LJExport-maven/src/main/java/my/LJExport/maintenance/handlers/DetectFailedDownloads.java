@@ -33,6 +33,7 @@ import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
+import my.LJExport.runtime.url.AwayLink;
 import my.LJExport.runtime.url.UrlConsolidator;
 import my.LJExport.runtime.url.UrlUtil;
 
@@ -43,9 +44,6 @@ import my.LJExport.runtime.url.UrlUtil;
  */
 public class DetectFailedDownloads extends MaintenanceHandler
 {
-    // ### remove anchors
-    // ### resolve away links
-
     private static boolean DryRun = true; // ###
     // private static final Safety safety = Safety.UNSAFE;
 
@@ -193,7 +191,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         {
             if (isLinksRootFileRelativePathSyntax(fp))
                 continue;
-            
+
             fp = linksDir + File.separator + fp;
             file_lc2ac.put(fp.toLowerCase(), fp);
         }
@@ -265,7 +263,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
     private void processScanLinks(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
     {
         String href = getLinkAttribute(n, attr);
-        String href_original = getLinkOriginalAttribute(n, "original-" + attr);
+        String href_original = getLinkOriginalAttribute(n, "original-" + attr);  // ### decode
 
         if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
             return;
@@ -322,7 +320,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt);
             fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
         }
-        
+
         if (contentExtension == null || contentExtension.length() == 0)
         {
             String relpath = this.abs2rel(linkInfo.linkFullFilePath);
@@ -561,18 +559,32 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         private String unwrapPass(String url) throws Exception
         {
-            url = Util.stripAnchor(url);
+            String xurl;
+            
+            /* strip anchor */
+            xurl = Util.stripAnchor(url);
+            if (!xurl.equals(url))
+                return xurl;
 
+            /* decode ImgPrx */
             try
             {
-                url = LJUtil.decodeImgPrxStLink(url);
+                xurl = LJUtil.decodeImgPrxStLink(url);
+                if (!xurl.equals(url))
+                    return xurl;
             }
             catch (Exception ex)
             {
                 Util.noop();
             }
 
-            url = MiscUrls.unwrapImagesGoogleCom(url);
+            xurl = MiscUrls.unwrapImagesGoogleCom(url);
+            if (!xurl.equals(url))
+                return xurl;
+            
+            xurl = AwayLink.unwrapAwayLinkDecoded(url);
+            if (!xurl.equals(url))
+                return xurl;
 
             return url;
         }

@@ -566,18 +566,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (!xurl.equals(url))
                 return xurl;
 
-            /* decode ImgPrx St */
-            try
-            {
-                xurl = LJUtil.decodeImgPrxStLink(url);
-                if (!xurl.equals(url))
-                    return xurl;
-            }
-            catch (Exception ex)
-            {
-                Util.noop();
-            }
-
+            /* decode wrapper */
             xurl = AwayLink.unwrapAwayLinkDecoded(url);
             if (!xurl.equals(url))
                 return xurl;

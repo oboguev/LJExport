@@ -122,7 +122,9 @@ public class AwayLink
         }
         else if (isWrapedImagesGoogleCom(decoded_href))
         {
-            return unwrapImagesGoogleCom(decoded_href);
+            String u = unwrapImagesGoogleCom(decoded_href);
+            u = UrlFixCP1251.fixUrlCp1251Sequences(u);
+            return u;
         }
         else
         {

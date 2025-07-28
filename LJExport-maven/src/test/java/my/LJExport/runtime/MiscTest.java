@@ -7,6 +7,7 @@ import java.util.List;
 
 import my.LJExport.runtime.url.AwayLink;
 import my.LJExport.runtime.url.UrlConsolidator;
+import my.LJExport.runtime.url.UrlFixCP1251;
 import my.LJExport.runtime.url.UrlUtil;
 
 public class MiscTest
@@ -18,7 +19,9 @@ public class MiscTest
             // test_1();
             // consolidate();
             // test_unwrap();
-            test_infonarod_away();
+            // test_infonarod_away();
+            
+            test_cp1251();
         }
         catch (Exception ex)
         {
@@ -215,6 +218,24 @@ public class MiscTest
         String xurl = AwayLink.unwrapInfonarodRuAaway(decoded);
         Util.out(xurl);
 
+        Util.out("");
+    }
+
+    /* ========================================================================================================================= */
+
+    @SuppressWarnings("unused")
+    private static void test_cp1251()
+    {
+        test_cp1251("http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA");
+    }
+
+    private static void test_cp1251(String original)
+    {
+        Util.out(original);
+        String fixed = UrlFixCP1251.fixUrlCp1251Sequences(original);
+        Util.out(fixed);
+        Util.out(UrlUtil.decodeUrl(fixed));
+        
         Util.out("");
     }
 }

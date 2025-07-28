@@ -16,8 +16,9 @@ public class MiscTest
         try
         {
             // test_1();
-            consolidate();
+            // consolidate();
             // test_unwrap();
+            test_infonarod_away();
         }
         catch (Exception ex)
         {
@@ -89,7 +90,7 @@ public class MiscTest
     {
         List<String> urls = Arrays.asList(ar);
         urls = prepare(urls);
-        
+
         Util.out("=========================================================");
         Util.out("");
         for (String s : urls)
@@ -139,7 +140,7 @@ public class MiscTest
             s = Util.stripAnchor(s);
             list.add(s);
         }
-        
+
         return list;
     }
 
@@ -177,6 +178,43 @@ public class MiscTest
     {
         Util.out("   " + s);
         Util.out("D  " + AwayLink.unwrapAwayLinkDecoded(s));
+        Util.out("");
+    }
+
+    /* ========================================================================================================================= */
+
+    @SuppressWarnings("unused")
+    private static void test_infonarod_away()
+    {
+        test_infonarod_away("http://infonarod.ru/away.php?url=http%253A%252F%252Fsocialist.memo.ru%252Fbooks%252Fdocuments.htm");
+        test_infonarod_away(
+                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%25259B%2525D0%2525B5%2525D0%2525BD%2525D0%2525B8%2525D0%2525BD%252C_%2525D0%252592%2525D0%2525BB%2525D0%2525B0%2525D0%2525B4%2525D0%2525B8%2525D0%2525BC%2525D0%2525B8%2525D1%252580_%2525D0%252598%2525D0%2525BB%2525D1%25258C%2525D0%2525B8%2525D1%252587");
+        test_infonarod_away(
+                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A1%2525D0%2525B2%2525D0%2525B5%2525D1%252580%2525D0%2525B4%2525D0%2525BB%2525D0%2525BE%2525D0%2525B2%252C_%2525D0%2525AF%2525D0%2525BA%2525D0%2525BE%2525D0%2525B2_%2525D0%25259C%2525D0%2525B8%2525D1%252585%2525D0%2525B0%2525D0%2525B9%2525D0%2525BB%2525D0%2525BE%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
+        test_infonarod_away(
+                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%25259F%2525D0%2525BE%2525D0%2525B4%2525D0%2525B2%2525D0%2525BE%2525D0%2525B9%2525D1%252581%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9%252C_%2525D0%25259D%2525D0%2525B8%2525D0%2525BA%2525D0%2525BE%2525D0%2525BB%2525D0%2525B0%2525D0%2525B9_%2525D0%252598%2525D0%2525BB%2525D1%25258C%2525D0%2525B8%2525D1%252587");
+        test_infonarod_away(
+                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A3%2525D1%252580%2525D0%2525B8%2525D1%252586%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9%252C_%2525D0%25259C%2525D0%2525BE%2525D0%2525B8%2525D1%252581%2525D0%2525B5%2525D0%2525B9_%2525D0%2525A1%2525D0%2525BE%2525D0%2525BB%2525D0%2525BE%2525D0%2525BC%2525D0%2525BE%2525D0%2525BD%2525D0%2525BE%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
+        test_infonarod_away(
+                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%252591%2525D0%2525BE%2525D0%2525BD%2525D1%252587-%2525D0%252591%2525D1%252580%2525D1%252583%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587%252C_%2525D0%252592%2525D0%2525BB%2525D0%2525B0%2525D0%2525B4%2525D0%2525B8%2525D0%2525BC%2525D0%2525B8%2525D1%252580_%2525D0%252594%2525D0%2525BC%2525D0%2525B8%2525D1%252582%2525D1%252580%2525D0%2525B8%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
+        test_infonarod_away(
+                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A4%2525D0%2525B8%2525D0%2525BB%2525D0%2525B8%2525D0%2525BF%2525D0%2525BF%2525D0%2525BE%2525D0%2525B2%2525D1%252581%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9%252C_%2525D0%252592%2525D0%2525B0%2525D1%252581%2525D0%2525B8%2525D0%2525BB%2525D0%2525B8%2525D0%2525B9_%2525D0%25259D%2525D0%2525B8%2525D0%2525BA%2525D0%2525BE%2525D0%2525BB%2525D0%2525B0%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
+        test_infonarod_away(
+                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%25259A%2525D1%252580%2525D1%25258B%2525D0%2525BB%2525D0%2525B5%2525D0%2525BD%2525D0%2525BA%2525D0%2525BE%252C_%2525D0%25259D%2525D0%2525B8%2525D0%2525BA%2525D0%2525BE%2525D0%2525BB%2525D0%2525B0%2525D0%2525B9_%2525D0%252592%2525D0%2525B0%2525D1%252581%2525D0%2525B8%2525D0%2525BB%2525D1%25258C%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
+        test_infonarod_away(
+                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A2%2525D0%2525B0%2525D0%2525B2%2525D1%252580%2525D0%2525B8%2525D1%252587%2525D0%2525B5%2525D1%252581%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9_%2525D0%2525B4%2525D0%2525B2%2525D0%2525BE%2525D1%252580%2525D0%2525B5%2525D1%252586");
+    }
+
+    private static void test_infonarod_away(String s)
+    {
+        Util.out(s);
+
+        String decoded = UrlUtil.decodeHtmlAttrLink(s);
+        Util.out(decoded);
+        
+        String xurl = AwayLink.unwrapInfonarodRuAaway(decoded);
+        Util.out(xurl);
+
         Util.out("");
     }
 }

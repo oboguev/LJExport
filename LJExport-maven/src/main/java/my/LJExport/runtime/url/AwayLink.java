@@ -25,7 +25,7 @@ public class AwayLink
     {
         if (decoded_href == null)
             return null;
-        
+
         for (String prev = decoded_href;;)
         {
             String current = unwrapOneLevel(prev);
@@ -103,7 +103,7 @@ public class AwayLink
     {
         if (decoded_href == null)
             return null;
-        
+
         MutableObject<String> prefix = new MutableObject<>();
         String xurl;
 
@@ -132,6 +132,13 @@ public class AwayLink
         }
 
         xurl = unwrapLivejournalImgPrxSt(decoded_href);
+        if (!xurl.equals(decoded_href))
+        {
+            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
+            return xurl;
+        }
+        
+        xurl = unwrapInfonarodRuAaway(decoded_href);
         if (!xurl.equals(decoded_href))
         {
             xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
@@ -222,5 +229,33 @@ public class AwayLink
         {
             return url;
         }
+    }
+
+    /* =================================================================== */
+
+    public static String unwrapInfonarodRuAaway(String url)
+    {
+        String prefix = "http://infonarod.ru/away.php?";
+
+        if (!Util.startsWithIgnoreCase(url, null, prefix))
+            return url;
+
+        String redir;
+        try
+        {
+            redir = UrlUtil.extractQueryParameter(url, "url");
+            if (redir != null)
+            {
+                redir = UrlUtil.decodeUrl(redir);
+                if (Util.startsWithIgnoreCase(redir, null, "https://", "http://"))
+                    return UrlUtil.encodeNonAscii(redir);
+            }
+        }
+        catch (Exception ex)
+        {
+            Util.noop();
+        }
+
+        return url;
     }
 }

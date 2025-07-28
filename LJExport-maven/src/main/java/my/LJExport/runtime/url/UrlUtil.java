@@ -174,7 +174,7 @@ public class UrlUtil
         
         for (char c : input.toCharArray())
         {
-            if (c <= 0x20 || c >= 0x7F)
+            if (c <= 0x20 || c >= 0x7F || c == '\"')
             {
                 byte[] bytes = String.valueOf(c).getBytes(StandardCharsets.UTF_8);
                 for (byte b : bytes)

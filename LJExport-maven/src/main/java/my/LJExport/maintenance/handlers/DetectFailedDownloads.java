@@ -437,19 +437,30 @@ public class DetectFailedDownloads extends MaintenanceHandler
         {
             for (FiletypeWorkContext wcx : ppwc)
             {
-                Exception ex = wcx.getException();
-                if (ex != null)
-                    throwException("While processing " + wcx.fullFilePath, ex);
+                String relpath = this.abs2rel(wcx.fullFilePath);
+                String contentType = this.fileContentTypeInformation.contentTypeForLcUnixRelpath(relpath);
+                String contentExtension = FileTypeDetector.fileExtensionFromMimeType(contentType);
 
-                Objects.requireNonNull(wcx.fullFilePath, "fullFilePath is null");
-
-                if (wcx.contentExtension == null && !wcx.empty && !wcx.zeroes && wcx.size > 10)
+                if (contentExtension != null && contentExtension.length() != 0)
                 {
-                    Util.err("Unrecognized file content: " + wcx.fullFilePath);
-                    Util.noop();
+                    fileContentExtensionMap.put(wcx.fullFilePath.toLowerCase(), contentExtension);
                 }
+                else
+                {
+                    Exception ex = wcx.getException();
+                    if (ex != null)
+                        throwException("While processing " + wcx.fullFilePath, ex);
 
-                fileContentExtensionMap.put(wcx.fullFilePath.toLowerCase(), wcx.contentExtension);
+                    Objects.requireNonNull(wcx.fullFilePath, "fullFilePath is null");
+
+                    if (wcx.contentExtension == null && !wcx.empty && !wcx.zeroes && wcx.size > 10)
+                    {
+                        Util.err("Unrecognized file content: " + wcx.fullFilePath);
+                        Util.noop();
+                    }
+
+                    fileContentExtensionMap.put(wcx.fullFilePath.toLowerCase(), wcx.contentExtension);
+                }
             }
         }
         finally

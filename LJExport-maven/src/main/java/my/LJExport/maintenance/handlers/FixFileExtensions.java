@@ -44,6 +44,7 @@ public class FixFileExtensions extends MaintenanceHandler
     // ### update rename-history.txt
     // ### look into AwayLinks, also decoded vs encoded
     // ### remove anchors
+    // ### handle content-type.txt
     
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;

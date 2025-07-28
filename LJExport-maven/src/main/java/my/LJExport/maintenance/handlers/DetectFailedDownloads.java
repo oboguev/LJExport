@@ -100,8 +100,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
             super.beginUser();
             build_lc2ac();
             loadLinkMapFile();
-            prefillFileContentExtensionMap();
             loadFileContentTypeInformation();
+            prefillFileContentExtensionMap();
 
             stageFileCount = this.getStageProcessedFileCount();
 

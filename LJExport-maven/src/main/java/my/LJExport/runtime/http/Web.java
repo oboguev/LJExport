@@ -21,6 +21,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.url.UrlUtil;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -440,6 +441,8 @@ public class Web
 
     public static Response get(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody) throws Exception
     {
+        url = UrlUtil.encodeUrlForWeb(url);
+
         final int maxpasses = 3;
 
         for (int pass = 1;; pass++)
@@ -691,6 +694,8 @@ public class Web
 
     public static Response post(String url, String body) throws Exception
     {
+        url = UrlUtil.encodeUrlForWeb(url);
+        
         if (shouldLimitRate(url))
             RateLimiter.LJ_PAGES.limitRate();
 
@@ -790,6 +795,8 @@ public class Web
 
     public static String getRedirectLocation(String url, String referer, Map<String, String> headers) throws Exception
     {
+        url = UrlUtil.encodeUrlForWeb(url);
+        
         final int maxpasses = 3;
 
         for (int pass = 1;; pass++)

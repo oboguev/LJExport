@@ -46,6 +46,7 @@ public class FixFileExtensions extends MaintenanceHandler
     // ### remove anchors
     // ### handle content-type.txt
     // ### update links map file
+    // ### if !shouldDownload restore original URL and delete file on disk and from link map
     
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;

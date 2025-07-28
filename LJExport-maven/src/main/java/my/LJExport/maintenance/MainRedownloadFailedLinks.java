@@ -55,8 +55,9 @@ public class MainRedownloadFailedLinks
     private static final String Users = "oboguev";
 
     private static boolean DryRun = true;
-    
+
     private static boolean UseArchiveOrg = false;
+    private static boolean UseLivejournal = false;
 
     /* =============================================================================== */
 
@@ -173,7 +174,8 @@ public class MainRedownloadFailedLinks
             Config.autoconfigureSite();
 
             /* login may be required for pictures marked 18+ */
-            Main.do_login();
+            if (UseLivejournal)
+                Main.do_login();
 
             userRoot = Config.DownloadRoot + File.separator + Config.User;
             linksDir = userRoot + File.separator + "links";
@@ -215,8 +217,11 @@ public class MainRedownloadFailedLinks
 
     private void saveControlFile(boolean finalSave) throws Exception
     {
-        if (DryRun || kvset_remaining == null)
+        if (kvset_remaining == null)
+        {
+            Util.err("kvset_remaining is null");
             return;
+        }
 
         synchronized (kvset_remaining)
         {
@@ -226,26 +231,42 @@ public class MainRedownloadFailedLinks
                 list.add(wrap.get());
 
             int nremaining = list.size();
-            int nloaded = this.kvlist_good.size();
-            Util.out("");
-            Util.out(String.format("Files redownloaded: %d, remaining %s", nloaded, nremaining));
 
-            if (nremaining == 0)
+            if (finalSave)
+            {
+                int nloaded = this.kvlist_good.size();
+                Util.out("");
+                Util.out(String.format("Files redownloaded: %d, remaining %s", nloaded, nremaining));
+            }
+
+            if (DryRun)
+            {
+                if (finalSave)
+                {
+                    Util.out("DRY RUN: failed-link-downloads.txt will not be updated");
+                }
+            }
+            else if (nremaining == 0)
             {
                 kvfile.delete();
                 if (finalSave)
-                    Util.out("All scheduled link files have been downloaded, deleted failed-link-downloads.txt for user " + Config.User);
+                {
+                    Util.out("All scheduled link files have been downloaded, deleted failed-link-downloads.txt for user "
+                            + Config.User);
+                }
             }
             else
             {
                 KVEntry.sortByValueIgnoreCase(list);
                 kvfile.save(list);
                 if (finalSave)
+                {
                     Util.out("Updated failed-link-downloads.txt for user " + Config.User + " with remaining files");
+                }
             }
         }
     }
-    
+
     private String numfiles(int n)
     {
         if (n == 1)
@@ -286,7 +307,7 @@ public class MainRedownloadFailedLinks
         }
         else
         {
-            Util.out(String.format("User %s has %s scheduled to redownload", 
+            Util.out(String.format("User %s has %s scheduled to redownload",
                     Config.User, numfiles(kvlist.size())));
 
             for (KVEntry entry : kvlist)
@@ -632,7 +653,16 @@ public class MainRedownloadFailedLinks
         smartLinkRedownloader.useArchiveOrg(UseArchiveOrg);
 
         if (!LinkDownloader.shouldDownload(url, false))
+        {
+            Util.out("Skipping " + url);
             return false;
+        }
+
+        if (!UseLivejournal && LJUtil.isServerUrl(url))
+        {
+            Util.out("Skipping " + url);
+            return false;
+        }
 
         MutableObject<String> fromWhere = new MutableObject<>();
         boolean result = smartLinkRedownloader.redownload(image, url, relativeLinkFilePath, referer, fromWhere);
@@ -641,7 +671,7 @@ public class MainRedownloadFailedLinks
         {
             String from = "";
             if (fromWhere.getValue() != null)
-                from = " from " + fromWhere.getValue(); 
+                from = " === from " + fromWhere.getValue();
             Util.out(String.format("Downloaded [%s] link file %s%s", Config.User, relativeLinkFilePath, from));
         }
         else

@@ -59,7 +59,7 @@ public class SmartLinkRedownloader
 
         if (fromWhere != null)
             fromWhere.setValue(null);
-
+        
         /*
          * Load live online copy
          */

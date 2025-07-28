@@ -189,6 +189,71 @@ public class UrlUtil
 
     /* ================================================================================================== */
 
+    /*
+     * Encode URL link for use by Apache Http Client
+     */
+    public static String encodeUrlForWeb(String url) throws Exception
+    {
+        url = encodeUrlForHtmlAttr(url);
+        url = Util.stripAnchor(url);
+        url = normalizeSchemeHostPort(url);
+        return url;
+    }
+
+    private static final Pattern schemeHostPortPattern = Pattern.compile("^(https?)://([^/:?#]+)(:\\d+)?(?=[/?#]|$)",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Normalizes the scheme, host, and port part of a URL using String and Pattern operations.
+     * 
+     * <ul>
+     *   <li>Lowercases the scheme (e.g. "HTTPS" → "https")</li>
+     *   <li>Lowercases the host (e.g. "Example.COM" → "example.com")</li>
+     *   <li>Strips default ports (:80 for HTTP, :443 for HTTPS)</li>
+     *   <li>Leaves path, query, and fragment untouched</li>
+     *   <li>Does not perform any encoding or decoding</li>
+     * </ul>
+     *
+     * <b>Example:</b>
+     * <pre>{@code
+     * String input = "HTTPS://Example.COM:443/Путь/Ресурс?q=значение#anchor";
+     * String normalized = normalizeSchemeHostPort(input);
+     * System.out.println(normalized);
+     * // Output: https://example.com/Путь/Ресурс?q=значение#anchor
+     * }</pre>
+     *
+     * @param url the input URL string
+     * @return the normalized URL with lowercase scheme/host and default port removed
+     */
+    public static String normalizeSchemeHostPort(String url)
+    {
+        if (url == null)
+            return null;
+
+        Matcher matcher = schemeHostPortPattern.matcher(url);
+
+        if (!matcher.find())
+            return url; // No match — return unchanged
+
+        String scheme = matcher.group(1).toLowerCase(); // http / https
+        String host = matcher.group(2).toLowerCase(); // domain (lowercased)
+        String port = matcher.group(3); // e.g., ":443" or ":8080"
+
+        boolean isDefaultPort = (scheme.equals("http") && ":80".equals(port)) ||
+                (scheme.equals("https") && ":443".equals(port));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(scheme).append("://").append(host);
+        if (port != null && !isDefaultPort)
+            sb.append(port);
+
+        sb.append(url.substring(matcher.end())); // preserve path, query, fragment
+
+        return sb.toString();
+    }
+
+    /* ================================================================================================== */
+
     public static String extractQueryParameter(String url, String parameterName) throws Exception
     {
         URI uri = new URI(url);

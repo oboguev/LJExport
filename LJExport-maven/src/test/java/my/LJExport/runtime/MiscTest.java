@@ -17,10 +17,10 @@ public class MiscTest
         try
         {
             // test_1();
-            consolidate();
+            test_2();
+            // consolidate();
             // test_unwrap();
             // test_infonarod_away();
-
             // test_cp1251();
         }
         catch (Exception ex)
@@ -55,7 +55,21 @@ public class MiscTest
         Util.out("R  " + url);
         Util.out("H  " + UrlUtil.encodeUrlForHtmlAttr(url));
         Util.out("");
+    }
 
+    @SuppressWarnings("unused")
+    private static void test_2() throws Exception
+    {
+        test_2("HTTPS://Example.COM:443/Путь/Ресурс?q=значение#anchor");
+    }
+
+    private static void test_2(String url) throws Exception
+    {
+        String xurl;
+        Util.out(url);
+        Util.out(xurl = UrlUtil.encodeUrlForWeb(url));
+        Util.out(UrlUtil.decodeUrl(xurl));
+        Util.out("");
     }
 
     /* ========================================================================================================================= */

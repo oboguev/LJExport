@@ -116,7 +116,7 @@ public class UrlConsolidator
         return score + url.length() / 100;
     }
 
-    private static String normalizeUrlForComparison(String url, boolean ignorePathCase)
+    private static String old_normalizeUrlForComparison(String url, boolean ignorePathCase)
     {
         log("");
         log("normalizeUrlForComparison: input = " + url);
@@ -158,6 +158,85 @@ public class UrlConsolidator
             log("normalizeUrlForComparison: result = " + result);
             log("");
 
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+            //  return null;
+        }
+    }
+
+    private static String normalizeUrlForComparison(String url, boolean ignorePathCase)
+    {
+        log("");
+        log("normalizeUrlForComparison: input = " + url);
+
+        try
+        {
+            int fragmentIndex = url.indexOf('#');
+            if (fragmentIndex >= 0)
+                url = url.substring(0, fragmentIndex);
+
+            url = url.replace(" ", "%20");
+
+            // Recursively decode embedded encodings
+            // used to works as FORM, fails as URL, but now we dynamically guess mode 
+            url = decodeRecursive(url, DecodeAs.FORM);
+
+            // Sanitize embedded URLs in query parameters
+            url = sanitizeEmbeddedUrlsInQuery(url);
+
+            // Encode non-ASCII, but not % or reserved
+            url = encodeIllegalCharacters(url);
+
+            URL rawUrl = new URL(url);
+            String scheme = rawUrl.getProtocol();
+
+            // Force scheme to 'http' to unify http/https
+            scheme = "http";
+
+            String host = rawUrl.getHost();
+            int port = rawUrl.getPort();
+            String path = rawUrl.getPath();
+            String query = rawUrl.getQuery();
+
+            if (host == null)
+                throw new IllegalArgumentException("URL has no host: " + url);
+
+            if (scheme != null)
+                scheme = scheme.toLowerCase();
+
+            if (host != null)
+                host = host.toLowerCase();
+
+            // Apply ignorePathCase by decoding the path, lowercasing it, and re-encoding
+            if (path == null)
+                path = "";
+
+            String decodedPath = null;; 
+            if (ignorePathCase)
+            {
+                decodedPath = decodeRecursive(path, DecodeAs.URL);
+                path = UrlUtil.encodeSegments(decodedPath.toLowerCase());
+            }
+
+            String encodedQuery = (query != null) ? encodeQuery(query) : null;
+            
+            URI uri;
+            try
+            {
+                uri = new URI(scheme, null, host, port, path, encodedQuery, null);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            String result = uri.toASCIIString();
+
+            log("normalizeUrlForComparison: result = " + result);
+            log("");
             return result;
         }
         catch (Exception e)
@@ -227,7 +306,7 @@ public class UrlConsolidator
         while (!current.equals(prev));
 
         String result = current.replace("%0A", "");
-        log("decodeRecursive: ended with " + input);
+        log("decodeRecursive: ended with " + result);
 
         return result;
     }
@@ -426,7 +505,7 @@ public class UrlConsolidator
         return list;
     }
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static void log(String message)
     {

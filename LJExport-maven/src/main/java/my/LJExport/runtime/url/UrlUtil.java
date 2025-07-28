@@ -46,6 +46,26 @@ public class UrlUtil
     }
 
     /*
+     * Encode / slash separated segments but not slashes themselves
+     */
+    public static String encodeSegments(String segments)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (String pc : segments.split("/"))
+        {
+            if (sb.length() != 0)
+                sb.append("/");
+            sb.append(encodeSegment(pc));
+        }
+
+        String result = sb.toString();
+        if (segments.startsWith("/") && !result.startsWith("/"))
+            result = "/" + result;
+
+        return result;
+    }
+
+    /*
      * Encode link before putting in into A.HREF or IMG.SRC or LINK.HREF
      */
     public static String encodeUrlForHtmlAttr(String url) throws Exception

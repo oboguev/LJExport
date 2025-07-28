@@ -62,6 +62,7 @@ public class UrlConsolidator
             return null;
 
         urls = stripDefaultPort(urls);
+        urls = stripTrailingSlash(urls);
 
         Map<String, List<String>> normalizedToOriginals = new LinkedHashMap<>();
 
@@ -116,6 +117,7 @@ public class UrlConsolidator
         return score + url.length() / 100;
     }
 
+    @SuppressWarnings("unused")
     private static String old_normalizeUrlForComparison(String url, boolean ignorePathCase)
     {
         log("");
@@ -214,7 +216,8 @@ public class UrlConsolidator
             if (path == null)
                 path = "";
 
-            String decodedPath = null;; 
+            String decodedPath = null;
+            ;
             if (ignorePathCase)
             {
                 decodedPath = decodeRecursive(path, DecodeAs.URL);
@@ -222,7 +225,7 @@ public class UrlConsolidator
             }
 
             String encodedQuery = (query != null) ? encodeQuery(query) : null;
-            
+
             URI uri;
             try
             {
@@ -503,6 +506,25 @@ public class UrlConsolidator
         for (String url : urls)
             list.add(UrlUtil.stripDefaultPort(url));
         return list;
+    }
+
+    private static Collection<String> stripTrailingSlash(Collection<String> urls)
+    {
+        List<String> list = new ArrayList<>();
+        for (String url : urls)
+            list.add(stripTrailingSlash(url));
+        return list;
+    }
+
+    private static String stripTrailingSlash(String url)
+    {
+        String lc = url.toLowerCase();
+        if (!lc.equals("http://") && !lc.equals("https://"))
+        {
+            while (Util.lastChar(url) == '/')
+                url = url.substring(0, url.length() - 1);
+        }
+        return url;
     }
 
     private static final boolean DEBUG = false;

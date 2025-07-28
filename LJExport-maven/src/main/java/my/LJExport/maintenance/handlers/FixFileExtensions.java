@@ -45,6 +45,7 @@ public class FixFileExtensions extends MaintenanceHandler
     // ### look into AwayLinks, also decoded vs encoded
     // ### remove anchors
     // ### handle content-type.txt
+    // ### update links map file
     
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;

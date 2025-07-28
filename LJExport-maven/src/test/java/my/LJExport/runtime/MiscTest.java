@@ -63,6 +63,9 @@ public class MiscTest
     @SuppressWarnings("unused")
     private static void consolidate() throws Exception
     {
+        consolidate("https://www.otzywy.com",
+                "https://www.otzywy.com/");
+
         consolidate(
                 "http://img3.joyreactor.cc/pics/post/full/countryballs-Комиксы-польша-песочница-803313.jpeg",
                 "http://img3.joyreactor.cc/pics/post/full/countryballs-Комиксы-Польша-песочница-803313.jpeg",

@@ -2,6 +2,8 @@ package my.LJExport.runtime.url;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.net.URI;
 import java.net.URLEncoder;
 
@@ -222,5 +224,48 @@ public class UrlUtil
     private static boolean isIllegalForURI(char c)
     {
         return c <= 0x20 || c >= 0x7F || "\"<>\\^`{}|[]".indexOf(c) >= 0;
+    }
+
+    /* ================================================================================================== */
+
+    private static final Pattern DEFAULT_PORT_PATTERN = Pattern.compile(
+            "^(?i)(https?)(://[^/:]+):((?:80|443))(/.*|$)");
+
+    /**
+     * Removes the default port from an HTTP or HTTPS URL, if present.
+     * <p>
+     * Specifically:
+     * <ul>
+     *   <li>Removes port 80 from HTTP URLs (e.g., {@code http://example.com:80/path} → {@code http://example.com/path})</li>
+     *   <li>Removes port 443 from HTTPS URLs (e.g., {@code https://example.com:443/path} → {@code https://example.com/path})</li>
+     *   <li>The comparison is case-insensitive (e.g., {@code HTTP://}, {@code Https://} are supported)</li>
+     *   <li>Returns the original URL unchanged if no default port is found or the URL doesn't match the expected pattern</li>
+     * </ul>
+     *
+     * @param url the input URL string
+     * @return the URL with the default port removed if applicable, or the original URL if not applicable
+     */
+    public static String stripDefaultPort(String url)
+    {
+        if (url == null)
+            return null;
+
+        Matcher m = DEFAULT_PORT_PATTERN.matcher(url);
+        if (!m.find())
+            return url;
+
+        String scheme = m.group(1).toLowerCase();
+        String host = m.group(2);
+        String port = m.group(3);
+        String rest = m.group(4);
+
+        // Remove port only if it matches the default for the scheme
+        if ((scheme.equals("http") && port.equals("80")) ||
+                (scheme.equals("https") && port.equals("443")))
+        {
+            return scheme + host + rest;
+        }
+
+        return url;
     }
 }

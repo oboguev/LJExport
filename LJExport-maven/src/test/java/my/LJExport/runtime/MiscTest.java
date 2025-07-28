@@ -16,8 +16,8 @@ public class MiscTest
     {
         try
         {
-            test_1();
-            // consolidate();
+            // test_1();
+            consolidate();
             // test_unwrap();
             // test_infonarod_away();
 
@@ -64,14 +64,14 @@ public class MiscTest
     private static void consolidate() throws Exception
     {
         consolidate(
-                "https://expert.ru:443/data/public/338045/338074/expert_774_023_jpg_625x625_q85.jpg",
-                "http://expert.ru/data/public/338045/338074/expert_774_023_jpg_625x625_q85.jpg");
-
-        consolidate(
                 "http://img3.joyreactor.cc/pics/post/full/countryballs-Комиксы-польша-песочница-803313.jpeg",
                 "http://img3.joyreactor.cc/pics/post/full/countryballs-Комиксы-Польша-песочница-803313.jpeg",
                 "http://img3.joyreactor.cc/pics/post/full/countryballs-%D0%9A%D0%BE%D0%BC%D0%B8%D0%BA%D1%81%D1%8B-%D0%BF%D0%BE%D0%BB%D1%8C%D1%88%D0%B0-%D0%BF%D0%B5%D1%81%D0%BE%D1%87%D0%BD%D0%B8%D1%86%D0%B0-803313.jpeg",
                 "http://img3.joyreactor.cc/pics/post/full/countryballs-%D0%9A%D0%BE%D0%BC%D0%B8%D0%BA%D1%81%D1%8B-%D0%9F%D0%BE%D0%BB%D1%8C%D1%88%D0%B0-%D0%BF%D0%B5%D1%81%D0%BE%D1%87%D0%BD%D0%B8%D1%86%D0%B0-803313.jpeg");
+
+        consolidate(
+                "https://expert.ru:443/data/public/338045/338074/expert_774_023_jpg_625x625_q85.jpg",
+                "http://expert.ru/data/public/338045/338074/expert_774_023_jpg_625x625_q85.jpg");
 
         consolidate(
                 "http://i.imgur.com/TWqVwm5.jpg",
@@ -135,10 +135,10 @@ public class MiscTest
 
         if (url == null)
         {
-            url = UrlConsolidator.consolidateUrlVariants(urls, true);
             Util.out("");
             Util.out("=== SECOND PASS ===");
             Util.out("");
+            url = UrlConsolidator.consolidateUrlVariants(urls, true);
         }
 
         if (url == null)
@@ -172,6 +172,7 @@ public class MiscTest
         {
             s = AwayLink.unwrapAwayLinkDecoded(s);
             s = Util.stripAnchor(s);
+            // s = UrlUtil.stripDefaultPort(s);
             list.add(s);
         }
 

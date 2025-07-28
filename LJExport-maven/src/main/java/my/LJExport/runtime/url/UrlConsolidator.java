@@ -61,6 +61,8 @@ public class UrlConsolidator
         if (urls == null || urls.isEmpty())
             return null;
 
+        urls = stripDefaultPort(urls);
+
         Map<String, List<String>> normalizedToOriginals = new LinkedHashMap<>();
 
         for (String url : urls)
@@ -416,7 +418,15 @@ public class UrlConsolidator
             return UrlUtil.decodeUrl(encodedUrl);
     }
 
-    private static final boolean DEBUG = false;
+    private static Collection<String> stripDefaultPort(Collection<String> urls)
+    {
+        List<String> list = new ArrayList<>();
+        for (String url : urls)
+            list.add(UrlUtil.stripDefaultPort(url));
+        return list;
+    }
+
+    private static final boolean DEBUG = true;
 
     private static void log(String message)
     {

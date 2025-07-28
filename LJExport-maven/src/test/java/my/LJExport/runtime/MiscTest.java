@@ -20,7 +20,7 @@ public class MiscTest
             // consolidate();
             // test_unwrap();
             // test_infonarod_away();
-            
+
             test_cp1251();
         }
         catch (Exception ex)
@@ -214,7 +214,7 @@ public class MiscTest
 
         String decoded = UrlUtil.decodeHtmlAttrLink(s);
         Util.out(decoded);
-        
+
         String xurl = AwayLink.unwrapInfonarodRuAaway(decoded);
         Util.out(xurl);
 
@@ -227,6 +227,8 @@ public class MiscTest
     private static void test_cp1251()
     {
         test_cp1251("http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA");
+        test_cp1251("---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---");
+        test_cp1251("---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA---");
     }
 
     private static void test_cp1251(String original)
@@ -235,7 +237,7 @@ public class MiscTest
         String fixed = UrlFixCP1251.fixUrlCp1251Sequences(original);
         Util.out(fixed);
         Util.out(UrlUtil.decodeUrl(fixed));
-        
+
         Util.out("");
     }
 }

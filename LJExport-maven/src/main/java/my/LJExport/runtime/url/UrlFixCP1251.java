@@ -1,7 +1,10 @@
 package my.LJExport.runtime.url;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.*;
+
+import my.LJExport.runtime.Util;
 
 /**
  * Utility class for detecting and fixing percent-encoded byte sequences in URLs
@@ -11,9 +14,8 @@ import java.util.regex.*;
  * contiguous %XX%XX... sequences that represent CP1251-encoded Cyrillic text,
  * converting them to valid UTF-8 percent-encoded sequences.
  *
- * <p>It does not parse the URL into path/query/fragment components and instead
- * relies on the assumption that syntactic delimiters such as '/', '?', '&', '='
- * separate distinct encoded fields.
+ * <p>If the entire run of %XX bytes is not valid UTF-8, but valid CP1251, it is
+ * transcoded to UTF-8 and fully percent-encoded (even for ASCII) to preserve opacity.
  */
 public class UrlFixCP1251
 {
@@ -23,6 +25,8 @@ public class UrlFixCP1251
      * <p>This method scans the input for all contiguous percent-encoded byte sequences,
      * checks whether they decode as valid UTF-8. If not, it attempts to decode them
      * as Windows-1251 and re-encode the resulting string into UTF-8 percent-encoding.
+     * 
+     * Preserves full percent-encoding if the original run was entirely encoded.
      *
      * @param url the original URL string
      * @return the updated URL string with corrected UTF-8 encoding if needed; otherwise, returns the original
@@ -54,9 +58,19 @@ public class UrlFixCP1251
 
             try
             {
+                // Decode using CP1251
                 String decoded = new String(bytes, Charset.forName("windows-1251"));
-                String reencoded = UrlUtil.encodeSegment(decoded);
-                matcher.appendReplacement(result, Matcher.quoteReplacement(reencoded));
+
+                // Re-encode every character to UTF-8 %XX form
+                byte[] utf8bytes = decoded.getBytes(StandardCharsets.UTF_8);
+                StringBuilder fullEncoded = new StringBuilder();
+                for (byte b : utf8bytes)
+                {
+                    fullEncoded.append('%');
+                    fullEncoded.append(String.format("%02X", b & 0xFF));
+                }
+
+                matcher.appendReplacement(result, Matcher.quoteReplacement(fullEncoded.toString()));
             }
             catch (Exception e)
             {
@@ -99,15 +113,27 @@ public class UrlFixCP1251
             return false;
         }
     }
-    
+
     /* ======================================================================== */
 
     // Example usage
     public static void main(String[] args)
     {
-        String input = "http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA";
-        String output = fixUrlCp1251Sequences(input);
-        System.out.println("Input:  " + input);
-        System.out.println("Output: " + output);
+        if (Util.True)
+        {
+            String input = "http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA";
+            String output = fixUrlCp1251Sequences(input);
+            System.out.println("Input:  " + input);
+            System.out.println("Output: " + output);
+
+        }
+
+        if (Util.True)
+        {
+            String input = "%2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A";
+            String output = fixUrlCp1251Sequences(input);
+            System.out.println("Input:  " + input);
+            System.out.println("Output: " + output);
+        }
     }
 }

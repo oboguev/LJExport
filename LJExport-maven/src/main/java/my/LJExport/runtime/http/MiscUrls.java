@@ -10,55 +10,9 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import my.LJExport.runtime.url.UrlUtil;
 
 public class MiscUrls
 {
-    public static String unwrapImagesGoogleCom(String url)
-    {
-        try
-        {
-            URI uri = new URI(url);
-            String host = uri.getHost();
-            String path = uri.getPath();
-
-            if (host == null || path == null)
-                return url;
-
-            // Normalize host
-            String lowerHost = host.toLowerCase();
-            if (!(lowerHost.equals("images.google.com") || lowerHost.endsWith(".images.google.com")))
-                return url;
-
-            if (!path.equals("/imgres"))
-                return url;
-
-            String query = uri.getRawQuery(); // use rawQuery to preserve % encoding
-            if (query == null)
-                return url;
-
-            // Find imgurl parameter
-            Pattern p = Pattern.compile("(^|&)" + "imgurl=([^&]+)");
-            Matcher m = p.matcher(query);
-            if (m.find())
-            {
-                String encodedImgUrl = m.group(2);
-                return UrlUtil.decodeUrl(encodedImgUrl);
-            }
-
-            return url;
-        }
-        catch (Exception e)
-        {
-            return url;
-        }
-    }
-
-    /* ===================================================================================== */
-
     /*
      * Leave only one of
      * 

@@ -1,5 +1,9 @@
 package my.LJExport.runtime.url;
 
+import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -92,7 +96,9 @@ public class AwayLink
         if (decoded_href == null)
             return false;
 
-        return Util.startsWith(decoded_href, null, wrap_prefixes_1) || Util.startsWith(decoded_href, null, wrap_prefixes_fb);
+        return Util.startsWith(decoded_href, null, wrap_prefixes_1) ||
+                Util.startsWith(decoded_href, null, wrap_prefixes_fb) ||
+                isWrapedImagesGoogleCom(decoded_href);
     }
 
     private static String unwrapOneLevel(String decoded_href) throws Exception
@@ -114,6 +120,10 @@ public class AwayLink
             u = UrlFixCP1251.fixUrlCp1251Sequences(u);
             return u;
         }
+        else if (isWrapedImagesGoogleCom(decoded_href))
+        {
+            return unwrapImagesGoogleCom(decoded_href);
+        }
         else
         {
             return decoded_href;
@@ -128,4 +138,51 @@ public class AwayLink
             return href;
     }
 
+    /* =================================================================== */
+
+    public static String unwrapImagesGoogleCom(String url)
+    {
+        try
+        {
+            URI uri = new URI(url);
+            String host = uri.getHost();
+            String path = uri.getPath();
+
+            if (host == null || path == null)
+                return url;
+
+            // Normalize host
+            String lowerHost = host.toLowerCase();
+            if (!(lowerHost.equals("images.google.com") || lowerHost.endsWith(".images.google.com")))
+                return url;
+
+            if (!path.equals("/imgres"))
+                return url;
+
+            String query = uri.getRawQuery(); // use rawQuery to preserve % encoding
+            if (query == null)
+                return url;
+
+            // Find imgurl parameter
+            Pattern p = Pattern.compile("(^|&)" + "imgurl=([^&]+)");
+            Matcher m = p.matcher(query);
+            if (m.find())
+            {
+                String encodedImgUrl = m.group(2);
+                return UrlUtil.decodeUrl(encodedImgUrl);
+            }
+
+            return url;
+        }
+        catch (Exception e)
+        {
+            return url;
+        }
+    }
+
+    public static boolean isWrapedImagesGoogleCom(String url)
+    {
+        String result = unwrapImagesGoogleCom(url);
+        return !result.equals(url);
+    }
 }

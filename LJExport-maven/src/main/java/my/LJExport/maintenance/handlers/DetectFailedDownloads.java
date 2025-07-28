@@ -578,10 +578,6 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 Util.noop();
             }
 
-            xurl = MiscUrls.unwrapImagesGoogleCom(url);
-            if (!xurl.equals(url))
-                return xurl;
-            
             xurl = AwayLink.unwrapAwayLinkDecoded(url);
             if (!xurl.equals(url))
                 return xurl;

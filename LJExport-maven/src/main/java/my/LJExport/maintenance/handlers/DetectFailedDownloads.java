@@ -566,7 +566,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (!xurl.equals(url))
                 return xurl;
 
-            /* decode ImgPrx */
+            /* decode ImgPrx St */
             try
             {
                 xurl = LJUtil.decodeImgPrxStLink(url);
@@ -589,6 +589,15 @@ public class DetectFailedDownloads extends MaintenanceHandler
             return url;
         }
 
+        /*
+         * If there is/are non-imgprx URL or URLs, remove all imgprx URLs.
+         * Otherwise If there is/are St-format imgprx URLs, remove all non-St imgprx urls.
+         * 
+         * Priority trumping order:
+         *   - non-imgprx
+         *   - imgprx St
+         *   - imgprx non-St
+         */
         private void weedOutImgPrx()
         {
             Set<String> xs_imgprx_st = new HashSet<>();

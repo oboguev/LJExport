@@ -17,11 +17,11 @@ public class MiscTest
         try
         {
             // test_1();
-            // consolidate();
+            consolidate();
             // test_unwrap();
             // test_infonarod_away();
 
-            test_cp1251();
+            // test_cp1251();
         }
         catch (Exception ex)
         {
@@ -62,6 +62,26 @@ public class MiscTest
     @SuppressWarnings("unused")
     private static void consolidate() throws Exception
     {
+        consolidate(
+                "http://i.imgur.com/TWqVwm5.jpg",
+                "https://i.imgur.com/TWqVwm5.jpg");
+
+        consolidate(
+                "http://i486.photobucket.com/albums/rr221/zletcorsab/FLO/RMSOlympic2.jpg",
+                "https://i486.photobucket.com/albums/rr221/zletcorsab/FLO/RMSOlympic2.jpg");
+
+        consolidate(
+                "https://i.imgur.com/oR75hhd.jpg",
+                "http://i.imgur.com/oR75hhd.jpg");
+
+        consolidate(
+                "http://i.imgur.com/TWqVwm5.jpg",
+                "https://i.imgur.com/TWqVwm5.jpg");
+
+        consolidate(
+                "https://l-userpic.livejournal.com/63804671/10265057",
+                "http://l-userpic.livejournal.com/63804671/10265057");
+
         consolidate(
                 "https://yandex.ru/images/search?pos=26&from=tabbar&img_url=https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=619377832930905&get_thumbnail=1&text=стапелии цветы&rpt=simage&lr=121704",
                 "https://yandex.ru/images/search?pos=26&from=tabbar&img_url=https%3A%2F%2Flookaside.fbsbx.com%2Flookaside%2Fcrawler%2Fmedia%2F%3Fmedia_id%3D619377832930905%26get_thumbnail%3D1&text=стапелии+цветы&rpt=simage&lr=121704");
@@ -228,7 +248,8 @@ public class MiscTest
     {
         test_cp1251("http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA");
         test_cp1251("---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---");
-        test_cp1251("---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA---");
+        test_cp1251(
+                "---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA---");
     }
 
     private static void test_cp1251(String original)

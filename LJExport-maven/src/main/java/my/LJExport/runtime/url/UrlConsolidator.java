@@ -12,6 +12,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import my.LJExport.runtime.Util;
+
 public class UrlConsolidator
 {
     /*
@@ -81,6 +83,18 @@ public class UrlConsolidator
                 .min(Comparator.comparingInt(UrlConsolidator::scoreUrlVariant))
                 .orElse(originalVariants.get(0));
 
+        if (best.toLowerCase().startsWith("http://"))
+        {
+            for (String candidate : originalVariants)
+            {
+                if (candidate.toLowerCase().startsWith("https://"))
+                {
+                    best = "https://" + Util.stripPrefixesIgnoreCase(best, false, "http://");
+                    break;
+                }
+            }
+        }
+
         log("");
         log("best selected = " + best);
         log("");
@@ -121,6 +135,10 @@ public class UrlConsolidator
 
             URL rawUrl = new URL(url);
             String scheme = rawUrl.getProtocol();
+
+            // Force scheme to 'http' to unify http/https
+            scheme = "http";
+
             String host = rawUrl.getHost();
             int port = rawUrl.getPort();
             String path = rawUrl.getPath();
@@ -157,6 +175,7 @@ public class UrlConsolidator
             URI uri = new URI(url);
 
             String scheme = uri.getScheme() == null ? "http" : uri.getScheme().toLowerCase();
+
             String host = uri.getHost();
             if (host == null)
                 host = uri.getAuthority(); // handles [user@]host[:port]

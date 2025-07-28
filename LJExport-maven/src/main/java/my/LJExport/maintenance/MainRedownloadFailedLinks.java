@@ -52,7 +52,7 @@ public class MainRedownloadFailedLinks
     // private static final String Users = ALL_USERS;
     // private static final String Users = "funt";
     // private static final String Users = "krylov_arhiv,krylov";
-    private static final String Users = "oboguev";
+    private static final String Users = "shulga";
 
     private static boolean DryRun = true;
 

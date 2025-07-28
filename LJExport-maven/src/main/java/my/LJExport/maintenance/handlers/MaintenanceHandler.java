@@ -58,7 +58,7 @@ public abstract class MaintenanceHandler extends Maintenance
             for (KVEntry entry : list)
                 lcrel2ctype.put(entry.key.toLowerCase(), entry.value);
         }
-        
+
         public String contentTypeForLcUnixRelpath(String rel)
         {
             return lcrel2ctype.get(rel.toLowerCase());
@@ -131,10 +131,18 @@ public abstract class MaintenanceHandler extends Maintenance
     public String getLinkOriginalAttribute(Node n, String name) throws Exception
     {
         String href = JSOUP.getAttribute(n, name);
-        href = preprocesOriginalHref(href);
-        href = UrlUtil.decodeHtmlAttrLink(href);
-        if (href != null)
-            href = ArchiveOrgUrl.decodeArchiveUrl(href);
+        
+        try
+        {
+            href = preprocesOriginalHref(href);
+            href = UrlUtil.decodeHtmlAttrLink(href);
+        }
+        catch (Exception ex)
+        {
+            return null;
+            // ### throw ex;
+        }
+        
         return href;
     }
 
@@ -161,7 +169,7 @@ public abstract class MaintenanceHandler extends Maintenance
             return null;
 
         href = href.trim();
-        if (href.startsWith(FileProtocol))
+        if (href.toLowerCase().startsWith(FileProtocol))
             href = href.substring(FileProtocol.length());
 
         if (href.isEmpty() || !href.startsWith("../"))
@@ -176,7 +184,7 @@ public abstract class MaintenanceHandler extends Maintenance
             return null;
 
         href = href.trim();
-        if (href.startsWith(FileProtocol))
+        if (href.toLowerCase().startsWith(FileProtocol))
             href = href.substring(FileProtocol.length());
 
         if (href.isEmpty())

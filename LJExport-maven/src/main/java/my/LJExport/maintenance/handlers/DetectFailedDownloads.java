@@ -636,7 +636,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
     private boolean processUpdateMissingOriginalLinks(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
     {
-        if (null != getLinkOriginalAttribute(n, "original-" + attr))
+        if (null != JSOUP.getAttribute(n, "original-" + attr))
             return false;
 
         String href = getLinkAttribute(n, attr);

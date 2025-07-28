@@ -51,43 +51,68 @@ public class UrlUtil
         if (url == null)
             return null;
 
-        URI uri = new URI(url); // parsed into components
+        // Parse manually instead of using new URI(url)
+        int schemeEnd = url.indexOf("://");
+        if (schemeEnd <= 0)
+            throw new IllegalArgumentException("Invalid URL: no scheme");
 
-        String scheme = uri.getScheme();
-        String authority = uri.getRawAuthority(); // includes host[:port]
-        String path = uri.getRawPath();
-        String query = uri.getRawQuery();
-        String fragment = uri.getRawFragment();
+        String scheme = url.substring(0, schemeEnd);
+        String rest = url.substring(schemeEnd + 3); // skip "://"
 
-        // Encode each component properly
+        int pathStart = rest.indexOf('/');
+        String authority, pathAndAfter;
+        if (pathStart >= 0)
+        {
+            authority = rest.substring(0, pathStart);
+            pathAndAfter = rest.substring(pathStart);
+        }
+        else
+        {
+            authority = rest;
+            pathAndAfter = "";
+        }
+
+        String path, query = null, fragment = null;
+
+        int queryIndex = pathAndAfter.indexOf('?');
+        int fragmentIndex = pathAndAfter.indexOf('#');
+
+        if (queryIndex >= 0)
+        {
+            path = pathAndAfter.substring(0, queryIndex);
+
+            if (fragmentIndex >= 0 && fragmentIndex > queryIndex)
+            {
+                query = pathAndAfter.substring(queryIndex + 1, fragmentIndex);
+                fragment = pathAndAfter.substring(fragmentIndex + 1);
+            }
+            else
+            {
+                query = pathAndAfter.substring(queryIndex + 1);
+            }
+        }
+        else if (fragmentIndex >= 0)
+        {
+            path = pathAndAfter.substring(0, fragmentIndex);
+            fragment = pathAndAfter.substring(fragmentIndex + 1);
+        }
+        else
+        {
+            path = pathAndAfter;
+        }
+
+        // Now encode components
         String encodedPath = encodePath(path);
         String encodedQuery = encodeQuery(query);
         String encodedFragment = encodeFragment(fragment);
 
         // Rebuild the URL
         StringBuilder result = new StringBuilder();
-
-        if (scheme != null)
-        {
-            result.append(scheme).append(":");
-        }
-
-        if (authority != null)
-        {
-            result.append("//").append(authority);
-        }
-
-        result.append(encodedPath);
-
+        result.append(scheme).append("://").append(authority).append(encodedPath);
         if (encodedQuery != null)
-        {
             result.append('?').append(encodedQuery);
-        }
-
         if (encodedFragment != null)
-        {
             result.append('#').append(encodedFragment);
-        }
 
         return result.toString();
     }
@@ -190,7 +215,7 @@ public class UrlUtil
                 sb.append(c);
             }
         }
-        
+
         return sb.toString();
     }
 

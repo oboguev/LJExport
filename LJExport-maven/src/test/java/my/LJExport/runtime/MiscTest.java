@@ -16,8 +16,8 @@ public class MiscTest
     {
         try
         {
-            // test_1();
-            consolidate();
+            test_1();
+            // consolidate();
             // test_unwrap();
             // test_infonarod_away();
 
@@ -36,6 +36,7 @@ public class MiscTest
         test_1("https://vk.com/away.php?to=http%3A%2F%2Frigort.livejournal.com%2F1788988.html%3Futm_source%3Dvksharing%26utm_medium%3Dsocial&amp;post=-89424527_119771&amp;cc_key=");
         test_encode(
                 "http://rigort.livejournal.com/1788988.html?utm_source=vksharing&utm_medium=social&amp;post=-89424527_119771&amp;cc_key=");
+        test_encode("https://cloud.mail.ru/public/15220191b401/речь зацепина в прениях - 2014.pdf");
     }
 
     @SuppressWarnings("unused")
@@ -62,6 +63,16 @@ public class MiscTest
     @SuppressWarnings("unused")
     private static void consolidate() throws Exception
     {
+        consolidate(
+                "https://expert.ru:443/data/public/338045/338074/expert_774_023_jpg_625x625_q85.jpg",
+                "http://expert.ru/data/public/338045/338074/expert_774_023_jpg_625x625_q85.jpg");
+
+        consolidate(
+                "http://img3.joyreactor.cc/pics/post/full/countryballs-Комиксы-польша-песочница-803313.jpeg",
+                "http://img3.joyreactor.cc/pics/post/full/countryballs-Комиксы-Польша-песочница-803313.jpeg",
+                "http://img3.joyreactor.cc/pics/post/full/countryballs-%D0%9A%D0%BE%D0%BC%D0%B8%D0%BA%D1%81%D1%8B-%D0%BF%D0%BE%D0%BB%D1%8C%D1%88%D0%B0-%D0%BF%D0%B5%D1%81%D0%BE%D1%87%D0%BD%D0%B8%D1%86%D0%B0-803313.jpeg",
+                "http://img3.joyreactor.cc/pics/post/full/countryballs-%D0%9A%D0%BE%D0%BC%D0%B8%D0%BA%D1%81%D1%8B-%D0%9F%D0%BE%D0%BB%D1%8C%D1%88%D0%B0-%D0%BF%D0%B5%D1%81%D0%BE%D1%87%D0%BD%D0%B8%D1%86%D0%B0-803313.jpeg");
+
         consolidate(
                 "http://i.imgur.com/TWqVwm5.jpg",
                 "https://i.imgur.com/TWqVwm5.jpg");

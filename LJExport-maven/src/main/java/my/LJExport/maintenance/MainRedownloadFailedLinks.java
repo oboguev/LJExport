@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
@@ -614,11 +615,15 @@ public class MainRedownloadFailedLinks
         if (!LinkDownloader.shouldDownload(url, false))
             return false;
 
-        boolean result = smartLinkRedownloader.redownload(image, url, relativeLinkFilePath, referer);
+        MutableObject<String> fromWhere = new MutableObject<>();
+        boolean result = smartLinkRedownloader.redownload(image, url, relativeLinkFilePath, referer, fromWhere);
 
         if (result)
         {
-            Util.out(String.format("Downloaded [%s] link file %s", Config.User, relativeLinkFilePath));
+            String from = "";
+            if (fromWhere.getValue() != null)
+                from = " from " + fromWhere.getValue(); 
+            Util.out(String.format("Downloaded [%s] link file %s%s", Config.User, relativeLinkFilePath, from));
         }
         else
         {

@@ -4,6 +4,8 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 
+import org.apache.commons.lang3.mutable.MutableObject;
+
 import my.LJExport.Config;
 import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
@@ -25,10 +27,11 @@ public class SmartLinkRedownloader
         this.linksDir = linksDir;
     }
 
-    public boolean redownload(boolean image, String href, String unixRelFilePath, String referer) throws Exception
+    public boolean redownload(boolean image, String href, String unixRelFilePath, String referer, MutableObject<String> fromWhere)
+            throws Exception
     {
-        Web.Response r = smartDownload(image, href, referer);
-        
+        Web.Response r = smartDownload(image, href, referer, fromWhere);
+
         if (r != null)
         {
             String fullFilePath = this.linksDir + File.separator + unixRelFilePath.replace('/', File.separatorChar);
@@ -43,16 +46,30 @@ public class SmartLinkRedownloader
 
     /* ================================================================================================== */
 
-    public static Web.Response smartDownload(boolean image, String href, String referer) throws Exception
+    public static Web.Response smartDownload(boolean image, String href, String referer, MutableObject<String> fromWhere)
+            throws Exception
     {
         href = Util.stripAnchor(href);
+
+        if (fromWhere != null)
+            fromWhere.setValue(null);
 
         /*
          * Load live online copy
          */
         Web.Response r = load_good(image, href, referer);
         if (r != null)
+        {
+            if (fromWhere != null)
+            {
+                if (ArchiveOrgUrl.isArchiveOrgUrl(href))
+                    fromWhere.setValue("web.archive.org/explicit");
+                else
+                    fromWhere.setValue("online");
+            }
+
             return r;
+        }
 
         /*
          * Load from acrhive.org
@@ -78,7 +95,11 @@ public class SmartLinkRedownloader
         String archivedUrl = ArchiveOrgUrl.directDownloadUrl(original, timestamp, false);
         r = load_good(image, archivedUrl, null);
         if (r != null)
+        {
+            if (fromWhere != null)
+                fromWhere.setValue("web.archive.org/dynamic");
             return r;
+        }
 
         return null;
     }
@@ -101,7 +122,7 @@ public class SmartLinkRedownloader
 
         if (ArchiveOrgUrl.isArchiveOrgUrl(href))
             href = ArchiveOrgUrl.extractArchivedUrlPart(href);
-        
+
         if (!Util.isAbsoluteURL(href))
             href = "https://" + href;
 
@@ -149,7 +170,7 @@ public class SmartLinkRedownloader
             SmartLinkRedownloader self = new SmartLinkRedownloader(
                     Config.DownloadRoot + File.separator + Config.User + File.separator + "links");
             String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
-            boolean b = self.redownload(false, href, null, null);
+            boolean b = self.redownload(false, href, null, null, null);
             Util.unused(b);
         }
         catch (Exception ex)

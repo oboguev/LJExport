@@ -23,9 +23,16 @@ public class AwayLink
      */
     public static String unwrapAwayLinkDecoded(String decoded_href) throws Exception
     {
-        while (isWrapped(decoded_href))
-            decoded_href = unwrapOneLevel(decoded_href);
-        return decoded_href;
+        if (decoded_href == null)
+            return null;
+        
+        for (String prev = decoded_href;;)
+        {
+            String current = unwrapOneLevel(prev);
+            if (current.equals(prev))
+                return prev;
+            prev = current;
+        }
     }
 
     /*
@@ -92,20 +99,13 @@ public class AwayLink
             "http://l.instagram.com?"
     };
 
-    private static boolean isWrapped(String decoded_href)
-    {
-        if (decoded_href == null)
-            return false;
-
-        return Util.startsWith(decoded_href, null, wrap_prefixes_1) ||
-                Util.startsWith(decoded_href, null, wrap_prefixes_fb) ||
-                isWrapedImagesGoogleCom(decoded_href) ||
-                isWrapedLivejournalImgPrxSt(decoded_href);
-    }
-
     private static String unwrapOneLevel(String decoded_href) throws Exception
     {
+        if (decoded_href == null)
+            return null;
+        
         MutableObject<String> prefix = new MutableObject<>();
+        String xurl;
 
         if (Util.startsWith(decoded_href, prefix, wrap_prefixes_1))
         {
@@ -114,7 +114,8 @@ public class AwayLink
             decoded_href = UrlFixCP1251.fixUrlCp1251Sequences(decoded_href);
             return decoded_href;
         }
-        else if (Util.startsWith(decoded_href, prefix, wrap_prefixes_fb))
+
+        if (Util.startsWith(decoded_href, prefix, wrap_prefixes_fb))
         {
             String u = UrlUtil.extractQueryParameter(decoded_href, "u");
             if (u == null || !Util.startsWith(u, null, "http://", "https://"))
@@ -122,22 +123,22 @@ public class AwayLink
             u = UrlFixCP1251.fixUrlCp1251Sequences(u);
             return u;
         }
-        else if (isWrapedImagesGoogleCom(decoded_href))
+
+        xurl = unwrapImagesGoogleCom(decoded_href);
+        if (!xurl.equals(decoded_href))
         {
-            String u = unwrapImagesGoogleCom(decoded_href);
-            u = UrlFixCP1251.fixUrlCp1251Sequences(u);
-            return u;
+            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
+            return xurl;
         }
-        else if (isWrapedLivejournalImgPrxSt(decoded_href))
+
+        xurl = unwrapLivejournalImgPrxSt(decoded_href);
+        if (!xurl.equals(decoded_href))
         {
-            String u = unwrapLivejournalImgPrxSt(decoded_href);
-            u = UrlFixCP1251.fixUrlCp1251Sequences(u);
-            return u;
+            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
+            return xurl;
         }
-        else
-        {
-            return decoded_href;
-        }
+
+        return decoded_href;
     }
 
     private static String fixOverencoding(String href)
@@ -197,8 +198,8 @@ public class AwayLink
     }
 
     /* =================================================================== */
-    
-    private static boolean isWrapedLivejournalImgPrxSt(String url)
+
+    public static boolean isWrapedLivejournalImgPrxSt(String url)
     {
         try
         {
@@ -211,7 +212,7 @@ public class AwayLink
         }
     }
 
-    private static String unwrapLivejournalImgPrxSt(String url)
+    public static String unwrapLivejournalImgPrxSt(String url)
     {
         try
         {

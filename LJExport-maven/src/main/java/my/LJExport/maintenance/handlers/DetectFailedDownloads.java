@@ -30,7 +30,6 @@ import my.LJExport.runtime.http.MiscUrls;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.util.InferOriginalUrl;
 import my.LJExport.runtime.links.util.LinkFilepath;
-import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 import my.LJExport.runtime.url.AwayLink;

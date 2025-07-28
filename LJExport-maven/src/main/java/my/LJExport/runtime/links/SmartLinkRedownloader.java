@@ -21,10 +21,16 @@ import my.WebArchiveOrg.ArchiveOrgUrl;
 public class SmartLinkRedownloader
 {
     private final String linksDir;
+    private boolean useArchiveOrg = true;
 
     public SmartLinkRedownloader(String linksDir)
     {
         this.linksDir = linksDir;
+    }
+
+    public void useArchiveOrg(boolean useArchiveOrg)
+    {
+        this.useArchiveOrg = useArchiveOrg;
     }
 
     public boolean redownload(boolean image, String href, String unixRelFilePath, String referer, MutableObject<String> fromWhere)
@@ -46,7 +52,7 @@ public class SmartLinkRedownloader
 
     /* ================================================================================================== */
 
-    public static Web.Response smartDownload(boolean image, String href, String referer, MutableObject<String> fromWhere)
+    public Web.Response smartDownload(boolean image, String href, String referer, MutableObject<String> fromWhere)
             throws Exception
     {
         href = Util.stripAnchor(href);
@@ -75,7 +81,7 @@ public class SmartLinkRedownloader
          * Load from acrhive.org
          */
         // was already an archive.org URL? 
-        if (ArchiveOrgUrl.isArchiveOrgUrl(href))
+        if (!useArchiveOrg || ArchiveOrgUrl.isArchiveOrgUrl(href))
             return null;
 
         /*

@@ -52,9 +52,11 @@ public class MainRedownloadFailedLinks
     // private static final String Users = ALL_USERS;
     // private static final String Users = "funt";
     // private static final String Users = "krylov_arhiv,krylov";
-    private static final String Users = "shulga";
+    private static final String Users = "oboguev";
 
     private static boolean DryRun = true;
+    
+    private static boolean UseArchiveOrg = false;
 
     /* =============================================================================== */
 
@@ -177,7 +179,7 @@ public class MainRedownloadFailedLinks
             linksDir = userRoot + File.separator + "links";
             kvfile = new KVFile(linksDir + File.separator + "failed-link-downloads.txt");
 
-            Util.out(">>> Redownloading of failed links for user " + Config.User);
+            Util.out(">>> Redownloading of failed link files for user " + Config.User);
 
             build_lc2ac();
 
@@ -186,7 +188,7 @@ public class MainRedownloadFailedLinks
 
             if (Main.isAborting())
             {
-                Util.err(">>> Aborted redownloading of failed links for user " + Config.User);
+                Util.err(">>> Aborted redownloading of failed link files for user " + Config.User);
                 saveControlFile(true);
                 return;
             }
@@ -197,7 +199,7 @@ public class MainRedownloadFailedLinks
 
                 if (Main.isAborting())
                 {
-                    Util.err(">>> Aborted redownloading of failed links for user " + Config.User);
+                    Util.err(">>> Aborted redownloading of failed link files for user " + Config.User);
                     saveControlFile(true);
                     return;
                 }
@@ -223,20 +225,33 @@ public class MainRedownloadFailedLinks
             for (IdentityWrapper<KVEntry> wrap : kvset_remaining)
                 list.add(wrap.get());
 
-            if (list.size() == 0)
+            int nremaining = list.size();
+            int nloaded = this.kvlist_good.size();
+            Util.out("");
+            Util.out(String.format("Files redownloaded: %d, remaining %s", nloaded, nremaining));
+
+            if (nremaining == 0)
             {
                 kvfile.delete();
                 if (finalSave)
-                    Util.out("Deleted failed-link-downloads.txt for user " + Config.User);
+                    Util.out("All scheduled link files have been downloaded, deleted failed-link-downloads.txt for user " + Config.User);
             }
             else
             {
                 KVEntry.sortByValueIgnoreCase(list);
                 kvfile.save(list);
                 if (finalSave)
-                    Util.out("Updated failed-link-downloads.txt for user " + Config.User);
+                    Util.out("Updated failed-link-downloads.txt for user " + Config.User + " with remaining files");
             }
         }
+    }
+    
+    private String numfiles(int n)
+    {
+        if (n == 1)
+            return "1 file";
+        else
+            return "" + n + " files";
     }
 
     /* =================================================================================================== */
@@ -271,6 +286,9 @@ public class MainRedownloadFailedLinks
         }
         else
         {
+            Util.out(String.format("User %s has %s scheduled to redownload", 
+                    Config.User, numfiles(kvlist.size())));
+
             for (KVEntry entry : kvlist)
                 kvset_remaining.add(new IdentityWrapper<>(entry));
 
@@ -611,6 +629,7 @@ public class MainRedownloadFailedLinks
     public boolean redownload(boolean image, String url, String relativeLinkFilePath, String referer) throws Exception
     {
         SmartLinkRedownloader smartLinkRedownloader = new SmartLinkRedownloader(linksDir);
+        smartLinkRedownloader.useArchiveOrg(UseArchiveOrg);
 
         if (!LinkDownloader.shouldDownload(url, false))
             return false;

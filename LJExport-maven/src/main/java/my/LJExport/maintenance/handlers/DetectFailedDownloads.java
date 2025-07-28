@@ -43,7 +43,7 @@ import my.LJExport.runtime.url.UrlUtil;
  */
 public class DetectFailedDownloads extends MaintenanceHandler
 {
-    private static boolean DryRun = true; // ###
+    private static boolean DryRun = false; // ###
 
     static enum Phase
     {
@@ -151,9 +151,25 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
             if (!DryRun)
             {
-                new KVFile(linksDirSep + "failed-link-downloads.txt").save(list);
-                trace("Stored failed-link-downloads.txt for user " + Config.User);
-                Util.out("Stored failed-link-downloads.txt for user " + Config.User);
+                KVFile kvfile = new KVFile(linksDirSep + "failed-link-downloads.txt");
+
+                if (list.size() == 0)
+                {
+                    kvfile.delete();
+                    trace("No failed downloads, removed failed-link-downloads.txt for user " + Config.User);
+                    Util.out("No failed downloads, removed failed-link-downloads.txt for user " + Config.User);
+                }
+                else
+                {
+                    kvfile.save(list);
+
+                    String info = " with " + list.size() + " file";
+                    if (list.size() > 1)
+                        info += "s";
+
+                    trace("Stored failed-link-downloads.txt for user " + Config.User + info);
+                    Util.out("Stored failed-link-downloads.txt for user " + Config.User + info);
+                }
             }
 
             if (needUpdateMissingOriginalLinks)

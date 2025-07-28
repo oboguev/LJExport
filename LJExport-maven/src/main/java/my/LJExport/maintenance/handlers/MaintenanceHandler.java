@@ -17,6 +17,7 @@ import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.RelativeLink;
+import my.LJExport.runtime.url.UrlUtil;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public abstract class MaintenanceHandler extends Maintenance
@@ -131,6 +132,7 @@ public abstract class MaintenanceHandler extends Maintenance
     {
         String href = JSOUP.getAttribute(n, name);
         href = preprocesOriginalHref(href);
+        href = UrlUtil.decodeHtmlAttrLink(href);
         if (href != null)
             href = ArchiveOrgUrl.decodeArchiveUrl(href);
         return href;

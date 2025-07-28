@@ -262,7 +262,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
     private void processScanLinks(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
     {
         String href = getLinkAttribute(n, attr);
-        String href_original = getLinkOriginalAttribute(n, "original-" + attr);  // ### decode
+        String href_original = getLinkOriginalAttribute(n, "original-" + attr);
 
         if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
             return;

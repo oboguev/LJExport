@@ -85,7 +85,7 @@ public class UrlConsolidator
         log("best selected = " + best);
         log("");
 
-        return UrlUtil.encodeNonAscii(polishUrl(best));
+        return polishUrl(UrlUtil.encodeNonAscii(best));
     }
 
     private static int scoreUrlVariant(String url)
@@ -154,32 +154,34 @@ public class UrlConsolidator
             log("");
             log("polishUrl: starting with " + url);
 
-            String stripped = url;
-            // String stripped = stripped.replace(" ", "%20");
-            // stripped = decodeRecursive(stripped, DecodeAs.URL);
-            URI uri = new URI(stripped);
+            URI uri = new URI(url);
 
             String scheme = uri.getScheme() == null ? "http" : uri.getScheme().toLowerCase();
-            String host = uri.getHost() == null ? uri.getAuthority() : uri.getHost();
+            String host = uri.getHost();
+            if (host == null)
+                host = uri.getAuthority(); // handles [user@]host[:port]
             if (host != null)
                 host = host.toLowerCase();
 
-            String path = uri.getRawPath();
-            if (path == null)
-                path = "";
+            String rawPath = uri.getRawPath();
+            String rawQuery = uri.getRawQuery();
 
-            String query = uri.getRawQuery();
-            URI rebuilt = new URI(scheme, host, path, query, null);
-            
-            log("polishUrl: rebuilt       " + rebuilt);
+            // Rebuild manually to avoid overencoding
+            StringBuilder sb = new StringBuilder();
+            sb.append(scheme).append("://").append(host);
+            if (rawPath != null)
+                sb.append(rawPath);
+            if (rawQuery != null)
+                sb.append('?').append(rawQuery);
+
+            String result = sb.toString();
+            log("polishUrl: rebuilt       " + result);
             log("");
-            
-            return rebuilt.toASCIIString();
+            return result;
         }
         catch (Exception e)
         {
             log("polishUrl: exception");
-            // throw new RuntimeException(e);
             return url;
         }
     }

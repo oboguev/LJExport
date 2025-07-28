@@ -34,6 +34,7 @@ import my.LJExport.runtime.links.util.DownloadSource;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.URLClassifier;
 import my.LJExport.runtime.synch.NamedLocks;
+import my.LJExport.runtime.url.UrlUtil;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public class LinkDownloader
@@ -140,6 +141,10 @@ public class LinkDownloader
         
         try
         {
+            // normalize name
+            name_href = UrlUtil.stripDefaultPort(name_href);
+            name_href = UrlUtil.stripTrailingSlash(name_href);
+                    
             // avoid HTTPS certificate problem
             download_href = https2http(download_href, "l-stat.livejournal.net");
             download_href = https2http(download_href, "l-userpic.livejournal.com");

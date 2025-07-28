@@ -512,19 +512,8 @@ public class UrlConsolidator
     {
         List<String> list = new ArrayList<>();
         for (String url : urls)
-            list.add(stripTrailingSlash(url));
+            list.add(UrlUtil.stripTrailingSlash(url));
         return list;
-    }
-
-    private static String stripTrailingSlash(String url)
-    {
-        String lc = url.toLowerCase();
-        if (!lc.equals("http://") && !lc.equals("https://"))
-        {
-            while (Util.lastChar(url) == '/')
-                url = url.substring(0, url.length() - 1);
-        }
-        return url;
     }
 
     private static final boolean DEBUG = false;

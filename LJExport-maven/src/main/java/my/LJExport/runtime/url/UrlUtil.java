@@ -4,6 +4,9 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import my.LJExport.runtime.Util;
+
 import java.net.URI;
 import java.net.URLEncoder;
 
@@ -284,6 +287,19 @@ public class UrlUtil
                 (scheme.equals("https") && port.equals("443")))
         {
             return scheme + host + rest;
+        }
+
+        return url;
+    }
+
+    public static String stripTrailingSlash(String url)
+    {
+        while (Util.lastChar(url) == '/')
+        {
+            String lc = url.toLowerCase();
+            if (lc.equals("http://") || lc.equals("https://"))
+                break;
+            url = url.substring(0, url.length() - 1);
         }
 
         return url;

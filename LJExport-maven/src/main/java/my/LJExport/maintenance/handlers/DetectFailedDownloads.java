@@ -330,16 +330,17 @@ public class DetectFailedDownloads extends MaintenanceHandler
         }
         else
         {
-            byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
-            contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt);
-            fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
-        }
-
-        if (contentExtension == null || contentExtension.length() == 0)
-        {
             String relpath = this.abs2rel(linkInfo.linkFullFilePath);
             String contentType = this.fileContentTypeInformation.contentTypeForLcUnixRelpath(relpath);
             contentExtension = FileTypeDetector.fileExtensionFromMimeType(contentType);
+
+            if (contentExtension == null || contentExtension.length() == 0)
+            {
+                byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
+                contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt);
+            }
+            
+            fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
         }
 
         /*

@@ -277,7 +277,10 @@ public class DetectFailedDownloads extends MaintenanceHandler
         else if (phase == Phase.UpdateMissingOriginalLinks)
         {
             for (Node n : JSOUP.findElements(pageFlat, tag))
+            {
                 updated |= processUpdateMissingOriginalLinks(fullHtmlFilePath, n, tag, attr);
+                updated |= processMarkedDeletes(fullHtmlFilePath, n, tag, attr);
+            }
         }
 
         return updated;
@@ -705,6 +708,56 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         String url = fli.urls.get(0);
         JSOUP.setAttribute(n, "original-" + attr, UrlUtil.encodeUrlForHtmlAttr(url));
+        return true;
+    }
+    
+    /* ===================================================================================================== */
+
+    private boolean processMarkedDeletes(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
+    {
+        String href = getLinkAttribute(n, attr);
+        if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
+            return false;
+
+        if (isArchiveOrg())
+        {
+            /* ignore bad links due to former bug in archive loader */
+            if (href.startsWith("../") && href.endsWith("../links/null"))
+                return false;
+        }
+
+        LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
+        if (linkInfo == null)
+            return false;
+
+        String ac = file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
+        if (ac == null)
+            return false;
+
+        if (!ac.equals(linkInfo.linkFullFilePath))
+            throwException("Mismatching link case");
+
+        String relpath = this.abs2rel(linkInfo.linkFullFilePath);
+        FailedLinkInfo fli = failedLinkInfo.get(relpath.toLowerCase());
+        if (fli == null || !fli.delete)
+            return false;
+        
+        if (tag.equalsIgnoreCase("img"))
+            throwException("Unexpected delete for a file referenced by IMG.SRC");
+
+        String original_href_encoded = JSOUP.getAttribute(n, "original-" + attr);
+        if (original_href_encoded != null && original_href_encoded.length() != 0)
+        {
+            original_href_encoded = AwayLink.unwrapAwayLinkEncoded(original_href_encoded);
+            JSOUP.updateAttribute(n, attr, original_href_encoded);
+        }
+        else
+        {
+            String url = fli.urls.get(0);
+            url = UrlUtil.encodeUrlForHtmlAttr(url);
+            JSOUP.updateAttribute(n, attr, url);
+        }
+        
         return true;
     }
 

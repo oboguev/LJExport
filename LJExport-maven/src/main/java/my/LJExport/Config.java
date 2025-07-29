@@ -93,11 +93,12 @@ public class Config
 
     public static final WebMethod Method = Config.WebMethod.DIRECT;
     public static boolean AutoconfigureSite = true;
-    public static /*final*/ String DefaultSite = "livejournal.com";
+    public static /*final*/ String DefaultSite = Sites.Livejournal;
     public static String Site = DefaultSite;
     public static String LoginSite = DefaultSite;
     public static boolean StandaloneSite = false;
-    public static final String AllowedUrlSites[] = { "livejournal.com", "livejournal.net", "olegmakarenko.ru", Sites.RossiaOrg,
+    public static final String AllowedUrlSites[] = { Sites.Livejournal, "livejournal.net", "olegmakarenko.ru", 
+            Sites.RossiaOrg,
             Sites.DreamwidthOrg };
     public static boolean UseLogin = true;
     public static boolean StoreLoginPassword = true;
@@ -294,7 +295,7 @@ public class Config
             }
             else
             {
-                Config.LoginSite = Config.Site = Config.DefaultSite = "livejournal.com";
+                Config.LoginSite = Config.Site = Config.DefaultSite = Sites.Livejournal;
                 Config.UseLogin = true;
 
                 if (Util.False && Config.DownloadRoot.endsWith(".dreamwidth-org"))

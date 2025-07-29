@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.http.client.CookieStore;
+
+import my.LJExport.runtime.http.cookies.FirefoxCookies;
 import my.LJExport.runtime.url.AwayLink;
 import my.LJExport.runtime.url.UrlConsolidator;
 import my.LJExport.runtime.url.UrlFixCP1251;
@@ -17,7 +20,8 @@ public class MiscTest
         try
         {
             // test_1();
-            test_2();
+            // test_2();
+            test_firefox_coookies();
             // consolidate();
             // test_unwrap();
             // test_infonarod_away();
@@ -289,5 +293,13 @@ public class MiscTest
         Util.out(UrlUtil.decodeUrl(fixed));
 
         Util.out("");
+    }
+    /* ========================================================================================================================= */
+
+    private static void test_firefox_coookies() throws Exception
+    {
+        CookieStore cs = FirefoxCookies.loadCookiesFromFirefox();
+        Util.unused(cs);
+        Util.noop();
     }
 }

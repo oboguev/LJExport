@@ -21,6 +21,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.url.UrlUtil;
 
 import org.apache.http.client.config.RequestConfig;
@@ -1069,7 +1070,7 @@ public class Web
             return true;
         if (host.equals("olegmakarenko.ru") || host.endsWith(".olegmakarenko.ru"))
             return true;
-        if (host.equals("lj.rossia.org"))
+        if (host.equals(Sites.RossiaOrg))
             return true;
         if (host.equals("dreamwidth.org") || host.endsWith(".dreamwidth.org"))
             return true;

@@ -10,6 +10,7 @@ import my.LJExport.calendar.YYYY_MM;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.http.TrustAnySSL;
+import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.password.PasswordStorage;
 import my.LJExport.runtime.ui.UIDialogPassword;
 
@@ -96,7 +97,7 @@ public class Config
     public static String Site = DefaultSite;
     public static String LoginSite = DefaultSite;
     public static boolean StandaloneSite = false;
-    public static final String AllowedUrlSites[] = { "livejournal.com", "livejournal.net", "olegmakarenko.ru", "lj.rossia.org",
+    public static final String AllowedUrlSites[] = { "livejournal.com", "livejournal.net", "olegmakarenko.ru", Sites.RossiaOrg,
             "dreamwidth.org" };
     public static boolean UseLogin = true;
     public static boolean StoreLoginPassword = true;
@@ -252,7 +253,7 @@ public class Config
 
     public static boolean isRossiaOrg()
     {
-        return Config.Site.equals("lj.rossia.org");
+        return Config.Site.equals(Sites.RossiaOrg);
     }
 
     public static boolean isDreamwidthOrg(String loginSite)
@@ -287,7 +288,7 @@ public class Config
             }
             else if (User.contains(".lj-rossia-org"))
             {
-                Config.LoginSite = Config.Site = Config.DefaultSite = "lj.rossia.org";
+                Config.LoginSite = Config.Site = Config.DefaultSite = Sites.RossiaOrg;
                 Config.UseLogin = false;
                 // Config.DownloadRoot += ".lj-rossia-org";
             }

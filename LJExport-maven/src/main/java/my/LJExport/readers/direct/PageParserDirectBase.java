@@ -25,6 +25,7 @@ import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.lj.LJUtil;
+import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.synch.AppendToThreadName;
 import my.LJExport.runtime.synch.FutureProcessor;
 import my.LJExport.runtime.synch.ThreadsControl;
@@ -701,7 +702,7 @@ public abstract class PageParserDirectBase
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") || rel.toLowerCase().equals("previous"))
                 {
                     String host = Util.urlHost(href).toLowerCase();
-                    if (host.equals("lj.rossia.org"))
+                    if (host.equals(Sites.RossiaOrg)
                         style = detectPageStyle(style, "rossia.org");
                 }
 

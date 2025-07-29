@@ -27,6 +27,8 @@ http://mc.yandex.ru/watch/*
 https://mc.yandex.ru/watch/*
 http://vk.com/rtrg?*
 https://vk.com/rtrg?*
+https://ljplus.ru/counter/*
+http://ljplus.ru/counter/*
 
 # permanently stuck sites
 http://im-tub.yandex.ru/*

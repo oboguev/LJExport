@@ -155,11 +155,18 @@ public class Web
             {
                 this.actualCharset = cs;
 
-                if (cs.equalsIgnoreCase("binary"))
-                    return null;
+                switch (cs.toLowerCase())
+                {
+                case "windows-1215":
+                case "win-1251":
+                    cs = "windows-1251";
+                    break;
 
-                if (cs.equalsIgnoreCase("utf-8-sig"))
+                case "binary":
+                case "utf-8-sig":
+                case "empty":
                     return null;
+                }
 
                 if (!Charset.isSupported(cs))
                 {
@@ -359,10 +366,10 @@ public class Web
     {
         if (cooloffArchiveOrg != null)
             cooloffArchiveOrg.cancelCoolingOff();
-        
+
         if (semaphoreArchiveOrg != null)
             semaphoreArchiveOrg.release(10000);
-        
+
         RateLimiter.LJ_PAGES.aborting(true);
         RateLimiter.LJ_IMAGES.aborting(true);
         RateLimiter.WEB_ARCHIVE_ORG.aborting(true);
@@ -375,10 +382,10 @@ public class Web
             semaphoreArchiveOrg.release(10000);
             semaphoreArchiveOrg = null;
         }
-        
+
         if (cooloffArchiveOrg != null)
             cooloffArchiveOrg.cancelCoolingOff();
-        
+
         cookieStore = null;
 
         if (lastURL != null)
@@ -536,7 +543,7 @@ public class Web
         HttpGet request = new HttpGet(url);
         setCommon(request, headers);
         HttpClientContext context = HttpClientContext.create();
-        CloseableHttpResponse response = null;        
+        CloseableHttpResponse response = null;
 
         ActivityCounters.startedWebRequest();
         if (isRequest_LJPage)
@@ -548,7 +555,7 @@ public class Web
         if (isArchiveOrg)
         {
             semaphoreArchiveOrg.acquire();
-            
+
             if (Main.isAborting())
             {
                 semaphoreArchiveOrg.release();
@@ -556,14 +563,14 @@ public class Web
             }
 
             cooloffArchiveOrg.waitIfCoolingOff();
-            
+
             if (Main.isAborting())
             {
                 semaphoreArchiveOrg.release();
                 throw new Exception("Application is aborting");
             }
         }
-        
+
         try
         {
             response = client.execute(request, context);
@@ -575,7 +582,7 @@ public class Web
                 {
                     if (Main.isAborting())
                         throw new Exception("Application is aborting");
-                    
+
                     cooloffArchiveOrg.signalStart();
                     cooloffArchiveOrg.waitIfCoolingOff();
 
@@ -695,7 +702,7 @@ public class Web
     public static Response post(String url, String body) throws Exception
     {
         url = UrlUtil.encodeUrlForApacheWire(url);
-        
+
         if (shouldLimitRate(url))
             RateLimiter.LJ_PAGES.limitRate();
 
@@ -796,7 +803,7 @@ public class Web
     public static String getRedirectLocation(String url, String referer, Map<String, String> headers) throws Exception
     {
         url = UrlUtil.encodeUrlForApacheWire(url);
-        
+
         final int maxpasses = 3;
 
         for (int pass = 1;; pass++)

@@ -3,6 +3,7 @@ package my.LJExport.maintenance;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,17 +48,18 @@ public class MainRedownloadFailedLinks
 {
     private static final String ALL_USERS = "<all>";
     private static final String AllUsersFromUser = null;
-    // private static final String AllUsersFromUser = "tanya_mass";
+    // private static final String AllUsersFromUser = "schloenski";
 
-    // private static final String Users = ALL_USERS;
+    private static final String Users = ALL_USERS;
     // private static final String Users = "funt";
     // private static final String Users = "krylov_arhiv,krylov";
-    private static final String Users = "oboguev";
+    // private static final String Users = "oboguev";
+    // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
 
-    private static boolean DryRun = true;
+    private static boolean DryRun = false;
 
     private static boolean UseArchiveOrg = false;
-    private static boolean UseLivejournal = false;
+    private static boolean UseLivejournal = true;
 
     /* =============================================================================== */
 
@@ -83,6 +85,8 @@ public class MainRedownloadFailedLinks
     private Map<String, KVEntry> kvmap_failed = new HashMap<>();
 
     private Map<String, String> file_lc2ac = new HashMap<>();
+    
+    private Set<String> failedUrls = new HashSet<>();
 
     /* =============================================================================== */
 
@@ -663,6 +667,12 @@ public class MainRedownloadFailedLinks
             Util.out("Skipping " + url);
             return false;
         }
+        
+        if (failedUrls.contains(url))
+        {
+            Util.err(String.format("Quitting [%s] link file %s, previosuly failed url: %s", Config.User, relativeLinkFilePath, url));
+            return false;
+        }
 
         MutableObject<String> fromWhere = new MutableObject<>();
         boolean result = smartLinkRedownloader.redownload(image, url, relativeLinkFilePath, referer, fromWhere);
@@ -676,7 +686,8 @@ public class MainRedownloadFailedLinks
         }
         else
         {
-            Util.err(String.format("Unable to download [%s] link file %s", Config.User, relativeLinkFilePath));
+            Util.err(String.format("Unable to download [%s] link file %s, url: %s", Config.User, relativeLinkFilePath, url));
+            failedUrls.add(url);
         }
 
         return result;

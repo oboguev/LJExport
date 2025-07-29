@@ -242,7 +242,7 @@ public class Main
             {
                 Calendar.Records = removeExistingRecords(Calendar.Records);
             }
-            
+
             if (Util.False)
             {
                 // for testing
@@ -474,7 +474,7 @@ public class Main
 
     private static void do_logout(String loginSite) throws Exception
     {
-        if (!logged_in.contains(loginSite))
+        if (Config.LoginViaBrowserCookies || !logged_in.contains(loginSite))
             return;
 
         RateLimiter.LJ_PAGES.setRateLimit(100);

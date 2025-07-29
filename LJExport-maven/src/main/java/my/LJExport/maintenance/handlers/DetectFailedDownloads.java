@@ -2,6 +2,7 @@ package my.LJExport.maintenance.handlers;
 
 import java.io.File;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -140,7 +141,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 if (fli.urls.size() == 1)
                 {
                     String url = fli.urls.get(0);
-                    
+
                     if (!LinkDownloader.shouldDownload(url, !fli.image))
                     {
                         fli.delete = true;
@@ -352,7 +353,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
                 contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt);
             }
-            
+
             fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
         }
 
@@ -600,7 +601,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         private String unwrapPass(String url) throws Exception
         {
             String xurl;
-            
+
             /* strip anchor */
             xurl = Util.stripAnchor(url);
             if (!xurl.equals(url))
@@ -711,7 +712,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         JSOUP.setAttribute(n, "original-" + attr, UrlUtil.encodeUrlForHtmlAttr(url));
         return true;
     }
-    
+
     /* ===================================================================================================== */
 
     private boolean processMarkedDeletes(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
@@ -742,7 +743,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         FailedLinkInfo fli = failedLinkInfo.get(relpath.toLowerCase());
         if (fli == null || !fli.delete)
             return false;
-        
+
         if (tag.equalsIgnoreCase("img"))
             throwException("Unexpected delete for a file referenced by IMG.SRC");
 
@@ -758,21 +759,98 @@ public class DetectFailedDownloads extends MaintenanceHandler
             url = UrlUtil.encodeUrlForHtmlAttr(url);
             JSOUP.updateAttribute(n, attr, url);
         }
-        
+
         return true;
     }
 
     /* ===================================================================================================== */
-    
+
     private void executePendingDeletes() throws Exception
     {
         // ### if !DryRun
+
+        /*
+         * Build a list of files to delete
+         */
+        Map<String, String> deleteRelPaths = new HashMap<>();
+        for (FailedLinkInfo fli : failedLinkInfo.values())
+        {
+            if (fli.delete)
+            {
+                deleteRelPaths.put(fli.relpath.toLowerCase(), fli.relpath);
+            }
+        }
+        if (deleteRelPaths.size() == 0)
+            return;
+
+        /*
+         * Remove entries from links map
+         */
+        String mapFilePath = this.linksDir + File.separator + LinkDownloader.LinkMapFileName;
+        List<LinkMapEntry> list = FileBackedMap.readMapFile(mapFilePath);
+        List<LinkMapEntry> xlist = new ArrayList<>();
+        for (LinkMapEntry e : list)
+        {
+            // add to xlist to keep the entry
+            if (!deleteRelPaths.containsKey(e.value.toLowerCase()))
+                xlist.add(e);
+        }
+
+        if (xlist.size() != list.size())
+        {
+            if (DryRun)
+            {
+                String msg = "DRY RUN: not updating link map file " + mapFilePath;
+                this.supertrace(msg);
+            }
+            else
+            {
+                String msg = "Updating link map file " + mapFilePath;
+                supertrace(msg);
+                txLog.writeLineSafe(msg);
+                String content = FileBackedMap.recomposeMapFile(xlist);
+                Util.writeToFileVerySafe(mapFilePath, content);
+            }
+        }
         
-        // ### remove entries from map
-        // ### delete files
-        // ### delete empty dirs
+        /*
+         * Delete files
+         */
+        for (String rel : deleteRelPaths.values())
+        {
+            String abs = this.rel2abs(rel);
+            File fp = new File(abs).getCanonicalFile();
+            if (DryRun)
+            {
+                String msg = "DRY RUN: not deleting file " + fp.getCanonicalPath();
+                this.supertrace(msg);
+            }
+            else
+            {
+                String msg = "Deleting file " + fp.getCanonicalPath();
+                this.supertrace(msg);
+                txLog.writeLineSafe(msg);
+                if (fp.exists())
+                    fp.delete();
+            }
+        }
+
+        /*
+         * Delete empty directories
+         */
+        Map<String, String> dir_lc2ac = new HashMap<>();
+        
+        for (String fp : Util.enumerateDirectories(linksDir))
+        {
+            fp = linksDir + File.separator + fp;
+            dir_lc2ac.put(fp.toLowerCase(), fp);
+        }
+        
+        supertrace("Deleting empty directories for user " + Config.User);
+        deleteEmptyFolders(dir_lc2ac.values());
+        supertrace("  >>> Deleted empty directories for user " + Config.User);
     }
-    
+
     /* ===================================================================================================== */
 
     @Override

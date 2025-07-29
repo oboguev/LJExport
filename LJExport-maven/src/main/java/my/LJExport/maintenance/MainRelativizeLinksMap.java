@@ -7,6 +7,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileBackedMap;
+import my.LJExport.runtime.links.LinkDownloader;
 
 /*
  * Преобразовать файл map-href-file.txt 
@@ -25,7 +26,7 @@ public class MainRelativizeLinksMap
     // private static String User = "nilsky_nikolay";
     private static String User = "sergeytsvetkov";
 
-    private static final String MapFileName = "map-href-file.txt";
+    private static final String MapFileName = LinkDownloader.LinkMapFileName;
     private static final String nl = "\n";
     private String linksDir;
 

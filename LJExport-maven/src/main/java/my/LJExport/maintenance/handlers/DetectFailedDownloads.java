@@ -789,30 +789,42 @@ public class DetectFailedDownloads extends MaintenanceHandler
         String mapFilePath = this.linksDir + File.separator + LinkDownloader.LinkMapFileName;
         List<LinkMapEntry> list = FileBackedMap.readMapFile(mapFilePath);
         List<LinkMapEntry> xlist = new ArrayList<>();
+        int nremoved = 0;
         for (LinkMapEntry e : list)
         {
             // add to xlist to keep the entry
             if (!deleteRelPaths.containsKey(e.value.toLowerCase()))
+            {
                 xlist.add(e);
+            }
+            else
+            {
+                nremoved++;
+            }
         }
 
         if (xlist.size() != list.size())
         {
+            String msg = String.format("Removed %d link map %f for %s",
+                    nremoved,
+                    Util.plural(nremoved, "entry", "entries"),
+                    Util.nplural(deleteRelPaths.size(), "file", "files"));
+
             if (DryRun)
             {
-                String msg = "DRY RUN: not updating link map file " + mapFilePath;
+                msg += nl + "DRY RUN: not updating link map file " + mapFilePath;
                 this.supertrace(msg);
             }
             else
             {
-                String msg = "Updating link map file " + mapFilePath;
+                msg += nl + "Updating link map file " + mapFilePath;
                 supertrace(msg);
                 txLog.writeLineSafe(msg);
                 String content = FileBackedMap.recomposeMapFile(xlist);
                 Util.writeToFileVerySafe(mapFilePath, content);
             }
         }
-        
+
         /*
          * Delete files
          */
@@ -839,13 +851,13 @@ public class DetectFailedDownloads extends MaintenanceHandler
          * Delete empty directories
          */
         Map<String, String> dir_lc2ac = new HashMap<>();
-        
+
         for (String fp : Util.enumerateDirectories(linksDir))
         {
             fp = linksDir + File.separator + fp;
             dir_lc2ac.put(fp.toLowerCase(), fp);
         }
-        
+
         supertrace("  >>> Deleting empty directories for user " + Config.User);
         deleteEmptyFolders(dir_lc2ac.values());
         supertrace("  >>> Deleted empty directories for user " + Config.User);

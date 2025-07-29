@@ -1676,4 +1676,14 @@ public class Util
         
         return s;
     }
+    
+    public static String plural(int n, String single, String plural)
+    {
+        return n == 1 ? single : plural;
+    }
+
+    public static String nplural(int n, String single, String plural)
+    {
+        return n + " " + plural(n, single, plural);
+    }
 }

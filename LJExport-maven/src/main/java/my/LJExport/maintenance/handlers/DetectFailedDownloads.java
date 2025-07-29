@@ -142,7 +142,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 {
                     String url = fli.urls.get(0);
 
-                    if (!LinkDownloader.shouldDownload(url, !fli.image))
+                    if (!fli.image && !LinkDownloader.shouldDownload(url, true))
                     {
                         fli.delete = true;
                         haveDeletes = true;

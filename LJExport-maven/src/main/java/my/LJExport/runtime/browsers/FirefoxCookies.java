@@ -18,15 +18,21 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.http.cookies.CookieUtil;
 
 /*
  * Read cookies from Firefox profile
  */
 public class FirefoxCookies
 {
-    public static CookieStore loadCookiesFromFirefox() throws Exception
+    private static CookieStore activeCookieStore = null;
+    
+    public static synchronized CookieStore loadCookiesFromFirefox() throws Exception
     {
-        return loadCookiesFromFirefox(findActiveFirefoxProfile().getCanonicalPath());
+        if (activeCookieStore != null)
+            activeCookieStore = loadCookiesFromFirefox(findActiveFirefoxProfile().getCanonicalPath());
+        
+        return CookieUtil.cloneCookieStore(activeCookieStore);
     }
 
     public static CookieStore loadCookiesFromFirefox(String profilePath) throws Exception

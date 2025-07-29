@@ -8,11 +8,73 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.http.client.CookieStore;
+import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.impl.client.BasicCookieStore;
 
 public class CookieUtil
 {
+    public static void copyFacebookCookies(CookieStore from, CookieStore to)
+    {
+        copySelectCookies(from, to, "facebook.com", "fbcdn.net", "messenger.com", "facebook.net");
+    }
+
+    public static void deleteFacebookCookies(CookieStore store)
+    {
+        deleteSelectCookies(store, "facebook.com", "fbcdn.net", "messenger.com", "facebook.net");
+    }
+
+    /* ============================================================================================================= */
+
+    public static void copyLievjournalCookies(CookieStore from, CookieStore to)
+    {
+        copySelectCookies(from, to, "livejournal.com", "livejournal.net", "olegmakarenko.ru");
+    }
+
+    public static void deleteLievjournalCookies(CookieStore store)
+    {
+        deleteSelectCookies(store, "livejournal.com", "livejournal.net", "olegmakarenko.ru");
+    }
+
+    /* ============================================================================================================= */
+
+    public static void copyDreamwidthCookies(CookieStore from, CookieStore to)
+    {
+        copySelectCookies(from, to, "dreamwidth.org");
+    }
+
+    public static void deleteDreamwidthCookies(CookieStore store)
+    {
+        deleteSelectCookies(store, "dreamwidth.org");
+    }
+
+    /* ============================================================================================================= */
+
+    public static CookieStore cloneCookieStore(CookieStore original)
+    {
+        CookieStore copy = new BasicCookieStore();
+
+        for (Cookie cookie : original.getCookies())
+        {
+            // Deep copy of each cookie
+            BasicClientCookie newCookie = new BasicClientCookie(cookie.getName(), cookie.getValue());
+            newCookie.setDomain(cookie.getDomain());
+            newCookie.setPath(cookie.getPath());
+            newCookie.setExpiryDate(cookie.getExpiryDate());
+            newCookie.setSecure(cookie.isSecure());
+            newCookie.setVersion(cookie.getVersion());
+            newCookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain()); // optional attributes
+            newCookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
+
+            copy.addCookie(newCookie);
+        }
+
+        return copy;
+    }
+
+    /* ============================================================================================================= */
+
     /**
      * Copy cookies from 'from' store to 'to' store,
      * if their domain matches any of the provided domain suffixes.
@@ -109,16 +171,6 @@ public class CookieUtil
             expired.setExpiryDate(new Date(0)); // Expire immediately
             store.addCookie(expired);
         }
-    }
-
-    public static void copyFacebookCookies(CookieStore from, CookieStore to)
-    {
-        copySelectCookies(from, to, "facebook.com", "fbcdn.net", "messenger.com", "facebook.net");
-    }
-
-    public static void copyLievjournalCookies(CookieStore from, CookieStore to)
-    {
-        copySelectCookies(from, to, "livejournal.com", "livejournal.net", "olegmakarenko.ru", "dreamwidth.org");
     }
 
     /**

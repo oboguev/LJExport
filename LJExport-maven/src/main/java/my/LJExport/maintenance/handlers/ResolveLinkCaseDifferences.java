@@ -408,7 +408,8 @@ public class ResolveLinkCaseDifferences extends MaintenanceHandler
         return sb.toString();
     }
 
-    private void trace(String msg)
+    @Override
+    protected void trace(String msg) throws Exception
     {
         errorMessageLog.add(msg);
         Util.err(msg);

@@ -148,7 +148,8 @@ public class VerifyUnencodedLinks extends MaintenanceHandler
     /* ===================================================================================================== */
 
     @SuppressWarnings("unused")
-    private void trace(String msg) throws Exception
+    @Override
+    protected void trace(String msg) throws Exception
     {
         // errorMessageLog.add(msg);
         traceWriter.write(msg + nl);

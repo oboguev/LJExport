@@ -1,7 +1,12 @@
 package my.LJExport.maintenance.handlers;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -130,7 +135,7 @@ public abstract class MaintenanceHandler extends Maintenance
     public String getLinkOriginalAttribute(Node n, String name) throws Exception
     {
         String href = JSOUP.getAttribute(n, name);
-        
+
         try
         {
             href = preprocesOriginalHref(href);
@@ -141,7 +146,7 @@ public abstract class MaintenanceHandler extends Maintenance
             return null;
             // ### throw ex;
         }
-        
+
         return href;
     }
 
@@ -330,5 +335,76 @@ public abstract class MaintenanceHandler extends Maintenance
     {
         fileContentTypeInformation = new FileContentTypeInformation();
         fileContentTypeInformation.load(linksDir);
+    }
+
+    protected boolean isSameFileContent(String fp1, String fp2) throws Exception
+    {
+        byte[] ba1 = Util.readFileAsByteArray(fp1);
+        byte[] ba2 = Util.readFileAsByteArray(fp2);
+        return Arrays.equals(ba1, ba2);
+    }
+
+    protected boolean isEmptyDir(File fp) throws Exception
+    {
+        return fp.isDirectory() && fp.list().length == 0;
+    }
+
+    /*
+     * xset contains absolute paths
+     */
+    protected void deleteEmptyFolders(Collection<String> xset) throws Exception
+    {
+        List<String> xlist = new ArrayList<>(xset);
+
+        // sort by longest first
+        Collections.sort(xlist, new Comparator<String>()
+        {
+            @Override
+            public int compare(String a, String b)
+            {
+                return Integer.compare(b.length(), a.length()); // Descending order
+            }
+        });
+
+        for (String dir : xlist)
+        {
+            File fp = new File(dir).getCanonicalFile();
+
+            if (fp.exists() && isEmptyDir(fp))
+            {
+                try
+                {
+                    Files.delete(fp.toPath());
+
+                    if (fp.exists())
+                    {
+                        trace("Was unable to delete directory " + fp.getCanonicalPath());
+                        Util.err("        Was unable to delete directory " + fp.getCanonicalPath());
+                    }
+                    else
+                    {
+                        trace("Deleted empty directory " + fp.getCanonicalPath());
+                        Util.out("        Deleted empty directory " + fp.getCanonicalPath());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    trace("Was unable to delete directory " + fp.getCanonicalPath());
+                }
+            }
+        }
+    }
+
+    /* =========================================================================== */
+
+    protected void trace(String msg) throws Exception
+    {
+        Util.out(msg);
+
+        if (traceWriter != null)
+        {
+            traceWriter.write(msg + nl);
+            traceWriter.flush();
+        }
     }
 }

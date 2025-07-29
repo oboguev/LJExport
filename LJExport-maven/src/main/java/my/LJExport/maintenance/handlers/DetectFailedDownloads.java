@@ -131,6 +131,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         if (phase == Phase.ScanLinks)
         {
             List<KVEntry> list = new ArrayList<>();
+            boolean haveDeletes = false;
 
             for (FailedLinkInfo fli : failedLinkInfo.values())
             {
@@ -139,13 +140,21 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 if (fli.urls.size() == 1)
                 {
                     String url = fli.urls.get(0);
-
-                    if (fli.image)
-                        url = "image:" + url;
+                    
+                    if (!LinkDownloader.shouldDownload(url, !fli.image))
+                    {
+                        fli.delete = true;
+                        haveDeletes = true;
+                    }
                     else
-                        url = "document:" + url;
+                    {
+                        if (fli.image)
+                            url = "image:" + url;
+                        else
+                            url = "document:" + url;
 
-                    list.add(new KVEntry(url, fli.relpath));
+                        list.add(new KVEntry(url, fli.relpath));
+                    }
                 }
             }
 
@@ -172,7 +181,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 }
             }
 
-            if (needUpdateMissingOriginalLinks)
+            if (needUpdateMissingOriginalLinks || haveDeletes)
             {
                 this.repeatUser();
                 phase = Phase.UpdateMissingOriginalLinks;
@@ -499,6 +508,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         public final String relpath;
         public final List<String> urls = new ArrayList<>();
         public boolean image = false;
+        public boolean delete = false;
 
         public void prepare(Map<String, List<LinkMapEntry>> relpath2entry) throws Exception
         {
@@ -700,7 +710,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
     /* ===================================================================================================== */
 
-    private void trace(String msg) throws Exception
+    @Override
+    protected void trace(String msg) throws Exception
     {
         // errorMessageLog.add(msg);
         // Util.err(msg);

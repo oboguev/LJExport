@@ -421,7 +421,8 @@ public class FixDirectoryLinks extends MaintenanceHandler
         return count;
     }
 
-    private void trace(String msg)
+    @Override
+    protected void trace(String msg) throws Exception
     {
         errorMessageLog.add(msg);
         Util.err(msg);

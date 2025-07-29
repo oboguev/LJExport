@@ -223,7 +223,8 @@ public class FixUnencodedLinks extends MaintenanceHandler
         errorMessageLog.add(sb.toString());
     }
 
-    private void trace(String msg) throws Exception
+    @Override
+    protected void trace(String msg) throws Exception
     {
         // errorMessageLog.add(msg);
         traceWriter.write(msg + nl);

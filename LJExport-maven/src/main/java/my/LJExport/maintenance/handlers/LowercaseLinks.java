@@ -218,7 +218,8 @@ public class LowercaseLinks extends MaintenanceHandler
         }
     }
 
-    private void trace(String msg)
+    @Override
+    protected void trace(String msg) throws Exception
     {
         Util.err(msg);
     }

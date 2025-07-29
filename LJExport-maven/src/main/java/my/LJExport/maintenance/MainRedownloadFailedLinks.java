@@ -85,7 +85,7 @@ public class MainRedownloadFailedLinks
     private Map<String, KVEntry> kvmap_failed = new HashMap<>();
 
     private Map<String, String> file_lc2ac = new HashMap<>();
-    
+
     private Set<String> failedUrls = new HashSet<>();
 
     /* =============================================================================== */
@@ -168,6 +168,8 @@ public class MainRedownloadFailedLinks
         Main.do_logout();
         Web.shutdown();
     }
+
+    // ### don't download as image https://joyreactor.cc/post/2533302 (numeric with no extension)
 
     private void do_user(String user) throws Exception
     {
@@ -667,10 +669,11 @@ public class MainRedownloadFailedLinks
             Util.out("Skipping " + url);
             return false;
         }
-        
+
         if (failedUrls.contains(url))
         {
-            Util.err(String.format("Quitting [%s] link file %s, previosuly failed url: %s", Config.User, relativeLinkFilePath, url));
+            Util.err(
+                    String.format("Quitting [%s] link file %s, previosuly failed url: %s", Config.User, relativeLinkFilePath, url));
             return false;
         }
 

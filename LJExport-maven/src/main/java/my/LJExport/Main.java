@@ -12,9 +12,6 @@ import java.util.Vector;
 // import java.net.HttpCookie;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.http.HttpStatus;
-import org.apache.http.cookie.Cookie;
-
 import my.LJExport.calendar.Calendar;
 import my.LJExport.profile.ReadProfile;
 import my.LJExport.readers.PageReader;
@@ -27,10 +24,11 @@ import my.LJExport.runtime.http.ProxyServer;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.lj.login.LoginDreamwidth;
+import my.LJExport.runtime.lj.login.LoginLivejournal;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 import java.io.File;
-import java.net.URLDecoder;
 
 // import my.LJExport.test.*;
 
@@ -389,66 +387,23 @@ public class Main
             return;
         }
 
-        Config.acquireLoginPassword();
-
+        long originalRateLimit = RateLimiter.LJ_PAGES.getRateLimit();
         RateLimiter.LJ_PAGES.setRateLimit(100);
 
         out(">>> Logging into " + Config.LoginSite + " as user " + Config.LoginUser);
 
-        Web.Response r = null;
-        StringBuilder sb = new StringBuilder();
         if (Config.isDreamwidthOrg())
         {
-            out(String.format(">>> Using %s login captcha challenge code %s", Config.LoginSite, Config.DreamwidthCaptchaChallenge));
-
-            postForm(sb, "returnto", "https://www.dreamwidth.org/");
-            postForm(sb, "chal", Config.DreamwidthCaptchaChallenge);
-            postForm(sb, "response", "");
-            postForm(sb, "user", Config.LoginUser);
-            postForm(sb, "password", Config.LoginPassword);
-            postForm(sb, "remember_me", "1");
-            postForm(sb, "login", "Log in");
-            r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", sb.toString());
+            LoginDreamwidth.login();
         }
         else
         {
-            sb.append(Web.escape("ret") + "=" + "1" + "&");
-            sb.append(Web.escape("user") + "=" + Web.escape(Config.LoginUser) + "&");
-            sb.append(Web.escape("password") + "=" + Web.escape(Config.LoginPassword) + "&");
-            sb.append("action:login");
-            r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", sb.toString());
+            LoginLivejournal.login();
         }
 
-        if (Config.isDreamwidthOrg())
-        {
-            if (r.code != 302)
-                throw new Exception("Unable to log into the server: " + Web.describe(r.code));
-
-            if (r.redirectLocation == null || !r.redirectLocation.equals("https://www.dreamwidth.org/"))
-                throw new Exception("Unable to log into the server, unexpected post-login rediect URL");
-        }
-        else
-        {
-            if (r.code != HttpStatus.SC_OK)
-                throw new Exception("Unable to log into the server: " + Web.describe(r.code));
-        }
-
-        for (Cookie cookie : Web.getCookieStore().getCookies())
-        {
-            if (!Util.is_in_domain(Config.LoginSite, cookie.getDomain()))
-                continue;
-
-            if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
-                    || cookie.getName().equals("ljsession"))
-            {
-                logged_in.add(Config.LoginSite);
-            }
-        }
-
-        if (!logged_in.contains(Config.LoginSite))
-            throw new Exception("Unable to log into the server: most probably incorrect username or password");
-
+        logged_in.add(Config.LoginSite);
         out(">>> Logged in to " + Config.LoginSite);
+        RateLimiter.LJ_PAGES.setRateLimit(originalRateLimit);
     }
 
     public static void do_logout() throws Exception
@@ -477,111 +432,22 @@ public class Main
         if (Config.LoginViaBrowserCookies || !logged_in.contains(loginSite))
             return;
 
+        long originalRateLimit = RateLimiter.LJ_PAGES.getRateLimit();
         RateLimiter.LJ_PAGES.setRateLimit(100);
 
-        String sessid = null;
-
-        for (Cookie cookie : Web.getCookieStore().getCookies())
-        {
-            if (!Util.is_in_domain(loginSite, cookie.getDomain()))
-                continue;
-
-            if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
-                    || cookie.getName().equals("ljsession"))
-            {
-                StringTokenizer st = new StringTokenizer(cookie.getValue(), ":");
-
-                while (st.hasMoreTokens())
-                {
-                    String tok = st.nextToken();
-                    if (tok.length() >= 2 && tok.charAt(0) == 's')
-                    {
-                        sessid = tok.substring(1);
-                        break;
-                    }
-                }
-
-                if (sessid == null)
-                {
-                    /*
-                     * For DreamWidth
-                     */
-                    String urlDecodedCookie = URLDecoder.decode(cookie.getValue(), "UTF-8");
-                    st = new StringTokenizer(urlDecodedCookie, ":");
-
-                    while (st.hasMoreTokens())
-                    {
-                        String tok = st.nextToken();
-                        if (tok.length() >= 2 && tok.charAt(0) == 's')
-                        {
-                            sessid = tok.substring(1);
-                            break;
-                        }
-                    }
-                }
-
-                if (sessid != null)
-                    break;
-            }
-        }
-
-        if (sessid == null)
-        {
-            out(">>> Unable to log off the server (unknown sessid)");
-            setLogoutFailed();
-            return;
-        }
-
-        out(">>> Logging off " + loginSite);
-        StringBuilder sb = new StringBuilder();
-        Web.Response r = null;
+        boolean logoutSucceeded = false;
 
         if (Config.isDreamwidthOrg(loginSite))
-        {
-            // postForm(sb, "lj_form_auth", "c0:1751749200:98:86400:0vrUQLNDDF-3528051-7:81a4e8d76d221ba067aa15f83b26a0e7");
-            postForm(sb, "returnto", "https://www.dreamwidth.org/");
-            postForm(sb, "ret", "1");
-            postForm(sb, "logout_one", "Log out");
-            postForm(sb, "user", Config.LoginUser);
-            postForm(sb, "sessid", sessid);
-
-            try
-            {
-                r = Web.post("http://www." + loginSite + "/logout", sb.toString());
-            }
-            catch (Exception ex)
-            {
-            }
-        }
+            logoutSucceeded = LoginDreamwidth.logout(loginSite);
         else
-        {
-            sb.append("http://www." + loginSite + "/logout.bml?ret=1&user=" + Config.LoginUser + "&sessid=" + sessid);
-            try
-            {
-                r = Web.get(sb.toString());
-            }
-            catch (Exception ex)
-            {
-            }
-        }
+            logoutSucceeded = LoginLivejournal.logout(loginSite);
 
-        if (r != null && r.code == HttpStatus.SC_OK)
-        {
-            out(">>> Logged off " + loginSite);
+        if (logoutSucceeded)
             logged_in.remove(loginSite);
-        }
         else
-        {
-            out(">>> Loggoff unsuccessful from " + loginSite);
             setLogoutFailed();
-        }
-    }
 
-    private static void postForm(StringBuilder sb, String key, String value) throws Exception
-    {
-        if (sb.length() != 0)
-            sb.append("&");
-        sb.append(Web.escape(key) + "=" + Web.escape(value));
+        RateLimiter.LJ_PAGES.setRateLimit(originalRateLimit);
     }
 
     public static void emergency_logout()

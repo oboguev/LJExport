@@ -34,16 +34,21 @@ public class RateLimiter
 
     private static final Boolean RandomizeDelay = true;
 
-    public RateLimiter(String name, int ms)
+    public RateLimiter(String name, long ms)
     {
         this.name = name;
         this.delay = ms;
     }
 
-    public RateLimiter setRateLimit(int ms)
+    public RateLimiter setRateLimit(long ms)
     {
         delay = ms;
         return this;
+    }
+
+    public long getRateLimit()
+    {
+        return delay;
     }
 
     public RateLimiter setCoolOff(long cooloffRequestCount, long cooloffInterval)

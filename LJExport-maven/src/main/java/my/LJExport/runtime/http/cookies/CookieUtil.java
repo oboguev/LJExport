@@ -51,6 +51,11 @@ public class CookieUtil
         copySelectCookies(from, to, "facebook.com", "fbcdn.net", "messenger.com", "facebook.net");
     }
 
+    public static void copyLievjournalCookies(CookieStore from, CookieStore to)
+    {
+        copySelectCookies(from, to, "livejournal.com", "livejournal.net", "olegmakarenko.ru", "dreamwidth.org");
+    }
+    
     /**
      * Check whether cookie domain matches any of the domain suffixes.
      * "xxx.a.com" matches "a.com"

@@ -86,7 +86,7 @@ public class Config
 
     public enum WebMethod
     {
-        SELENIUM, HTML_UNIT, DIRECT
+        DIRECT
     };
 
     public static final WebMethod Method = Config.WebMethod.DIRECT;
@@ -171,12 +171,6 @@ public class Config
 
         if (TrustAnySSLCertificate)
             TrustAnySSL.trustAnySSL();
-
-        if (Method == Config.WebMethod.HTML_UNIT)
-        {
-            UserAgent = HtmlUnitBrowserVersion.getUserAgent();
-            UserAgentAccept = HtmlUnitBrowserVersion.getHtmlAcceptHeader();
-        }
 
         if (NWorkThreads <= 0)
         {

@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.client.CookieStore;
 
-import my.LJExport.runtime.http.cookies.FirefoxCookies;
+import my.LJExport.runtime.browsers.FirefoxCookies;
 import my.LJExport.runtime.url.AwayLink;
 import my.LJExport.runtime.url.UrlConsolidator;
 import my.LJExport.runtime.url.UrlFixCP1251;

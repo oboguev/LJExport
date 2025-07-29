@@ -15,12 +15,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.http.HttpStatus;
 import org.apache.http.cookie.Cookie;
 
-import my.LJExport.Config.WebMethod;
 import my.LJExport.calendar.Calendar;
 import my.LJExport.profile.ReadProfile;
 import my.LJExport.readers.PageReader;
-import my.LJExport.readers.PageReaderHtmlUnit;
-import my.LJExport.readers.PageReaderSelenium;
 import my.LJExport.readers.direct.PageReaderDirect;
 import my.LJExport.runtime.LimitProcessorUsage;
 import my.LJExport.runtime.Util;
@@ -28,7 +25,6 @@ import my.LJExport.runtime.audio.PlaySound;
 import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.ProxyServer;
 import my.LJExport.runtime.http.RateLimiter;
-import my.LJExport.runtime.http.UrlDurationHistory;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.synch.ThreadsControl;
@@ -188,9 +184,6 @@ public class Main
             out("");
         }
 
-        if (Config.Method == WebMethod.SELENIUM)
-            UrlDurationHistory.display();
-
         try
         {
             Main.linkDownloader.close();
@@ -277,28 +270,13 @@ public class Main
 
             switch (Config.Method)
             {
-            case HTML_UNIT:
-            case SELENIUM:
-                // Not yet. We'll need the connection for links downloading
-                // do_logout();
-                // Web.shutdown();
-                break;
-
             case DIRECT:
                 break;
             }
 
             switch (Config.Method)
             {
-            case SELENIUM:
-                PageReaderSelenium.reinit();
-                if (proxyServer == null)
-                    proxyServer = ProxyServer.create();
-                out(">>> Launching slave browsers");
-                break;
-
             case DIRECT:
-            case HTML_UNIT:
                 break;
             }
 
@@ -357,12 +335,6 @@ public class Main
 
             switch (Config.Method)
             {
-            case HTML_UNIT:
-            case SELENIUM:
-                do_logout();
-                Web.shutdown();
-                break;
-
             case DIRECT:
                 do_logout();
                 Web.shutdown();
@@ -423,6 +395,7 @@ public class Main
 
         out(">>> Logging into " + Config.LoginSite + " as user " + Config.LoginUser);
 
+        Web.Response r = null;
         StringBuilder sb = new StringBuilder();
         if (Config.isDreamwidthOrg())
         {
@@ -435,6 +408,7 @@ public class Main
             postForm(sb, "password", Config.LoginPassword);
             postForm(sb, "remember_me", "1");
             postForm(sb, "login", "Log in");
+            r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", sb.toString());
         }
         else
         {
@@ -442,9 +416,8 @@ public class Main
             sb.append(Web.escape("user") + "=" + Web.escape(Config.LoginUser) + "&");
             sb.append(Web.escape("password") + "=" + Web.escape(Config.LoginPassword) + "&");
             sb.append("action:login");
+            r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", sb.toString());
         }
-
-        Web.Response r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", sb.toString());
 
         if (Config.isDreamwidthOrg())
         {
@@ -628,8 +601,6 @@ public class Main
 
     public static void do_work() throws Exception
     {
-        PageReaderHtmlUnit.Context htmlUnitContext = null;
-        PageReaderSelenium.Context seleniumContext = null;
         String rurl = null;
 
         try
@@ -639,20 +610,6 @@ public class Main
 
             switch (Config.Method)
             {
-            case HTML_UNIT:
-                // null if login soft-failed (e.g. login limit exceeded)
-                htmlUnitContext = PageReaderHtmlUnit.makeContext();
-                if (htmlUnitContext == null)
-                    return;
-                break;
-
-            case SELENIUM:
-                // null if login soft-failed (e.g. login limit exceeded)
-                seleniumContext = PageReaderSelenium.makeContext();
-                if (seleniumContext == null)
-                    return;
-                break;
-
             case DIRECT:
                 break;
             }
@@ -691,14 +648,6 @@ public class Main
 
                 switch (Config.Method)
                 {
-                case SELENIUM:
-                    reader = new PageReaderSelenium(rurl, pageDir, seleniumContext);
-                    break;
-
-                case HTML_UNIT:
-                    reader = new PageReaderHtmlUnit(rurl, pageDir, htmlUnitContext);
-                    break;
-
                 case DIRECT:
                     reader = new PageReaderDirect(rurl, pageDir);
                     break;
@@ -729,12 +678,6 @@ public class Main
         }
         finally
         {
-            if (htmlUnitContext != null)
-                htmlUnitContext.close();
-
-            if (seleniumContext != null)
-                seleniumContext.close();
-
             Thread.currentThread().setName("page-loader: idle");
         }
     }

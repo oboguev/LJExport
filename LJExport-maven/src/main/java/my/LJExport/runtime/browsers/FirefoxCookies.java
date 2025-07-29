@@ -1,4 +1,4 @@
-package my.LJExport.runtime.http.cookies;
+package my.LJExport.runtime.browsers;
 
 import java.io.BufferedReader;
 import java.io.File;

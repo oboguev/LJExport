@@ -648,10 +648,10 @@ public abstract class PageParserDirectBase
         String style = null;
 
         if (Config.isRossiaOrg())
-            return "rossia.org";
+            return Sites.RossiaOrg;
 
         if (Config.isDreamwidthOrg())
-            return "dreamwidth.org";
+            return Sites.DreamwidthOrg;
 
         for (Node n : JSOUP.findElements(pageRoot, "link"))
         {
@@ -664,8 +664,8 @@ public abstract class PageParserDirectBase
                         rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
                 {
                     String host = Util.urlHost(href).toLowerCase();
-                    if (host.endsWith(".dreamwidth.org") || host.equals("dreamwidth.org"))
-                        style = detectPageStyle(style, "dreamwidth.org");
+                    if (host.endsWith("." + Sites.DreamwidthOrg) || host.equals(Sites.DreamwidthOrg))
+                        style = detectPageStyle(style, Sites.DreamwidthOrg);
                 }
             }
         }
@@ -702,16 +702,16 @@ public abstract class PageParserDirectBase
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") || rel.toLowerCase().equals("previous"))
                 {
                     String host = Util.urlHost(href).toLowerCase();
-                    if (host.equals(Sites.RossiaOrg)
-                        style = detectPageStyle(style, "rossia.org");
+                    if (host.equals(Sites.RossiaOrg))
+                        style = detectPageStyle(style, Sites.RossiaOrg);
                 }
 
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") ||
                         rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
                 {
                     String host = Util.urlHost(href).toLowerCase();
-                    if (host.endsWith(".dreamwidth.org") || host.equals("dreamwidth.org"))
-                        style = detectPageStyle(style, "dreamwidth.org");
+                    if (host.endsWith("." + Sites.DreamwidthOrg) || host.equals(Sites.DreamwidthOrg))
+                        style = detectPageStyle(style, Sites.DreamwidthOrg);
                 }
             }
         }

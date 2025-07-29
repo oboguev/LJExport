@@ -11,6 +11,9 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.cookie.BasicClientCookie;
+
+import my.LJExport.runtime.lj.Sites;
+
 import org.apache.http.impl.client.BasicCookieStore;
 
 public class CookieUtil
@@ -41,12 +44,12 @@ public class CookieUtil
 
     public static void copyDreamwidthCookies(CookieStore from, CookieStore to)
     {
-        copySelectCookies(from, to, "dreamwidth.org");
+        copySelectCookies(from, to, Sites.DreamwidthOrg);
     }
 
     public static void deleteDreamwidthCookies(CookieStore store)
     {
-        deleteSelectCookies(store, "dreamwidth.org");
+        deleteSelectCookies(store, Sites.DreamwidthOrg);
     }
 
     /* ============================================================================================================= */

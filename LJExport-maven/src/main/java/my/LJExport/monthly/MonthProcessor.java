@@ -11,6 +11,7 @@ import my.LJExport.readers.direct.PageParserDirectDreamwidthOrg;
 import my.LJExport.readers.direct.PageParserDirectNewStyle;
 import my.LJExport.readers.direct.PageParserDirectRossiaOrg;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.parallel.twostage.parser.ParserParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.parser.ParserWorkContext;
 
@@ -123,11 +124,11 @@ public class MonthProcessor
                     parser.deleteDivThreeposts();
                     break;
 
-                case "rossia.org":
+                case Sites.RossiaOrg:
                     parser = new PageParserDirectRossiaOrg(parser);
                     break;
 
-                case "dreamwidth.org":
+                case Sites.DreamwidthOrg:
                     parser = new PageParserDirectDreamwidthOrg(parser);
                     break;
                 }

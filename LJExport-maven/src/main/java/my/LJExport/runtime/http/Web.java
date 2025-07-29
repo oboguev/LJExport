@@ -1072,7 +1072,7 @@ public class Web
             return true;
         if (host.equals(Sites.RossiaOrg))
             return true;
-        if (host.equals("dreamwidth.org") || host.endsWith(".dreamwidth.org"))
+        if (host.equals(Sites.DreamwidthOrg) || host.endsWith("." + Sites.DreamwidthOrg))
             return true;
         if (host.equals("krylov.cc") || host.endsWith(".krylov.cc"))
             return true;

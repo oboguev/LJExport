@@ -98,7 +98,7 @@ public class Config
     public static String LoginSite = DefaultSite;
     public static boolean StandaloneSite = false;
     public static final String AllowedUrlSites[] = { "livejournal.com", "livejournal.net", "olegmakarenko.ru", Sites.RossiaOrg,
-            "dreamwidth.org" };
+            Sites.DreamwidthOrg };
     public static boolean UseLogin = true;
     public static boolean StoreLoginPassword = true;
     public static String LoginPassword = null;
@@ -258,12 +258,12 @@ public class Config
 
     public static boolean isDreamwidthOrg(String loginSite)
     {
-        return loginSite.equals("dreamwidth.org");
+        return loginSite.equals(Sites.DreamwidthOrg);
     }
 
     public static boolean isDreamwidthOrg()
     {
-        return Config.Site.equals("dreamwidth.org");
+        return Config.Site.equals(Sites.DreamwidthOrg);
     }
 
     public static boolean isLiveJournal()
@@ -282,7 +282,7 @@ public class Config
         {
             if (User.contains(".dreamwidth-org"))
             {
-                Config.LoginSite = Config.Site = Config.DefaultSite = "dreamwidth.org";
+                Config.LoginSite = Config.Site = Config.DefaultSite = Sites.DreamwidthOrg;
                 Config.UseLogin = true;
                 // Config.DownloadRoot += ".dreamwidth-org";
             }

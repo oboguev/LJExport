@@ -21,6 +21,7 @@ import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.Web.Response;
 import my.LJExport.runtime.lj.LJUtil;
+import my.LJExport.runtime.lj.Sites;
 
 public class PageReaderDirect implements PageReader, PageContentSource
 {
@@ -76,11 +77,11 @@ public class PageReaderDirect implements PageReader, PageContentSource
             parser = new PageParserDirectNewStyle(parser);
             break;
             
-        case "rossia.org":    
+        case Sites.RossiaOrg:    
             parser = new PageParserDirectRossiaOrg(parser);
             break;
             
-        case "dreamwidth.org":    
+        case Sites.DreamwidthOrg:    
             parser = new PageParserDirectDreamwidthOrg(parser);
             break;
         }

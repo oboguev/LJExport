@@ -33,8 +33,8 @@ public class Config
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
-    // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    // public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
+    public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;

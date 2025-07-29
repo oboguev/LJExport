@@ -767,8 +767,6 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
     private void executePendingDeletes() throws Exception
     {
-        // ### if !DryRun
-
         /*
          * Build a list of files to delete
          */
@@ -805,7 +803,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
         if (xlist.size() != list.size())
         {
-            String msg = String.format("Removed %d link map %f for %s",
+            String msg = String.format("Removed %d link map %s for %s",
                     nremoved,
                     Util.plural(nremoved, "entry", "entries"),
                     Util.nplural(deleteRelPaths.size(), "file", "files"));

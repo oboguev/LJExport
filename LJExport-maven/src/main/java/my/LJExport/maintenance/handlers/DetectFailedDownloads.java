@@ -194,6 +194,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         }
         else if (phase == Phase.UpdateMissingOriginalLinks)
         {
+            executePendingDeletes();
             printCompletedUser();
             super.endUser();
         }
@@ -761,6 +762,17 @@ public class DetectFailedDownloads extends MaintenanceHandler
         return true;
     }
 
+    /* ===================================================================================================== */
+    
+    private void executePendingDeletes() throws Exception
+    {
+        // ### if !DryRun
+        
+        // ### remove entries from map
+        // ### delete files
+        // ### delete empty dirs
+    }
+    
     /* ===================================================================================================== */
 
     @Override

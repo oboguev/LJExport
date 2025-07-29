@@ -846,7 +846,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             dir_lc2ac.put(fp.toLowerCase(), fp);
         }
         
-        supertrace("Deleting empty directories for user " + Config.User);
+        supertrace("  >>> Deleting empty directories for user " + Config.User);
         deleteEmptyFolders(dir_lc2ac.values());
         supertrace("  >>> Deleted empty directories for user " + Config.User);
     }

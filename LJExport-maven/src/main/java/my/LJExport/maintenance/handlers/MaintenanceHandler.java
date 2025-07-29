@@ -383,8 +383,7 @@ public abstract class MaintenanceHandler extends Maintenance
                     }
                     else
                     {
-                        trace("Deleted empty directory " + fp.getCanonicalPath());
-                        Util.out("        Deleted empty directory " + fp.getCanonicalPath());
+                        supertrace("Deleted empty directory " + fp.getCanonicalPath());
                     }
                 }
                 catch (Exception ex)
@@ -398,6 +397,17 @@ public abstract class MaintenanceHandler extends Maintenance
     /* =========================================================================== */
 
     protected void trace(String msg) throws Exception
+    {
+        Util.out(msg);
+
+        if (traceWriter != null)
+        {
+            traceWriter.write(msg + nl);
+            traceWriter.flush();
+        }
+    }
+
+    protected void supertrace(String msg) throws Exception
     {
         Util.out(msg);
 

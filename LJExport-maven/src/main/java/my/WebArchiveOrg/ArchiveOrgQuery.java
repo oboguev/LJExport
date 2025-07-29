@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkRedownloader;
+import my.LJExport.runtime.url.UrlUtil;
 
 public class ArchiveOrgQuery
 {
@@ -23,7 +24,7 @@ public class ArchiveOrgQuery
         List<KVEntry> result = new ArrayList<>(); 
         
         String cdxQueryUrl = String.format("https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&" +
-                "filter=statuscode:200&matchType=exact&limit=%d&url=%s" , limit, originalUrl);
+                "filter=statuscode:200&matchType=exact&limit=%d&url=%s" , limit, UrlUtil.encodeSegment(originalUrl));
         
         String json = load_json(cdxQueryUrl, null);
         if (json.equals("[]"))

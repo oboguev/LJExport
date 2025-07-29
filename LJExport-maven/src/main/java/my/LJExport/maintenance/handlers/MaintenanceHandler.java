@@ -143,8 +143,7 @@ public abstract class MaintenanceHandler extends Maintenance
         }
         catch (Exception ex)
         {
-            return null;
-            // ### throw ex;
+            throw ex;
         }
 
         return href;

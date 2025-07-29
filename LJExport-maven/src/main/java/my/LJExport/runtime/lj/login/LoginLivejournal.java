@@ -1,8 +1,8 @@
 package my.LJExport.runtime.lj.login;
 
-import static my.LJExport.runtime.Util.out;
-
-import java.util.StringTokenizer;
+import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.cookie.Cookie;
@@ -18,6 +18,18 @@ public class LoginLivejournal
         Config.acquireLoginPassword();
 
         Web.Response r = null;
+        // ### MUST reproduce headers EXACTLY or will lock out
+        r = Web.get("https://www." + Config.LoginSite + "/");
+        if (r.code != HttpStatus.SC_OK)
+            throw new Exception("Unable to log into the server: " + Web.describe(r.code));
+        
+        String auth_token = extractAuthToken(r.binaryBody);
+
+        Util.noop();
+        
+        
+        
+        
         StringBuilder sb = new StringBuilder();
 
         sb.append(Web.escape("ret") + "=" + "1" + "&");
@@ -45,66 +57,54 @@ public class LoginLivejournal
         throw new Exception("Unable to log into the server: most probably incorrect username or password");
     }
 
+    /**
+     * Extracts LiveJournal sessionless auth_token from HTML byte content.
+     *
+     * @param htmlBytes raw HTML byte content from https://www.livejournal.com/
+     * @return the token string (e.g. "sessionless:...") if exactly one match is found;
+     *         null otherwise (none or multiple matches).
+     */
+    public static String extractAuthToken(byte[] htmlBytes)
+    {
+        String html = new String(htmlBytes, StandardCharsets.UTF_8);
+        Pattern pattern = Pattern.compile("\"auth_token\"\\s*:\\s*\"(sessionless:[^\"]+)\"");
+        Matcher matcher = pattern.matcher(html);
+
+        String match = null;
+        while (matcher.find())
+        {
+            if (match != null)
+            {
+                // Multiple matches found, return null
+                return null;
+            }
+            match = matcher.group(1);
+        }
+
+        return match; // Either the single match or null if none
+    }
+
     /* ============================================================================================ */
 
     public static boolean logout(String loginSite) throws Exception
     {
-        String sessid = null;
+        return LoginLivejournalLegacy.logout(loginSite);
+    }
 
-        for (Cookie cookie : Web.getCookieStore().getCookies())
-        {
-            if (!Util.is_in_domain(loginSite, cookie.getDomain()))
-                continue;
-
-            if (cookie.getName().equals("ljmastersession") || cookie.getName().equals("ljloggedin")
-                    || cookie.getName().equals("ljsession"))
-            {
-                StringTokenizer st = new StringTokenizer(cookie.getValue(), ":");
-
-                while (st.hasMoreTokens())
-                {
-                    String tok = st.nextToken();
-                    if (tok.length() >= 2 && tok.charAt(0) == 's')
-                    {
-                        sessid = tok.substring(1);
-                        break;
-                    }
-                }
-
-                if (sessid != null)
-                    break;
-            }
-        }
-
-        if (sessid == null)
-        {
-            out(">>> Unable to log off the server (unknown sessid)");
-            return false;
-        }
-
-        out(">>> Logging off " + loginSite);
-        StringBuilder sb = new StringBuilder();
-        Web.Response r = null;
-
-        sb.append("http://www." + loginSite + "/logout.bml?ret=1&user=" + Config.LoginUser + "&sessid=" + sessid);
+    /* ============================================================================================ */
+    
+    public static void main(String[] args)
+    {
         try
         {
-            r = Web.get(sb.toString());
+            Config.init("");
+            Web.init();
+            login();
         }
         catch (Exception ex)
         {
-            Util.noop();
-        }
-
-        if (r != null && r.code == HttpStatus.SC_OK)
-        {
-            out(">>> Logged off " + loginSite);
-            return true;
-        }
-        else
-        {
-            out(">>> Loggoff unsuccessful from " + loginSite);
-            return false;
+            Util.err("** Exception: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
         }
     }
 }

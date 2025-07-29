@@ -557,9 +557,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
                     Util.err("    " + s);
                 Util.err("------------------------------");
 
-                if (Util.True && DryRun)
+                if (Util.False && DryRun)
                 {
-                    // ###
                     String url = urls.get(0);
                     urls.clear();
                     urls.add(url);

@@ -441,7 +441,7 @@ public class Web
 
     public static Response get(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody) throws Exception
     {
-        url = UrlUtil.encodeUrlForWeb(url);
+        url = UrlUtil.encodeUrlForApacheWire(url);
 
         final int maxpasses = 3;
 
@@ -694,7 +694,7 @@ public class Web
 
     public static Response post(String url, String body) throws Exception
     {
-        url = UrlUtil.encodeUrlForWeb(url);
+        url = UrlUtil.encodeUrlForApacheWire(url);
         
         if (shouldLimitRate(url))
             RateLimiter.LJ_PAGES.limitRate();
@@ -795,7 +795,7 @@ public class Web
 
     public static String getRedirectLocation(String url, String referer, Map<String, String> headers) throws Exception
     {
-        url = UrlUtil.encodeUrlForWeb(url);
+        url = UrlUtil.encodeUrlForApacheWire(url);
         
         final int maxpasses = 3;
 

@@ -192,7 +192,7 @@ public class UrlUtil
     /*
      * Encode URL link for use by Apache Http Client
      */
-    public static String encodeUrlForWeb(String url) throws Exception
+    public static String encodeUrlForApacheWire(String url) throws Exception
     {
         url = encodeUrlForHtmlAttr(url);
         url = Util.stripAnchor(url);

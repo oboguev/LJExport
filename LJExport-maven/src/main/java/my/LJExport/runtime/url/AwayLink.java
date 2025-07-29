@@ -144,6 +144,13 @@ public class AwayLink
             xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
             return xurl;
         }
+        
+        xurl = urnwrapFbcdnExternalSafeImage(decoded_href);
+        if (!xurl.equals(decoded_href))
+        {
+            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
+            return xurl;
+        }
 
         return decoded_href;
     }
@@ -237,6 +244,34 @@ public class AwayLink
     {
         String prefix = "http://infonarod.ru/away.php?";
 
+        if (!Util.startsWithIgnoreCase(url, null, prefix))
+            return url;
+
+        String redir;
+        try
+        {
+            redir = UrlUtil.extractQueryParameter(url, "url");
+            if (redir != null)
+            {
+                redir = UrlUtil.decodeUrl(redir);
+                if (Util.startsWithIgnoreCase(redir, null, "https://", "http://"))
+                    return UrlUtil.encodeMinimal(redir);
+            }
+        }
+        catch (Exception ex)
+        {
+            Util.noop();
+        }
+
+        return url;
+    }
+
+    /* =================================================================== */
+
+    public static String urnwrapFbcdnExternalSafeImage(String url)
+    {
+        String prefix = "https://external.xx.fbcdn.net/safe_image.php?";
+        
         if (!Util.startsWithIgnoreCase(url, null, prefix))
             return url;
 

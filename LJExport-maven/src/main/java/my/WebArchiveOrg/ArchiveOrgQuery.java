@@ -7,6 +7,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkRedownloader;
@@ -21,15 +22,25 @@ public class ArchiveOrgQuery
      */
     public static List<KVEntry> querySnapshots(String originalUrl, int limit) throws Exception
     {
-        List<KVEntry> result = new ArrayList<>(); 
-        
+        List<KVEntry> result = new ArrayList<>();
+
         String cdxQueryUrl = String.format("https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&" +
-                "filter=statuscode:200&matchType=exact&limit=%d&url=%s" , limit, UrlUtil.encodeSegment(originalUrl));
-        
+                "filter=statuscode:200&matchType=exact&limit=%d&url=%s", limit, UrlUtil.encodeSegment(originalUrl));
+
         String json = load_json(cdxQueryUrl, null);
-        if (json.equals("[]"))
+        if (json == null)
             return null;
         
+        while (json.endsWith("\n") || json.endsWith("\r"))
+        {
+            if (json.endsWith("\n"))
+                json = Util.stripTail(json, "\n");
+            else
+                json = Util.stripTail(json, "\r");
+        }
+        if (json.trim().equals("[]"))
+            return null;
+
         JsonNode jroot = mapper.readTree(json);
 
         // Unexpected JSON structure
@@ -59,27 +70,27 @@ public class ArchiveOrgQuery
 
         if (idxTimestamp == -1 || idxOriginal == -1 || idxStatus == -1)
             throw new IllegalArgumentException("Missing expected columns in header");
-        
+
         // Iterate through data rows
         for (int i = 1; i < jroot.size(); i++)
         {
             JsonNode row = jroot.get(i);
             if (!row.isArray() || row.size() != header.size())
-                throw new Exception ("Malformed row at index " + i);
+                throw new Exception("Malformed row at index " + i);
 
             String timestamp = row.get(idxTimestamp).asText();
             String original = row.get(idxOriginal).asText();
             String status = row.get(idxStatus).asText();
-            
+
             if (timestamp == null || original == null || status == null)
                 throw new IllegalArgumentException("Unexpected JSON structure");
-            
+
             if (!status.equals("200"))
                 continue;
-            
+
             result.add(new KVEntry(timestamp, original));
         }
-        
+
         KVEntry.sortByKey(result);
         return result;
     }

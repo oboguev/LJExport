@@ -24,9 +24,10 @@ public class MiscTest
             // test_2();
             // test_firefox_coookies();
             // consolidate();
-            test_unwrap();
+         // test_unwrap();
             // test_infonarod_away();
             // test_cp1251();
+            test_encode_url();
         }
         catch (Exception ex)
         {
@@ -320,5 +321,19 @@ public class MiscTest
         CookieStore cs = FirefoxCookies.loadCookiesFromFirefox();
         Util.unused(cs);
         Util.noop();
+    }
+
+    @SuppressWarnings("unused")
+    private static void test_encode_url() throws Exception
+    {
+        test_encode_url("https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPG");
+        test_encode_url("https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPGяяя-ййй");
+    }
+
+    private static void test_encode_url(String s) throws Exception
+    {
+        Util.out("    " + s);
+        Util.out("X   " + UrlUtil.encodeUrlForApacheWire(s));
+        Util.out("    ");
     }
 }

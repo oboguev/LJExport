@@ -1,6 +1,7 @@
 package my.LJExport.runtime.url;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -137,14 +138,14 @@ public class AwayLink
             xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
             return xurl;
         }
-        
+
         xurl = unwrapInfonarodRuAaway(decoded_href);
         if (!xurl.equals(decoded_href))
         {
             xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
             return xurl;
         }
-        
+
         xurl = urnwrapFbcdnExternalSafeImage(decoded_href);
         if (!xurl.equals(decoded_href))
         {
@@ -247,10 +248,15 @@ public class AwayLink
         if (!Util.startsWithIgnoreCase(url, null, prefix))
             return url;
 
+        return unwrapQueryParameterRedirect(url, "url");
+    }
+    
+    private static String unwrapQueryParameterRedirect(String url, String qpname)
+    {
         String redir;
         try
         {
-            redir = UrlUtil.extractQueryParameter(url, "url");
+            redir = UrlUtil.extractQueryParameter(url, qpname);
             if (redir != null)
             {
                 redir = UrlUtil.decodeUrl(redir);
@@ -265,32 +271,47 @@ public class AwayLink
 
         return url;
     }
+    
+    private static boolean lc_contains_all(String url, String ... matches)
+    {
+        String lc = url.toLowerCase();
+        for (String s : matches)
+        {
+            if (!lc.contains(s))
+                return false;
+        }
+        
+        return true;
+    }
 
     /* =================================================================== */
 
-    public static String urnwrapFbcdnExternalSafeImage(String url)
+    public static String urnwrapFbcdnExternalSafeImage(String url) throws Exception
     {
-        String prefix = "https://external.xx.fbcdn.net/safe_image.php?";
-        
-        if (!Util.startsWithIgnoreCase(url, null, prefix))
+        if (!lc_contains_all(url, ".xx.fbcdn.net", "/safe_image.php?"))
             return url;
 
-        String redir;
-        try
+        String prefix = "https://external.xx.fbcdn.net/safe_image.php?";
+        boolean match = false;
+
+        if (Util.startsWith(url, null, prefix))
+            match = true;
+        
+        if (!match)
         {
-            redir = UrlUtil.extractQueryParameter(url, "url");
-            if (redir != null)
-            {
-                redir = UrlUtil.decodeUrl(redir);
-                if (Util.startsWithIgnoreCase(redir, null, "https://", "http://"))
-                    return UrlUtil.encodeMinimal(redir);
-            }
-        }
-        catch (Exception ex)
-        {
-            Util.noop();
+            URL xurl = new URL(url);
+            String host = xurl.getHost();
+            String path = xurl.getPath();
+            if (host == null || path == null)
+                return url;
+            host = host.toLowerCase();
+            if (host.startsWith("external") && host.endsWith(".xx.fbcdn.net") && path.equals("safe_image.php"))
+                match = true;
         }
 
-        return url;
+        if (!match)
+            return url;
+
+        return unwrapQueryParameterRedirect(url, "url");
     }
 }

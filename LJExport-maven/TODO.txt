@@ -2,13 +2,28 @@
       - use separate user config dir
       - load/save cookies
       - disable JavaScript execution in the browser
+      - get coookies
+      - get useragent string
       
 - CDP proxy
+      - GET
+      - POST
+      - binary
+      - redirects 3xx
+      - disable JS two ways
+      - timeouts: connect, socket, Java/Future
+      - concurrency
+      - get coookies
+      - get useragent string
 
 - names of failed downloads (i2/d2 and i3/d3)
   enhance and handle don't download
   
 - make MainDownloadLinks with option to dowmload from the archive
+
+================================================
+
+- SmartDownload: try away link
 
 ================================================
 

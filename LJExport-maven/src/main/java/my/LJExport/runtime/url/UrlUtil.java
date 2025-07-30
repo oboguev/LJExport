@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import my.LJExport.runtime.Util;
 
 import java.net.URI;
+import java.net.URL;
 import java.net.URLEncoder;
 
 public class UrlUtil
@@ -453,6 +454,38 @@ public class UrlUtil
         return sb.toString();
     }
 
+    /* ================================================================================================== */
+
+    private static final Pattern VALID_HOST_PATTERN = Pattern.compile("^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+
+    public static String extractHost(String href) throws Exception
+    {
+        if (href == null || href.trim().isEmpty())
+            return null;
+
+        String input = href.trim();
+
+        // If it already has http or https, use URL directly
+        if (input.matches("(?i)^https?://.*"))
+        {
+            URL url = new URL(input);
+            String host = url.getHost();
+            if (host == null || host.isEmpty())
+                return null;
+            return host;
+        }
+
+        // No scheme — treat as relative or scheme-less absolute
+        int slash = input.indexOf('/');
+        String firstComponent = (slash >= 0) ? input.substring(0, slash) : input;
+
+        // Check if it looks like a valid domain name (must include dot)
+        if (VALID_HOST_PATTERN.matcher(firstComponent).matches())
+            return firstComponent;
+        else
+            return null;
+    }
+    
     /* ================================================================================================== */
 
     public static String extractQueryParameter(String url, String parameterName) throws Exception

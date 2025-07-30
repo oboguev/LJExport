@@ -3,6 +3,7 @@ package my.LJExport.runtime.file;
 import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.url.UrlUtil;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
 public class ServerContent
@@ -55,7 +56,7 @@ public class ServerContent
         if (ArchiveOrgUrl.isArchiveOrgUrl(href))
             href = ArchiveOrgUrl.extractArchivedUrlPart(href);
 
-        String host = Util.extractHost(href);
+        String host = UrlUtil.extractHost(href);
 
         /*
          * www.lib.ru and lib.ru respond to TXT URL request with the reply of HTML content,

@@ -15,6 +15,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
@@ -296,30 +297,35 @@ public class Web
                 .setConnectionManager(connManagerLJ)
                 .setDefaultRequestConfig(requestConfigLJPages)
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setRedirectStrategy(new LaxRedirectStrategy())
                 .setDefaultCookieStore(cookieStore);
 
         HttpClientBuilder hcbClientLJImages = HttpClients.custom()
                 .setConnectionManager(connManagerLJ)
                 .setDefaultRequestConfig(requestConfigLJImages)
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setRedirectStrategy(new LaxRedirectStrategy())
                 .setDefaultCookieStore(cookieStore);
 
         HttpClientBuilder hcbClientOther = HttpClients.custom()
                 .setConnectionManager(connManagerOther)
                 .setDefaultRequestConfig(requestConfigOther)
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setRedirectStrategy(new LaxRedirectStrategy())
                 .setDefaultCookieStore(cookieStore);
 
         HttpClientBuilder hcbClientRedirectLJ = HttpClients.custom()
                 .setConnectionManager(connManagerLJ)
                 .setDefaultRequestConfig(requestConfigRedirect)
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setRedirectStrategy(new LaxRedirectStrategy())
                 .setDefaultCookieStore(cookieStore);
 
         HttpClientBuilder hcbClientRedirectOther = HttpClients.custom()
                 .setConnectionManager(connManagerOther)
                 .setDefaultRequestConfig(requestConfigRedirect)
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setRedirectStrategy(new LaxRedirectStrategy())
                 .setDefaultCookieStore(cookieStore);
 
         /* ====================================================================================== */
@@ -797,11 +803,21 @@ public class Web
         setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
         setHeader(request, headers, "Cache-Control", "no-cache");
         setHeader(request, headers, "Pragma", "no-cache");
+        setHeader(request, headers, "Upgrade-Insecure-Requests", "1");
+        setHeader(request, headers, "Priority", "u=0, i");
+        setHeader(request, headers, "Sec-GPC", "1");
+        setHeader(request, headers, "Accept-Language", "en-US,en;q=0.5");
+        setHeader(request, headers, "Connection", "keep-alive");
+        setHeader(request, headers, "", "");
+        setHeader(request, headers, "", "");
+        setHeader(request, headers, "", "");
 
         setHeader(request, headers, "Sec-Fetch-Dest", "document");
         setHeader(request, headers, "Sec-Fetch-Mode", "navigate");
         setHeader(request, headers, "Sec-Fetch-Site", "none");
         setHeader(request, headers, "Sec-Fetch-User", "?1");
+        
+        // ### order of headers?????
 
         if (headers != null)
         {

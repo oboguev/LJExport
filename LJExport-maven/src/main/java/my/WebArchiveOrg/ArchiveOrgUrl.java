@@ -27,6 +27,13 @@ public class ArchiveOrgUrl
      *     Skips UI and serves the file.
      *     Examples: https://web.archive.org/web/20150324141543if_/http://samlib.ru/img/w/wasilxew_wjacheslaw_wasilxewich/ukragit91/referendum3.jpg
      *               https://web.archive.org/web/20060215134634if_/http://www.trilateral.org:80/library/crisis_of_democracy.pdf
+     *     For images will return HTML with a single IMG.SRC link to im_ URL (below)          
+     *     
+     * https://web.archive.org/web/TIMESTAMPim_/ORIGINAL_URL
+     * 
+     *     Direct download link for programmatic download of images
+     *     Skips UI and serves the file.
+     *     Example: https://web.archive.org/web/20231201081812im_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600/CheKa.JPG
      *     
      * https://web.archive.org/web/TIMESTAMPid_/ORIGINAL_URL
      * 
@@ -88,6 +95,7 @@ public class ArchiveOrgUrl
      * It excludes forms like:
      * - https://web.archive.org/web/TIMESTAMPif_/...
      * - https://web.archive.org/web/TIMESTAMPid_/...
+     * - https://web.archive.org/web/TIMESTAMPim_/...
      * - https://web.archive.org/web/2id_/...
      * - any non-archive.org URLs
      *
@@ -458,7 +466,7 @@ public class ArchiveOrgUrl
         String timestamp = url.substring(prefix.length(), pos);
         String suffix = url.substring(pos + 1);
 
-        if (timestamp.endsWith("if_") || timestamp.endsWith("id_"))
+        if (timestamp.endsWith("if_") || timestamp.endsWith("id_") || timestamp.endsWith("im_"))
             return url; // already direct download
 
         if (!isArchiveOrgTimestamp(timestamp))

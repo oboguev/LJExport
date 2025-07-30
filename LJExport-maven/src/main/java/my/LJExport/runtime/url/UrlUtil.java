@@ -190,11 +190,212 @@ public class UrlUtil
     /* ================================================================================================== */
 
     /*
+     * Encode link before putting in into A.HREF or IMG.SRC or LINK.HREF.
+     * If "safe" is true, preserves existing %xx without encoding it as %25xx
+     * 
+     * For example:
+     * 
+     *     https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPG
+     *     
+     * should be transformed into
+     * 
+     *     https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp%2Coriginal%2Cstatuscode&filter=statuscode%3A200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPG
+     *     
+     * but not into
+     * 
+     *     https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp%2Coriginal%2Cstatuscode&filter=statuscode%3A200&matchType=exact&limit=1&url=http%253A%252F%252F1.bp.blogspot.com%252F_h_hLztz7W0s%252FSq0s6CwFrJI%252FAAAAAAAADX4%252FxfV04qkGa1A%252Fs1600-h%252FCheKa.JPG
+     * 
+     */
+    public static String encodeUrlForHtmlAttr(String url, boolean safe) throws Exception
+    {
+        if (url == null)
+            return null;
+
+        // Parse manually instead of using new URI(url)
+        int schemeEnd = url.indexOf("://");
+        if (schemeEnd <= 0)
+            throw new IllegalArgumentException("Invalid URL: no scheme");
+
+        String scheme = url.substring(0, schemeEnd);
+        String rest = url.substring(schemeEnd + 3); // skip "://"
+
+        int pathStart = rest.indexOf('/');
+        String authority, pathAndAfter;
+        if (pathStart >= 0)
+        {
+            authority = rest.substring(0, pathStart);
+            pathAndAfter = rest.substring(pathStart);
+        }
+        else
+        {
+            authority = rest;
+            pathAndAfter = "";
+        }
+
+        String path, query = null, fragment = null;
+
+        int queryIndex = pathAndAfter.indexOf('?');
+        int fragmentIndex = pathAndAfter.indexOf('#');
+
+        if (queryIndex >= 0)
+        {
+            path = pathAndAfter.substring(0, queryIndex);
+
+            if (fragmentIndex >= 0 && fragmentIndex > queryIndex)
+            {
+                query = pathAndAfter.substring(queryIndex + 1, fragmentIndex);
+                fragment = pathAndAfter.substring(fragmentIndex + 1);
+            }
+            else
+            {
+                query = pathAndAfter.substring(queryIndex + 1);
+            }
+        }
+        else if (fragmentIndex >= 0)
+        {
+            path = pathAndAfter.substring(0, fragmentIndex);
+            fragment = pathAndAfter.substring(fragmentIndex + 1);
+        }
+        else
+        {
+            path = pathAndAfter;
+        }
+
+        // Now encode components
+        String encodedPath = encodePath(path, safe);
+        String encodedQuery = encodeQuery(query, safe);
+        String encodedFragment = encodeFragment(fragment, safe);
+
+        // Rebuild the URL
+        StringBuilder result = new StringBuilder();
+        result.append(scheme).append("://").append(authority).append(encodedPath);
+        if (encodedQuery != null)
+            result.append('?').append(encodedQuery);
+        if (encodedFragment != null)
+            result.append('#').append(encodedFragment);
+
+        return result.toString();
+    }
+
+    // Encode path, preserving `/`
+    private static String encodePath(String path, boolean safe)
+    {
+        if (path == null)
+            return "";
+        String[] parts = path.split("/");
+        for (int i = 0; i < parts.length; i++)
+        {
+            parts[i] = encodeSegment(parts[i], safe);
+        }
+        return String.join("/", parts);
+    }
+
+    // Encode query (key=value&key2=value2)
+    private static String encodeQuery(String query, boolean safe)
+    {
+        if (query == null)
+            return null;
+        String[] pairs = query.split("&");
+        for (int i = 0; i < pairs.length; i++)
+        {
+            int eq = pairs[i].indexOf('=');
+            if (eq >= 0)
+            {
+                String key = encodeSegment(pairs[i].substring(0, eq), safe);
+                String val = encodeSegment(pairs[i].substring(eq + 1), safe);
+                pairs[i] = key + "=" + val;
+            }
+            else
+            {
+                pairs[i] = encodeSegment(pairs[i], safe);
+            }
+        }
+        return String.join("&", pairs);
+    }
+
+    // Encode fragment
+    private static String encodeFragment(String fragment, boolean safe)
+    {
+        if (fragment == null)
+            return null;
+        else
+            return encodeSegment(fragment, safe);
+    }
+
+    public static String encodeSegment(String segment, boolean safe)
+    {
+        if (segment == null)
+            return "";
+
+        if (!safe)
+            return URLEncoder.encode(segment, StandardCharsets.UTF_8).replace("+", "%20");
+        
+        /*
+         * "safe" encoding:
+         */
+        StringBuilder sb = new StringBuilder();
+        int length = segment.length();
+        for (int i = 0; i < length;)
+        {
+            char ch = segment.charAt(i);
+
+            if (safe && ch == '%' && i + 2 < length &&
+                    isHexDigit(segment.charAt(i + 1)) && isHexDigit(segment.charAt(i + 2)))
+            {
+                // Valid %xx sequence, preserve as-is
+                sb.append(segment, i, i + 3);
+                i += 3;
+            }
+            else if (isUnreserved(ch))
+            {
+                sb.append(ch);
+                i++;
+            }
+            else
+            {
+                // Percent-encode using UTF-8 bytes
+                int codePoint = Character.codePointAt(segment, i);
+                byte[] bytes = new String(Character.toChars(codePoint)).getBytes(StandardCharsets.UTF_8);
+                for (byte b : bytes)
+                {
+                    sb.append('%');
+                    sb.append(Character.forDigit((b >> 4) & 0xF, 16));
+                    sb.append(Character.forDigit(b & 0xF, 16));
+                }
+                i += Character.charCount(codePoint);
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private static boolean isHexDigit(char c)
+    {
+        return (c >= '0' && c <= '9') ||
+                (c >= 'A' && c <= 'F') ||
+                (c >= 'a' && c <= 'f');
+    }
+
+    /**
+     * Unreserved characters as per RFC 3986 section 2.3
+     * ALPHA / DIGIT / "-" / "." / "_" / "~"
+     */
+    private static boolean isUnreserved(char ch)
+    {
+        return (ch >= 'A' && ch <= 'Z') ||
+                (ch >= 'a' && ch <= 'z') ||
+                (ch >= '0' && ch <= '9') ||
+                ch == '-' || ch == '.' || ch == '_' || ch == '~';
+    }
+
+    /* ================================================================================================== */
+
+    /*
      * Encode URL link for use by Apache Http Client
      */
     public static String encodeUrlForApacheWire(String url) throws Exception
     {
-        url = encodeUrlForHtmlAttr(url);
+        url = encodeUrlForHtmlAttr(url, true);
         url = Util.stripAnchor(url);
         url = normalizeSchemeHostPort(url);
         return url;

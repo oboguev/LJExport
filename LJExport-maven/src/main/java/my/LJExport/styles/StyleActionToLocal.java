@@ -1303,7 +1303,7 @@ public class StyleActionToLocal
 
         Element elx = elStyle.clone().empty(); // shallow copy (preserves attributes)
         JSOUP.setAttribute(elx, GeneratedBy, StyleManagerSignature);
-        elx.appendChild(new DataNode(modifiedCss, elx.baseUri()));
+        elx.appendChild(new DataNode(modifiedCss));
         elStyle.after(elx); // insert into the tree
 
         if (original_type != null)

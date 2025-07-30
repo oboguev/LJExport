@@ -79,7 +79,7 @@ public class StyleActionRelocate
             if (newcss != null)
             {
                 el.empty(); // Remove existing content
-                el.appendChild(new DataNode(newcss, el.baseUri()));
+                el.appendChild(new DataNode(newcss));
                 updated = true;
             }
         }

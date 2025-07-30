@@ -727,7 +727,7 @@ public class JSOUP
 
         // Replace the <img> element with a text node "<deleted-img>"
         for (org.jsoup.nodes.Element img : imgTags)
-            img.replaceWith(new TextNode("<deleted-img>", ""));
+            img.replaceWith(new TextNode("<deleted-img>"));
 
         // in all elements with attribute data-auth-token
         // delete it or replace its value with empty

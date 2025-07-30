@@ -1,0 +1,17 @@
+{
+  "name": "my-proxy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "playwright": "^1.54.1",
+    "playwright-core": "^1.32.3"
+  }
+}

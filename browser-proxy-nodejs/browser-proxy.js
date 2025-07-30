@@ -1,0 +1,85 @@
+﻿const express = require('express');
+const { chromium } = require('playwright-core');
+
+const app = express();
+const port = 3000;
+
+// Use system-installed Chrome
+const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+
+// Force base64 mode regardless of content type (can be toggled)
+const FORCE_BASE64 = false;
+
+// Accept large request bodies
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+let browser = null;
+let context = null;
+
+// Startup: launch browser and shared context
+(async () => {
+    try {
+        browser = await chromium.launch({
+            // headless: true,
+	    headless: false,
+            executablePath: CHROME_PATH,
+            args: ['--no-sandbox', '--disable-gpu']
+        });
+
+        context = await browser.newContext(); // shared session
+        app.listen(port, () => {
+            console.log(`Proxy server listening at http://localhost:${port}`);
+        });
+    } catch (err) {
+        console.error('Failed to initialize browser:', err);
+        process.exit(1);
+    }
+})();
+
+// Main request handler
+app.post('/fetch', async (req, res) => {
+    const { url, method = 'GET', headers = {}, body = null } = req.body;
+
+    if (!url) return res.status(400).json({ error: 'Missing URL' });
+    if (!browser || !context) return res.status(503).json({ error: 'Browser not ready' });
+
+    const page = await context.newPage();
+    // Convert ordered header array to an object with preserved order
+    let headerMap = {};
+    if (Array.isArray(req.body.headersOrdered)) {
+        for (const [name, value] of req.body.headersOrdered) {
+            headerMap[name] = value;
+        }
+    } else {
+        headerMap = headers;
+    }
+ // new page, shared context
+
+    try {
+        // const response = await page.goto(url, { waitUntil: 'networkidle' });
+	const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+        const status = response?.status() ?? 0;
+        const respHeaders = response?.headers() ?? {};
+        const contentType = respHeaders['content-type'] || '';
+        const html = await page.content();
+
+        const buffer = Buffer.from(html, 'utf-8');
+        const encodedBody = FORCE_BASE64
+            ? buffer.toString('base64')
+            : html;
+
+        res.json({
+            status,
+            headers: respHeaders,
+            contentType,
+            encoding: FORCE_BASE64 ? 'base64' : 'utf-8',
+            body: encodedBody
+        });
+} catch (err) {
+        res.status(500).json({ error: err.toString() });
+    } finally {
+        await page.close();
+    }
+});

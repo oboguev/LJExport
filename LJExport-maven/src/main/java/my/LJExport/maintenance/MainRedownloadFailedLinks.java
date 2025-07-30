@@ -33,6 +33,7 @@ import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.SmartLinkRedownloader;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.synch.ThreadsControl;
 
@@ -51,10 +52,10 @@ public class MainRedownloadFailedLinks
     private static final String AllUsersFromUser = null;
     // private static final String AllUsersFromUser = "schloenski";
 
-    private static final String Users = ALL_USERS;
+    // private static final String Users = ALL_USERS;
     // private static final String Users = "funt";
     // private static final String Users = "krylov_arhiv,krylov";
-    // private static final String Users = "oboguev";
+    private static final String Users = "oboguev";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
 
     private static boolean DryRun = false;
@@ -65,7 +66,7 @@ public class MainRedownloadFailedLinks
     /* =============================================================================== */
 
     /* we can use large number of threads because they usually are network IO bound */
-    private static final int NWorkThreadsDownload = 300;
+    private static final int NWorkThreadsDownload = 1 /*300*/;
     private static final int NMaxWorkThreadsHtmlFiles = 70;
     private static final int MaxConnectionsPerRoute = 10;
 
@@ -677,8 +678,12 @@ public class MainRedownloadFailedLinks
                     String.format("Quitting [%s] link file %s, previosuly failed url: %s", Config.User, relativeLinkFilePath, url));
             return false;
         }
-        
-        // ###
+
+        if (!allowDownload(image, url))
+        {
+            Util.out("Skipping " + url);
+            return false;
+        }
 
         MutableObject<String> fromWhere = new MutableObject<>();
         boolean result = smartLinkRedownloader.redownload(image, url, relativeLinkFilePath, referer, fromWhere);
@@ -700,19 +705,55 @@ public class MainRedownloadFailedLinks
     }
 
     /* ========================================================================================== */
-    
+
     private boolean allowDownload(boolean image, String url) throws Exception
     {
         URL xurl = new URL(url);
+        
+        String host = xurl.getHost();
+        if (host == null)
+            return false;
+        host = host.toLowerCase();
+        if (host.equals("imgprx.livejournal.net"))
+            return false;
+        
         String path = xurl.getPath();
         if (path == null)
             return false;
         path = path.trim();
+        
         if (path.length() == 0 || path.equals("/") || path.endsWith("/"))
             return false;
-        return true;
+
+        String ext = LinkFilepath.getMediaFileExtension(path);
+        if (ext == null || ext.length() == 0)
+            return false;
+
+        if (image)
+        {
+            switch (ext.toLowerCase())
+            {
+            case "png":
+            case "webp":
+            case "gif":
+            case "jpg":
+            case "jpeg":
+                return true;
+            }
+        }
+        else
+        {
+            switch (ext.toLowerCase())
+            {
+            case "txt":
+            case "pdf":
+                return true;
+            }
+        }
+
+        return false;
     }
-    
+
     /* ========================================================================================== */
 
     private static void throwException(String msg) throws Exception

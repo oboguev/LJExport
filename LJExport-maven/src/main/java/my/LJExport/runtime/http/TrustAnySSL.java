@@ -65,6 +65,34 @@ public class TrustAnySSL
         return socketFactoryRegistry;
     }
 
+    public static Registry<ConnectionSocketFactory> trustAnySSLViaSocks(String socksHost, int socksPort) throws Exception
+    {
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[] { new X509TrustManager()
+        {
+            public void checkClientTrusted(X509Certificate[] chain, String authType)
+            {
+            }
+
+            public void checkServerTrusted(X509Certificate[] chain, String authType)
+            {
+            }
+
+            public X509Certificate[] getAcceptedIssuers()
+            {
+                return new X509Certificate[0];
+            }
+        } }, new SecureRandom());
+
+        SSLConnectionSocketFactory sslFactory = new SocksSSLConnectionSocketFactory(sslContext, socksHost, socksPort);
+        SocksConnectionSocketFactory plainFactory = new SocksConnectionSocketFactory(socksHost, socksPort);
+
+        return RegistryBuilder.<ConnectionSocketFactory> create()
+                .register("https", sslFactory)
+                .register("http", plainFactory)
+                .build();
+    }
+
     public static class LooseTrustManager implements X509TrustManager
     {
         @Override

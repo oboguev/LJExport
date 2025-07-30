@@ -74,6 +74,10 @@ public class Config
     public static final int LinkDownloadSpawnThreshold = 30;
     public static final int LinkDownloadThreadsPoolSize = 50;
 
+    /* Socks server */
+    public static String SocksHost = null;
+    public static int SocksPort = 0;
+
     /* Proxy server */
     public static String Proxy = null;
     // public static String Proxy = "http://proxy.xxx.com:8080";
@@ -97,7 +101,7 @@ public class Config
     public static String Site = DefaultSite;
     public static String LoginSite = DefaultSite;
     public static boolean StandaloneSite = false;
-    public static final String AllowedUrlSites[] = { Sites.Livejournal, "livejournal.net", "olegmakarenko.ru", 
+    public static final String AllowedUrlSites[] = { Sites.Livejournal, "livejournal.net", "olegmakarenko.ru",
             Sites.RossiaOrg,
             Sites.DreamwidthOrg };
     public static boolean UseLogin = true;

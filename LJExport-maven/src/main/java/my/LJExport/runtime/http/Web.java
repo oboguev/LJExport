@@ -33,8 +33,11 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
@@ -237,11 +240,11 @@ public class Web
             HttpHost proxy = new HttpHost(host, port, "http");
             routePlanner = new DefaultProxyRoutePlanner(proxy);
         }
-        
+
         /* ====================================================================================== */
 
-        connManagerLJ = buildConnManager();
-        connManagerOther = buildConnManager();
+        connManagerLJ = buildConnManager(true);
+        connManagerOther = buildConnManager(false);
 
         /* ====================================================================================== */
 
@@ -267,7 +270,7 @@ public class Web
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(20)
                 .build();
-        
+
         RequestConfig requestConfigOther = RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
                 .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
@@ -378,7 +381,7 @@ public class Web
             lastURL.remove();
             lastURL = null;
         }
-        
+
         boolean settle = false;
 
         if (httpClientLJPages != null)
@@ -421,14 +424,14 @@ public class Web
             // let Apache HttpClient to settle
             Thread.sleep(1500);
         }
-        
+
         if (connManagerLJ != null)
         {
             connManagerLJ.shutdown();
             connManagerLJ = null;
         }
 
-        if (connManagerOther!= null)
+        if (connManagerOther != null)
         {
             connManagerOther.shutdown();
             connManagerOther = null;
@@ -711,7 +714,7 @@ public class Web
     public static Response post(String url, String body) throws Exception
     {
         url = UrlUtil.encodeUrlForApacheWire(url);
-        
+
         CloseableHttpClient client = httpClientOther;
 
         if (isArchiveOrg(url))
@@ -732,7 +735,7 @@ public class Web
         {
             RateLimiter.LJ_PAGES.limitRate();
         }
-        
+
         lastURL.set(url);
         Response r = new Response();
 
@@ -874,7 +877,7 @@ public class Web
 
             headers.put("Referer", referer);
         }
-        
+
         CloseableHttpClient httpClient = httpClientRedirectOther;
 
         if (isArchiveOrg(url))
@@ -1100,10 +1103,10 @@ public class Web
             return true;
         if (host.equals("olegmakarenko.ru") || host.endsWith(".olegmakarenko.ru"))
             return true;
-        
+
         return false;
     }
-    
+
     private static boolean shouldLimitRate(String url) throws Exception
     {
         String host = (new URL(url)).getHost().toLowerCase();
@@ -1332,18 +1335,9 @@ public class Web
 
     /* ============================================================================== */
 
-    private static PoolingHttpClientConnectionManager buildConnManager()
+    private static PoolingHttpClientConnectionManager buildConnManager(boolean useSocks) throws Exception
     {
-        PoolingHttpClientConnectionManager connManager;
-
-        if (Config.TrustAnySSLCertificate)
-        {
-            connManager = new PoolingHttpClientConnectionManager(TrustAnySSL.trustAnySSLSocketFactoryRegistry());
-        }
-        else
-        {
-            connManager = new PoolingHttpClientConnectionManager();
-        }
+        PoolingHttpClientConnectionManager connManager = makeConnManager(useSocks);
 
         // Set max total connections
         connManager.setMaxTotal(200);
@@ -1396,6 +1390,41 @@ public class Web
                 .setBufferSize(65536) // 64KB buffer
                 .build();
         connManager.setDefaultConnectionConfig(connectionConfig);
+
+        return connManager;
+    }
+
+    private static PoolingHttpClientConnectionManager makeConnManager(boolean useSocks) throws Exception
+    {
+        PoolingHttpClientConnectionManager connManager = null;
+
+        if (useSocks && Config.SocksHost != null && Config.SocksHost.length() != 0)
+        {
+            if (Config.TrustAnySSLCertificate)
+            {
+                connManager = new PoolingHttpClientConnectionManager(TrustAnySSL.trustAnySSLViaSocks(Config.SocksHost, Config.SocksPort));
+            }
+            else
+            {
+                Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory> create()
+                        .register("http", new SocksConnectionSocketFactory(Config.SocksHost, Config.SocksPort))
+                        .register("https", new SocksConnectionSocketFactory(Config.SocksHost, Config.SocksPort))
+                        .build();
+
+                connManager = new PoolingHttpClientConnectionManager(registry);
+            }
+        }
+        else
+        {
+            if (Config.TrustAnySSLCertificate)
+            {
+                connManager = new PoolingHttpClientConnectionManager(TrustAnySSL.trustAnySSLSocketFactoryRegistry());
+            }
+            else
+            {
+                connManager = new PoolingHttpClientConnectionManager();
+            }
+        }
 
         return connManager;
     }

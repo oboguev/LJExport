@@ -168,6 +168,9 @@ public class AwayLink
 
     public static String unwrapImagesGoogleCom(String url)
     {
+        if (!lc_contains_all(url, "images.google.com", "/imgres?"))
+            return url;
+
         try
         {
             URI uri = new URI(url);

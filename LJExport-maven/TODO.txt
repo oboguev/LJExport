@@ -1,0 +1,36 @@
+- browser-proxy-nodejs:
+      - use separate user config dir
+      - load/save cookies
+      - disable JavaScript execution in the browser
+      
+- CDP proxy
+
+- names of failed downloads (i2/d2 and i3/d3)
+  enhance and handle don't download
+  
+- make MainDownloadLinks with option to dowmload from the archive
+
+================================================
+
+- archive.org: download im_
+
+if_ responds to image with HTML page
+with one IMG link
+
+IF_ url from snapshot (or built manually):
+view-source:https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG
+
+IMG.SRC
+https://web.archive.org/web/20231201081812im_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600/CheKa.JPG
+
+should follow it
+
+................
+
+see the use of:
+
+latestMediaUrl(
+directDownloadUrl(
+toDirectDownloadUrl(      
+
+================================================

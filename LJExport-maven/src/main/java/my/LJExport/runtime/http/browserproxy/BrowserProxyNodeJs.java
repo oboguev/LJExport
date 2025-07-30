@@ -111,4 +111,10 @@ class BrowserProxyNodeJs implements BrowserProxy
 
         return response;
     }
+
+    @Override
+    public boolean canInterceptRedirection()
+    {
+        return false;
+    }
 }

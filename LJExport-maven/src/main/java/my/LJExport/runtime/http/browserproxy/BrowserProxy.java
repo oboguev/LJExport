@@ -8,6 +8,11 @@ public interface BrowserProxy
     public Response executePostRequest(String url, List<BasicHeader> headers, byte[] body, boolean followRedirects) throws Exception;
 
     public Response executeGetRequest(String url, List<BasicHeader> headers, boolean followRedirects) throws Exception;
+    
+    public default boolean canInterceptRedirection()
+    {
+        return true;
+    }
 
     public static class Response
     {

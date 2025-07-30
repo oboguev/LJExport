@@ -74,7 +74,7 @@ public class Config
     public static final int LinkDownloadSpawnThreshold = 30;
     public static final int LinkDownloadThreadsPoolSize = 50;
 
-    /* Socks server */
+    /* Socks server, e.g. via smartproxy.org */
     public static String SocksHost = null;
     public static int SocksPort = 0;
 

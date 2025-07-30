@@ -111,7 +111,9 @@ public class Config
     public static String MangledUser = null;
     public static String DreamwidthCaptchaChallenge = "c0:1751749200:25:300:thLfeiOlXxxyf97RHExK:a83d33f6cee8b3b77fe45c4ca3856b0c";
     public static String UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
-    public static String UserAgentAccept = "text/html, application/xhtml+xml, */*";
+    public static final String CurrentUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0";
+    public static final String LegacyUserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
+    public static String UserAgentAccept = LegacyUserAgent;
     public static String UserAgentAccept_Json = "application/json;q=1.0, text/plain;q=0.5";
     public static final String UserAgentAcceptEncoding = "gzip, deflate";
     public static final BrowserVersion HtmlUnitBrowserVersion = BrowserVersion.FIREFOX_38;
@@ -125,6 +127,8 @@ public class Config
     public static boolean RandomizeLoadOrder = true;
     public static final int StableIntevral = 3000;
     public static boolean ScrapingArchiveOrg = false;
+    
+
 
     public static boolean UseFiddler = false;
     public static final String FiddlerTrustStore = null;

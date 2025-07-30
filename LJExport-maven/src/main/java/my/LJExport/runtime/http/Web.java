@@ -50,13 +50,23 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.function.IntPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import org.brotli.dec.BrotliInputStream;
+import io.airlift.compress.zstd.ZstdInputStream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -647,16 +657,19 @@ public class Web
                             ProgressHttpEntity progressEntity = new ProgressHttpEntity(entity, totalBytes);
                             entityStream = progressEntity.getContent();
                             r.binaryBody = toByteArray(entityStream);
+                            decompress(r);
                         }
                         else if (binary)
                         {
                             entityStream = entity.getContent();
                             r.binaryBody = toByteArray(entityStream);
+                            decompress(r);
                         }
                         else
                         {
                             entityStream = entity.getContent();
                             r.binaryBody = toByteArray(entityStream);
+                            decompress(r);
                             r.body = textBodyFromBinaryBody(r);
                         }
                     }
@@ -777,6 +790,7 @@ public class Web
                 {
                     entityStream = entity.getContent();
                     r.binaryBody = toByteArray(entityStream);
+                    decompress(r);
                     r.body = textBodyFromBinaryBody(r);
                 }
                 finally
@@ -800,24 +814,20 @@ public class Web
     {
         setHeader(request, headers, "User-Agent", Config.UserAgent);
         setHeader(request, headers, "Accept", Config.UserAgentAccept);
-        setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
-        setHeader(request, headers, "Cache-Control", "no-cache");
-        setHeader(request, headers, "Pragma", "no-cache");
+        // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
+        setHeader(request, headers, "Accept-Language", "en-US,en;q=0.5");
+        setHeader(request, headers, "Accept-Encoding", "gzip, deflate, br, zstd");
+        // setHeader(request, headers, "Cache-Control", "no-cache");
+        // setHeader(request, headers, "Pragma", "no-cache");
         setHeader(request, headers, "Upgrade-Insecure-Requests", "1");
         setHeader(request, headers, "Priority", "u=0, i");
         setHeader(request, headers, "Sec-GPC", "1");
-        setHeader(request, headers, "Accept-Language", "en-US,en;q=0.5");
         setHeader(request, headers, "Connection", "keep-alive");
-        setHeader(request, headers, "", "");
-        setHeader(request, headers, "", "");
-        setHeader(request, headers, "", "");
 
         setHeader(request, headers, "Sec-Fetch-Dest", "document");
         setHeader(request, headers, "Sec-Fetch-Mode", "navigate");
         setHeader(request, headers, "Sec-Fetch-Site", "none");
         setHeader(request, headers, "Sec-Fetch-User", "?1");
-        
-        // ### order of headers?????
 
         if (headers != null)
         {
@@ -830,6 +840,21 @@ public class Web
                     request.removeHeaders(key);
             }
         }
+
+        orderHeaders(request,
+                "User-Agent",
+                "Accept",
+                "Accept-Language",
+                "Accept-Encoding",
+                "Referer",
+                "Sec-GPC",
+                "Connection",
+                "Upgrade-Insecure-Requests",
+                "Sec-Fetch-Dest",
+                "Sec-Fetch-Mode",
+                "Sec-Fetch-Site",
+                "Sec-Fetch-User",
+                "Priority");
     }
 
     private static void setHeader(HttpRequestBase request, Map<String, String> headers, String key, String value) throws Exception
@@ -1418,7 +1443,8 @@ public class Web
         {
             if (Config.TrustAnySSLCertificate)
             {
-                connManager = new PoolingHttpClientConnectionManager(TrustAnySSL.trustAnySSLViaSocks(Config.SocksHost, Config.SocksPort));
+                connManager = new PoolingHttpClientConnectionManager(
+                        TrustAnySSL.trustAnySSLViaSocks(Config.SocksHost, Config.SocksPort));
             }
             else
             {
@@ -1443,5 +1469,109 @@ public class Web
         }
 
         return connManager;
+    }
+
+    /* ============================================================================== */
+
+    public static void decompress(Response r) throws Exception
+    {
+        if (r == null || r.binaryBody == null || r.binaryBody.length == 0)
+            return;
+
+        String encoding = r.getHeader("Content-Encoding");
+        if (encoding == null)
+            return;
+
+        encoding = encoding.trim().toLowerCase();
+
+        InputStream decodedStream = null;
+        switch (encoding)
+        {
+        case "br":
+            decodedStream = new BrotliInputStream(new ByteArrayInputStream(r.binaryBody));
+            break;
+
+        case "zstd":
+            decodedStream = new ZstdInputStream(new ByteArrayInputStream(r.binaryBody));
+            break;
+
+        default:
+            // gzip and deflate are already handled by Apache, so ignore them
+            // Apache HttpClient v4 auto-decompresses gzip/deflate unless configured otherwise
+            return;
+        }
+
+        try (InputStream in = decodedStream)
+        {
+            r.binaryBody = readAllBytes(in);
+        }
+
+        // Optionally clear encoding to reflect that body is now decoded
+        // You can also leave it as-is if you want to preserve raw headers
+        // r.removeHeader("Content-Encoding");
+    }
+
+    private static byte[] readAllBytes(InputStream in) throws Exception
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        byte[] buf = new byte[8192];
+        int len;
+
+        while ((len = in.read(buf)) != -1)
+            out.write(buf, 0, len);
+
+        return out.toByteArray();
+    }
+
+    /* ============================================================================== */
+
+    public static void orderHeaders(HttpRequestBase request, String... preferredOrder)
+    {
+        if (request == null || preferredOrder == null)
+            return;
+
+        // Step 1: Extract all headers from the request
+        Header[] allHeaders = request.getAllHeaders();
+        Map<String, List<Header>> headerMap = new LinkedHashMap<>();
+
+        for (Header h : allHeaders)
+        {
+            String name = h.getName();
+            headerMap.computeIfAbsent(name.toLowerCase(), k -> new ArrayList<>()).add(h);
+        }
+
+        // Step 2: Clear all headers from request
+        request.removeHeaders("*"); // doesn't remove all; do it manually
+        for (Header h : allHeaders)
+        {
+            request.removeHeader(h);
+        }
+
+        Set<String> added = new HashSet<>();
+
+        // Step 3: Re-add headers in preferred order
+        for (String name : preferredOrder)
+        {
+            List<Header> headers = headerMap.get(name.toLowerCase());
+            if (headers != null)
+            {
+                for (Header h : headers)
+                {
+                    request.addHeader(h);
+                }
+                added.add(name.toLowerCase());
+            }
+        }
+
+        // Step 4: Append any extra headers not listed in preferredOrder
+        for (Header h : allHeaders)
+        {
+            String lname = h.getName().toLowerCase();
+            if (!added.contains(lname))
+            {
+                request.addHeader(h);
+            }
+        }
     }
 }

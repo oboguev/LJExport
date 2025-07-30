@@ -5,9 +5,9 @@ import java.util.List;
 
 public interface BrowserProxy
 {
-    public Response executePostRequest(String url, List<BasicHeader> headers, byte[] body) throws Exception;
+    public Response executePostRequest(String url, List<BasicHeader> headers, byte[] body, boolean followRedirects) throws Exception;
 
-    public Response executeGetRequest(String url, List<BasicHeader> headers) throws Exception;
+    public Response executeGetRequest(String url, List<BasicHeader> headers, boolean followRedirects) throws Exception;
 
     public static class Response
     {

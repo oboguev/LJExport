@@ -27,14 +27,20 @@ class BrowserProxyNodeJs implements BrowserProxy
     }
 
     @Override
-    public BrowserProxy.Response executePostRequest(String url, List<BasicHeader> headers, byte[] body) throws Exception
+    public BrowserProxy.Response executePostRequest(String url, List<BasicHeader> headers, byte[] body, boolean followRedirects) throws Exception
     {
+        if (!followRedirects)
+            throw new Exception("BrowserProxyNodeJs does not support interception of redirects");
+        
         return sendRequest("POST", url, headers, body);
     }
 
     @Override
-    public BrowserProxy.Response executeGetRequest(String url, List<BasicHeader> headers) throws Exception
+    public BrowserProxy.Response executeGetRequest(String url, List<BasicHeader> headers, boolean followRedirects) throws Exception
     {
+        if (!followRedirects)
+            throw new Exception("BrowserProxyNodeJs does not support interception of redirects");
+        
         return sendRequest("GET", url, headers, null);
     }
 

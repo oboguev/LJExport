@@ -9,6 +9,7 @@ import org.apache.http.cookie.Cookie;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.http.HttpWireTracing;
 import my.LJExport.runtime.http.Web;
 
 public class LoginLivejournal
@@ -22,14 +23,11 @@ public class LoginLivejournal
         r = Web.get("https://www." + Config.LoginSite + "/");
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));
-        
+
         String auth_token = extractAuthToken(r.binaryBody);
 
         Util.noop();
-        
-        
-        
-        
+
         StringBuilder sb = new StringBuilder();
 
         sb.append(Web.escape("ret") + "=" + "1" + "&");
@@ -92,11 +90,20 @@ public class LoginLivejournal
     }
 
     /* ============================================================================================ */
-    
+
     public static void main(String[] args)
     {
         try
         {
+            if (Config.False)
+            {
+                Config.LoginPassword = "xxxzzz";
+                Config.LoginSite = "google.com";
+                Config.AutoconfigureSite = false;
+                Config.UseLogin = true;
+            }
+
+            HttpWireTracing.enable();
             Config.init("");
             Web.init();
             login();

@@ -1,6 +1,7 @@
 package my.LJExport.maintenance;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,8 +59,8 @@ public class MainRedownloadFailedLinks
 
     private static boolean DryRun = false;
 
-    private static boolean UseArchiveOrg = false;
-    private static boolean UseLivejournal = true;
+    private static boolean UseArchiveOrg = true;
+    private static boolean UseLivejournal = false;
 
     /* =============================================================================== */
 
@@ -676,6 +677,8 @@ public class MainRedownloadFailedLinks
                     String.format("Quitting [%s] link file %s, previosuly failed url: %s", Config.User, relativeLinkFilePath, url));
             return false;
         }
+        
+        // ###
 
         MutableObject<String> fromWhere = new MutableObject<>();
         boolean result = smartLinkRedownloader.redownload(image, url, relativeLinkFilePath, referer, fromWhere);
@@ -696,6 +699,20 @@ public class MainRedownloadFailedLinks
         return result;
     }
 
+    /* ========================================================================================== */
+    
+    private boolean allowDownload(boolean image, String url) throws Exception
+    {
+        URL xurl = new URL(url);
+        String path = xurl.getPath();
+        if (path == null)
+            return false;
+        path = path.trim();
+        if (path.length() == 0 || path.equals("/") || path.endsWith("/"))
+            return false;
+        return true;
+    }
+    
     /* ========================================================================================== */
 
     private static void throwException(String msg) throws Exception

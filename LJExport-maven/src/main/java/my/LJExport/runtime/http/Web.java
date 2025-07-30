@@ -62,16 +62,23 @@ import static java.lang.Math.min;
 public class Web
 {
     /* client for LJ page requests */
-    private static CloseableHttpClient httpClient;
+    private static CloseableHttpClient httpClientLJPages;
 
-    /* client for LJ image requests and non-LJ requests */
-    private static CloseableHttpClient httpImageClient;
+    /* client for LJ image requests */
+    private static CloseableHttpClient httpClientLJImages;
 
-    /* client for redirect requests */
-    private static CloseableHttpClient httpRedirectClient;
+    /* client for LJ non-LJ requests */
+    private static CloseableHttpClient httpClientOther;
+
+    /* client for LJ redirect requests */
+    private static CloseableHttpClient httpClientRedirectLJ;
+
+    /* client for non-LJ redirect requests */
+    private static CloseableHttpClient httpClientRedirectOther;
 
     private static CookieStore cookieStore;
-    private static PoolingHttpClientConnectionManager connManager;
+    private static PoolingHttpClientConnectionManager connManagerLJ;
+    private static PoolingHttpClientConnectionManager connManagerOther;
     private static ThreadLocal<String> lastURL;
     private static CooloffMode cooloffArchiveOrg = new CooloffMode(Config.WebArchiveOrg_Http429_Cooloff_Interval);
     private static Semaphore semaphoreArchiveOrg;
@@ -230,69 +237,15 @@ public class Web
             HttpHost proxy = new HttpHost(host, port, "http");
             routePlanner = new DefaultProxyRoutePlanner(proxy);
         }
+        
+        /* ====================================================================================== */
 
-        if (Config.TrustAnySSLCertificate)
-        {
-            connManager = new PoolingHttpClientConnectionManager(TrustAnySSL.trustAnySSLSocketFactoryRegistry());
-        }
-        else
-        {
-            connManager = new PoolingHttpClientConnectionManager();
-        }
+        connManagerLJ = buildConnManager();
+        connManagerOther = buildConnManager();
 
-        // Set max total connections
-        connManager.setMaxTotal(200);
-        // Set max connections per route (i.e., per host)
-        connManager.setDefaultMaxPerRoute(Config.MaxConnectionsPerRoute);
+        /* ====================================================================================== */
 
-        // higher (or lower) limits for some routes
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("l-userpic.livejournal.com", 80, "http")),
-                max(15, Config.MaxConnectionsPerRoute));
-
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("ic.pics.livejournal.com", 80, "http")),
-                max(10, Config.MaxConnectionsPerRoute));
-
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 80, "http")),
-                max(10, Config.MaxConnectionsPerRoute));
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 443, "https")),
-                max(10, Config.MaxConnectionsPerRoute));
-
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 80, "http")),
-                max(10, Config.MaxConnectionsPerRoute));
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 443, "https")),
-                max(10, Config.MaxConnectionsPerRoute));
-
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("avatars.dzeninfra.ru", 80, "http")),
-                max(15, Config.MaxConnectionsPerRoute));
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("avatars.dzeninfra.ru", 443, "https")),
-                max(15, Config.MaxConnectionsPerRoute));
-
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh3.googleusercontent.com", 443, "https")),
-                max(20, Config.MaxConnectionsPerRoute));
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh4.googleusercontent.com", 443, "https")),
-                max(20, Config.MaxConnectionsPerRoute));
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh5.googleusercontent.com", 443, "https")),
-                max(20, Config.MaxConnectionsPerRoute));
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh6.googleusercontent.com", 443, "https")),
-                max(20, Config.MaxConnectionsPerRoute));
-
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("web.archive.org", 443, "https")),
-                min(Config.WebArchiveOrg_ConcurrenRequests, Config.MaxConnectionsPerRoute));
-        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("web.archive.org", 80, "http")),
-                min(Config.WebArchiveOrg_ConcurrenRequests, Config.MaxConnectionsPerRoute));
-
-        connManager.setDefaultSocketConfig(SocketConfig.custom()
-                // .setTcpNoDelay(true)
-                .setSndBufSize(65536) // 64KB send buffer
-                .setRcvBufSize(65536) // 64KB receive buffer
-                .build());
-
-        ConnectionConfig connectionConfig = ConnectionConfig.custom()
-                .setBufferSize(65536) // 64KB buffer
-                .build();
-        connManager.setDefaultConnectionConfig(connectionConfig);
-
-        RequestConfig requestConfig = RequestConfig.custom()
+        RequestConfig requestConfigLJPages = RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
                 .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
                 .setSocketTimeout(Config.WebPageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
@@ -306,7 +259,16 @@ public class Web
                 .setMaxRedirects(20)
                 .build();
 
-        RequestConfig requestConfigImage = RequestConfig.custom()
+        RequestConfig requestConfigLJImages = RequestConfig.custom()
+                .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
+                .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
+                .setSocketTimeout(Config.WebImageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
+                .setConnectionRequestTimeout(0) // Time to get connection from pool (infinite)
+                .setCircularRedirectsAllowed(true)
+                .setMaxRedirects(20)
+                .build();
+        
+        RequestConfig requestConfigOther = RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.STANDARD) // or .setCookieSpec(CookieSpecs.NETSCAPE)
                 .setConnectTimeout(Config.WebConnectTimeout) // Time to establish TCP connection
                 .setSocketTimeout(Config.WebImageReadingSocketTimeout) // Time waiting for data read on the socket after connection established
@@ -325,42 +287,64 @@ public class Web
                 // .setMaxRedirects(20)
                 .build();
 
-        HttpClientBuilder hcb = HttpClients.custom()
-                .setConnectionManager(connManager)
-                .setDefaultRequestConfig(requestConfig)
+        /* ====================================================================================== */
+
+        HttpClientBuilder hcbClientLJPages = HttpClients.custom()
+                .setConnectionManager(connManagerLJ)
+                .setDefaultRequestConfig(requestConfigLJPages)
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
                 .setDefaultCookieStore(cookieStore);
 
-        HttpClientBuilder hcbImage = HttpClients.custom()
-                .setConnectionManager(connManager)
-                .setDefaultRequestConfig(requestConfigImage)
+        HttpClientBuilder hcbClientLJImages = HttpClients.custom()
+                .setConnectionManager(connManagerLJ)
+                .setDefaultRequestConfig(requestConfigLJImages)
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
                 .setDefaultCookieStore(cookieStore);
 
-        HttpClientBuilder hcbRedirect = HttpClients.custom()
-                .setConnectionManager(connManager)
+        HttpClientBuilder hcbClientOther = HttpClients.custom()
+                .setConnectionManager(connManagerOther)
+                .setDefaultRequestConfig(requestConfigOther)
+                .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setDefaultCookieStore(cookieStore);
+
+        HttpClientBuilder hcbClientRedirectLJ = HttpClients.custom()
+                .setConnectionManager(connManagerLJ)
                 .setDefaultRequestConfig(requestConfigRedirect)
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
                 .setDefaultCookieStore(cookieStore);
 
+        HttpClientBuilder hcbClientRedirectOther = HttpClients.custom()
+                .setConnectionManager(connManagerOther)
+                .setDefaultRequestConfig(requestConfigRedirect)
+                .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)) // Retry 3 times on IOException
+                .setDefaultCookieStore(cookieStore);
+
+        /* ====================================================================================== */
+
         if (routePlanner != null)
         {
-            hcb = hcb.setRoutePlanner(routePlanner);
-            hcbImage = hcbImage.setRoutePlanner(routePlanner);
-            hcbRedirect = hcbRedirect.setRoutePlanner(routePlanner);
+            hcbClientLJPages = hcbClientLJPages.setRoutePlanner(routePlanner);
+            hcbClientLJImages = hcbClientLJImages.setRoutePlanner(routePlanner);
+            hcbClientOther = hcbClientOther.setRoutePlanner(routePlanner);
+            hcbClientRedirectLJ = hcbClientRedirectLJ.setRoutePlanner(routePlanner);
+            hcbClientRedirectOther = hcbClientRedirectOther.setRoutePlanner(routePlanner);
         }
 
         if (Config.TrustAnySSLCertificate)
         {
             SSLConnectionSocketFactory sslSocketFactory = TrustAnySSL.trustAnySSLConnectionSocketFactory();
-            hcb = hcb.setSSLSocketFactory(sslSocketFactory);
-            hcbRedirect = hcbRedirect.setSSLSocketFactory(sslSocketFactory);
-            hcbImage = hcbImage.setSSLSocketFactory(sslSocketFactory);
+            hcbClientLJPages = hcbClientLJPages.setSSLSocketFactory(sslSocketFactory);
+            hcbClientLJImages = hcbClientLJImages.setSSLSocketFactory(sslSocketFactory);
+            hcbClientOther = hcbClientOther.setSSLSocketFactory(sslSocketFactory);
+            hcbClientRedirectLJ = hcbClientRedirectLJ.setSSLSocketFactory(sslSocketFactory);
+            hcbClientRedirectOther = hcbClientRedirectOther.setSSLSocketFactory(sslSocketFactory);
         }
 
-        httpClient = hcb.build();
-        httpRedirectClient = hcbRedirect.build();
-        httpImageClient = hcbImage.build();
+        httpClientLJPages = hcbClientLJPages.build();
+        httpClientLJImages = hcbClientLJImages.build();
+        httpClientOther = hcbClientOther.build();
+        httpClientRedirectLJ = hcbClientRedirectLJ.build();
+        httpClientRedirectOther = hcbClientRedirectOther.build();
     }
 
     public static void aborting()
@@ -394,35 +378,60 @@ public class Web
             lastURL.remove();
             lastURL = null;
         }
+        
+        boolean settle = false;
 
-        if (httpClient != null)
+        if (httpClientLJPages != null)
         {
-            httpClient.close();
-            httpClient = null;
+            httpClientLJPages.close();
+            httpClientLJPages = null;
+            settle = true;
+        }
+
+        if (httpClientLJImages != null)
+        {
+            httpClientLJImages.close();
+            httpClientLJImages = null;
+            settle = true;
+        }
+
+        if (httpClientOther != null)
+        {
+            httpClientOther.close();
+            httpClientOther = null;
+            settle = true;
+        }
+
+        if (httpClientRedirectLJ != null)
+        {
+            httpClientRedirectLJ.close();
+            httpClientRedirectLJ = null;
+            settle = true;
+        }
+
+        if (httpClientRedirectOther != null)
+        {
+            httpClientRedirectOther.close();
+            httpClientRedirectOther = null;
+            settle = true;
+        }
+
+        if (settle)
+        {
             // let Apache HttpClient to settle
             Thread.sleep(1500);
         }
-
-        if (httpImageClient != null)
+        
+        if (connManagerLJ != null)
         {
-            httpImageClient.close();
-            httpImageClient = null;
-            // let Apache HttpClient to settle
-            Thread.sleep(1500);
+            connManagerLJ.shutdown();
+            connManagerLJ = null;
         }
 
-        if (httpRedirectClient != null)
+        if (connManagerOther!= null)
         {
-            httpRedirectClient.close();
-            httpRedirectClient = null;
-            // let Apache HttpClient to settle
-            Thread.sleep(1500);
-        }
-
-        if (connManager != null)
-        {
-            connManager.shutdown();
-            connManager = null;
+            connManagerOther.shutdown();
+            connManagerOther = null;
         }
     }
 
@@ -514,28 +523,27 @@ public class Web
         boolean isRequest_LJPage = false;
         boolean isArchiveOrg = false;
 
-        CloseableHttpClient client = null;
+        CloseableHttpClient client = httpClientOther;
 
         if (isArchiveOrg(url))
         {
             RateLimiter.WEB_ARCHIVE_ORG.limitRate();
-            client = httpImageClient;
             isArchiveOrg = true;
         }
         else if (isLivejournalPicture(url))
         {
             RateLimiter.LJ_IMAGES.limitRate();
-            client = httpImageClient;
+            client = httpClientLJImages;
+        }
+        else if (isLivejournal(url))
+        {
+            RateLimiter.LJ_PAGES.limitRate();
+            client = httpClientLJPages;
+            isRequest_LJPage = true;
         }
         else if (shouldLimitRate(url))
         {
             RateLimiter.LJ_PAGES.limitRate();
-            client = httpClient;
-            isRequest_LJPage = true;
-        }
-        else
-        {
-            client = httpImageClient;
         }
 
         lastURL.set(url);
@@ -703,10 +711,28 @@ public class Web
     public static Response post(String url, String body) throws Exception
     {
         url = UrlUtil.encodeUrlForApacheWire(url);
+        
+        CloseableHttpClient client = httpClientOther;
 
-        if (shouldLimitRate(url))
+        if (isArchiveOrg(url))
+        {
+            RateLimiter.WEB_ARCHIVE_ORG.limitRate();
+        }
+        else if (isLivejournalPicture(url))
+        {
+            RateLimiter.LJ_IMAGES.limitRate();
+            client = httpClientLJImages;
+        }
+        else if (isLivejournal(url))
+        {
             RateLimiter.LJ_PAGES.limitRate();
-
+            client = httpClientLJPages;
+        }
+        else if (shouldLimitRate(url))
+        {
+            RateLimiter.LJ_PAGES.limitRate();
+        }
+        
         lastURL.set(url);
         Response r = new Response();
 
@@ -717,7 +743,7 @@ public class Web
 
         ActivityCounters.startedWebRequest();
         HttpClientContext context = HttpClientContext.create();
-        CloseableHttpResponse response = httpClient.execute(request, context);
+        CloseableHttpResponse response = client.execute(request, context);
 
         try
         {
@@ -848,6 +874,8 @@ public class Web
 
             headers.put("Referer", referer);
         }
+        
+        CloseableHttpClient httpClient = httpClientRedirectOther;
 
         if (isArchiveOrg(url))
         {
@@ -856,6 +884,12 @@ public class Web
         else if (isLivejournalPicture(url))
         {
             RateLimiter.LJ_IMAGES.limitRate();
+            httpClient = httpClientRedirectLJ;
+        }
+        else if (isLivejournal(url))
+        {
+            RateLimiter.LJ_PAGES.limitRate();
+            httpClient = httpClientRedirectLJ;
         }
         else if (shouldLimitRate(url))
         {
@@ -874,7 +908,7 @@ public class Web
         try
         {
             Thread.currentThread().setName(threadName + " mapping " + url);
-            CloseableHttpResponse response = httpRedirectClient.execute(request);
+            CloseableHttpResponse response = httpClient.execute(request);
 
             try
             {
@@ -1056,19 +1090,28 @@ public class Web
         return false;
     }
 
+    private static boolean isLivejournal(String url) throws Exception
+    {
+        String host = (new URL(url)).getHost().toLowerCase();
+
+        if (host.equals("livejournal.com") || host.endsWith(".livejournal.com"))
+            return true;
+        if (host.equals("livejournal.net") || host.endsWith(".livejournal.net"))
+            return true;
+        if (host.equals("olegmakarenko.ru") || host.endsWith(".olegmakarenko.ru"))
+            return true;
+        
+        return false;
+    }
+    
     private static boolean shouldLimitRate(String url) throws Exception
     {
-        String host = (new URL(url)).getHost();
-        host = host.toLowerCase();
+        String host = (new URL(url)).getHost().toLowerCase();
 
         if (host.equals(Config.Site) || host.endsWith("." + Config.Site))
             return true;
 
-        if (host.equals("livejournal.net") || host.endsWith(".livejournal.net"))
-            return true;
-        if (host.equals("livejournal.com") || host.endsWith(".livejournal.com"))
-            return true;
-        if (host.equals("olegmakarenko.ru") || host.endsWith(".olegmakarenko.ru"))
+        if (isLivejournal(url))
             return true;
         if (host.equals(Sites.RossiaOrg))
             return true;
@@ -1285,5 +1328,75 @@ public class Web
         }
 
         return null;
+    }
+
+    /* ============================================================================== */
+
+    private static PoolingHttpClientConnectionManager buildConnManager()
+    {
+        PoolingHttpClientConnectionManager connManager;
+
+        if (Config.TrustAnySSLCertificate)
+        {
+            connManager = new PoolingHttpClientConnectionManager(TrustAnySSL.trustAnySSLSocketFactoryRegistry());
+        }
+        else
+        {
+            connManager = new PoolingHttpClientConnectionManager();
+        }
+
+        // Set max total connections
+        connManager.setMaxTotal(200);
+        // Set max connections per route (i.e., per host)
+        connManager.setDefaultMaxPerRoute(Config.MaxConnectionsPerRoute);
+
+        // higher (or lower) limits for some routes
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("l-userpic.livejournal.com", 80, "http")),
+                max(15, Config.MaxConnectionsPerRoute));
+
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("ic.pics.livejournal.com", 80, "http")),
+                max(10, Config.MaxConnectionsPerRoute));
+
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 80, "http")),
+                max(10, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("pics.livejournal.com", 443, "https")),
+                max(10, Config.MaxConnectionsPerRoute));
+
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 80, "http")),
+                max(10, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("imgprx.livejournal.net", 443, "https")),
+                max(10, Config.MaxConnectionsPerRoute));
+
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("avatars.dzeninfra.ru", 80, "http")),
+                max(15, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("avatars.dzeninfra.ru", 443, "https")),
+                max(15, Config.MaxConnectionsPerRoute));
+
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh3.googleusercontent.com", 443, "https")),
+                max(20, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh4.googleusercontent.com", 443, "https")),
+                max(20, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh5.googleusercontent.com", 443, "https")),
+                max(20, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("lh6.googleusercontent.com", 443, "https")),
+                max(20, Config.MaxConnectionsPerRoute));
+
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("web.archive.org", 443, "https")),
+                min(Config.WebArchiveOrg_ConcurrenRequests, Config.MaxConnectionsPerRoute));
+        connManager.setMaxPerRoute(new HttpRoute(new HttpHost("web.archive.org", 80, "http")),
+                min(Config.WebArchiveOrg_ConcurrenRequests, Config.MaxConnectionsPerRoute));
+
+        connManager.setDefaultSocketConfig(SocketConfig.custom()
+                // .setTcpNoDelay(true)
+                .setSndBufSize(65536) // 64KB send buffer
+                .setRcvBufSize(65536) // 64KB receive buffer
+                .build());
+
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setBufferSize(65536) // 64KB buffer
+                .build();
+        connManager.setDefaultConnectionConfig(connectionConfig);
+
+        return connManager;
     }
 }

@@ -7,10 +7,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.URL;
 // import java.net.UnknownHostException;
-import java.util.Enumeration;
 import java.util.Queue;
 
-import org.apache.log4j.Level;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
@@ -21,11 +19,15 @@ import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.littleshoot.proxy.impl.ThreadPoolConfiguration;
+import org.slf4j.LoggerFactory;
 
 import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.lj.LJUtil;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
@@ -241,22 +243,17 @@ public class ProxyServer
         }
     }
 
-    private void setLogging() throws Exception
+    public void setLogging()
     {
-        // disable slf4j-log4j INFO logging (done via ProxyConnectionLogger) for
-        // org.littleshoot.proxy.impl.ProxyConnection
-        // org.littleshoot.proxy.impl.ClientToProxyConnection
-        // impl.ClientToProxyConnection
+        LoggerContext ctx = (LoggerContext) LoggerFactory.getILoggerFactory();
 
-        org.apache.log4j.Logger root = org.apache.log4j.Logger.getRootLogger();
-        root.setLevel(Level.WARN);
+        // Set global default level
+        ctx.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.WARN);
 
-        Enumeration<?> allLoggers = root.getLoggerRepository().getCurrentCategories();
-        while (allLoggers.hasMoreElements())
-        {
-            org.apache.log4j.Category category = (org.apache.log4j.Category) allLoggers.nextElement();
-            category.setLevel(Level.WARN);
-        }
+        // Explicitly adjust noisy categories
+        ctx.getLogger("org.littleshoot.proxy.impl.ProxyConnection").setLevel(Level.WARN);
+        ctx.getLogger("org.littleshoot.proxy.impl.ClientToProxyConnection").setLevel(Level.WARN);
+        ctx.getLogger("impl.ClientToProxyConnection").setLevel(Level.WARN);
     }
 
     ByteBuf newEmptyByteBuf()

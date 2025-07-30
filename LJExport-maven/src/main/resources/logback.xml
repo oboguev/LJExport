@@ -1,0 +1,35 @@
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <target>System.out</target>
+    <encoder>
+      <pattern>%d [%t] %-5p %c - %m%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT"/>
+  </root>
+
+  <!-- Specific logger overrides -->
+
+  <logger name="org.apache.http.impl.execchain.RetryExec" level="ERROR" additivity="false"/>
+  <logger name="org.apache.http.client.protocol.ResponseProcessCookies" level="ERROR" additivity="false"/>
+
+  <!-- Uncomment to enable Apache HttpClient v4 wire debugging -->
+  <!--
+  <logger name="org.apache.http" level="INFO" additivity="false"/>
+  <logger name="org.apache.http.wire" level="TRACE" additivity="false"/>
+  <logger name="org.apache.http.headers" level="TRACE" additivity="false"/>
+  <logger name="org.apache.http.impl.conn" level="TRACE" additivity="false"/>
+  -->
+
+  <!-- Uncomment to enable Apache HttpClient v5 wire debugging -->
+  <!--
+  <logger name="org.apache.hc.client5.http" level="TRACE" additivity="false"/>
+  <logger name="org.apache.hc.client5.http.wire" level="TRACE" additivity="false"/>
+  <logger name="org.apache.hc.client5.http.headers" level="TRACE" additivity="false"/>
+  <logger name="org.apache.hc.client5.http.impl" level="TRACE" additivity="false"/>
+  -->
+
+</configuration>

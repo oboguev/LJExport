@@ -683,8 +683,8 @@ public class MainRedownloadFailedLinks
         if (result)
         {
             String from = "";
-            if (fromWhere.getValue() != null)
-                from = " === from " + fromWhere.getValue();
+            if (fromWhere.get() != null)
+                from = " === from " + fromWhere.get();
             Util.out(String.format("Downloaded [%s] link file %s%s", Config.User, relativeLinkFilePath, from));
         }
         else

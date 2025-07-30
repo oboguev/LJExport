@@ -109,7 +109,7 @@ public class AwayLink
 
         if (Util.startsWith(decoded_href, prefix, wrap_prefixes_1))
         {
-            decoded_href = decoded_href.substring(prefix.getValue().length());
+            decoded_href = decoded_href.substring(prefix.get().length());
             decoded_href = fixOverencoding(decoded_href);
             decoded_href = UrlFixCP1251.fixUrlCp1251Sequences(decoded_href);
             return decoded_href;

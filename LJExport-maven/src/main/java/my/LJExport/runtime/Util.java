@@ -1648,12 +1648,12 @@ public class Util
         if (recursive)
         {
             while (startsWith(s, prefix, prefixes))
-                s = s.substring(prefix.getValue().length());
+                s = s.substring(prefix.get().length());
         }
         else
         {
             if (startsWith(s, prefix, prefixes))
-                s = s.substring(prefix.getValue().length());
+                s = s.substring(prefix.get().length());
         }
         
         return s;
@@ -1666,12 +1666,12 @@ public class Util
         if (recursive)
         {
             while (startsWithIgnoreCase(s, prefix, prefixes))
-                s = s.substring(prefix.getValue().length());
+                s = s.substring(prefix.get().length());
         }
         else
         {
             if (startsWithIgnoreCase(s, prefix, prefixes))
-                s = s.substring(prefix.getValue().length());
+                s = s.substring(prefix.get().length());
         }
         
         return s;

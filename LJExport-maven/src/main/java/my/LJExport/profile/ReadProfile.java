@@ -155,7 +155,7 @@ public class ReadProfile
     {
         if (Config.isRossiaOrg())
             return;
-        
+
         if (Config.isDreamwidthOrg())
         {
             String url = String.format("%s/icons", LJUtil.userBase());
@@ -200,7 +200,7 @@ public class ReadProfile
 
         if (Config.StandaloneSite)
             return;
-        
+
         if (Config.isDreamwidthOrg())
         {
             /* возможность есть, и при потребности может быть добавлена */
@@ -612,7 +612,7 @@ public class ReadProfile
 
                 boolean do_load = false;
 
-                if (isGuid.getValue() || !fp.exists())
+                if (isGuid.booleanValue() || !fp.exists())
                 {
                     do_load = true;
                 }
@@ -631,7 +631,7 @@ public class ReadProfile
                     // album had been loaded previosly
                     do_load = false;
                 }
-                
+
                 // ### duplicate album names (https://roineroyce.livejournal.com)
 
                 if (do_load)

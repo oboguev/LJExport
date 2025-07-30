@@ -169,7 +169,7 @@ public class PageParserDirectNewStyle extends PageParserDirectBase
         URL url = new URL("http://localhost");
         url = new URL(url, href);
 
-        List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), StandardCharsets.UTF_8.toString());
+        List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), StandardCharsets.UTF_8);
         for (NameValuePair pair : params)
         {
             if (pair.getName().equals("page"))

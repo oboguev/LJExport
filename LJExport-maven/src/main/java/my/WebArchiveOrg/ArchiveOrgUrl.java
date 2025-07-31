@@ -411,6 +411,22 @@ public class ArchiveOrgUrl
                 && s.charAt(16) == '_';
     }
 
+    public static String timestampMediaSelector(String timestamp)
+    {
+        if (timestamp == null)
+            throw new IllegalArgumentException("Timestamp is null");
+
+        // Match exactly 14 digits
+        if (timestamp.matches("^\\d{14}$"))
+            return "";
+
+        // Match 14 digits followed by two lowercase letters and underscore (e.g., id_, im_, if_)
+        if (timestamp.matches("^\\d{14}[a-z]{2}_$"))
+            return timestamp.substring(14); // return "aa_"
+
+        throw new IllegalArgumentException("Invalid timestamp format: " + timestamp);
+    }
+
     public static String getLatestCaptureUrl(String original_href)
     {
         return ArchiveOrgUrl.ArchiveOrgLatestCaptureWebRoot + original_href;
@@ -455,13 +471,37 @@ public class ArchiveOrgUrl
         String timestamp = url.substring(prefix.length(), pos);
         String suffix = url.substring(pos + 1);
 
-        if (timestamp.endsWith("if_") || timestamp.endsWith("id_") || timestamp.endsWith("im_"))
-            return url; // already direct download
-
         if (!isArchiveOrgTimestamp(timestamp))
             throw new IllegalArgumentException("Not a valid TIMESTAMP in URL: " + timestamp);
-        
-        String mediaSelector = null;
+
+        String mediaSelector = timestampMediaSelector(timestamp);
+        switch (mediaSelector)
+        {
+        case "": // no media selector
+        case "id_": // HTML document
+        case "im_": // image file
+        case "if_": // non-image binary file such as PDF
+            break;
+
+        case "js_": // JavaScript
+        case "cs_": // CSS
+        case "ico_": // Icon
+        case "mp_": // audio-video media
+        case "fa_": // favicon
+        case "in_": // interstitial or redirect
+        default:
+            return url;
+        }
+
+        if (timestamp.endsWith("if_") || timestamp.endsWith("id_") || timestamp.endsWith("im_"))
+        {
+            // ######
+            // already direct download
+            // return url;
+            timestamp = timestamp.substring(0, timestamp.length() - 3);
+        }
+
+        mediaSelector = null;
         if (isHtml)
         {
             // archived HTML files

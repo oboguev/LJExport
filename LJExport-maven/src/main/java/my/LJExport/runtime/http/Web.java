@@ -104,7 +104,7 @@ public class Web
     {
         public int code;
         public String reason;
-        public String body = new String("");
+        public String body = null;
         public byte[] binaryBody;
         /* final URL after redirects */
         public String finalUrl;
@@ -205,6 +205,17 @@ public class Web
                 return StandardCharsets.UTF_8;
             else
                 return null;
+        }
+        
+        public String getTextBody() throws Exception
+        {
+            if (body == null)
+            {
+                body = textBodyFromBinaryBody(this);
+            }
+            
+            return body; 
+            
         }
     }
 

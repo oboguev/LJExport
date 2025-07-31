@@ -86,3 +86,42 @@ app.post('/fetch', async (req, res) => {
         await page.close();
     }
 });
+
+// Get current cookies
+app.get('/cookies', async (req, res) => {
+    try {
+        const cookies = await context.cookies();
+        res.json({ cookies });
+    } catch (err) {
+        res.status(500).json({ error: err.toString() });
+    }
+});
+
+// Get user agent string
+app.get('/useragent', async (req, res) => {
+    try {
+        const page = await context.newPage();
+        const userAgent = await page.evaluate(() => navigator.userAgent);
+        await page.close();
+        res.json({ userAgent });
+    } catch (err) {
+        res.status(500).json({ error: err.toString() });
+    }
+});
+
+// Get Sec-CH-UA header value (via dummy fetch)
+app.get('/sec-ch-ua', async (req, res) => {
+    try {
+        const page = await context.newPage();
+        const [request] = await Promise.all([
+            page.waitForRequest(request => request.url().includes('example.com')),
+            page.goto('https://example.com', { waitUntil: 'domcontentloaded' })
+        ]);
+        const secChUa = request.headers()['sec-ch-ua'] || null;
+        await page.close();
+        res.json({ 'sec-ch-ua': secChUa });
+    } catch (err) {
+        res.status(500).json({ error: err.toString() });
+    }
+});
+

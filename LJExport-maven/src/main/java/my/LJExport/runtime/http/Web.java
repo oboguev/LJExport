@@ -721,6 +721,9 @@ public class Web
 
     private static String textBodyFromBinaryBody(Response r) throws Exception
     {
+        if (r.binaryBody == null)
+            return null;
+
         Charset charset = r.extractCharset(false);
 
         if (charset != null)

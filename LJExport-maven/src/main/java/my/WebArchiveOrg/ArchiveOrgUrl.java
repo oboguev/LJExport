@@ -92,41 +92,32 @@ public class ArchiveOrgUrl
      * Checks whether the given URL is a simple archive.org timestamp URL of the form:
      * https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
      * 
-     * It excludes forms like:
-     * - https://web.archive.org/web/TIMESTAMPif_/...
-     * - https://web.archive.org/web/TIMESTAMPid_/...
-     * - https://web.archive.org/web/TIMESTAMPim_/...
-     * - https://web.archive.org/web/2id_/...
-     * - any non-archive.org URLs
+     * It excludes forms like: - https://web.archive.org/web/TIMESTAMPif_/... - https://web.archive.org/web/TIMESTAMPid_/... -
+     * https://web.archive.org/web/TIMESTAMPim_/... - https://web.archive.org/web/2id_/... - any non-archive.org URLs
      *
-     * @param url the URL to check
+     * @param url
+     *            the URL to check
      * @return true if the URL is in simple TIMESTAMP form; false otherwise
      */
     /**
      * Checks whether the given URL is a simple archive.org timestamp URL of the form:
      * http[s]://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
      *
-     * It excludes forms like:
-     * - TIMESTAMPif_/
-     * - TIMESTAMPid_/
-     * - 2id_/
-     * - or any non-archive.org or malformed URLs
+     * It excludes forms like: - TIMESTAMPif_/ - TIMESTAMPid_/ - 2id_/ - or any non-archive.org or malformed URLs
      *
-     * @param url the URL to check
+     * @param url
+     *            the URL to check
      * @return true if the URL is in simple TIMESTAMP form; false otherwise
      */
     /**
      * Checks whether the given URL is a simple archive.org timestamp URL of the form:
      * http[s]://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
      *
-     * It accepts only numeric TIMESTAMP without "id_", "if_", or any suffixes.
-     * Rejects:
-     * - TIMESTAMPid_/...
-     * - TIMESTAMPif_/...
-     * - 2id_/...
-     * - Non-archive.org URLs
+     * It accepts only numeric TIMESTAMP without "id_", "if_", or any suffixes. Rejects: - TIMESTAMPid_/... - TIMESTAMPif_/... -
+     * 2id_/... - Non-archive.org URLs
      *
-     * @param url the URL to check
+     * @param url
+     *            the URL to check
      * @return true if the URL is in pure TIMESTAMP form; false otherwise
      */
     public static boolean isArchiveOrgSimpleTimestampUrl(String url)
@@ -428,18 +419,24 @@ public class ArchiveOrgUrl
     /**
      * Converts a standard archive.org URL to a direct download URL.
      *
-     * @param archiveOrgUrl Archive.org URL in format https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
-     * @param isHtml true if you want HTML without toolbar (use "id_"), false for binary/media (use "if_")
+     * @param archiveOrgUrl
+     *            Archive.org URL in format https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
+     * @param isHtml
+     *            true if you want HTML without toolbar (use "id_"), false for binary/media (use "if_")
      * @return direct download URL with "id_" or "if_" suffix inserted
-     * @throws IllegalArgumentException if URL is not in expected format
+     * @throws IllegalArgumentException
+     *             if URL is not in expected format
      */
     /**
      * Converts a standard archive.org URL to a direct download URL.
      *
-     * @param archiveOrgUrl Archive.org URL in format https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
-     * @param isHtml true if you want HTML without toolbar (use "id_"), false for binary/media (use "if_")
+     * @param archiveOrgUrl
+     *            Archive.org URL in format https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
+     * @param isHtml
+     *            true if you want HTML without toolbar (use "id_"), false for binary/media (use "if_")
      * @return direct download URL with "id_" or "if_" suffix inserted
-     * @throws IllegalArgumentException if URL is not in expected format
+     * @throws IllegalArgumentException
+     *             if URL is not in expected format
      */
     public static String toDirectDownloadUrl(String archiveOrgUrl, boolean isHtml)
     {
@@ -499,10 +496,14 @@ public class ArchiveOrgUrl
         return ldt.toInstant(ZoneOffset.UTC);
     }
 
+    // https://web.archive.org/web/TIMESTAMPim_/ORIGINAL_URL
     // https://web.archive.org/web/TIMESTAMPif_/ORIGINAL_URL
-    public static String latestMediaUrl(String originalUrl, String timestamp)
+    public static String latestMediaUrl(String originalUrl, String timestamp, boolean image)
     {
-        return String.format("%s%sif_/%s", ARCHIVE_PREFIX_HTTPS, timestamp, originalUrl);
+        if (image)
+            return String.format("%s%sim_/%s", ARCHIVE_PREFIX_HTTPS, timestamp, originalUrl);
+        else
+            return String.format("%s%sif_/%s", ARCHIVE_PREFIX_HTTPS, timestamp, originalUrl);
     }
 
     public static String decodeArchiveUrl(String archiveUrl)

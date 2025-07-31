@@ -37,7 +37,7 @@ should follow it
 ================================================
 
 - LinkDownloader should handle if_ -> im_ repeat loads
-  May want it to use SmartRedownloader
+  May want it to use SmartDownloader instead of Web
 
 - Chrome web headers, diff. versions 
 

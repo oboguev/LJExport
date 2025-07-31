@@ -23,12 +23,12 @@ import my.LJExport.runtime.url.UrlUtil;
 import my.WebArchiveOrg.ArchiveOrgQuery;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
-public class SmartLinkRedownloader
+public class SmartLinkDownloader
 {
     private final String linksDir;
     private boolean useArchiveOrg = true;
 
-    public SmartLinkRedownloader(String linksDir)
+    public SmartLinkDownloader(String linksDir)
     {
         this.linksDir = linksDir;
     }
@@ -249,7 +249,7 @@ public class SmartLinkRedownloader
             Config.mangleUser();
             Config.autoconfigureSite();
 
-            SmartLinkRedownloader self = new SmartLinkRedownloader(
+            SmartLinkDownloader self = new SmartLinkDownloader(
                     Config.DownloadRoot + File.separator + Config.User + File.separator + "links");
             String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
             boolean b = self.redownload(false, href, null, null, null);

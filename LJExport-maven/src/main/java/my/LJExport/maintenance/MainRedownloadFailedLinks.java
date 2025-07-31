@@ -660,21 +660,10 @@ public class MainRedownloadFailedLinks
         SmartLinkRedownloader smartLinkRedownloader = new SmartLinkRedownloader(linksDir);
         smartLinkRedownloader.useArchiveOrg(UseArchiveOrg);
         
-        if (image)
+        if (!LinkDownloader.shouldDownload(image, url))
         {
-            if (!LinkDownloader.shouldDownloadImage(url))
-            {
-                Util.out("Skipping " + url);
-                return false;
-            }
-        }
-        else
-        {
-            if (!LinkDownloader.shouldDownloadDocument(url))
-            {
-                Util.out("Skipping " + url);
-                return false;
-            }
+            Util.out("Skipping " + url);
+            return false;
         }
 
         if (!UseLivejournal && LJUtil.isServerUrl(url))

@@ -897,16 +897,8 @@ public class MainScrapeArchiveOrg
         if (naming_href == null)
             naming_href = original_href;
         
-        if (image)
-        {
-            if (!LinkDownloader.shouldDownloadImage(naming_href))
-                return false;
-        }
-        else
-        {
-            if (!LinkDownloader.shouldDownloadDocument(naming_href))
-                return false;
-        }
+        if (!LinkDownloader.shouldDownload(image, naming_href))
+            return false;
 
         String newref = Main.linkDownloader.download(image, naming_href, download_href, null, "");
 

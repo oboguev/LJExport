@@ -24,10 +24,10 @@ public class MiscTest
             // test_2();
             // test_firefox_coookies();
             // consolidate();
-         // test_unwrap();
+            test_unwrap();
             // test_infonarod_away();
             // test_cp1251();
-            test_encode_url();
+            //test_encode_url();
         }
         catch (Exception ex)
         {
@@ -236,14 +236,38 @@ public class MiscTest
                 "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/hphotos-xap1/v/t1.0-9/12410525_10153839742786462_7478520602963466481_n.jpg?oh=2f2e045d9cf31274d398a913d38f0595&oe=5749916A");
         test_unwrap(
                 "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fhphotos-xap1%2Fv%2Ft1.0-9%2F12410525_10153839742786462_7478520602963466481_n.jpg%3Foh%3D2f2e045d9cf31274d398a913d38f0595%26oe%3D5749916A");
+
+        test_unwrap(
+                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqbwtd_7r7egmpxw&w=540&h=282&url=https://www.ridus.ru/images/2019/5/27/923540/og_dc990e9192.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_eui2=aefmkake7madf2edmo1us0evquelvwjvx4ilvym5ryuicm7f9d8tearhr-3ygqwtfqj0iapfirf7s_jsyfl-ef85mabqjojqx1cu0_dzenzotw&_nc_hash=aqauw01xjl7ymy8i");
+        test_unwrap(
+                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqcgfyti7botlo8f&w=540&h=282&url=https://www.ridus.ru/images/2019/6/5/927990/og_fd3235d39e.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqdkzkofpohfmzyu");
+        test_unwrap(
+                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqcifmrme0v69z0u&w=540&h=282&url=https://avatars.mds.yandex.net/get-zen-pub-og/1873308/pub_5d29c5e5e854a900ac3dea1a_5d29d40464f86f00c14a99b9/fb&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqasflp9am6d5ryv");
+        test_unwrap(
+                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqd-wqrcppoyr4jw&w=540&h=282&url=https://www.ridus.ru/images/2020/6/3/1103329/og_9191e16d89.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqadk6f16lqmi1wf");
+        test_unwrap(
+                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqdr2akmfescxvc4&w=540&h=282&url=https://warhead.su/system/og/24450.fb.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqbd5m_ba02i3sfh");
+        test_unwrap(
+                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqdv8n0xf8hurgci&w=540&h=282&url=https://www.ridus.ru/images/2020/4/7/1077242/og_ff60ff6b59.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqbiobfqck4juq2f");
+        test_unwrap(
+                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?w=476&h=249&url=https://storia-prod-be.akamaized.net/storia-cdn-ie-prod-001/0d110f4f7f8ac001-0d110f4f7f8ac002.jpeg/tn/1200x628&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&sx=0&sy=0&sw=1200&sh=628&_nc_hash=aqczdrpuvtgpipn3");
+        test_unwrap(
+                "https://external-mxp1-1.xx.fbcdn.net/safe_image.php?d=aqbfvle8_rkahwoe&w=476&h=249&url=http://prod-upp-image-read.ft.com/25eeafac-bd94-11e6-8b45-b8b81dd5d080&cfs=1&upscale=1&sx=0&sy=27&sw=2048&sh=1071&hash=aqdhcyv1ncld0brz");
+
+        test_unwrap(
+                "https://docs.google.com/viewer?url=http://voprosik.net/wp-content/uploads/2013/06/%d0%a1%d0%a8%d0%90-%d0%b8%d0%b7%d0%bd%d0%b0%d1%81%d0%b8%d0%bb%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f-%d0%bf%d0%be%d0%b4%d1%80%d0%be%d1%81%d1%82%d0%ba%d0%be%d0%b2-%d0%b4%d0%be%d0%ba%d0%bb%d0%b0%d0%b4.pdf&docid=058d8c44d39b9d2fd4b751c90e10a466&a=bi&pagenumber=1&w=524");
+
+        test_unwrap(
+                "https://col128.mail.live.com/handlers/imageproxy.mvc?bicild=&canary=t3syuddqxht1aqfpinhrpnreb/z/ouf+j2lchmtldn8=0&url=http://l-userpic.livejournal.com/58839190/2516266");
     }
 
     @SuppressWarnings("unused")
     private static void test_unwrap(String s) throws Exception
     {
         test_unwrap(false, s);
-        
+
     }
+
     private static void test_unwrap(boolean unescape, String s) throws Exception
     {
         Util.out("   " + s);
@@ -326,8 +350,10 @@ public class MiscTest
     @SuppressWarnings("unused")
     private static void test_encode_url() throws Exception
     {
-        test_encode_url("https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPG");
-        test_encode_url("https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPGяяя-ййй");
+        test_encode_url(
+                "https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPG");
+        test_encode_url(
+                "https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPGяяя-ййй");
     }
 
     private static void test_encode_url(String s) throws Exception

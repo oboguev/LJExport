@@ -153,6 +153,20 @@ public class AwayLink
             return xurl;
         }
 
+        xurl = urnwrapGoogleDocsViewer(decoded_href);
+        if (!xurl.equals(decoded_href))
+        {
+            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
+            return xurl;
+        }
+
+        xurl = urnwrapLiveComImageproxy(decoded_href);
+        if (!xurl.equals(decoded_href))
+        {
+            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
+            return xurl;
+        }
+
         return decoded_href;
     }
 
@@ -253,7 +267,7 @@ public class AwayLink
 
         return unwrapQueryParameterRedirect(url, "url");
     }
-    
+
     private static String unwrapQueryParameterRedirect(String url, String qpname)
     {
         String redir;
@@ -274,8 +288,8 @@ public class AwayLink
 
         return url;
     }
-    
-    private static boolean lc_contains_all(String url, String ... matches)
+
+    private static boolean lc_contains_all(String url, String... matches)
     {
         String lc = url.toLowerCase();
         for (String s : matches)
@@ -283,7 +297,7 @@ public class AwayLink
             if (!lc.contains(s))
                 return false;
         }
-        
+
         return true;
     }
 
@@ -299,7 +313,7 @@ public class AwayLink
 
         if (Util.startsWith(url, null, prefix))
             match = true;
-        
+
         if (!match)
         {
             URL xurl = new URL(url);
@@ -308,13 +322,54 @@ public class AwayLink
             if (host == null || path == null)
                 return url;
             host = host.toLowerCase();
-            if (host.startsWith("external") && host.endsWith(".xx.fbcdn.net") && path.equals("safe_image.php"))
+
+            if (host.startsWith("external") && host.endsWith(".xx.fbcdn.net") && path.equals("/safe_image.php"))
                 match = true;
         }
 
-        if (!match)
+        if (match)
+            return unwrapQueryParameterRedirect(url, "url");
+        else
+            return url;
+    }
+
+    /* =================================================================== */
+
+    public static String urnwrapGoogleDocsViewer(String url) throws Exception
+    {
+        if (!lc_contains_all(url, "docs.google.com/viewer"))
             return url;
 
-        return unwrapQueryParameterRedirect(url, "url");
+        URL xurl = new URL(url);
+        String host = xurl.getHost();
+        String path = xurl.getPath();
+        if (host == null || path == null)
+            return url;
+        host = host.toLowerCase();
+
+        if (host.equals("docs.google.com") && path.equals("/viewer"))
+            return unwrapQueryParameterRedirect(url, "url");
+        else
+            return url;
+    }
+
+    /* =================================================================== */
+
+    public static String urnwrapLiveComImageproxy(String url) throws Exception
+    {
+        if (!lc_contains_all(url, ".live.com/handlers/imageproxy.mvc?"))
+            return url;
+
+        URL xurl = new URL(url);
+        String host = xurl.getHost();
+        String path = xurl.getPath();
+        if (host == null || path == null)
+            return url;
+        host = host.toLowerCase();
+
+        if (host.endsWith(".live.com") && path.equals("/handlers/imageproxy.mvc"))
+            return unwrapQueryParameterRedirect(url, "url");
+        else
+            return url;
     }
 }

@@ -210,6 +210,8 @@ public class FileTypeDetector
         canonicalExtensionMap.put("htm", "html");
         canonicalExtensionMap.put("xhtml", "html");
         canonicalExtensionMap.put("shtml", "html");
+        canonicalExtensionMap.put("xhtm", "html");
+        canonicalExtensionMap.put("shtm", "html");
 
         // archives
         canonicalExtensionMap.put("tgz", "gz");
@@ -275,6 +277,26 @@ public class FileTypeDetector
         case "tif":
         case "tiff":
         case "webp":
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
+    public static boolean isHtmlExtension(String ext)
+    {
+        if (ext == null)
+            return false;
+
+        switch (ext.toLowerCase())
+        {
+        case "html":
+        case "htm":
+        case "xhtml":
+        case "shtml":
+        case "xhtm":
+        case "shtm":
             return true;
 
         default:

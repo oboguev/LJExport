@@ -53,7 +53,8 @@ public class SmartLinkRedownloader
 
     /* ================================================================================================== */
 
-    public Web.Response smartDownload(boolean image, String href, String referer, boolean allowAway, MutableObject<String> fromWhere)
+    public Web.Response smartDownload(boolean image, String href, String referer, boolean allowAway,
+            MutableObject<String> fromWhere)
             throws Exception
     {
         href = Util.stripAnchor(href);
@@ -77,10 +78,10 @@ public class SmartLinkRedownloader
                     return null;
             }
         }
-        
+
         if (fromWhere != null)
             fromWhere.setValue(null);
-        
+
         /*
          * Load live online copy
          */
@@ -136,16 +137,40 @@ public class SmartLinkRedownloader
     private static Web.Response load_good(boolean image, String href, String referer) throws Exception
     {
         Web.Response r = LinkRedownloader.redownload(image, href, referer);
-        if (r != null && isGoodResponse(image, href, r))
-            return r;
-        else
+
+        if (r == null)
             return null;
+        
+        ResponseAnalysis an = isGoodResponse(image, href, r); 
+        if (an.isGood)
+            return r;
+        
+        if (!FileTypeDetector.isHtmlExtension(an.serverExt))
+            return null;
+        
+        /*
+         * archive.org snapshot for image URLs lead to if_ pages, 
+         * which are HTML pahes with one IMG tag to archive.org im_ resource
+         * 
+         * For example, snapshot may contain a link to 
+         *     https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG
+         * which is an HTML file with IMG.SRC link to    
+         *     https://web.archive.org/web/20231201081812im_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600/CheKa.JPG
+
+         * We should follow it.
+         * The same can also happen in other situation when a link is provided to HTML page that links to a single IMG.
+         */
+        
+
+        // #### if html with one img src link
+
+        return null;
     }
 
-    private static boolean isGoodResponse(boolean image, String href, Web.Response r) throws Exception
+    private static ResponseAnalysis isGoodResponse(boolean image, String href, Web.Response r) throws Exception
     {
         if (r.code != 200)
-            return false;
+            return new ResponseAnalysis(false, null);
 
         if (ArchiveOrgUrl.isArchiveOrgUrl(href))
             href = ArchiveOrgUrl.extractArchivedUrlPart(href);
@@ -166,21 +191,33 @@ public class SmartLinkRedownloader
             serverExt = headerExt;
 
         if (serverExt != null && urlPathExt != null && FileTypeDetector.isEquivalentExtensions(urlPathExt, serverExt))
-            return true;
+            return new ResponseAnalysis(true, serverExt);
 
         Decision decision = ServerContent.acceptContent(href, serverExt, urlPathExt, new ContentProvider(r.binaryBody), r);
         if (decision.isReject())
-            return false;
+            return new ResponseAnalysis(false, serverExt);
         if (decision.isAccept())
-            return true;
+            return new ResponseAnalysis(true, serverExt);
 
         if (image || FileTypeDetector.isImageExtension(urlPathExt))
-            return FileTypeDetector.isImageExtension(contentExt);
+            return new ResponseAnalysis(FileTypeDetector.isImageExtension(contentExt), serverExt);
 
         if (urlPathExt == null || FileTypeDetector.isServletExtension(urlPathExt))
-            return true;
+            return new ResponseAnalysis(true, serverExt);
 
-        return false;
+        return new ResponseAnalysis(false, serverExt);
+    }
+
+    private static class ResponseAnalysis
+    {
+        public final boolean isGood;
+        public final String serverExt;
+
+        public ResponseAnalysis(boolean isGood, String serverExt)
+        {
+            this.isGood = isGood;
+            this.serverExt = serverExt;
+        }
     }
 
     /* =============================================================================================== */

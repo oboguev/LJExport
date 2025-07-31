@@ -679,12 +679,6 @@ public class MainRedownloadFailedLinks
             return false;
         }
 
-        if (!allowDownload(image, url))
-        {
-            Util.out("Skipping " + url);
-            return false;
-        }
-
         MutableObject<String> fromWhere = new MutableObject<>();
         boolean result = smartLinkRedownloader.redownload(image, url, relativeLinkFilePath, referer, fromWhere);
 
@@ -702,56 +696,6 @@ public class MainRedownloadFailedLinks
         }
 
         return result;
-    }
-
-    /* ========================================================================================== */
-
-    private boolean allowDownload(boolean image, String url) throws Exception
-    {
-        URL xurl = new URL(url);
-        
-        String host = xurl.getHost();
-        if (host == null)
-            return false;
-        host = host.toLowerCase();
-        if (host.equals("imgprx.livejournal.net"))
-            return false;
-        
-        String path = xurl.getPath();
-        if (path == null)
-            return false;
-        path = path.trim();
-        
-        if (path.length() == 0 || path.equals("/") || path.endsWith("/"))
-            return false;
-
-        String ext = LinkFilepath.getMediaFileExtension(path);
-        if (ext == null || ext.length() == 0)
-            return false;
-
-        if (image)
-        {
-            switch (ext.toLowerCase())
-            {
-            case "png":
-            case "webp":
-            case "gif":
-            case "jpg":
-            case "jpeg":
-                return true;
-            }
-        }
-        else
-        {
-            switch (ext.toLowerCase())
-            {
-            case "txt":
-            case "pdf":
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /* ========================================================================================== */

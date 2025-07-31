@@ -28,6 +28,7 @@ import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.MiscUrls;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.links.ShouldDownload;
 import my.LJExport.runtime.links.util.InferOriginalUrl;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
@@ -141,12 +142,12 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 {
                     String url = fli.urls.get(0);
                     
-                    if (fli.image && LinkDownloader.shouldDownloadImage(url))
+                    if (fli.image && ShouldDownload.shouldDownloadImage(url))
                     {
                         url = "image:" + url;
                         list.add(new KVEntry(url, fli.relpath));
                     }
-                    else if (!fli.image && LinkDownloader.shouldDownloadDocument(url))
+                    else if (!fli.image && ShouldDownload.shouldDownloadDocument(url))
                     {
                         url = "document:" + url;
                         list.add(new KVEntry(url, fli.relpath));

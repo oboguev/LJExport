@@ -31,7 +31,7 @@ import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
-import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.links.ShouldDownload;
 import my.LJExport.runtime.links.SmartLinkRedownloader;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.lj.LJUtil;
@@ -660,7 +660,7 @@ public class MainRedownloadFailedLinks
         SmartLinkRedownloader smartLinkRedownloader = new SmartLinkRedownloader(linksDir);
         smartLinkRedownloader.useArchiveOrg(UseArchiveOrg);
         
-        if (!LinkDownloader.shouldDownload(image, url))
+        if (!ShouldDownload.shouldDownload(image, url))
         {
             Util.out("Skipping " + url);
             return false;

@@ -17,6 +17,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.links.ShouldDownload;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.url.UrlUtil;
 
@@ -732,7 +733,7 @@ public abstract class PageParser
             String href = JSOUP.getAttribute(n, attr);
             href = UrlUtil.decodeHtmlAttrLink(href);
 
-            if (LinkDownloader.shouldDownload(tag.equalsIgnoreCase("img"), href))
+            if (ShouldDownload.shouldDownload(tag.equalsIgnoreCase("img"), href))
             {
                 String referer = LJUtil.recordPageURL(rurl);
                 boolean image = tag.equalsIgnoreCase("img");

@@ -26,18 +26,12 @@ if_ responds to image with HTML page
 with one IMG link
 
 IF_ url from snapshot (or built manually):
-view-source:https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG
+https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG
 
 IMG.SRC
 https://web.archive.org/web/20231201081812im_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600/CheKa.JPG
 
 should follow it
-
-................
-
-see the use of:
-
-toDirectDownloadUrl(      
 
 ================================================
 

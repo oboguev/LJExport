@@ -206,13 +206,13 @@ public class Web
             else
                 return null;
         }
-        
+
         public String textBody() throws Exception
         {
             if (body == null)
                 body = textBodyFromBinaryBody(this);
-            
-            return body; 
+
+            return body;
         }
     }
 
@@ -222,6 +222,7 @@ public class Web
             TrustAnySSL.trustAnySSL();
 
         DefaultProxyRoutePlanner routePlanner = null;
+        DefaultProxyRoutePlanner routePlannerLivejournal = null;
 
         cookieStore = new BasicCookieStore();
         lastURL = new ThreadLocal<String>();
@@ -259,6 +260,19 @@ public class Web
             HttpHost proxy = new HttpHost(host, port, "http");
             routePlanner = new DefaultProxyRoutePlanner(proxy);
         }
+
+        String ljproxy = System.getenv("LJEXPORT_LJPROXY");
+        if (ljproxy != null)
+            ljproxy = ljproxy.trim();
+        if (ljproxy != null && ljproxy.length() != 0)
+        {
+            URL url = new URL(ljproxy);
+            HttpHost proxy = new HttpHost(url.getHost(), url.getPort(), "http");
+            routePlannerLivejournal = new DefaultProxyRoutePlanner(proxy);
+        }
+
+        if (routePlannerLivejournal == null && routePlanner != null)
+            routePlannerLivejournal = routePlanner;
 
         /* ====================================================================================== */
 
@@ -350,11 +364,15 @@ public class Web
 
         if (routePlanner != null)
         {
-            hcbClientLJPages = hcbClientLJPages.setRoutePlanner(routePlanner);
-            hcbClientLJImages = hcbClientLJImages.setRoutePlanner(routePlanner);
             hcbClientOther = hcbClientOther.setRoutePlanner(routePlanner);
-            hcbClientRedirectLJ = hcbClientRedirectLJ.setRoutePlanner(routePlanner);
             hcbClientRedirectOther = hcbClientRedirectOther.setRoutePlanner(routePlanner);
+        }
+
+        if (routePlannerLivejournal != null)
+        {
+            hcbClientLJPages = hcbClientLJPages.setRoutePlanner(routePlannerLivejournal);
+            hcbClientLJImages = hcbClientLJImages.setRoutePlanner(routePlannerLivejournal);
+            hcbClientRedirectLJ = hcbClientRedirectLJ.setRoutePlanner(routePlannerLivejournal);
         }
 
         if (Config.TrustAnySSLCertificate)
@@ -717,7 +735,8 @@ public class Web
     /**
      * Decodes a byte array that may begin with the UTF-8 BOM (EF BB BF).
      *
-     * @param bytes the data, possibly starting with a BOM
+     * @param bytes
+     *            the data, possibly starting with a BOM
      * @return the decoded {@link String}
      */
     private static String decodeUtf8Sig(byte[] bytes)

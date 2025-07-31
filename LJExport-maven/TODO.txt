@@ -14,23 +14,8 @@
 
 ================================================
 
-- archive.org: download im_
-
-if_ responds to image with HTML page
-with one IMG link
-
-IF_ url from snapshot (or built manually):
-https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG
-
-IMG.SRC
-https://web.archive.org/web/20231201081812im_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600/CheKa.JPG
-
-should follow it
-
-================================================
-
-- LinkDownloader should handle if_ -> im_ repeat loads
-  May want it to use SmartDownloader instead of Web
+- LinkDownloader should handle if_ -> im_ repeat loads (HTML -> Image)
+  May want make it use SmartDownloader instead of Web
 
 - Chrome web headers (instead of Firefox), diff. Chrome versions (Win7/10) 
 

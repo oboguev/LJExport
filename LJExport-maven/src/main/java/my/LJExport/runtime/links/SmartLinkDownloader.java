@@ -2,6 +2,7 @@ package my.LJExport.runtime.links;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -38,7 +39,8 @@ public class SmartLinkDownloader
         this.useArchiveOrg = useArchiveOrg;
     }
 
-    public boolean redownloadToFile(boolean image, String href, String unixRelFilePath, String referer, MutableObject<String> fromWhere)
+    public boolean redownloadToFile(boolean image, String href, String unixRelFilePath, String referer,
+            MutableObject<String> fromWhere)
             throws Exception
     {
         Web.Response r = smartDownload(image, href, referer, true, fromWhere);
@@ -167,13 +169,14 @@ public class SmartLinkDownloader
         PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
         parser.parseHtml(r.textBody());
         List<Node> vn = JSOUP.findElements(parser.pageRoot, "img");
+        vn = eliminateStaticArchiveOrgImages(vn);
         if (vn.size() != 1)
             return null;
         String src = JSOUP.getAttribute(vn.get(0), "src");
         src = UrlUtil.decodeHtmlAttrLink(src);
         if (src == null)
             return null;
-        
+
         r = LinkRedownloader.redownload(image, src, referer);
         if (r == null)
             return null;
@@ -238,6 +241,30 @@ public class SmartLinkDownloader
         }
     }
 
+    private static List<Node> eliminateStaticArchiveOrgImages(List<Node> vn) throws Exception
+    {
+        List<Node> list = new ArrayList<>();
+
+        for (Node n : vn)
+        {
+            String src = JSOUP.getAttribute(vn.get(0), "src");
+            src = UrlUtil.decodeHtmlAttrLink(src);
+
+            if (src == null || Util.startsWith(src.trim().toLowerCase(), null,
+                    "https://web-static.archive.org/",
+                    "http://web-static.archive.org/",
+                    "https://archiveteam.org/",
+                    "http://archiveteam.org/"))
+            {
+                continue;
+            }
+
+            list.add(n);
+        }
+
+        return list;
+    }
+
     /* =============================================================================================== */
 
     public static void main(String[] args)
@@ -251,7 +278,9 @@ public class SmartLinkDownloader
 
             SmartLinkDownloader self = new SmartLinkDownloader(
                     Config.DownloadRoot + File.separator + Config.User + File.separator + "links");
-            String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
+            // String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
+            // String href = "https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";
+            String href = "https://web.archive.org/web/20231201081812/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";
             boolean b = self.redownloadToFile(false, href, null, null, null);
             Util.unused(b);
         }

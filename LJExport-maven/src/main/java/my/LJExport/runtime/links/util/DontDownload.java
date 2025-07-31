@@ -15,9 +15,10 @@ public class DontDownload
             if (dontDownload == null)
                 dontDownload = Util.read_set("dont-download.txt");
         }
+        
+        String np = Util.stripProtocol(href);
 
-        String flip = Util.flipProtocol(href);
-        if (dontDownload.contains(href) || dontDownload.contains(flip))
+        if (dontDownload.contains(np))
             return true;
 
         for (String dont : dontDownload)
@@ -25,7 +26,7 @@ public class DontDownload
             if (dont.endsWith("/*") || dont.endsWith("?*"))
             {
                 dont = Util.stripTail(dont, "*");
-                if (href.startsWith(dont) || flip.startsWith(dont))
+                if (np.startsWith(dont))
                     return true;
             }
         }

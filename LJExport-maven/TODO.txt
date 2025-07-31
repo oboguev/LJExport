@@ -16,6 +16,7 @@
       - concurrency
       - get coookies
       - get useragent string
+      - get Sec-Ch-Ua header
 
 - make MainDownloadLinks with option to download from the archive
 

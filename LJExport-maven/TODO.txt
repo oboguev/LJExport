@@ -1,11 +1,3 @@
-- browser-proxy-nodejs:
-      - use separate user config dir
-      - load/save cookies
-      - disable JavaScript execution in the browser
-      - get coookies
-      - get useragent string
-      - get Sec-Ch-Ua header
-      
 - CDP proxy
       - GET
       - POST
@@ -40,6 +32,6 @@ should follow it
 - LinkDownloader should handle if_ -> im_ repeat loads
   May want it to use SmartDownloader instead of Web
 
-- Chrome web headers, diff. versions 
+- Chrome web headers (instead of Firefox), diff. Chrome versions (Win7/10) 
 
 - unresolved FailedLinks.txt -> revert a.href and img.src to the link

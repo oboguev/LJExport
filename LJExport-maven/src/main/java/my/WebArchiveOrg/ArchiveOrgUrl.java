@@ -423,23 +423,15 @@ public class ArchiveOrgUrl
      *            Archive.org URL in format https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
      * @param isHtml
      *            true if you want HTML without toolbar (use "id_"), false for binary/media (use "if_")
-     * @return direct download URL with "id_" or "if_" suffix inserted
+     * @return direct download URL with "id_" or "if_" or "im_" suffix inserted
      * @throws IllegalArgumentException
      *             if URL is not in expected format
      */
-    /**
-     * Converts a standard archive.org URL to a direct download URL.
-     *
-     * @param archiveOrgUrl
-     *            Archive.org URL in format https://web.archive.org/web/TIMESTAMP/ORIGINAL_URL
-     * @param isHtml
-     *            true if you want HTML without toolbar (use "id_"), false for binary/media (use "if_")
-     * @return direct download URL with "id_" or "if_" suffix inserted
-     * @throws IllegalArgumentException
-     *             if URL is not in expected format
-     */
-    public static String toDirectDownloadUrl(String archiveOrgUrl, boolean isHtml)
+    public static String toDirectDownloadUrl(String archiveOrgUrl, boolean isHtml, boolean image)
     {
+        if (isHtml && image)
+            throw new IllegalArgumentException("Conflicting flags");
+
         if (archiveOrgUrl == null)
             throw new IllegalArgumentException("Input URL is null");
 
@@ -468,33 +460,50 @@ public class ArchiveOrgUrl
 
         if (!isArchiveOrgTimestamp(timestamp))
             throw new IllegalArgumentException("Not a valid TIMESTAMP in URL: " + timestamp);
+        
+        String mediaSelector = null;
+        if (isHtml)
+        {
+            // archived HTML files
+            mediaSelector = "id_";
+        }
+        else if (image)
+        {
+            // archived images
+            mediaSelector = "im_";
+        }
+        else
+        {
+            // archived non-image media such as PDF files
+            mediaSelector = "if_";
+        }
 
-        return prefix + timestamp + (isHtml ? "id_/" : "if_/") + suffix;
+        return prefix + timestamp + mediaSelector + "/" + suffix;
     }
 
     public static String directDownloadUrl(String originalUrl, String timestamp, boolean isHtml, boolean image)
     {
         if (isHtml && image)
             throw new IllegalArgumentException("Conflicting flags");
-        
-        String suffix = null;
+
+        String mediaSelector = null;
         if (isHtml)
         {
             // archived HTML files
-            suffix = "id_";
+            mediaSelector = "id_";
         }
         else if (image)
         {
             // archived images
-            suffix = "im_";
+            mediaSelector = "im_";
         }
         else
         {
             // archived non-image media such as PDF files
-            suffix = "if_";
+            mediaSelector = "if_";
         }
-        
-        return ARCHIVE_PREFIX_HTTPS + String.format("%s%s/%s", timestamp, suffix, originalUrl);
+
+        return ARCHIVE_PREFIX_HTTPS + String.format("%s%s/%s", timestamp, mediaSelector, originalUrl);
     }
 
     private static final DateTimeFormatter ARCHIVE_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
@@ -590,7 +599,7 @@ public class ArchiveOrgUrl
 
     private static void printDirectDownloadUrl(String in, boolean isHtml)
     {
-        String out = toDirectDownloadUrl(in, false);
+        String out = toDirectDownloadUrl(in, false, false);
         Util.out("");
         Util.out("isHtml = " + isHtml);
         Util.out(in);

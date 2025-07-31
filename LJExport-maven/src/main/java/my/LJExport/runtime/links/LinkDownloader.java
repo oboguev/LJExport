@@ -154,7 +154,7 @@ public class LinkDownloader
             download_href = map_washpost_imr(download_href);
 
             if (ArchiveOrgUrl.isArchiveOrgSimpleTimestampUrl(download_href))
-                download_href = ArchiveOrgUrl.toDirectDownloadUrl(download_href, false);
+                download_href = ArchiveOrgUrl.toDirectDownloadUrl(download_href, false, image);
 
             name_href_noanchor = Util.stripAnchor(name_href);
             download_href_noanchor = Util.stripAnchor(download_href);

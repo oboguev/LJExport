@@ -128,8 +128,8 @@ public class Config
     public static boolean RandomizeLoadOrder = true;
     public static final int StableIntevral = 3000;
     public static boolean ScrapingArchiveOrg = false;
+    public static boolean NoLiveJournalAccess = true;
     
-
 
     public static boolean UseFiddler = false;
     public static final String FiddlerTrustStore = null;

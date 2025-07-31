@@ -211,6 +211,9 @@ public class Web
         {
             if (body == null)
                 body = textBodyFromBinaryBody(this);
+            
+            if (body == null)
+                return "";
 
             return body;
         }
@@ -261,6 +264,7 @@ public class Web
             routePlanner = new DefaultProxyRoutePlanner(proxy);
         }
 
+        // e.g. http://localhost:8888
         String ljproxy = System.getenv("LJEXPORT_LJPROXY");
         if (ljproxy != null)
             ljproxy = ljproxy.trim();
@@ -594,6 +598,12 @@ public class Web
         lastURL.set(url);
         Response r = new Response();
 
+        if (Config.NoLiveJournalAccess && (client == httpClientLJPages || client == httpClientLJImages))
+        {
+            r.code = 503;
+            return r;
+        }
+
         HttpGet request = new HttpGet(url);
         setCommon(request, headers);
         HttpClientContext context = HttpClientContext.create();
@@ -787,6 +797,12 @@ public class Web
 
         lastURL.set(url);
         Response r = new Response();
+        
+        if (Config.NoLiveJournalAccess && (client == httpClientLJPages || client == httpClientLJImages))
+        {
+            r.code = 503;
+            return r;
+        }
 
         HttpPost request = new HttpPost(url);
         setCommon(request, null);
@@ -971,6 +987,14 @@ public class Web
         }
 
         lastURL.set(url);
+
+        if (Config.NoLiveJournalAccess && httpClient == httpClientRedirectLJ)
+        {
+            Exception ex =  new URISyntaxException(url, "No LiveJournal access");
+            ex =  new IllegalArgumentException(ex.getLocalizedMessage(), ex);
+            throw ex;
+            // return null;
+        }
 
         HttpGet request = new HttpGet(url);
         setCommon(request, headers);

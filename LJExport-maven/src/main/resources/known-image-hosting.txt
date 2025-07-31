@@ -1,0 +1,27 @@
+#
+# URLs at these sites are presumed to likely be images regarding of path extension.
+#
+# Both HTTP and HTTPS protocols are matched.
+# Starlet-dot at the start (*.) matches initial host name part.
+# Starlet at the end matches any remainder. 
+# NNNNNNNN matches numeric sequence. 
+#
+
+pics.livejournal.com/*
+ic.pics.livejournal.com/*
+*.pics.livejournal.com/*
+imgprx.livejounal.net/*
+l-userpic.livejournal.com/*
+
+dlib.rsl.ru/viewer/pdf?*
+
+*.fastpic.ru/*
+foto.rambler.ru/*
+fotki.yandex.ru/*
+prod-upp-image-read.ft.com/*
+images.crafta.ua/*
+gold.dn.ua/files/image/*
+webfile.ru/content/*
+static.videocore.tv/uploads/*
+moskprf.ru/images/*
+in1.bestpersons.ru/service/infoimg/*

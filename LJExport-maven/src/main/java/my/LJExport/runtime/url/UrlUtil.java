@@ -330,7 +330,7 @@ public class UrlUtil
 
         if (!safe)
             return URLEncoder.encode(segment, StandardCharsets.UTF_8).replace("+", "%20");
-        
+
         /*
          * "safe" encoding:
          */
@@ -378,8 +378,7 @@ public class UrlUtil
     }
 
     /**
-     * Unreserved characters as per RFC 3986 section 2.3
-     * ALPHA / DIGIT / "-" / "." / "_" / "~"
+     * Unreserved characters as per RFC 3986 section 2.3 ALPHA / DIGIT / "-" / "." / "_" / "~"
      */
     private static boolean isUnreserved(char ch)
     {
@@ -409,14 +408,15 @@ public class UrlUtil
      * Normalizes the scheme, host, and port part of a URL using String and Pattern operations.
      * 
      * <ul>
-     *   <li>Lowercases the scheme (e.g. "HTTPS" → "https")</li>
-     *   <li>Lowercases the host (e.g. "Example.COM" → "example.com")</li>
-     *   <li>Strips default ports (:80 for HTTP, :443 for HTTPS)</li>
-     *   <li>Leaves path, query, and fragment untouched</li>
-     *   <li>Does not perform any encoding or decoding</li>
+     * <li>Lowercases the scheme (e.g. "HTTPS" → "https")</li>
+     * <li>Lowercases the host (e.g. "Example.COM" → "example.com")</li>
+     * <li>Strips default ports (:80 for HTTP, :443 for HTTPS)</li>
+     * <li>Leaves path, query, and fragment untouched</li>
+     * <li>Does not perform any encoding or decoding</li>
      * </ul>
      *
      * <b>Example:</b>
+     * 
      * <pre>{@code
      * String input = "HTTPS://Example.COM:443/Путь/Ресурс?q=значение#anchor";
      * String normalized = normalizeSchemeHostPort(input);
@@ -424,7 +424,8 @@ public class UrlUtil
      * // Output: https://example.com/Путь/Ресурс?q=значение#anchor
      * }</pre>
      *
-     * @param url the input URL string
+     * @param url
+     *            the input URL string
      * @return the normalized URL with lowercase scheme/host and default port removed
      */
     public static String normalizeSchemeHostPort(String url)
@@ -485,7 +486,7 @@ public class UrlUtil
         else
             return null;
     }
-    
+
     /* ================================================================================================== */
 
     public static String extractQueryParameter(String url, String parameterName) throws Exception
@@ -558,13 +559,14 @@ public class UrlUtil
      * <p>
      * Specifically:
      * <ul>
-     *   <li>Removes port 80 from HTTP URLs (e.g., {@code http://example.com:80/path} → {@code http://example.com/path})</li>
-     *   <li>Removes port 443 from HTTPS URLs (e.g., {@code https://example.com:443/path} → {@code https://example.com/path})</li>
-     *   <li>The comparison is case-insensitive (e.g., {@code HTTP://}, {@code Https://} are supported)</li>
-     *   <li>Returns the original URL unchanged if no default port is found or the URL doesn't match the expected pattern</li>
+     * <li>Removes port 80 from HTTP URLs (e.g., {@code http://example.com:80/path} → {@code http://example.com/path})</li>
+     * <li>Removes port 443 from HTTPS URLs (e.g., {@code https://example.com:443/path} → {@code https://example.com/path})</li>
+     * <li>The comparison is case-insensitive (e.g., {@code HTTP://}, {@code Https://} are supported)</li>
+     * <li>Returns the original URL unchanged if no default port is found or the URL doesn't match the expected pattern</li>
      * </ul>
      *
-     * @param url the input URL string
+     * @param url
+     *            the input URL string
      * @return the URL with the default port removed if applicable, or the original URL if not applicable
      */
     public static String stripDefaultPort(String url)
@@ -602,5 +604,33 @@ public class UrlUtil
         }
 
         return url;
+    }
+
+    /**
+     * Returns the given path with its first segment lowercased. A "segment" is the part of the path up to the first '/'. If there
+     * is no '/', the entire path is lowercased.
+     *
+     * Examples: "AAA/BBB" => "aaa/BBB" 
+     *           "ZZZ" => "zzz" 
+     *           "Mixed/Case/Path" => "mixed/Case/Path"
+     *
+     * @param path
+     *            the original path string
+     * @return the path with first segment lowercased
+     */
+    public static String lowercaseFirstSegment(String path)
+    {
+        if (path == null || path.isEmpty())
+            return path;
+
+        int slashIndex = path.indexOf('/');
+        if (slashIndex == -1)
+        {
+            return path.toLowerCase(); // single segment
+        }
+
+        String firstSegment = path.substring(0, slashIndex).toLowerCase();
+        String rest = path.substring(slashIndex); // keep '/' and rest as-is
+        return firstSegment + rest;
     }
 }

@@ -1,36 +1,19 @@
 package my.LJExport.runtime.links.util;
 
-import java.util.Set;
-
-import my.LJExport.runtime.Util;
+import my.LJExport.runtime.url.UrlPatternMatcher;
 
 public class DontDownload
 {
-    private static Set<String> dontDownload;
-    
+    private static UrlPatternMatcher dontDownload;
+
     public static boolean dontDownload(String href) throws Exception
     {
         synchronized (DontDownload.class)
         {
             if (dontDownload == null)
-                dontDownload = Util.read_set("dont-download.txt");
+                dontDownload = UrlPatternMatcher.fromResource("dont-download.txt");
         }
-        
-        String np = Util.stripProtocol(href);
 
-        if (dontDownload.contains(np))
-            return true;
-
-        for (String dont : dontDownload)
-        {
-            if (dont.endsWith("/*") || dont.endsWith("?*"))
-            {
-                dont = Util.stripTail(dont, "*");
-                if (np.startsWith(dont))
-                    return true;
-            }
-        }
-        
-        return false;
+        return dontDownload.contains(href);
     }
 }

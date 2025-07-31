@@ -3,7 +3,9 @@
 # e.g. because they are stuck forever
 #
 # Both HTTP and HTTPS protocols are matched.
+# Starlet-dot at the start (*.) matches initial host name part.
 # Starlet at the end matches any remainder. 
+# NNNNNNNN matches numeric sequence. 
 #
 
 devad.ru/vlj/rolf.jpg
@@ -177,3 +179,23 @@ ic.pics.livejournal.com/ubei_bloggera/81107846/136584/136584_300.jpg
 ic.pics.livejournal.com/vitaldnepr/72367478/3159/3159_900.jpg
 ic.pics.livejournal.com/von_esmarch2/85818839/37159/37159_900.jpg
 ic.pics.livejournal.com/zbaza/32724472/180997/180997_600.jpg
+
+#
+# Misc
+#
+ads.imeem.com/ads/bannerad/*
+youtu.be/*
+www.youtu.be/*
+youtube.com/watch?v=*
+www.youtube.com/watch?v=*
+google.com/*
+google.ru/*
+google.de/*
+www.google.com/*
+www.google.ru/*
+www.google.de/*
+ljplus.ru/counter/*
+
+*.ljplus.ru/counter/*
+joyreactor.cc/post/NNNNNNNN
+*.joyreactor.cc/post/NNNNNNNN

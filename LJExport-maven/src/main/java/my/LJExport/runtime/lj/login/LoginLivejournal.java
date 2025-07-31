@@ -17,9 +17,12 @@ public class LoginLivejournal
     public static void login() throws Exception
     {
         Config.acquireLoginPassword();
+        
+        // ### implement new login
+        if (Util.True)
+            throw new Exception("Unimplemented");
 
         Web.Response r = null;
-        // ### MUST reproduce headers EXACTLY or will lock out
         r = Web.get("https://www." + Config.LoginSite + "/");
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));

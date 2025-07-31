@@ -20,3 +20,5 @@
 - Chrome web headers (instead of Firefox), diff. Chrome versions (Win7/10) 
 
 - unresolved FailedLinks.txt -> revert a.href and img.src to the link
+
+- implement new LJ login

@@ -60,11 +60,9 @@ No redirect interception
 	
 =======================================================================================================
 
-Other options:
-- simulate a real browser session using a headful browser + DevTools 
-Chrome DevTools Protocol (CDP)
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="C:\ProxyChromeProfile"
 
-Java libs:
-- cdp4j
-- Chrome DevTools Java Client
-- chrome-devtools-java-client
+- login LJ
+- save cookies
+- disable JavaScript
+- set about:blank homepage

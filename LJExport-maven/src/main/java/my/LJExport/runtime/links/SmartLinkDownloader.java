@@ -38,7 +38,7 @@ public class SmartLinkDownloader
         this.useArchiveOrg = useArchiveOrg;
     }
 
-    public boolean redownload(boolean image, String href, String unixRelFilePath, String referer, MutableObject<String> fromWhere)
+    public boolean redownloadToFile(boolean image, String href, String unixRelFilePath, String referer, MutableObject<String> fromWhere)
             throws Exception
     {
         Web.Response r = smartDownload(image, href, referer, true, fromWhere);
@@ -252,7 +252,7 @@ public class SmartLinkDownloader
             SmartLinkDownloader self = new SmartLinkDownloader(
                     Config.DownloadRoot + File.separator + Config.User + File.separator + "links");
             String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
-            boolean b = self.redownload(false, href, null, null, null);
+            boolean b = self.redownloadToFile(false, href, null, null, null);
             Util.unused(b);
         }
         catch (Exception ex)

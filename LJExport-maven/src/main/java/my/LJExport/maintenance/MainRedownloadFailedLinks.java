@@ -676,7 +676,7 @@ public class MainRedownloadFailedLinks
         }
 
         MutableObject<String> fromWhere = new MutableObject<>();
-        boolean result = smartLinkRedownloader.redownload(image, url, relativeLinkFilePath, referer, fromWhere);
+        boolean result = smartLinkRedownloader.redownloadToFile(image, url, relativeLinkFilePath, referer, fromWhere);
 
         if (result)
         {

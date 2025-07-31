@@ -40,3 +40,5 @@ should follow it
   May want it to use SmartRedownloader
 
 - Chrome web headers, diff. versions 
+
+- unresolved FailedLinks.txt -> revert a.href and img.src to the link

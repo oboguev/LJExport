@@ -324,7 +324,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
                 retry = true;
                 Thread.sleep(1000 * (1 + retries));
             }
-            else if (parser.isBadGatewayPage(r.body))
+            else if (parser.isBadGatewayPage(r.textBody()))
             {
                 if (retries > 5)
                     return null;
@@ -333,7 +333,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
             }
             else
             {
-                return r.body;
+                return r.textBody();
             }
         }
     }

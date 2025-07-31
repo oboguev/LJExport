@@ -5,17 +5,21 @@ import java.net.URL;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
+import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.file.ServerContent;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.file.ServerContent.Decision;
+import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.url.AwayLink;
+import my.LJExport.runtime.url.UrlUtil;
 import my.WebArchiveOrg.ArchiveOrgQuery;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
@@ -140,14 +144,14 @@ public class SmartLinkRedownloader
 
         if (r == null)
             return null;
-        
-        ResponseAnalysis an = isGoodResponse(image, href, r); 
+
+        ResponseAnalysis an = isGoodResponse(image, href, r);
         if (an.isGood)
             return r;
-        
-        if (!FileTypeDetector.isHtmlExtension(an.serverExt))
+
+        if (!FileTypeDetector.isHtmlExtension(an.serverExt) || r.textBody() == null)
             return null;
-        
+
         /*
          * archive.org snapshot for image URLs lead to if_ pages, 
          * which are HTML pahes with one IMG tag to archive.org im_ resource
@@ -156,13 +160,27 @@ public class SmartLinkRedownloader
          *     https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG
          * which is an HTML file with IMG.SRC link to    
          *     https://web.archive.org/web/20231201081812im_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600/CheKa.JPG
-
+        
          * We should follow it.
          * The same can also happen in other situation when a link is provided to HTML page that links to a single IMG.
          */
+        PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
+        parser.parseHtml(r.textBody());
+        List<Node> vn = JSOUP.findElements(parser.pageRoot, "img");
+        if (vn.size() != 1)
+            return null;
+        String src = JSOUP.getAttribute(vn.get(0), "src");
+        src = UrlUtil.decodeHtmlAttrLink(src);
+        if (src == null)
+            return null;
         
+        r = LinkRedownloader.redownload(image, src, referer);
+        if (r == null)
+            return null;
 
-        // #### if html with one img src link
+        an = isGoodResponse(image, href, r);
+        if (an.isGood)
+            return r;
 
         return null;
     }

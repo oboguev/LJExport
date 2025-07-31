@@ -1046,7 +1046,7 @@ public class ReadProfile
                 retry = true;
                 Thread.sleep(1000 * (1 + retries));
             }
-            else if (newParser().isBadGatewayPage(r.body))
+            else if (newParser().isBadGatewayPage(r.textBody()))
             {
                 if (retries > 5)
                     return null;
@@ -1055,7 +1055,7 @@ public class ReadProfile
             }
             else
             {
-                return r.body;
+                return r.textBody();
             }
         }
     }

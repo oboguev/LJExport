@@ -169,8 +169,6 @@ public class MainRedownloadFailedLinks
         Web.shutdown();
     }
 
-    // ### don't download as image https://joyreactor.cc/post/2533302 (numeric with no extension)
-
     private void do_user(String user) throws Exception
     {
         try

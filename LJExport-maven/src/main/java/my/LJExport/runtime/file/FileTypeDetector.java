@@ -38,6 +38,9 @@ public class FileTypeDetector
     {
         String detectedMimeType = mimeTypeFromActualFileContent(fileBytes, pathExtension);
 
+        if (detectedMimeType == null)
+            return null;
+
         if (!detectedMimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
             return fileExtensionFromMimeType(detectedMimeType);
 
@@ -49,6 +52,9 @@ public class FileTypeDetector
 
     public static String mimeTypeFromActualFileContent(byte[] fileBytes, String pathExtension) throws Exception
     {
+        if (fileBytes == null)
+            return null;
+
         String detectedMimeType = tika.detect(fileBytes);
         if (!detectedMimeType.equalsIgnoreCase(MIME_OCTET_STREAM))
             return detectedMimeType;
@@ -78,7 +84,7 @@ public class FileTypeDetector
         if (shareOfUnprintableBytes(fileBytes) * 100 < 0.5)
         {
             String fileAsciiText = new String(fileBytes, java.nio.charset.StandardCharsets.US_ASCII);
-            if (fileAsciiText.contains("<style>") && fileAsciiText.contains("<div ") )
+            if (fileAsciiText.contains("<style>") && fileAsciiText.contains("<div "))
                 return "text/plain";
         }
 
@@ -239,7 +245,7 @@ public class FileTypeDetector
     {
         if (path == null)
             return false;
-        
+
         String lc = path.toLowerCase();
 
         return lc.endsWith(".avif") ||
@@ -414,7 +420,7 @@ public class FileTypeDetector
             // Accept common printable range for KOI8-R and CP1251
             if (b >= 128 && b <= 255)
                 continue;
-            
+
             if (Util.False && b == 127)
                 continue;
 

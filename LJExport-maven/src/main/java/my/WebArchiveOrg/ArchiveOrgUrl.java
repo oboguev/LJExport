@@ -478,9 +478,12 @@ public class ArchiveOrgUrl
         switch (mediaSelector)
         {
         case "": // no media selector
+            break;
+
         case "id_": // HTML document
         case "im_": // image file
         case "if_": // non-image binary file such as PDF
+            timestamp = timestamp.substring(0, timestamp.length() - 3);
             break;
 
         case "js_": // JavaScript
@@ -491,14 +494,6 @@ public class ArchiveOrgUrl
         case "in_": // interstitial or redirect
         default:
             return url;
-        }
-
-        if (timestamp.endsWith("if_") || timestamp.endsWith("id_") || timestamp.endsWith("im_"))
-        {
-            // ######
-            // already direct download
-            // return url;
-            timestamp = timestamp.substring(0, timestamp.length() - 3);
         }
 
         mediaSelector = null;

@@ -410,7 +410,7 @@ public class MainScrapeArchiveOrg
         }
 
         ParserArchiveOrg parser = new ParserArchiveOrg();
-        parser.pageSource = r.body;
+        parser.pageSource = r.textBody();
         parser.parseHtmlWithBaseUrl(r.finalUrl);
 
         String charset = parser.extractCharset();

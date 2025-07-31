@@ -4,6 +4,7 @@
       - disable JavaScript execution in the browser
       - get coookies
       - get useragent string
+      - get Sec-Ch-Ua header
       
 - CDP proxy
       - GET
@@ -37,3 +38,5 @@ should follow it
 
 - LinkDownloader should handle if_ -> im_ repeat loads
   May want it to use redownloader
+
+- Chrome web headers, diff. versions 

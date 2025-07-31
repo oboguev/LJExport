@@ -120,7 +120,7 @@ public class MainDownloadPages
         if (r.code != 200)
             throw new Exception("Failed to load page, http code = " + r.code);
 
-        Util.writeToFileSafe(fp.getCanonicalPath(), r.body);
+        Util.writeToFileSafe(fp.getCanonicalPath(), r.textBody());
     }
 
     public static Path rawPagePath(String which, int start)

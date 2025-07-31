@@ -37,8 +37,6 @@ should follow it
 
 see the use of:
 
-latestMediaUrl(
-directDownloadUrl(
 toDirectDownloadUrl(      
 
 ================================================

@@ -472,9 +472,29 @@ public class ArchiveOrgUrl
         return prefix + timestamp + (isHtml ? "id_/" : "if_/") + suffix;
     }
 
-    public static String directDownloadUrl(String originalUrl, String timestamp, boolean isHtml)
+    public static String directDownloadUrl(String originalUrl, String timestamp, boolean isHtml, boolean image)
     {
-        return ARCHIVE_PREFIX_HTTPS + String.format("%s%s/%s", timestamp, isHtml ? "id_" : "if_", originalUrl);
+        if (isHtml && image)
+            throw new IllegalArgumentException("Conflicting flags");
+        
+        String suffix = null;
+        if (isHtml)
+        {
+            // archived HTML files
+            suffix = "id_";
+        }
+        else if (image)
+        {
+            // archived images
+            suffix = "im_";
+        }
+        else
+        {
+            // archived non-image media such as PDF files
+            suffix = "if_";
+        }
+        
+        return ARCHIVE_PREFIX_HTTPS + String.format("%s%s/%s", timestamp, suffix, originalUrl);
     }
 
     private static final DateTimeFormatter ARCHIVE_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")

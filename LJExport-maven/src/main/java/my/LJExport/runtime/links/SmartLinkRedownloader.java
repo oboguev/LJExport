@@ -119,7 +119,7 @@ public class SmartLinkRedownloader
         String timestamp = e.key;
         String original = e.value;
 
-        String archivedUrl = ArchiveOrgUrl.directDownloadUrl(original, timestamp, false);
+        String archivedUrl = ArchiveOrgUrl.directDownloadUrl(original, timestamp, false, image);
         r = load_good(image, archivedUrl, null);
         if (r != null)
         {

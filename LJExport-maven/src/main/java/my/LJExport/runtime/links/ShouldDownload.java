@@ -1,7 +1,6 @@
 package my.LJExport.runtime.links;
 
 import java.net.URI;
-import java.net.URL;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;

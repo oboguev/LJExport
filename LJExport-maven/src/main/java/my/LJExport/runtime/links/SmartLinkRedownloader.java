@@ -15,6 +15,7 @@ import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.util.LinkFilepath;
+import my.LJExport.runtime.url.AwayLink;
 import my.WebArchiveOrg.ArchiveOrgQuery;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
@@ -36,7 +37,7 @@ public class SmartLinkRedownloader
     public boolean redownload(boolean image, String href, String unixRelFilePath, String referer, MutableObject<String> fromWhere)
             throws Exception
     {
-        Web.Response r = smartDownload(image, href, referer, fromWhere);
+        Web.Response r = smartDownload(image, href, referer, true, fromWhere);
 
         if (r != null)
         {
@@ -52,11 +53,31 @@ public class SmartLinkRedownloader
 
     /* ================================================================================================== */
 
-    public Web.Response smartDownload(boolean image, String href, String referer, MutableObject<String> fromWhere)
+    public Web.Response smartDownload(boolean image, String href, String referer, boolean allowAway, MutableObject<String> fromWhere)
             throws Exception
     {
         href = Util.stripAnchor(href);
 
+        if (allowAway)
+        {
+            /*
+             * If the link is packed into a redirector URL,
+             * iteratively try loading unwrapping the link from outer to inner layers
+             */
+            for (;;)
+            {
+                Web.Response r = smartDownload(image, href, referer, false, fromWhere);
+                if (r != null)
+                    return r;
+
+                String prev = href;
+                href = AwayLink.unwrapAwayLinkDecoded(href);
+                href = Util.stripAnchor(href);
+                if (href.equals(prev))
+                    return null;
+            }
+        }
+        
         if (fromWhere != null)
             fromWhere.setValue(null);
         

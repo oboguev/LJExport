@@ -16,14 +16,7 @@
       - get coookies
       - get useragent string
 
-- names of failed downloads (i2/d2 and i3/d3)
-  enhance and handle don't download
-  
-- make MainDownloadLinks with option to dowmload from the archive
-
-================================================
-
-- SmartDownload: try away link
+- make MainDownloadLinks with option to download from the archive
 
 ================================================
 

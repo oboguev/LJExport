@@ -6,21 +6,34 @@ import my.LJExport.Config;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.links.util.DontDownload;
 import my.LJExport.runtime.links.util.URLClassifier;
+import my.LJExport.runtime.url.UrlPatternMatcher;
 
 public class ShouldDownload
 {
+    private static UrlPatternMatcher dontDownload;
+
+    public static synchronized void init() throws Exception
+    {
+        if (dontDownload == null)
+            dontDownload = UrlPatternMatcher.fromResource("dont-download.txt");
+    }
+    
     public static boolean shouldDownload(boolean image, String href) throws Exception
     {
+        init();
+        
         return image ? shouldDownloadImage(href) : shouldDownloadDocument(href);
     }
 
     public static boolean shouldDownloadImage(String href) throws Exception
     {
+        init();
+
         if (href == null || href.length() == 0)
             return false;
         href = Util.stripAnchor(href);
 
-        if (DontDownload.dontDownload(href))
+        if (dontDownload.contains(href))
             return false;
 
         // ###
@@ -36,7 +49,7 @@ public class ShouldDownload
                 return false;
             href = Util.stripAnchor(href);
 
-            if (DontDownload.dontDownload(href))
+            if (dontDownload.contains(href))
                 return false;
 
             URI url = new URI(href);

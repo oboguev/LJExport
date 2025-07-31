@@ -30,6 +30,7 @@ import my.LJExport.runtime.synch.AppendToThreadName;
 import my.LJExport.runtime.synch.FutureProcessor;
 import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.runtime.url.AwayLink;
+import my.LJExport.runtime.url.UrlUtil;
 
 public abstract class PageParserDirectBase
 {
@@ -250,8 +251,8 @@ public abstract class PageParserDirectBase
 
             /* ----------------------------------------------------------------- */
 
-            downloaded |= downloadExternalLinks(root, "a", "href", true, fpDownload);
-            downloaded |= downloadExternalLinks(root, "img", "src", false, fpDownload);
+            downloaded |= downloadExternalLinks(root, "a", "href", fpDownload);
+            downloaded |= downloadExternalLinks(root, "img", "src", fpDownload);
 
             fpDownload.start();
 
@@ -422,15 +423,19 @@ public abstract class PageParserDirectBase
     /* ==================================================================================================================== */
 
     /*static*/ private boolean downloadExternalLinks(Node root, String tag, String attr,
-            boolean filterDownloadFileTypes, FutureProcessor<AsyncDownloadExternalLinks> fpDownload) throws Exception
+            FutureProcessor<AsyncDownloadExternalLinks> fpDownload) throws Exception
     {
         boolean downloaded = false;
 
         for (Node n : JSOUP.findElements(root, tag))
         {
             String href = JSOUP.getAttribute(n, attr);
+            href = UrlUtil.decodeHtmlAttrLink(href);
 
-            if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
+            boolean shouldDownload = tag.equalsIgnoreCase("img") ? LinkDownloader.shouldDownloadImage(href)
+                    : LinkDownloader.shouldDownloadDocument(href);
+
+            if (shouldDownload)
             {
                 String referer = (rurl == null) ? null : LJUtil.recordPageURL(rurl);
 

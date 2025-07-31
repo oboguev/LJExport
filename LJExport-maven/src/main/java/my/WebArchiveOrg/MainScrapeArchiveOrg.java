@@ -896,9 +896,17 @@ public class MainScrapeArchiveOrg
         String naming_href = ArchiveOrgUrl.extractArchivedUrlPart(original_href);
         if (naming_href == null)
             naming_href = original_href;
-
-        if (!LinkDownloader.shouldDownload(naming_href, attr.equalsIgnoreCase("href")))
-            return false;
+        
+        if (image)
+        {
+            if (!LinkDownloader.shouldDownloadImage(naming_href))
+                return false;
+        }
+        else
+        {
+            if (!LinkDownloader.shouldDownloadDocument(naming_href))
+                return false;
+        }
 
         String newref = Main.linkDownloader.download(image, naming_href, download_href, null, "");
 

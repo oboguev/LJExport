@@ -138,13 +138,13 @@ public class LinkDownloader
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
             threadName = "(unnamed)";
-        
+
         try
         {
             // normalize name
             name_href = UrlUtil.stripDefaultPort(name_href);
             name_href = UrlUtil.stripTrailingSlash(name_href);
-                    
+
             // avoid HTTPS certificate problem
             download_href = https2http(download_href, "l-stat.livejournal.net");
             download_href = https2http(download_href, "l-userpic.livejournal.com");
@@ -297,7 +297,8 @@ public class LinkDownloader
                             }
                             catch (UnableCreateDirectoryException dex)
                             {
-                                actual_filename = LinkFilepath.fallbackFilepath(linksDir, final_name_href_noanchor, actual_filename);
+                                actual_filename = LinkFilepath.fallbackFilepath(linksDir, final_name_href_noanchor,
+                                        actual_filename);
                                 filename.set(actual_filename);
                                 f = new File(actual_filename).getCanonicalFile();
                                 Util.mkdir(f.getAbsoluteFile().getParent());
@@ -557,7 +558,26 @@ public class LinkDownloader
         return href;
     }
 
-    public static boolean shouldDownload(String href, boolean filterDownloadFileTypes) throws Exception
+    public static boolean shouldDownload(boolean image, String href) throws Exception
+    {
+        return image ? shouldDownloadImage(href) : shouldDownloadDocument(href);
+    }
+    
+    public static boolean shouldDownloadImage(String href) throws Exception
+    {
+        if (href == null || href.length() == 0)
+            return false;
+        href = Util.stripAnchor(href);
+
+        if (DontDownload.dontDownload(href))
+            return false;
+        
+        // ###
+        
+        return true;
+    }
+
+    public static boolean shouldDownloadDocument(String href) throws Exception
     {
         try
         {
@@ -610,20 +630,13 @@ public class LinkDownloader
             if (URLClassifier.isNonDocumentURL(url))
                 return false;
 
-            if (filterDownloadFileTypes)
+            for (String ext : Config.DownloadFileTypes)
             {
-                for (String ext : Config.DownloadFileTypes)
-                {
-                    if (path.toLowerCase().endsWith("." + ext))
-                        return true;
-                }
+                if (path.toLowerCase().endsWith("." + ext))
+                    return true;
+            }
 
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            return false;
         }
         catch (Exception ex)
         {
@@ -723,7 +736,7 @@ public class LinkDownloader
             if (!FileTypeDetector.isImageExtension(contentExt))
                 return null;
         }
-        
+
         if (finalExt != null && finalExt.length() != 0)
         {
             /* same */

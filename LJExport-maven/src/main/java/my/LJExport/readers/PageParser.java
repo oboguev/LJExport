@@ -18,6 +18,7 @@ import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.lj.LJUtil;
+import my.LJExport.runtime.url.UrlUtil;
 
 public abstract class PageParser
 {
@@ -708,9 +709,10 @@ public abstract class PageParser
 
     public void downloadExternalLinks(Node root) throws Exception
     {
-        if (Main.linkDownloader == null || !Main.linkDownloader.isInitialized()  || Config.DownloadFileTypes == null || Config.DownloadFileTypes.size() == 0)
+        if (Main.linkDownloader == null || !Main.linkDownloader.isInitialized() || Config.DownloadFileTypes == null
+                || Config.DownloadFileTypes.size() == 0)
             return;
-        
+
         applyProtocolAndBaseDefaults(root);
 
         unwrapImgPrx(root, "img", "src");
@@ -718,18 +720,22 @@ public abstract class PageParser
         unwrapImgPrx(root, "a", "href");
         unwrapImgPrx(root, "a", "original-href");
 
-        downloadExternalLinks(root, "a", "href", true);
-        downloadExternalLinks(root, "img", "src", false);
+        downloadExternalLinks(root, "a", "href");
+        downloadExternalLinks(root, "img", "src");
     }
 
-    private void downloadExternalLinks(Node root, String tag, String attr, boolean filterDownloadFileTypes)
+    private void downloadExternalLinks(Node root, String tag, String attr)
             throws Exception
     {
         for (Node n : JSOUP.findElements(root, tag))
         {
             String href = JSOUP.getAttribute(n, attr);
+            href = UrlUtil.decodeHtmlAttrLink(href);
 
-            if (LinkDownloader.shouldDownload(href, filterDownloadFileTypes))
+            boolean shouldDownload = tag.equalsIgnoreCase("img") ? LinkDownloader.shouldDownloadImage(href)
+                    : LinkDownloader.shouldDownloadDocument(href);
+
+            if (shouldDownload)
             {
                 String referer = LJUtil.recordPageURL(rurl);
                 boolean image = tag.equalsIgnoreCase("img");
@@ -758,11 +764,11 @@ public abstract class PageParser
             }
         }
     }
-    
+
     private boolean applyProtocolAndBaseDefaults(Node root) throws Exception
     {
         boolean applied = false;
-        
+
         /* use of | rather than || prevents evaluation short-cut */
         applied |= applyProtocolAndBaseDefaults(root, "link", "href");
         applied |= applyProtocolAndBaseDefaults(root, "a", "href");
@@ -773,7 +779,7 @@ public abstract class PageParser
         applied |= applyProtocolAndBaseDefaults(root, "source", "src");
         applied |= applyProtocolAndBaseDefaults(root, "embed", "src");
         applied |= applyProtocolAndBaseDefaults(root, "track", "src");
-        applied |= applyProtocolAndBaseDefaults(root, "object", "data");        
+        applied |= applyProtocolAndBaseDefaults(root, "object", "data");
 
         return applied;
     }
@@ -785,11 +791,11 @@ public abstract class PageParser
         for (Node n : JSOUP.findElements(root, tag))
         {
             String href = JSOUP.getAttribute(n, attr);
-            
+
             if (href != null)
             {
                 String newref = null;
-                
+
                 if (href.startsWith("//"))
                 {
                     newref = "https:" + href;
@@ -799,7 +805,7 @@ public abstract class PageParser
                 {
                     newref = String.format("https://%s.livejournal.com%s", Config.MangledUser, href);
                 }
-                
+
                 if (newref != null)
                 {
                     JSOUP.updateAttribute(n, attr, newref);

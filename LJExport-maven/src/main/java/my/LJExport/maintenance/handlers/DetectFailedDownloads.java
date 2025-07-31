@@ -140,20 +140,21 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 if (fli.urls.size() == 1)
                 {
                     String url = fli.urls.get(0);
-
-                    if (!fli.image && !LinkDownloader.shouldDownload(url, true))
+                    
+                    if (fli.image && LinkDownloader.shouldDownloadImage(url))
                     {
-                        fli.delete = true;
-                        haveDeletes = true;
+                        url = "image:" + url;
+                        list.add(new KVEntry(url, fli.relpath));
+                    }
+                    else if (!fli.image && LinkDownloader.shouldDownloadDocument(url))
+                    {
+                        url = "document:" + url;
+                        list.add(new KVEntry(url, fli.relpath));
                     }
                     else
                     {
-                        if (fli.image)
-                            url = "image:" + url;
-                        else
-                            url = "document:" + url;
-
-                        list.add(new KVEntry(url, fli.relpath));
+                        fli.delete = true;
+                        haveDeletes = true;
                     }
                 }
             }

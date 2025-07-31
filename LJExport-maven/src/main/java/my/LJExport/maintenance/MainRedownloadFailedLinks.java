@@ -659,11 +659,22 @@ public class MainRedownloadFailedLinks
     {
         SmartLinkRedownloader smartLinkRedownloader = new SmartLinkRedownloader(linksDir);
         smartLinkRedownloader.useArchiveOrg(UseArchiveOrg);
-
-        if (!LinkDownloader.shouldDownload(url, false))
+        
+        if (image)
         {
-            Util.out("Skipping " + url);
-            return false;
+            if (!LinkDownloader.shouldDownloadImage(url))
+            {
+                Util.out("Skipping " + url);
+                return false;
+            }
+        }
+        else
+        {
+            if (!LinkDownloader.shouldDownloadDocument(url))
+            {
+                Util.out("Skipping " + url);
+                return false;
+            }
         }
 
         if (!UseLivejournal && LJUtil.isServerUrl(url))

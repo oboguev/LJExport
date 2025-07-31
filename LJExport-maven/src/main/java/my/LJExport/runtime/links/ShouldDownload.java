@@ -1,27 +1,33 @@
 package my.LJExport.runtime.links;
 
 import java.net.URI;
+import java.net.URL;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.links.util.DontDownload;
+import my.LJExport.runtime.file.FileTypeDetector;
+import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.URLClassifier;
 import my.LJExport.runtime.url.UrlPatternMatcher;
 
 public class ShouldDownload
 {
     private static UrlPatternMatcher dontDownload;
+    private static UrlPatternMatcher knownImageHosting;
 
     public static synchronized void init() throws Exception
     {
         if (dontDownload == null)
             dontDownload = UrlPatternMatcher.fromResource("dont-download.txt");
+
+        if (knownImageHosting == null)
+            knownImageHosting = UrlPatternMatcher.fromResource("known-image-hosting.txt");
     }
-    
+
     public static boolean shouldDownload(boolean image, String href) throws Exception
     {
         init();
-        
+
         return image ? shouldDownloadImage(href) : shouldDownloadDocument(href);
     }
 
@@ -36,7 +42,33 @@ public class ShouldDownload
         if (dontDownload.contains(href))
             return false;
 
-        // ###
+        URI url = new URI(href);
+
+        String path = url.getPath();
+        if (path == null)
+            return false;
+        path = path.trim();
+        if (path.length() == 0 || path.equals("/"))
+            return false;
+
+        String query = url.getRawQuery();
+        if (query != null && query.trim().length() == 0)
+            query = null;
+
+        String ext = LinkFilepath.getMediaFileExtension(path);
+        if (ext != null && ext.trim().length() == 0)
+            ext = null;
+
+        if (!knownImageHosting.contains(href))
+        {
+            // dont't download if no extension in path and no query
+            if (ext == null && query == null)
+                return false;
+
+            // dont't download if not an image extension and no query
+            if (!FileTypeDetector.isImageExtension(ext) && query == null)
+                return false;
+        }
 
         return true;
     }

@@ -235,6 +235,9 @@ public class FileTypeDetector
 
     public static boolean isImagePath(String path)
     {
+        if (path == null)
+            return false;
+        
         String lc = path.toLowerCase();
 
         return lc.endsWith(".avif") ||

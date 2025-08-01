@@ -6,4 +6,6 @@ public class WebAction
     public static final String LoadFirefoxUserAgent = "LoadFirefoxUserAgent";
     
     public static final String ALL_DOMAINS = "___ALL_DOMAINS___"; 
+    public static final String ONCE = "___ONCE_ACTION___"; 
+    public static final String REPEAT  = "___REPEAT_ACTION___"; 
 }

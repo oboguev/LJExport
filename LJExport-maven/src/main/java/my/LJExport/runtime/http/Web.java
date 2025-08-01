@@ -84,6 +84,9 @@ public class Web
     public static final int PROGRESS = (1 << 1);
 
     public static String[][] InitialActions;
+    
+    private static boolean initializing = false; 
+    private static boolean initialized = false; 
 
     public static class Response
     {
@@ -169,12 +172,18 @@ public class Web
         }
     }
 
-    public static void init() throws Exception
+    public static synchronized void init() throws Exception
     {
+        if (initialized || initializing)
+            throw new Exception("Web is already initialized or partially initialized ");
+        
+        initializing = true;
+
         if (Config.TrustAnySSLCertificate)
             TrustAnySSL.trustAnySSL();
 
         cookieStore = new BasicCookieStore();
+        WebActions.clearHistory();
         WebActions.execute(InitialActions);
 
         DefaultProxyRoutePlanner routePlanner = null;
@@ -346,6 +355,9 @@ public class Web
         httpClientOther = hcbClientOther.build();
         httpClientRedirectLJ = hcbClientRedirectLJ.build();
         httpClientRedirectOther = hcbClientRedirectOther.build();
+        
+        initializing = false;
+        initialized = true;
     }
 
     public static void aborting()
@@ -361,7 +373,7 @@ public class Web
         RateLimiter.WEB_ARCHIVE_ORG.aborting(true);
     }
 
-    public static void shutdown() throws Exception
+    public static synchronized void shutdown() throws Exception
     {
         if (semaphoreArchiveOrg != null)
         {
@@ -434,6 +446,11 @@ public class Web
             connManagerOther.shutdown();
             connManagerOther = null;
         }
+
+        WebActions.clearHistory();
+        
+        initializing = false;
+        initialized = false;
     }
 
     public static void threadExit()

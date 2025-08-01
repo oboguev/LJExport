@@ -28,6 +28,9 @@ public class WebActions
         if (action == null)
             return;
         
+        // ### ONCE/REPEAT
+        // ### record
+        
         List<String> args = Arrays.asList(action);
         if (args.size() == 0)
             throw new Exception("Missing action verb");
@@ -48,6 +51,13 @@ public class WebActions
             throw new Exception("Unknown action verb: " + verb);
         }
     }
+    
+    public static void clearHistory()
+    {
+        // ####
+    }
+    
+    /* =========================================================================================== */
 
     private static void loadFirefoxUserAgent(String verb, List<String> args) throws Exception
     {
@@ -57,6 +67,8 @@ public class WebActions
         Config.UserAgent = FirefoxUserAgent.getUserAgent();
         Util.noop();
     }
+
+    /* =========================================================================================== */
 
     private static void loadFirefoxCookies(String verb, List<String> args) throws Exception
     {

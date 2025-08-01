@@ -298,28 +298,36 @@ public class Config
     {
         if (AutoconfigureSite)
         {
+            boolean changeDownloadRoot = false;
+
+            if (changeDownloadRoot && Config.DownloadRoot.endsWith(".dreamwidth-org"))
+                Config.DownloadRoot = Util.stripTail(Config.DownloadRoot, ".dreamwidth-org");
+
+            if (changeDownloadRoot && Config.DownloadRoot.endsWith(".lj-rossia-org"))
+                Config.DownloadRoot = Util.stripTail(Config.DownloadRoot, ".lj-rossia-org");
+            
+            // ### reset Config.UA to DefaultUserAgent
+
             if (User.contains(".dreamwidth-org"))
             {
                 Config.LoginSite = Config.Site = Config.DefaultSite = Sites.DreamwidthOrg;
                 Config.UseLogin = true;
-                // Config.DownloadRoot += ".dreamwidth-org";
+                if (changeDownloadRoot)
+                    Config.DownloadRoot += ".dreamwidth-org";
+                // ### execute actions MainDreamwidthOrg.getWebActions()
             }
             else if (User.contains(".lj-rossia-org"))
             {
                 Config.LoginSite = Config.Site = Config.DefaultSite = Sites.RossiaOrg;
                 Config.UseLogin = false;
-                // Config.DownloadRoot += ".lj-rossia-org";
+                if (changeDownloadRoot)
+                    Config.DownloadRoot += ".lj-rossia-org";
             }
             else
             {
                 Config.LoginSite = Config.Site = Config.DefaultSite = Sites.Livejournal;
                 Config.UseLogin = true;
 
-                if (Util.False && Config.DownloadRoot.endsWith(".dreamwidth-org"))
-                    Config.DownloadRoot = Util.stripTail(Config.DownloadRoot, ".dreamwidth-org");
-
-                if (Util.False && Config.DownloadRoot.endsWith(".lj-rossia-org"))
-                    Config.DownloadRoot = Util.stripTail(Config.DownloadRoot, ".lj-rossia-org");
             }
         }
     }

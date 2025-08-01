@@ -22,9 +22,9 @@ public class WebRequestHeaders
 
         setHeader(request, headers, "User-Agent", Config.UserAgent);
         setHeader(request, headers, "Accept", Config.UserAgentAccept);
-        // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
         setHeader(request, headers, "Accept-Language", "en-US,en;q=0.5");
 
+        // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
         if (site.equals(Sites.Livejournal))
             setHeader(request, headers, "Accept-Encoding", "gzip, deflate, br, zstd");
         else
@@ -34,6 +34,7 @@ public class WebRequestHeaders
         // setHeader(request, headers, "Pragma", "no-cache");
         if (httpAccessMode != HttpAccessMode.DIRECT_VIA_HTTP)
             setHeader(request, headers, "Upgrade-Insecure-Requests", "1");
+
         setHeader(request, headers, "Priority", "u=0, i");
         setHeader(request, headers, "Sec-GPC", "1");
         setHeader(request, headers, "Connection", "keep-alive");

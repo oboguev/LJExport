@@ -62,7 +62,7 @@ public class ServerContent
          * www.lib.ru and lib.ru respond to TXT URL request with the reply of HTML content,
          * but inside is the <pre> block
          */
-        if (host != null && Util.in(host, "lib.ru", "www.lib.ru") && Util.eqi(fnExt, "txt") && Util.eq(serverExt, "html"))
+        if (host != null && Util.in(host, "lib.ru", "www.lib.ru", "lib.kharkov.ua") && Util.eqi(fnExt, "txt") && Util.eq(serverExt, "html"))
         {
             if (Util.containsCaseInsensitive(contentProvider.get(), "<pre>"))
                 return new Decision(DecisionStatus.Accept, "html");

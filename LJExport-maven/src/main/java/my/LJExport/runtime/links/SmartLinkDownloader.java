@@ -187,12 +187,12 @@ public class SmartLinkDownloader
         vn = eliminateStaticArchiveOrgImages(vn);
         if (vn.size() != 1)
             return null;
-        
+
         String src = JSOUP.getAttribute(vn.get(0), "src");
         src = UrlUtil.decodeHtmlAttrLink(src);
         if (src == null)
             return null;
-
+        src = Util.resolveURL(href, src);
         r = LinkRedownloader.redownload(image, src, referer);
         if (r == null)
             return null;

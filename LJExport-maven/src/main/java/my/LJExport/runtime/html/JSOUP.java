@@ -23,6 +23,7 @@ import org.jsoup.select.Elements;
 
 import my.LJExport.Main;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.url.UrlUtil;
 
 public class JSOUP
 {
@@ -1048,7 +1049,9 @@ public class JSOUP
                 String newv = null;
                 try
                 {
-                    newv = Util.resolveURL(baseURL, av);
+                    String av2 = UrlUtil.decodeHtmlAttrLink(av);                    
+                    newv = Util.resolveURL(baseURL, av2);
+                    newv = UrlUtil.encodeUrlForHtmlAttr(newv);
                 }
                 catch (Exception ex)
                 {

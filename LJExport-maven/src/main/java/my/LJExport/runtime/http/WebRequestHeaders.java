@@ -1,6 +1,7 @@
 package my.LJExport.runtime.http;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,34 +16,40 @@ import my.LJExport.runtime.lj.Sites;
 
 public class WebRequestHeaders
 {
-    public static void setCommon(String url, HttpAccessMode httpAccessMode, HttpRequestBase request, Map<String, String> headers)
+    public static void setRequestHeaders(String url, HttpAccessMode httpAccessMode, HttpRequestBase request, Map<String, String> app_headers)
             throws Exception
     {
         String site = Sites.which(url);
+        
+        Map<String, String> headers = new HashMap<>();
 
-        setHeader(request, headers, "User-Agent", Config.UserAgent);
-        setHeader(request, headers, "Accept", Config.UserAgentAccept);
-        setHeader(request, headers, "Accept-Language", "en-US,en;q=0.5");
+        setHeader(headers, "User-Agent", Config.UserAgent);
+        setHeader(headers, "Accept", Config.UserAgentAccept);
+        setHeader(headers, "Accept-Language", "en-US,en;q=0.5");
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
         if (site.equals(Sites.Livejournal))
-            setHeader(request, headers, "Accept-Encoding", "gzip, deflate, br, zstd");
+            setHeader(headers, "Accept-Encoding", "gzip, deflate, br, zstd");
         else
-            setHeader(request, headers, "Accept-Encoding", "gzip, deflate");
+            setHeader(headers, "Accept-Encoding", "gzip, deflate");
 
         // setHeader(request, headers, "Cache-Control", "no-cache");
         // setHeader(request, headers, "Pragma", "no-cache");
+        
         if (httpAccessMode != HttpAccessMode.DIRECT_VIA_HTTP)
-            setHeader(request, headers, "Upgrade-Insecure-Requests", "1");
+            setHeader(headers, "Upgrade-Insecure-Requests", "1");
 
-        setHeader(request, headers, "Priority", "u=0, i");
-        setHeader(request, headers, "Sec-GPC", "1");
-        setHeader(request, headers, "Connection", "keep-alive");
+        setHeader(headers, "Priority", "u=0, i");
+        setHeader(headers, "Sec-GPC", "1");
+        setHeader(headers, "Connection", "keep-alive");
 
-        setHeader(request, headers, "Sec-Fetch-Dest", "document");
-        setHeader(request, headers, "Sec-Fetch-Mode", "navigate");
-        setHeader(request, headers, "Sec-Fetch-Site", "none");
-        setHeader(request, headers, "Sec-Fetch-User", "?1");
+        setHeader(headers, "Sec-Fetch-Dest", "document");
+        setHeader(headers, "Sec-Fetch-Mode", "navigate");
+        setHeader(headers, "Sec-Fetch-Site", "none");
+        setHeader(headers, "Sec-Fetch-User", "?1");
+        
+        // ### clear all ... and set
+        // ### request.setHeader(key, value);
 
         if (headers != null)
         {
@@ -71,19 +78,21 @@ public class WebRequestHeaders
                 "Sec-Fetch-User",
                 "Priority");
     }
-
-    private static void setHeader(HttpRequestBase request, Map<String, String> headers, String key, String value) throws Exception
+    
+    private static void setHeader(Map<String, String> headers, String key, String value) throws Exception
     {
-        if (headers != null)
+        Set<String> deleteKeys = new HashSet<>();
+        
+        for (String k : headers.keySet())
         {
-            for (String k : headers.keySet())
-            {
-                if (k.equalsIgnoreCase(key))
-                    return;
-            }
+            if (k.equalsIgnoreCase(key))
+                deleteKeys.add(k);
         }
-
-        request.setHeader(key, value);
+        
+        for (String k : deleteKeys)
+            headers.remove(k);
+        
+        headers.put(key, value);
     }
     /* ============================================================================== */
 

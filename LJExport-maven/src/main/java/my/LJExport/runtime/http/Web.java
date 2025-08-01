@@ -564,7 +564,7 @@ public class Web
         BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);
 
         HttpGet request = new HttpGet(url);
-        WebRequestHeaders.setCommon(url, httpAccessMode, request, headers);
+        WebRequestHeaders.setRequestHeaders(url, httpAccessMode, request, headers);
         HttpClientContext context = HttpClientContext.create();
         WebHttpResponse response = null;
 
@@ -732,8 +732,8 @@ public class Web
         BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);
 
         HttpPost request = new HttpPost(url);
-        WebRequestHeaders.setCommon(url, httpAccessMode, request, null);
-        request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+        WebRequestHeaders.setRequestHeaders(url, httpAccessMode, request,
+                Map.of("Content-Type", "application/x-www-form-urlencoded"));
         request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
 
         ActivityCounters.startedWebRequest();
@@ -858,7 +858,7 @@ public class Web
             return null;
 
         HttpGet request = new HttpGet(url);
-        WebRequestHeaders.setCommon(url, httpAccessMode, request, headers);
+        WebRequestHeaders.setRequestHeaders(url, httpAccessMode, request, headers);
 
         ActivityCounters.startedWebRequest();
 

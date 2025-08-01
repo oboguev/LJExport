@@ -12,6 +12,9 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
+import org.conscrypt.Conscrypt;
+import java.security.Security;
+
 /*
  * Disable SSL certificate checking
  */
@@ -19,6 +22,8 @@ public class TrustAnySSL
 {
     private static SSLContext sslContext;
     private static boolean initialized = false;
+    
+    private static boolean useConscrypt = false; // ####
 
     /**
      * Globally disable SSL certificate and hostname verification.
@@ -33,8 +38,20 @@ public class TrustAnySSL
                 final TrustManager[] trustAllCerts = new TrustManager[] { new LooseTrustManager() };
 
                 // Install the all-trusting trust manager
-                sslContext = SSLContext.getInstance("TLS");
+                if (useConscrypt)
+                {
+                    // add Conscrypt as highest priority security provider
+                    Security.insertProviderAt(Conscrypt.newProvider(), 1);
+                    sslContext = SSLContext.getInstance("TLS", "Conscrypt");
+                }
+                else
+                {
+                    sslContext = SSLContext.getInstance("TLS");
+                }
+                
                 sslContext.init(null, trustAllCerts, new SecureRandom());
+
+                // Set as default for new connections
                 SSLContext.setDefault(sslContext);
 
                 // Disable hostname verification globally

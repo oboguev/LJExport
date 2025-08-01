@@ -1,5 +1,6 @@
 package my.LJExport.runtime.http.cookies;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
+import my.LJExport.runtime.Util;
 import my.LJExport.runtime.lj.Sites;
 
 import org.apache.http.impl.client.BasicCookieStore;
@@ -59,32 +61,30 @@ public class CookieUtil
         CookieStore copy = new BasicCookieStore();
 
         for (Cookie cookie : original.getCookies())
-        {
-            // Deep copy of each cookie
-            BasicClientCookie newCookie = new BasicClientCookie(cookie.getName(), cookie.getValue());
-            newCookie.setDomain(cookie.getDomain());
-            newCookie.setPath(cookie.getPath());
-            newCookie.setExpiryDate(cookie.getExpiryDate());
-            newCookie.setSecure(cookie.isSecure());
-            newCookie.setVersion(cookie.getVersion());
-            newCookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain()); // optional attributes
-            newCookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
-
-            copy.addCookie(newCookie);
-        }
+            copy.addCookie(clone(cookie));
 
         return copy;
     }
 
     /* ============================================================================================================= */
 
+    public static void copyAllCookies(CookieStore from, CookieStore to)
+    {
+        for (Cookie cookie : from.getCookies())
+            to.addCookie(clone(cookie));
+    }
+
+    /* ============================================================================================================= */
+
     /**
-     * Copy cookies from 'from' store to 'to' store,
-     * if their domain matches any of the provided domain suffixes.
+     * Copy cookies from 'from' store to 'to' store, if their domain matches any of the provided domain suffixes.
      *
-     * @param from Source CookieStore
-     * @param to Target CookieStore
-     * @param domains Domain suffixes to match (e.g. "a.com", "example.org")
+     * @param from
+     *            Source CookieStore
+     * @param to
+     *            Target CookieStore
+     * @param domains
+     *            Domain suffixes to match (e.g. "a.com", "example.org")
      */
     public static void copySelectCookies(CookieStore from, CookieStore to, String... domains)
     {
@@ -110,25 +110,27 @@ public class CookieUtil
 
             if (matchesDomainSuffix(domainNorm, domainSuffixes))
             {
-                to.addCookie(cookie);
+                to.addCookie(clone(cookie));
             }
         }
     }
 
     /**
-     * Deletes all cookies from the given CookieStore whose domain matches any of the specified domains,
-     * including subdomains.
+     * Deletes all cookies from the given CookieStore whose domain matches any of the specified domains, including subdomains.
      *
-     * @param store   The CookieStore from which to delete cookies.
-     * @param domains List of domain suffixes (e.g. "aaa.com") whose cookies should be removed.
+     * @param store
+     *            The CookieStore from which to delete cookies.
+     * @param domains
+     *            List of domain suffixes (e.g. "aaa.com") whose cookies should be removed.
      */
 
     /**
-     * Deletes cookies from the Apache CookieStore whose domain matches any of the specified domains,
-     * including subdomains.
+     * Deletes cookies from the Apache CookieStore whose domain matches any of the specified domains, including subdomains.
      *
-     * @param store   the Apache HttpClient CookieStore
-     * @param domains one or more domain suffixes (e.g. "aaa.com") to match and remove cookies for
+     * @param store
+     *            the Apache HttpClient CookieStore
+     * @param domains
+     *            one or more domain suffixes (e.g. "aaa.com") to match and remove cookies for
      */
     public static void deleteSelectCookies(CookieStore store, String... domains)
     {
@@ -174,12 +176,12 @@ public class CookieUtil
             expired.setExpiryDate(new Date(0)); // Expire immediately
             store.addCookie(expired);
         }
+        
+        store.clearExpired(Date.from(Instant.now()));
     }
 
     /**
-     * Check whether cookie domain matches any of the domain suffixes.
-     * "xxx.a.com" matches "a.com"
-     * ".xxx.a.com" also matches "a.com"
+     * Check whether cookie domain matches any of the domain suffixes. "xxx.a.com" matches "a.com" ".xxx.a.com" also matches "a.com"
      */
     private static boolean matchesDomainSuffix(String cookieDomain, Set<String> suffixes)
     {
@@ -191,5 +193,38 @@ public class CookieUtil
                 return true;
         }
         return false;
+    }
+
+    public static BasicClientCookie clone(Cookie original)
+    {
+        if (original instanceof BasicClientCookie)
+        {
+            try
+            {
+                return (BasicClientCookie) ((BasicClientCookie) original).clone();
+            }
+            catch (CloneNotSupportedException e)
+            {
+                throw new RuntimeException("Cloning failed", e);
+            }
+        }
+
+        // Fallback: manual copy (basic fields only)
+        BasicClientCookie copy = new BasicClientCookie(original.getName(), original.getValue());
+        copy.setDomain(original.getDomain());
+        copy.setPath(original.getPath());
+        copy.setExpiryDate(original.getExpiryDate());
+        copy.setSecure(original.isSecure());
+        copy.setVersion(original.getVersion());
+        copy.setComment(original.getComment());
+
+        // Optional: also store attributes explicitly
+        if (Util.False)
+        {
+            copy.setAttribute(ClientCookie.DOMAIN_ATTR, original.getDomain());
+            copy.setAttribute(ClientCookie.PATH_ATTR, original.getPath());
+        }
+
+        return copy;
     }
 }

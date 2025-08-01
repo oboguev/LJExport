@@ -19,6 +19,7 @@ import my.LJExport.Main;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.browserproxy.BrowserProxy;
 import my.LJExport.runtime.http.browserproxy.BrowserProxyFactory;
+import my.LJExport.runtime.http.webaction.WebActions;
 import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.url.UrlUtil;
 
@@ -87,6 +88,8 @@ public class Web
 
     public static final int BINARY = (1 << 0);
     public static final int PROGRESS = (1 << 1);
+    
+    public static String[][] InitialActions;
 
     public static class Response
     {
@@ -177,10 +180,13 @@ public class Web
         if (Config.TrustAnySSLCertificate)
             TrustAnySSL.trustAnySSL();
 
+
+        cookieStore = new BasicCookieStore();
+        WebActions.execute(InitialActions);
+        
         DefaultProxyRoutePlanner routePlanner = null;
         DefaultProxyRoutePlanner routePlannerLivejournal = null;
 
-        cookieStore = new BasicCookieStore();
         lastURL = new ThreadLocal<String>();
         semaphoreArchiveOrg = new Semaphore(Config.WebArchiveOrg_ConcurrenRequests);
 

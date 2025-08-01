@@ -6,7 +6,7 @@ import my.LJExport.runtime.Util;
 
 public class GeckoDriverFinder
 {
-    public static String findGeckoDriverInPath()
+    public static String findGeckoDriverInPath(boolean required)
     {
         String pathEnv = System.getenv("PATH");
         if (pathEnv == null || pathEnv.isEmpty())
@@ -25,6 +25,14 @@ public class GeckoDriverFinder
                 return file.getAbsolutePath();
             }
         }
+        
+        Util.err("");
+        Util.err("Firefox/Mozilla Gecko driver is not found.");
+        Util.err("Download from here: " + "https://github.com/mozilla/geckodriver/releases");
+        Util.err("and install on PATH.");
+        
+        if (required)
+            throw new RuntimeException("Firefox/Mozilla Gecko driver is not found");
 
         return null; // Not found
     }
@@ -32,7 +40,7 @@ public class GeckoDriverFinder
     // Example usage
     public static void main(String[] args)
     {
-        String pathToDriver = findGeckoDriverInPath();
+        String pathToDriver = findGeckoDriverInPath(false);
         if (pathToDriver != null)
         {
             System.out.println("Found geckodriver: " + pathToDriver);

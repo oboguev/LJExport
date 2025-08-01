@@ -14,7 +14,9 @@ public class FirefoxUserAgent
     {
         if (resolvedUserAgent == null)
         {
-            System.setProperty("webdriver.gecko.driver", GeckoDriverFinder.findGeckoDriverInPath());
+            String geckoDriver = System.getProperty("webdriver.gecko.driver");
+            if (geckoDriver == null || geckoDriver.trim().length() == 0)
+                System.setProperty("webdriver.gecko.driver", GeckoDriverFinder.findGeckoDriverInPath(true));
 
             FirefoxOptions options = new FirefoxOptions();
             options.addArguments("-headless");

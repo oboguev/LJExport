@@ -29,10 +29,10 @@ public class MainStylesToLocal
     // private static final String AllUsersFromUser = "kot_begemott";
     private static final String AllUsersFromUser = null;
 
-    // private static final String Users = ALL_USERS;
+    private static final String Users = ALL_USERS;
     // private static final String Users = "oboguev";
     // private static final String Users = "nationalism.org";
-    private static final String Users = "udod99.lj-rossia-org";
+    // private static final String Users = "udod99.lj-rossia-org";
 
     private static final boolean ShowStylesProgress = true;
     private static final boolean DryRun = true;
@@ -49,7 +49,7 @@ public class MainStylesToLocal
             LimitProcessorUsage.limit();
             MemoryMonitor.startMonitor();
             // HttpWireTracing.enable();
-            
+
             do_users(Users);
         }
         catch (Exception ex)
@@ -213,7 +213,8 @@ public class MainStylesToLocal
         if (Config.isLiveJournal())
             styleFallbackDir = Config.DownloadRoot + File.separator + "@livejournal-styles";
         else
-            Util.err(String.format("Processing NOT for LiveJournal (with no styles fallback directory), user %s, site %s", Config.User, Config.Site));
+            Util.err(String.format("Processing NOT for LiveJournal (with no styles fallback directory), user %s, site %s",
+                    Config.User, Config.Site));
 
         if (!which.equals("pages"))
         {

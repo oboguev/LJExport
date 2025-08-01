@@ -325,7 +325,11 @@ public class Config
                     Config.DownloadRoot += ".lj-rossia-org";
                 Web.scheduleActions(MainLJRossiaOrg.getWebActions());
             }
-            
+            else if (User.equals("nationalisn.org"))
+            {
+                Config.UseLogin = false;
+            }
+
             if (executeLogin)
                 Main.do_login();
         }

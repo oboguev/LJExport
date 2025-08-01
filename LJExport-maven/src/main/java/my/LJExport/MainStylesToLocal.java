@@ -213,7 +213,7 @@ public class MainStylesToLocal
         if (Config.isLiveJournal())
             styleFallbackDir = Config.DownloadRoot + File.separator + "@livejournal-styles";
         else
-            Util.err(String.format("Processing NOT for LiveJournal, user %s, site %s", Config.User, Config.Site));
+            Util.err(String.format("Processing NOT for LiveJournal (with no styles fallback directory), user %s, site %s", Config.User, Config.Site));
 
         if (!which.equals("pages"))
         {

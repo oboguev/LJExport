@@ -14,6 +14,7 @@ import org.apache.http.Header;
 import org.apache.http.client.methods.HttpRequestBase;
 
 import my.LJExport.Config;
+import my.LJExport.runtime.Util;
 import my.LJExport.runtime.browsers.BrowserVersion;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.lj.Sites;
@@ -21,6 +22,7 @@ import my.LJExport.runtime.lj.Sites;
 public class WebRequestHeaders
 {
     private static final String UserAgentAcceptFirefox = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+    private static final String UserAgentAcceptFirefox43 = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
     private static final String UserAgentAcceptChrome = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
 
     public static List<KVEntry> defineRequestHeaders(String url, HttpAccessMode httpAccessMode, Map<String, String> appHeaders)
@@ -28,12 +30,15 @@ public class WebRequestHeaders
     {
         if (appHeaders == null)
             appHeaders = Map.of();
-        
+
         String userAgent = appHeaders.get("User-Agent");
         if (userAgent == null)
             userAgent = Config.UserAgent;
 
         BrowserVersion v = BrowserVersion.parse(userAgent);
+
+        if (v.brand.equals("Firefox") && v.version[0] <= 43)
+            return defineFirefox43RequestHeaders(url, httpAccessMode, appHeaders, v);
 
         if (v.brand.equals("Firefox"))
             return defineFirefoxRequestHeaders(url, httpAccessMode, appHeaders, v);
@@ -42,6 +47,38 @@ public class WebRequestHeaders
             return defineChromeRequestHeaders(url, httpAccessMode, appHeaders, v);
 
         throw new Exception("Unsupported user agent: " + userAgent);
+    }
+
+    /* ============================================================================== */
+
+    public static List<KVEntry> defineFirefox43RequestHeaders(String url, HttpAccessMode httpAccessMode,
+            Map<String, String> appHeaders, BrowserVersion browserVersion)
+            throws Exception
+    {
+        String host = new URL(url).getHost().toLowerCase();
+
+        Map<String, String> headerMap = new HashMap<>();
+
+        setHeader(headerMap, "Host", host);
+        setHeader(headerMap, "User-Agent", Config.UserAgent);
+        setHeader(headerMap, "Accept", UserAgentAcceptFirefox43);
+        setHeader(headerMap, "Accept-Language", "en-US,en;q=0.5");
+        setHeader(headerMap, "Accept-Encoding", "gzip, deflate");
+        setHeader(headerMap, "Connection", "keep-alive");
+
+        for (String key : appHeaders.keySet())
+            setHeader(headerMap, key, appHeaders.get(key));
+
+        List<KVEntry> headers = orderHeaders(headerMap,
+                "Host",
+                "User-Agent",
+                "Accept",
+                "Accept-Language",
+                "Accept-Encoding",
+                "Referer",
+                "Connection");
+
+        return headers;
     }
 
     /* ============================================================================== */
@@ -61,7 +98,7 @@ public class WebRequestHeaders
         setHeader(headerMap, "Accept-Language", "en-US,en;q=0.5");
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
-        if (site.equals(Sites.Livejournal))
+        if (site.equals(Sites.Livejournal) && Util.False)
             setHeader(headerMap, "Accept-Encoding", "gzip, deflate, br, zstd");
         else
             setHeader(headerMap, "Accept-Encoding", "gzip, deflate");
@@ -78,7 +115,7 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Sec-Fetch-Dest", "document");
         setHeader(headerMap, "Sec-Fetch-Mode", "navigate");
-        
+
         String secFetchSite = secFetchSite(url, appHeaders.get("Referer"));
         setHeader(headerMap, "Sec-Fetch-Site", secFetchSite);
 
@@ -140,7 +177,7 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Sec-Fetch-Dest", "document");
         setHeader(headerMap, "Sec-Fetch-Mode", "navigate");
-        
+
         String secFetchSite = secFetchSite(url, appHeaders.get("Referer"));
         setHeader(headerMap, "Sec-Fetch-Site", secFetchSite);
 
@@ -150,6 +187,7 @@ public class WebRequestHeaders
         String sec_ch_ua = String.format("\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"%d\", \"Google Chrome\";v=\"%d\"",
                 majorVersion,
                 majorVersion);
+        setHeader(headerMap, "sec-ch-ua", sec_ch_ua);
 
         setHeader(headerMap, "sec-ch-ua-mobile", "?0");
         setHeader(headerMap, "sec-ch-ua-platform", "\"Windows\"");

@@ -132,15 +132,12 @@ public class Config
     public static boolean ScrapingArchiveOrg = false;
 
     public static final Map<String, HttpAccessMode> HttpAccessModes = Map.of(
-            Sites.Livejournal, HttpAccessMode.DIRECT,
+            Sites.Livejournal, HttpAccessMode.NO_ACCESS,
             Sites.DreamwidthOrg, HttpAccessMode.DIRECT,
             Sites.OlegMakarenko, HttpAccessMode.DIRECT,
             Sites.RossiaOrg, HttpAccessMode.DIRECT,
             Sites.ArchiveOrg, HttpAccessMode.DIRECT,
             Sites.Other, HttpAccessMode.DIRECT);
-
-    public static HttpAccessMode LiveJournalAccessMode = HttpAccessMode.NO_ACCESS;
-    public static HttpAccessMode DreamwidthAccessMode = HttpAccessMode.DIRECT;
 
     public static boolean UseFiddler = false;
     public static final String FiddlerTrustStore = null;

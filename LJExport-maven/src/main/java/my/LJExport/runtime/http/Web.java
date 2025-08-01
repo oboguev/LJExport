@@ -1,11 +1,7 @@
 package my.LJExport.runtime.http;
 
-import java.io.*;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.NoHttpResponseException;
@@ -63,12 +59,6 @@ import java.util.concurrent.Semaphore;
 import java.util.function.IntPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import org.brotli.dec.BrotliInputStream;
-import io.airlift.compress.zstd.ZstdInputStream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -1181,33 +1171,6 @@ public class Web
         return false;
     }
 
-    private static byte[] toByteArray(InputStream input) throws IOException
-    {
-        if (input == null)
-            throw new IllegalArgumentException("Input stream must not be null");
-
-        if (Util.False)
-        {
-            return IOUtils.toByteArray(input);
-
-        }
-        else
-        {
-            final int BUFFER_SIZE = 64 * 1024; // 64KB buffer
-
-            try (ByteArrayOutputStream output = new ByteArrayOutputStream(2 * BUFFER_SIZE))
-            {
-                byte[] buffer = new byte[BUFFER_SIZE];
-                int bytesRead;
-
-                while ((bytesRead = input.read(buffer)) != -1)
-                    output.write(buffer, 0, bytesRead);
-
-                return output.toByteArray();
-            }
-        }
-    }
-
     /* ================================================================================= */
 
     // Custom HttpEntity to track download progress
@@ -1335,59 +1298,6 @@ public class Web
         }
 
         return connManager;
-    }
-
-    /* ============================================================================== */
-
-    public static void decompress(Response r) throws Exception
-    {
-        if (r == null || r.binaryBody == null || r.binaryBody.length == 0)
-            return;
-
-        String encoding = r.getHeader("Content-Encoding");
-        if (encoding == null)
-            return;
-
-        encoding = encoding.trim().toLowerCase();
-
-        InputStream decodedStream = null;
-        switch (encoding)
-        {
-        case "br":
-            decodedStream = new BrotliInputStream(new ByteArrayInputStream(r.binaryBody));
-            break;
-
-        case "zstd":
-            decodedStream = new ZstdInputStream(new ByteArrayInputStream(r.binaryBody));
-            break;
-
-        default:
-            // gzip and deflate are already handled by Apache, so ignore them
-            // Apache HttpClient v4 auto-decompresses gzip/deflate unless configured otherwise
-            return;
-        }
-
-        try (InputStream in = decodedStream)
-        {
-            r.binaryBody = readAllBytes(in);
-        }
-
-        // Optionally clear encoding to reflect that body is now decoded
-        // You can also leave it as-is if you want to preserve raw headers
-        // r.removeHeader("Content-Encoding");
-    }
-
-    private static byte[] readAllBytes(InputStream in) throws Exception
-    {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        byte[] buf = new byte[8192];
-        int len;
-
-        while ((len = in.read(buf)) != -1)
-            out.write(buf, 0, len);
-
-        return out.toByteArray();
     }
 
     /* ============================================================================== */

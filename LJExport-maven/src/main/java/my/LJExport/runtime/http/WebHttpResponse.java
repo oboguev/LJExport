@@ -125,13 +125,10 @@ public class WebHttpResponse implements Closeable, AutoCloseable
 
             URI finalUrl;
             if (redirects != null && !redirects.isEmpty())
-            {
                 finalUrl = URIUtils.resolve(request.getURI(), target, redirects);
-            }
             else
-            {
                 finalUrl = request.getURI();
-            }
+            
             return  finalUrl.toString();
         }
     }

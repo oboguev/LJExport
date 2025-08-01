@@ -157,49 +157,53 @@ public class SmartLinkDownloader
         ResponseAnalysis an = isGoodResponse(image, href, r);
         if (an.isGood)
             return r;
-
-        if (!FileTypeDetector.isHtmlExtension(an.serverExt) || r.textBody() == null)
-            return null;
-
-        /*
-         * archive.org snapshot for image URLs lead to if_ pages, 
-         * which are HTML pahes with one IMG tag to archive.org im_ resource
-         * 
-         * For example, snapshot may contain a link to 
-         *     https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG
-         * which is an HTML file with IMG.SRC link to    
-         *     https://web.archive.org/web/20231201081812im_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600/CheKa.JPG
         
-         * We should follow it.
-         * The same can also happen in other situation when a link is provided to HTML page that links to a single IMG.
-         */
-        PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
-        try
+        if (image)
         {
-            parser.parseHtml(r.textBody());
+            /*
+             * archive.org snapshot for image URLs lead to if_ pages, 
+             * which are HTML pahes with one IMG tag to archive.org im_ resource
+             * 
+             * For example, snapshot may contain a link to 
+             *     https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG
+             * which is an HTML file with IMG.SRC link to    
+             *     https://web.archive.org/web/20231201081812im_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600/CheKa.JPG
+            
+             * We should follow it.
+             * The same can also happen in other situation when a link is provided to HTML page that links to a single IMG.
+             */
+            
+            if (!FileTypeDetector.isHtmlExtension(an.serverExt) || r.textBody() == null)
+                return null;
+
+            PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
+            try
+            {
+                parser.parseHtml(r.textBody());
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+            List<Node> vn = JSOUP.findElements(parser.pageRoot, "img");
+            vn = eliminateStaticArchiveOrgImages(vn);
+            if (vn.size() != 1)
+                return null;
+
+            String src = JSOUP.getAttribute(vn.get(0), "src");
+            src = UrlUtil.decodeHtmlAttrLink(src);
+            if (src == null || src.startsWith("data:"))
+                return null;
+            src = Util.resolveURL(href, src);
+            r = LinkRedownloader.redownload(image, src, referer);
+            if (r == null)
+                return null;
+
+            an = isGoodResponse(image, href, r);
+            if (an.isGood)
+                return r;
         }
-        catch (Exception ex)
-        {
-            return null;
-        }
-
-        List<Node> vn = JSOUP.findElements(parser.pageRoot, "img");
-        vn = eliminateStaticArchiveOrgImages(vn);
-        if (vn.size() != 1)
-            return null;
-
-        String src = JSOUP.getAttribute(vn.get(0), "src");
-        src = UrlUtil.decodeHtmlAttrLink(src);
-        if (src == null || src.startsWith("data:"))
-            return null;
-        src = Util.resolveURL(href, src);
-        r = LinkRedownloader.redownload(image, src, referer);
-        if (r == null)
-            return null;
-
-        an = isGoodResponse(image, href, r);
-        if (an.isGood)
-            return r;
 
         return null;
     }
@@ -292,8 +296,11 @@ public class SmartLinkDownloader
             Config.mangleUser();
             Config.autoconfigureSite(false);
 
-            String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "crisis_of_democracy.pdf";
-            String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
+            // String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
+            // String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "crisis_of_democracy.pdf";
+            
+            String href = "http://www.trumanlibrary.org/whistlestop/study_collections/coldwar/documents/pdf/4-1.pdf";
+            String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "4-1.pdf";
 
             // String href = "https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";
             // String href = "https://web.archive.org/web/20231201081812/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";

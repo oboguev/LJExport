@@ -683,7 +683,7 @@ public class Web
         if (charset != null)
             return new String(r.binaryBody, charset);
 
-        if (r.actualCharset.equalsIgnoreCase("utf-8-sig"))
+        if (r.actualCharset != null && r.actualCharset.equalsIgnoreCase("utf-8-sig"))
             return decodeUtf8Sig(r.binaryBody);
 
         return new String(r.binaryBody, StandardCharsets.UTF_8);

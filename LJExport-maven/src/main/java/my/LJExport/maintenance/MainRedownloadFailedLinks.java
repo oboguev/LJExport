@@ -64,7 +64,7 @@ public class MainRedownloadFailedLinks
     /* =============================================================================== */
 
     /* we can use large number of threads because they usually are network IO bound */
-    private static final int NWorkThreadsDownload = 1 /*300*/;
+    private static final int NWorkThreadsDownload = 20; /* 300 */
     private static final int NMaxWorkThreadsHtmlFiles = 70;
     private static final int MaxConnectionsPerRoute = 10;
 
@@ -455,7 +455,7 @@ public class MainRedownloadFailedLinks
                 synchronized (kvset_remaining)
                 {
                     kvset_remaining.remove(new IdentityWrapper<>(entry));
-                    if ((ncompleted % 20) == 0)
+                    if ((ncompleted % 10) == 0)
                         saveControlFile(false);
                 }
             }
@@ -652,7 +652,7 @@ public class MainRedownloadFailedLinks
     {
         SmartLinkDownloader smartLinkRedownloader = new SmartLinkDownloader(linksDir);
         smartLinkRedownloader.useArchiveOrg(UseArchiveOrg);
-        
+
         if (!ShouldDownload.shouldDownload(image, url))
         {
             Util.out("Skipping " + url);
@@ -667,8 +667,8 @@ public class MainRedownloadFailedLinks
 
         if (failedUrls.contains(url))
         {
-            Util.err(
-                    String.format("Quitting [%s] link file %s, previosuly failed url: %s", Config.User, relativeLinkFilePath, url));
+            Util.err(String.format("Quitting [%s] link file %s, previosuly failed url: %s",
+                    Config.User, relativeLinkFilePath, url));
             return false;
         }
 

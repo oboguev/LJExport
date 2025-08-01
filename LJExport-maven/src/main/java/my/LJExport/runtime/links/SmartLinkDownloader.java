@@ -174,11 +174,20 @@ public class SmartLinkDownloader
          * The same can also happen in other situation when a link is provided to HTML page that links to a single IMG.
          */
         PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
-        parser.parseHtml(r.textBody());
+        try
+        {
+            parser.parseHtml(r.textBody());
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
+
         List<Node> vn = JSOUP.findElements(parser.pageRoot, "img");
         vn = eliminateStaticArchiveOrgImages(vn);
         if (vn.size() != 1)
             return null;
+        
         String src = JSOUP.getAttribute(vn.get(0), "src");
         src = UrlUtil.decodeHtmlAttrLink(src);
         if (src == null)
@@ -283,13 +292,12 @@ public class SmartLinkDownloader
             Config.mangleUser();
             Config.autoconfigureSite(false);
 
-            
             String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "crisis_of_democracy.pdf";
             String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
-            
+
             // String href = "https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";
             // String href = "https://web.archive.org/web/20231201081812/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";
-            
+
             SmartLinkDownloader self = new SmartLinkDownloader(null);
             boolean b = self.redownloadToAbsoluteFile(false, href, fullFllePath, null, null);
             Util.unused(b);

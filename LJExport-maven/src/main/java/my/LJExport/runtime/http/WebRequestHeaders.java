@@ -1,5 +1,7 @@
 package my.LJExport.runtime.http;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,18 +33,18 @@ public class WebRequestHeaders
         BrowserVersion v = BrowserVersion.parse(userAgent);
 
         if (v.equals("Firefox"))
-            return defineFirefoxRequestHeaders(url, httpAccessMode, appHeaders);
-        
+            return defineFirefoxRequestHeaders(url, httpAccessMode, appHeaders, v);
+
         if (v.equals("Chrome"))
-            return defineChromeRequestHeaders(url, httpAccessMode, appHeaders);
-        
+            return defineChromeRequestHeaders(url, httpAccessMode, appHeaders, v);
+
         throw new Exception("Unsupported user agent: " + userAgent);
     }
 
     /* ============================================================================== */
 
     public static List<KVEntry> defineFirefoxRequestHeaders(String url, HttpAccessMode httpAccessMode,
-            Map<String, String> appHeaders)
+            Map<String, String> appHeaders, BrowserVersion browserVersion)
             throws Exception
     {
         String site = Sites.which(url);
@@ -73,7 +75,10 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Sec-Fetch-Dest", "document");
         setHeader(headerMap, "Sec-Fetch-Mode", "navigate");
-        setHeader(headerMap, "Sec-Fetch-Site", "none");
+        
+        String secFetchSite = secFetchSite(url, appHeaders.get("Referer"));
+        setHeader(headerMap, "Sec-Fetch-Site", secFetchSite);
+
         setHeader(headerMap, "Sec-Fetch-User", "?1");
 
         for (String key : appHeaders.keySet())
@@ -101,7 +106,7 @@ public class WebRequestHeaders
     /* ============================================================================== */
 
     public static List<KVEntry> defineChromeRequestHeaders(String url, HttpAccessMode httpAccessMode,
-            Map<String, String> appHeaders)
+            Map<String, String> appHeaders, BrowserVersion browserVersion)
             throws Exception
     {
         String site = Sites.which(url);
@@ -132,13 +137,19 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Sec-Fetch-Dest", "document");
         setHeader(headerMap, "Sec-Fetch-Mode", "navigate");
-        setHeader(headerMap, "Sec-Fetch-Site", "none"); // ### same-origin if referer
+        
+        String secFetchSite = secFetchSite(url, appHeaders.get("Referer"));
+        setHeader(headerMap, "Sec-Fetch-Site", secFetchSite);
+
         setHeader(headerMap, "Sec-Fetch-User", "?1");
 
-        // ### sec-ch-ua
+        int majorVersion = browserVersion.version[0];
+        String sec_ch_ua = String.format("\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"%d\", \"Google Chrome\";v=\"%d\"",
+                majorVersion,
+                majorVersion);
 
         setHeader(headerMap, "sec-ch-ua-mobile", "?0");
-        setHeader(headerMap, "sec-ch-ua-platform", "Windows");
+        setHeader(headerMap, "sec-ch-ua-platform", "\"Windows\"");
 
         for (String key : appHeaders.keySet())
             setHeader(headerMap, key, appHeaders.get(key));
@@ -222,5 +233,96 @@ public class WebRequestHeaders
 
         for (KVEntry e : headers)
             request.setHeader(e.key, e.value);
+    }
+
+    /* ============================================================================== */
+
+    /**
+     * Determines the appropriate Sec-Fetch-Site value based on target and referer.
+     * 
+     * @param targetUrl
+     *            the URL of the requested resource
+     * @param referer
+     *            the URL of the document making the request (can be null)
+     * @return "none", "same-origin", "same-site", or "cross-site"
+     */
+    public static String secFetchSite(String targetUrl, String referer)
+    {
+        if (referer == null || referer.isEmpty())
+        {
+            return "none";
+        }
+
+        try
+        {
+            URI target = new URI(targetUrl);
+            URI source = new URI(referer);
+
+            // Compare origin (scheme + host + port)
+            if (sameOrigin(target, source))
+            {
+                return "same-origin";
+            }
+
+            // Compare site (registrable domain)
+            if (sameSite(target.getHost(), source.getHost()))
+            {
+                return "same-site";
+            }
+
+            return "cross-site";
+
+        }
+        catch (URISyntaxException e)
+        {
+            return "none"; // fall back to safest option
+        }
+    }
+
+    private static boolean sameOrigin(URI u1, URI u2)
+    {
+        return u1.getScheme().equalsIgnoreCase(u2.getScheme()) &&
+                u1.getHost().equalsIgnoreCase(u2.getHost()) &&
+                getPort(u1) == getPort(u2);
+    }
+
+    private static int getPort(URI uri)
+    {
+        int port = uri.getPort();
+        if (port != -1)
+            return port;
+        return uri.getScheme().equalsIgnoreCase("https") ? 443 : 80;
+    }
+
+    /**
+     * Basic heuristic: compares eTLD+1 by stripping subdomains. For full accuracy, use a public suffix list (like via Google Guava
+     * or Mozilla PSL).
+     */
+    private static boolean sameSite(String h1, String h2)
+    {
+        return getRegistrableDomain(h1).equalsIgnoreCase(getRegistrableDomain(h2));
+    }
+
+    /**
+     * Very naive registrable domain extractor: takes last two labels. Replace with public suffix list logic for production-grade
+     * use.
+     */
+    private static String getRegistrableDomain(String host)
+    {
+        if (host == null)
+            return "";
+        String[] parts = host.toLowerCase().split("\\.");
+        if (parts.length < 2)
+            return host;
+        return parts[parts.length - 2] + "." + parts[parts.length - 1];
+    }
+
+    // Test
+    public static void main(String[] args)
+    {
+        System.out.println(secFetchSite("https://example.com/page", null)); // none
+        System.out.println(secFetchSite("https://example.com/page", "https://example.com/start")); // same-origin
+        System.out.println(secFetchSite("https://a.example.com/page", "https://b.example.com/start")); // same-site
+        System.out.println(secFetchSite("https://example.com", "https://other.com")); // cross-site
     }
 }

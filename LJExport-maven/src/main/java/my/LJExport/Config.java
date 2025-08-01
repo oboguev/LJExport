@@ -37,14 +37,14 @@ public class Config
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    // public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
-    public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
+    // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
     // public static final YYYY_MM LoadTill = null;
-    public static final YYYY_MM LoadSince = new YYYY_MM(2010, 1);
-    public static final YYYY_MM LoadTill = new YYYY_MM(2012, 2);
+    public static final YYYY_MM LoadSince = new YYYY_MM(2002, 1);
+    public static final YYYY_MM LoadTill = new YYYY_MM(2002, 3);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;
@@ -130,19 +130,17 @@ public class Config
     public static boolean RandomizeLoadOrder = true;
     public static final int StableIntevral = 3000;
     public static boolean ScrapingArchiveOrg = false;
-    
+
     public static final Map<String, HttpAccessMode> HttpAccessModes = Map.of(
             Sites.Livejournal, HttpAccessMode.NO_ACCESS,
             Sites.DreamwidthOrg, HttpAccessMode.DIRECT,
             Sites.OlegMakarenko, HttpAccessMode.DIRECT,
             Sites.RossiaOrg, HttpAccessMode.DIRECT,
             Sites.ArchiveOrg, HttpAccessMode.DIRECT,
-            Sites.Other, HttpAccessMode.DIRECT
-            );
-    
-    public static HttpAccessMode LiveJournalAccessMode = HttpAccessMode.NO_ACCESS;  
-    public static HttpAccessMode DreamwidthAccessMode = HttpAccessMode.DIRECT;  
-    
+            Sites.Other, HttpAccessMode.DIRECT);
+
+    public static HttpAccessMode LiveJournalAccessMode = HttpAccessMode.NO_ACCESS;
+    public static HttpAccessMode DreamwidthAccessMode = HttpAccessMode.DIRECT;
 
     public static boolean UseFiddler = false;
     public static final String FiddlerTrustStore = null;

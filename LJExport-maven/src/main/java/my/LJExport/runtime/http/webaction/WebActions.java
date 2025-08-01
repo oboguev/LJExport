@@ -16,12 +16,18 @@ public class WebActions
 {
     public static void execute(String[][] actions) throws Exception
     {
-        for (String[] action : actions)
-            execute(action);
+        if (actions != null)
+        {
+            for (String[] action : actions)
+                execute(action);
+        }
     }
 
     public static void execute(String[] action) throws Exception
     {
+        if (action == null)
+            return;
+        
         List<String> args = Arrays.asList(action);
         if (args.size() == 0)
             throw new Exception("Missing action verb");

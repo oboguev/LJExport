@@ -19,7 +19,7 @@ public class LoginLivejournal
         Config.acquireLoginPassword();
         
         // ### implement new login
-        if (Util.True)
+        if (Util.True) // ###
             throw new Exception("Unimplemented");
 
         Web.Response r = null;

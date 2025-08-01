@@ -26,16 +26,19 @@ public class WebRequestHeaders
     public static List<KVEntry> defineRequestHeaders(String url, HttpAccessMode httpAccessMode, Map<String, String> appHeaders)
             throws Exception
     {
+        if (appHeaders == null)
+            appHeaders = Map.of();
+        
         String userAgent = appHeaders.get("User-Agent");
         if (userAgent == null)
             userAgent = Config.UserAgent;
 
         BrowserVersion v = BrowserVersion.parse(userAgent);
 
-        if (v.equals("Firefox"))
+        if (v.brand.equals("Firefox"))
             return defineFirefoxRequestHeaders(url, httpAccessMode, appHeaders, v);
 
-        if (v.equals("Chrome"))
+        if (v.brand.equals("Chrome"))
             return defineChromeRequestHeaders(url, httpAccessMode, appHeaders, v);
 
         throw new Exception("Unsupported user agent: " + userAgent);

@@ -452,6 +452,17 @@ public class Web
         initializing = false;
         initialized = false;
     }
+    
+    public static synchronized void scheduleActions(String[][] actions) throws Exception
+    {
+        if (initializing)
+            throw new Exception("Web is partially initialized ");
+        
+        if (initialized)
+            WebActions.execute(actions);
+        else
+            InitialActions = actions;            
+    }
 
     public static void threadExit()
     {

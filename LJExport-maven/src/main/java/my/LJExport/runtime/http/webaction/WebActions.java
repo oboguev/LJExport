@@ -1,5 +1,6 @@
 package my.LJExport.runtime.http.webaction;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,6 +15,8 @@ import my.LJExport.runtime.http.cookies.CookieUtil;
 
 public class WebActions
 {
+    public static List<List<String>> history = new ArrayList<>();
+
     public static void execute(String[][] actions) throws Exception
     {
         if (actions != null)
@@ -27,13 +30,28 @@ public class WebActions
     {
         if (action == null)
             return;
-        
-        // ### ONCE/REPEAT
-        // ### record
-        
+
         List<String> args = Arrays.asList(action);
-        if (args.size() == 0)
-            throw new Exception("Missing action verb");
+        if (args.size() < 2)
+            throw new Exception("Missing action repeat setting and/or verb");
+
+        String repeat = args.remove(0);
+
+        switch (repeat)
+        {
+        case WebAction.ONCE:
+            if (historyContains(args))
+                return;
+            break;
+
+        case WebAction.REPEAT:
+            break;
+
+        default:
+            throw new Exception("Incorrect repeat mode in action");
+        }
+
+        addHistory(args);
 
         String verb = args.remove(0);
 
@@ -47,16 +65,29 @@ public class WebActions
             loadFirefoxCookies(verb, args);
             break;
 
+        case WebAction.UseLogin:
+            useLogin(verb, args);
+
         default:
             throw new Exception("Unknown action verb: " + verb);
         }
     }
-    
+
+    private static void addHistory(List<String> action)
+    {
+        history.add(new ArrayList<>(action));
+    }
+
+    private static boolean historyContains(List<String> action)
+    {
+        return history.contains(action);
+    }
+
     public static void clearHistory()
     {
-        // ####
+        history.clear();
     }
-    
+
     /* =========================================================================================== */
 
     private static void loadFirefoxUserAgent(String verb, List<String> args) throws Exception
@@ -86,5 +117,16 @@ public class WebActions
                 CookieUtil.copySelectCookies(from, to, domain);
             }
         }
+    }
+
+    /* =========================================================================================== */
+
+    private static void useLogin(String verb, List<String> args) throws Exception
+    {
+        if (args.size() != 1)
+            throw new Exception("Invalid arguments for action " + verb);
+
+        boolean useLogin = Boolean.parseBoolean(args.get(0));
+        Config.UseLogin = useLogin;
     }
 }

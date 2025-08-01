@@ -24,7 +24,6 @@ import my.LJExport.Main;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.browserproxy.BrowserProxy;
 import my.LJExport.runtime.http.browserproxy.BrowserProxyFactory;
-import my.LJExport.runtime.http.response.ProgressHttpEntity;
 import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.url.UrlUtil;
 
@@ -607,15 +606,13 @@ public class Web
             r.code = 503;
             return r;
         }
-        
-        BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);  
 
-        // ####
+        BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);
 
         HttpGet request = new HttpGet(url);
         setCommon(request, headers);
         HttpClientContext context = HttpClientContext.create();
-        CloseableHttpResponse response = null;
+        WebHttpResponse response = null;
 
         ActivityCounters.startedWebRequest();
         if (isRequest_LJPage)
@@ -624,34 +621,34 @@ public class Web
         if (Main.isAborting())
             throw new Exception("Application is aborting");
 
-        if (isArchiveOrg)
-        {
-            semaphoreArchiveOrg.acquire();
-
-            if (Main.isAborting())
-            {
-                semaphoreArchiveOrg.release();
-                throw new Exception("Application is aborting");
-            }
-
-            cooloffArchiveOrg.waitIfCoolingOff();
-
-            if (Main.isAborting())
-            {
-                semaphoreArchiveOrg.release();
-                throw new Exception("Application is aborting");
-            }
-        }
+        boolean acquiredArchiveOrgSemaphore = false;
 
         try
         {
-            response = client.execute(request, context);
-            r.code = response.getStatusLine().getStatusCode();
+            if (isArchiveOrg)
+            {
+                semaphoreArchiveOrg.acquire();
+                acquiredArchiveOrgSemaphore = true;
+
+                if (Main.isAborting())
+                    throw new Exception("Application is aborting");
+
+                cooloffArchiveOrg.waitIfCoolingOff();
+
+                if (Main.isAborting())
+                    throw new Exception("Application is aborting");
+            }
+
+            response = new WebHttpResponse(client.execute(request, context));
+            r.code = response.getStatusCode();
 
             if (isArchiveOrg && r.code == 429)
             {
                 do
                 {
+                    response.close();
+                    response = null;
+
                     if (Main.isAborting())
                         throw new Exception("Application is aborting");
 
@@ -661,21 +658,13 @@ public class Web
                     if (Main.isAborting())
                         throw new Exception("Application is aborting");
 
-                    response = client.execute(request, context);
-                    r.code = response.getStatusLine().getStatusCode();
+                    response = new WebHttpResponse(client.execute(request, context));
+                    r.code = response.getStatusCode();
                 }
                 while (r.code == 429);
             }
-        }
-        finally
-        {
-            if (isArchiveOrg)
-                semaphoreArchiveOrg.release();
-        }
 
-        try
-        {
-            r.reason = response.getStatusLine().getReasonPhrase();
+            r.reason = response.getStatusReasonPhrase();
             r.setFinalUrl(request, context, url);
             if (response.containsHeader("Location"))
                 r.redirectLocation = response.getFirstHeader("Location").getValue();
@@ -683,58 +672,23 @@ public class Web
                 r.contentType = response.getFirstHeader("Content-Type").getValue();
             r.headers = response.getAllHeaders();
             r.charset = r.extractCharset(false);
+            r.binaryBody = response.getBinaryBody(shouldLoadBody, progress);
+            if (!binary)
+                r.body = textBodyFromBinaryBody(r);
 
-            if (shouldLoadBody == null || shouldLoadBody.test(r.code))
-            {
-                HttpEntity entity = response.getEntity();
-
-                if (entity != null)
-                {
-                    InputStream entityStream = null;
-                    BufferedReader brd = null;
-
-                    try
-                    {
-                        if (binary && progress)
-                        {
-                            long totalBytes = entity.getContentLength();
-                            ProgressHttpEntity progressEntity = new ProgressHttpEntity(entity, totalBytes);
-                            entityStream = progressEntity.getContent();
-                            r.binaryBody = toByteArray(entityStream);
-                            decompress(r);
-                        }
-                        else if (binary)
-                        {
-                            entityStream = entity.getContent();
-                            r.binaryBody = toByteArray(entityStream);
-                            decompress(r);
-                        }
-                        else
-                        {
-                            entityStream = entity.getContent();
-                            r.binaryBody = toByteArray(entityStream);
-                            decompress(r);
-                            r.body = textBodyFromBinaryBody(r);
-                        }
-                    }
-                    finally
-                    {
-                        if (brd != null)
-                            brd.close();
-                        if (entityStream != null)
-                            entityStream.close();
-                    }
-                }
-            }
+            return r;
         }
         finally
         {
-            if (isArchiveOrg)
+            if (acquiredArchiveOrgSemaphore)
+            {
                 semaphoreArchiveOrg.release();
-            response.close();
-        }
+                acquiredArchiveOrgSemaphore = false;
+            }
 
-        return r;
+            if (response != null)
+                response.close();
+        }
     }
 
     private static String textBodyFromBinaryBody(Response r) throws Exception
@@ -813,7 +767,7 @@ public class Web
             return r;
         }
 
-        BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);  
+        BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);
 
         HttpPost request = new HttpPost(url);
         setCommon(request, null);

@@ -9,6 +9,11 @@
       - get coookies
       - get useragent string
       - get Sec-Ch-Ua header
+      - final URL
+      - compression
+      
+- node.js proxy      
+      - final URL
 
 - make MainDownloadLinks with option to download from the archive
 

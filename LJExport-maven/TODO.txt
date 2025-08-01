@@ -11,9 +11,13 @@
       - get Sec-Ch-Ua header
       - final URL
       - compression
+      - list of supported compressions Accept-Encoding
+      - list of other standard header values
       
 - node.js proxy      
       - final URL
+      - list of supported compressions Accept-Encoding
+      - list of other standard header values
 
 - make MainDownloadLinks with option to download from the archive
 

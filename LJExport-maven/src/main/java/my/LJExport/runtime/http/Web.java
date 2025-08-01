@@ -88,7 +88,7 @@ public class Web
 
     public static final int BINARY = (1 << 0);
     public static final int PROGRESS = (1 << 1);
-    
+
     public static String[][] InitialActions;
 
     public static class Response
@@ -180,10 +180,9 @@ public class Web
         if (Config.TrustAnySSLCertificate)
             TrustAnySSL.trustAnySSL();
 
-
         cookieStore = new BasicCookieStore();
         WebActions.execute(InitialActions);
-        
+
         DefaultProxyRoutePlanner routePlanner = null;
         DefaultProxyRoutePlanner routePlannerLivejournal = null;
 
@@ -524,6 +523,10 @@ public class Web
             throws Exception
     {
         HttpAccessMode httpAccessMode = HttpAccessMode.forUrl(url);
+
+        if (httpAccessMode == HttpAccessMode.DIRECT_VIA_HTTP)
+            url = "http://" + Util.stripProtocol(url);
+
         url = UrlUtil.encodeUrlForApacheWire(url);
 
         final boolean binary = 0 != (flags & BINARY);
@@ -567,7 +570,7 @@ public class Web
         BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);
 
         HttpGet request = new HttpGet(url);
-        setCommon(url, request, headers);
+        setCommon(url, httpAccessMode, request, headers);
         HttpClientContext context = HttpClientContext.create();
         WebHttpResponse response = null;
 
@@ -696,6 +699,10 @@ public class Web
         final IntPredicate shouldLoadBody = null;
 
         HttpAccessMode httpAccessMode = HttpAccessMode.forUrl(url);
+
+        if (httpAccessMode == HttpAccessMode.DIRECT_VIA_HTTP)
+            url = "http://" + Util.stripProtocol(url);
+
         url = UrlUtil.encodeUrlForApacheWire(url);
 
         CloseableHttpClient client = httpClientOther;
@@ -731,7 +738,7 @@ public class Web
         BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);
 
         HttpPost request = new HttpPost(url);
-        setCommon(url, request, null);
+        setCommon(url, httpAccessMode, request, null);
         request.setHeader("Content-Type", "application/x-www-form-urlencoded");
         request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
 
@@ -768,7 +775,8 @@ public class Web
         }
     }
 
-    private static void setCommon(String url, HttpRequestBase request, Map<String, String> headers) throws Exception
+    private static void setCommon(String url, HttpAccessMode httpAccessMode, HttpRequestBase request, Map<String, String> headers)
+            throws Exception
     {
         String site = Sites.which(url);
 
@@ -784,7 +792,8 @@ public class Web
 
         // setHeader(request, headers, "Cache-Control", "no-cache");
         // setHeader(request, headers, "Pragma", "no-cache");
-        setHeader(request, headers, "Upgrade-Insecure-Requests", "1");
+        if (httpAccessMode != HttpAccessMode.DIRECT_VIA_HTTP)
+            setHeader(request, headers, "Upgrade-Insecure-Requests", "1");
         setHeader(request, headers, "Priority", "u=0, i");
         setHeader(request, headers, "Sec-GPC", "1");
         setHeader(request, headers, "Connection", "keep-alive");
@@ -873,6 +882,10 @@ public class Web
             throws Exception
     {
         HttpAccessMode httpAccessMode = HttpAccessMode.forUrl(url);
+
+        if (httpAccessMode == HttpAccessMode.DIRECT_VIA_HTTP)
+            url = "http://" + Util.stripProtocol(url);
+
         url = UrlUtil.encodeUrlForApacheWire(url);
 
         if (referer != null)
@@ -921,7 +934,7 @@ public class Web
             return null;
 
         HttpGet request = new HttpGet(url);
-        setCommon(url, request, headers);
+        setCommon(url, httpAccessMode, request, headers);
 
         ActivityCounters.startedWebRequest();
 

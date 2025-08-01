@@ -5,7 +5,20 @@ import my.LJExport.runtime.lj.Sites;
 
 public enum HttpAccessMode
 {
-    DIRECT, NO_ACCESS, PROXY_NODEJS, PROXY_CDP;
+    /* disable access */
+    NO_ACCESS, 
+
+    /* normal direct access via Apache client */
+    DIRECT, 
+
+    /* direct access via Apache client, but downgrade HTTPS to HTTP */
+    DIRECT_VIA_HTTP, 
+
+    /* route via BrowserProxyNodeJS */
+    PROXY_NODEJS, 
+
+    /* route via BrowserProxyCDP */
+    PROXY_CDP;
 
     public static HttpAccessMode forUrl(String url) throws Exception
     {

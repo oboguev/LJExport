@@ -31,3 +31,14 @@
 - unresolved FailedLinks.txt -> revert a.href and img.src to the link
 
 - implement new LJ login
+
+================================================
+
+Options:
+
+- via HTTP
+- via Fiddler
+- via JS proxy
+- via CDP proxy
+- reshuffle Java TLS stack (cyphers, curves etc.)
+- wget/curl i.e. any other stack

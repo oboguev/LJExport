@@ -9,7 +9,6 @@ public class BrowserProxyFactory
         if (httpAccessMode == null || !httpAccessMode.isBrowserProxy())
             return null;
         
-        // ###
-        return null;
+        throw new RuntimeException("Proxy is not implemente yet"); //###
     }
 }

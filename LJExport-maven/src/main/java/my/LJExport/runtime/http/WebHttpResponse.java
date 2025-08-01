@@ -5,24 +5,39 @@ import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
 import java.util.function.IntPredicate;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIUtils;
 import org.brotli.dec.BrotliInputStream;
 
 import io.airlift.compress.zstd.ZstdInputStream;
+import my.LJExport.Main;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.response.ProgressHttpEntity;
 
 public class WebHttpResponse implements Closeable, AutoCloseable
 {
-    private CloseableHttpResponse cresp;
+    private final String url;
 
-    WebHttpResponse(CloseableHttpResponse cresp)
+    private CloseableHttpResponse cresp;
+    private final HttpUriRequest request;
+    private final HttpClientContext context;
+
+    public WebHttpResponse(String url, HttpUriRequest request, HttpClientContext context, CloseableHttpResponse cresp)
     {
+        this.url = url;
+        this.request = request;
+        this.context = context;
         this.cresp = cresp;
     }
 
@@ -75,16 +90,63 @@ public class WebHttpResponse implements Closeable, AutoCloseable
         else
             throw new RuntimeException("No wrapped HTTP response");
     }
+    
+    /* ======================================================================================= */
+    
+    public String getFinalUrl() throws Exception
+    {
+        if (cresp != null)
+            return apacheGetFinalUrl();
+        else
+            throw new RuntimeException("No wrapped HTTP response");
+    }
+
+    private String apacheGetFinalUrl() throws Exception
+    {
+        if (Util.False)
+        {
+            HttpRequest finalRequest = context.getRequest();
+            if (finalRequest instanceof HttpUriRequest)
+            {
+                URI finalUrl = ((HttpUriRequest) finalRequest).getURI();
+                return finalUrl.toString();
+                /* URI only without host */
+            }
+            else
+            {
+                Main.err("Cannot determine final URI from request type: " + finalRequest.getClass());
+                return url;
+            }
+        }
+        else
+        {
+            HttpHost target = context.getTargetHost();
+            List<URI> redirects = context.getRedirectLocations();
+
+            URI finalUrl;
+            if (redirects != null && !redirects.isEmpty())
+            {
+                finalUrl = URIUtils.resolve(request.getURI(), target, redirects);
+            }
+            else
+            {
+                finalUrl = request.getURI();
+            }
+            return  finalUrl.toString();
+        }
+    }
+
+    /* ======================================================================================= */
 
     public byte[] getBinaryBody(IntPredicate shouldLoadBody, boolean progress) throws Exception
     {
         if (cresp != null)
-            return crespBinaryBody(shouldLoadBody, progress);
+            return apacheGetBinaryBody(shouldLoadBody, progress);
         else
             throw new RuntimeException("No wrapped HTTP response");
     }
-    
-    private byte[] crespBinaryBody(IntPredicate shouldLoadBody, boolean progress) throws Exception
+
+    private byte[] apacheGetBinaryBody(IntPredicate shouldLoadBody, boolean progress) throws Exception
     {
         if (shouldLoadBody == null || shouldLoadBody.test(getStatusCode()))
         {
@@ -120,10 +182,10 @@ public class WebHttpResponse implements Closeable, AutoCloseable
                 }
             }
         }
-        
+
         return null;
     }
-    
+
     public String getHeaderValue(String name)
     {
         Header[] headers = getAllHeaders();
@@ -211,7 +273,7 @@ public class WebHttpResponse implements Closeable, AutoCloseable
         // Optionally clear encoding to reflect that body is now decoded
         // You can also leave it as-is if you want to preserve raw headers
         // r.removeHeader("Content-Encoding");
-        
+
         return binaryBody;
     }
 

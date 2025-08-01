@@ -3,7 +3,6 @@ package my.LJExport.runtime.http;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -28,9 +27,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.URIUtils;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -43,7 +40,6 @@ import org.apache.http.client.config.CookieSpecs;
 
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -105,41 +101,6 @@ public class Web
         public Charset charset;
         public String actualCharset;
         public Header[] headers;
-
-        private void setFinalUrl(HttpUriRequest request, HttpClientContext context, String url) throws Exception
-        {
-            if (Util.False)
-            {
-                HttpRequest finalRequest = context.getRequest();
-                if (finalRequest instanceof HttpUriRequest)
-                {
-                    URI finalUrl = ((HttpUriRequest) finalRequest).getURI();
-                    this.finalUrl = finalUrl.toString();
-                    /* URI only without host */
-                }
-                else
-                {
-                    Main.err("Cannot determine final URI from request type: " + finalRequest.getClass());
-                    this.finalUrl = url;
-                }
-            }
-            else
-            {
-                HttpHost target = context.getTargetHost();
-                List<URI> redirects = context.getRedirectLocations();
-
-                URI finalUrl;
-                if (redirects != null && !redirects.isEmpty())
-                {
-                    finalUrl = URIUtils.resolve(request.getURI(), target, redirects);
-                }
-                else
-                {
-                    finalUrl = request.getURI();
-                }
-                this.finalUrl = finalUrl.toString();
-            }
-        }
 
         public String getHeader(String name)
         {
@@ -629,7 +590,7 @@ public class Web
                     throw new Exception("Application is aborting");
             }
 
-            response = new WebHttpResponse(client.execute(request, context));
+            response = new WebHttpResponse(url, request, context, client.execute(request, context));
             r.code = response.getStatusCode();
 
             if (isArchiveOrg && r.code == 429)
@@ -648,14 +609,14 @@ public class Web
                     if (Main.isAborting())
                         throw new Exception("Application is aborting");
 
-                    response = new WebHttpResponse(client.execute(request, context));
+                    response = new WebHttpResponse(url, request, context, client.execute(request, context));
                     r.code = response.getStatusCode();
                 }
                 while (r.code == 429);
             }
 
             r.reason = response.getStatusReasonPhrase();
-            r.setFinalUrl(request, context, url);
+            r.finalUrl = response.getFinalUrl();
             if (response.containsHeader("Location"))
                 r.redirectLocation = response.getFirstHeader("Location").getValue();
             if (response.containsHeader("Content-Type"))
@@ -777,10 +738,10 @@ public class Web
 
         try
         {
-            response = new WebHttpResponse(client.execute(request, context));
+            response = new WebHttpResponse(url, request, context, client.execute(request, context));
             r.code = response.getStatusCode();
             r.reason = response.getStatusReasonPhrase();
-            r.setFinalUrl(request, context, url);
+            r.finalUrl = response.getFinalUrl();
             if (response.containsHeader("Location"))
                 r.redirectLocation = response.getFirstHeader("Location").getValue();
             if (response.containsHeader("Content-Type"))

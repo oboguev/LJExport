@@ -41,7 +41,7 @@ public class WebHttpResponse implements Closeable, AutoCloseable
         if (cresp != null)
             return cresp.getAllHeaders();
         else
-            throw new RuntimeException("No wrapped response");
+            throw new RuntimeException("No wrapped HTTP response");
     }
 
     public Header getFirstHeader(String name)
@@ -49,7 +49,7 @@ public class WebHttpResponse implements Closeable, AutoCloseable
         if (cresp != null)
             return cresp.getFirstHeader(name);
         else
-            throw new RuntimeException("No wrapped response");
+            throw new RuntimeException("No wrapped HTTP response");
     }
 
     public boolean containsHeader(String name)
@@ -57,7 +57,7 @@ public class WebHttpResponse implements Closeable, AutoCloseable
         if (cresp != null)
             return cresp.containsHeader(name);
         else
-            throw new RuntimeException("No wrapped response");
+            throw new RuntimeException("No wrapped HTTP response");
     }
 
     public int getStatusCode()
@@ -65,7 +65,7 @@ public class WebHttpResponse implements Closeable, AutoCloseable
         if (cresp != null)
             return cresp.getStatusLine().getStatusCode();
         else
-            throw new RuntimeException("No wrapped response");
+            throw new RuntimeException("No wrapped HTTP response");
     }
 
     public String getStatusReasonPhrase()
@@ -73,7 +73,7 @@ public class WebHttpResponse implements Closeable, AutoCloseable
         if (cresp != null)
             return cresp.getStatusLine().getReasonPhrase();
         else
-            throw new RuntimeException("No wrapped response");
+            throw new RuntimeException("No wrapped HTTP response");
     }
 
     public byte[] getBinaryBody(IntPredicate shouldLoadBody, boolean progress) throws Exception
@@ -81,8 +81,7 @@ public class WebHttpResponse implements Closeable, AutoCloseable
         if (cresp != null)
             return crespBinaryBody(shouldLoadBody, progress);
         else
-            throw new RuntimeException("No wrapped response");
-        
+            throw new RuntimeException("No wrapped HTTP response");
     }
     
     private byte[] crespBinaryBody(IntPredicate shouldLoadBody, boolean progress) throws Exception

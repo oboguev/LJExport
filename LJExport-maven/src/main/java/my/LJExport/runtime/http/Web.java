@@ -993,7 +993,7 @@ public class Web
 
         if (httpAccessMode == HttpAccessMode.NO_ACCESS)
         {
-            Exception ex = new URISyntaxException(url, "No LiveJournal access");
+            Exception ex = new URISyntaxException(url, "No HTTP access to " + url);
             ex = new IllegalArgumentException(ex.getLocalizedMessage(), ex);
             throw ex;
             // return null;

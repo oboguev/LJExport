@@ -45,7 +45,7 @@ public class ArchiveOrgQuery
 
         // Unexpected JSON structure
         if (!jroot.isArray() || jroot.size() < 1 || !jroot.get(0).isArray())
-            throw new IllegalArgumentException("Unexpected JSON structure");
+            throw new IllegalArgumentException("Unexpected JSON structure: " + json);
 
         // Parse header and determine column indexes
         JsonNode header = jroot.get(0);

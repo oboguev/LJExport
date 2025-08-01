@@ -29,7 +29,7 @@ public class FirefoxCookies
     
     public static synchronized CookieStore loadCookiesFromFirefox() throws Exception
     {
-        if (activeCookieStore != null)
+        if (activeCookieStore == null)
             activeCookieStore = loadCookiesFromFirefox(findActiveFirefoxProfile().getCanonicalPath());
         
         return CookieUtil.cloneCookieStore(activeCookieStore);

@@ -44,8 +44,8 @@ public class Config
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
     // public static final YYYY_MM LoadTill = null;
-    public static final YYYY_MM LoadSince = new YYYY_MM(2002, 1);
-    public static final YYYY_MM LoadTill = new YYYY_MM(2002, 3);
+    public static final YYYY_MM LoadSince = new YYYY_MM(2016, 1);
+    public static final YYYY_MM LoadTill = new YYYY_MM(2016, 3);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;
@@ -307,21 +307,21 @@ public class Config
             if (changeDownloadRoot && Config.DownloadRoot.endsWith(".lj-rossia-org"))
                 Config.DownloadRoot = Util.stripTail(Config.DownloadRoot, ".lj-rossia-org");
 
-            Config.LoginSite = Config.Site = Config.DefaultSite = Sites.Livejournal;
+            Config.LoginSite = Config.Site = Config.DefaultSite;
             Config.UserAgent = Config.DefaultUserAgent;
             Config.UseLogin = true;
             Config.StandaloneSite = false;
 
             if (User.contains(".dreamwidth-org"))
             {
-                Config.LoginSite = Config.Site = Config.DefaultSite = Sites.DreamwidthOrg;
+                Config.LoginSite = Config.Site = Sites.DreamwidthOrg;
                 if (changeDownloadRoot)
                     Config.DownloadRoot += ".dreamwidth-org";
                 Web.scheduleActions(MainDreamwidthOrg.getWebActions());
             }
             else if (User.contains(".lj-rossia-org"))
             {
-                Config.LoginSite = Config.Site = Config.DefaultSite = Sites.RossiaOrg;
+                Config.LoginSite = Config.Site = Sites.RossiaOrg;
                 if (changeDownloadRoot)
                     Config.DownloadRoot += ".lj-rossia-org";
                 Web.scheduleActions(MainLJRossiaOrg.getWebActions());
@@ -334,8 +334,9 @@ public class Config
             {
                 Config.Site = "olegmakarenko.ru";
                 Config.LoginSite = Config.DefaultSite;
-                Config.StandaloneSite = true;            }
-            
+                Config.StandaloneSite = true;
+            }
+
             if (executeLogin)
                 Main.do_login();
         }

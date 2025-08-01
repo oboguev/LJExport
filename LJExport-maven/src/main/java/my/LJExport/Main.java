@@ -203,10 +203,10 @@ public class Main
 
             reinit();
             Config.init(user);
-            Calendar.init();
             RateLimiter.LJ_PAGES.setRateLimit(100);
             Web.init();
             do_login();
+            Calendar.init();
 
             RateLimiter.LJ_PAGES.setRateLimit(Config.RateLimit_LiveJournal_Calendar);
             Calendar.index();

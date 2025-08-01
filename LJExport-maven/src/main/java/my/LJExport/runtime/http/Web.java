@@ -24,6 +24,7 @@ import my.LJExport.Main;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.browserproxy.BrowserProxy;
 import my.LJExport.runtime.http.browserproxy.BrowserProxyFactory;
+import my.LJExport.runtime.http.response.ProgressHttpEntity;
 import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.url.UrlUtil;
 
@@ -1007,7 +1008,9 @@ public class Web
             // return null;
         }
 
-        BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);  
+        BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);
+        if (browserProxy != null && !browserProxy.canInterceptRedirection())
+            return null;
 
         HttpGet request = new HttpGet(url);
         setCommon(request, headers);
@@ -1264,154 +1267,6 @@ public class Web
     /* ================================================================================= */
 
     // Custom HttpEntity to track download progress
-    public static class ProgressHttpEntity extends HttpEntityWrapper
-    {
-        private long totalBytes;
-        private long bytesRead = 0;
-
-        public ProgressHttpEntity(HttpEntity entity, long totalBytes)
-        {
-            super(entity);
-            this.totalBytes = totalBytes;
-        }
-
-        @Override
-        public InputStream getContent() throws IOException
-        {
-            InputStream in = wrappedEntity.getContent();
-            return new ProgressInputStream(in);
-        }
-
-        private class ProgressInputStream extends InputStream
-        {
-            private InputStream wrappedInputStream;
-            private String threadNameBase = null;
-
-            public ProgressInputStream(InputStream wrappedInputStream)
-            {
-                this.threadNameBase = Thread.currentThread().getName();
-                this.wrappedInputStream = wrappedInputStream;
-            }
-
-            @Override
-            public int read() throws IOException
-            {
-                int byteRead = wrappedInputStream.read();
-                if (byteRead != -1)
-                {
-                    bytesRead++;
-                    displayProgress();
-                }
-                return byteRead;
-            }
-
-            @Override
-            public int read(byte[] b) throws IOException
-            {
-                return read(b, 0, b.length);
-            }
-
-            @Override
-            public int read(byte[] b, int off, int len) throws IOException
-            {
-                int bytesReadThisTime = wrappedInputStream.read(b, off, len);
-                if (bytesReadThisTime > 0)
-                {
-                    bytesRead += bytesReadThisTime;
-                    displayProgress();
-                }
-                return bytesReadThisTime;
-            }
-
-            @Override
-            public void close() throws IOException
-            {
-                Thread.currentThread().setName(this.threadNameBase);
-                wrappedInputStream.close();
-            }
-
-            private void displayProgress()
-            {
-                if (this.threadNameBase != null)
-                {
-                    StringBuilder sb = new StringBuilder(this.threadNameBase + " ");
-                    sb.append(String.format(" downloaded %,d bytes", bytesRead));
-                    if (totalBytes != -1)
-                    {
-                        int progress = (int) ((bytesRead * 100) / totalBytes);
-                        sb.append(" (" + progress + "%)");
-                    }
-                    Thread.currentThread().setName(sb.toString());
-                }
-            }
-        }
-    }
-
-    // Wrapper class for HttpEntity
-    public static class HttpEntityWrapper implements HttpEntity
-    {
-        protected final HttpEntity wrappedEntity;
-
-        public HttpEntityWrapper(HttpEntity entity)
-        {
-            this.wrappedEntity = entity;
-        }
-
-        @SuppressWarnings("deprecation")
-        @Override
-        public void consumeContent() throws IOException
-        {
-            wrappedEntity.consumeContent();
-        }
-
-        @Override
-        public InputStream getContent() throws IOException, UnsupportedOperationException
-        {
-            return wrappedEntity.getContent();
-        }
-
-        @Override
-        public Header getContentEncoding()
-        {
-            return wrappedEntity.getContentEncoding();
-        }
-
-        @Override
-        public long getContentLength()
-        {
-            return wrappedEntity.getContentLength();
-        }
-
-        @Override
-        public boolean isChunked()
-        {
-            return wrappedEntity.isChunked();
-        }
-
-        @Override
-        public boolean isRepeatable()
-        {
-            return wrappedEntity.isRepeatable();
-        }
-
-        @Override
-        public boolean isStreaming()
-        {
-            return wrappedEntity.isStreaming();
-        }
-
-        @Override
-        public void writeTo(OutputStream outstream) throws IOException
-        {
-            wrappedEntity.writeTo(outstream);
-        }
-
-        @Override
-        public Header getContentType()
-        {
-            return wrappedEntity.getContentType();
-        }
-    }
 
     /**
      * Extracts character encoding from content attribute of meta tag.

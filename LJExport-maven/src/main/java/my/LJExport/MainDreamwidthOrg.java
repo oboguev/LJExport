@@ -15,13 +15,18 @@ public class MainDreamwidthOrg
         Config.DownloadRoot += ".dreamwidth-org";
         Config.AutoconfigureSite = false;
 
-        Web.InitialActions = new String[][] {
-                /* login via pre-existing cookies */
-                { WebAction.LoadFirefoxCookies, "dreamwidth.org" },
-                { WebAction.LoadFirefoxUserAgent }
-        };
+        configureWebAction();
 
         Main main = new Main();
         main.do_main(User);
+    }
+    
+    public static void configureWebAction()
+    {
+        Web.InitialActions = new String[][] {
+            /* login via pre-existing cookies */
+            { WebAction.LoadFirefoxCookies, "dreamwidth.org" },
+            { WebAction.LoadFirefoxUserAgent }
+        };
     }
 }

@@ -43,14 +43,21 @@ public class SmartLinkDownloader
             MutableObject<String> fromWhere)
             throws Exception
     {
+        String fullFilePath = this.linksDir + File.separator + unixRelFilePath.replace('/', File.separatorChar);
+        return redownloadToAbsoluteFile(image, href, fullFilePath, referer, fromWhere);
+    }
+
+    public boolean redownloadToAbsoluteFile(boolean image, String href, String fullFilePath, String referer,
+            MutableObject<String> fromWhere)
+            throws Exception
+    {
         Web.Response r = smartDownload(image, href, referer, true, fromWhere);
 
         if (r != null)
         {
-            String fullFilePath = this.linksDir + File.separator + unixRelFilePath.replace('/', File.separatorChar);
             File fp = new File(fullFilePath).getCanonicalFile();
-            if (!fp.exists())
-                fp.mkdirs();
+            if (!fp.getParentFile().exists())
+                fp.getParentFile().mkdirs();
             Util.writeToFileSafe(fullFilePath, r.binaryBody);
         }
 
@@ -276,12 +283,15 @@ public class SmartLinkDownloader
             Config.mangleUser();
             Config.autoconfigureSite();
 
-            SmartLinkDownloader self = new SmartLinkDownloader(
-                    Config.DownloadRoot + File.separator + Config.User + File.separator + "links");
-            // String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
+            
+            String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "crisis_of_democracy.pdf";
+            String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
+            
             // String href = "https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";
-            String href = "https://web.archive.org/web/20231201081812/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";
-            boolean b = self.redownloadToFile(false, href, null, null, null);
+            // String href = "https://web.archive.org/web/20231201081812/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";
+            
+            SmartLinkDownloader self = new SmartLinkDownloader(null);
+            boolean b = self.redownloadToAbsoluteFile(false, href, fullFllePath, null, null);
             Util.unused(b);
         }
         catch (Exception ex)

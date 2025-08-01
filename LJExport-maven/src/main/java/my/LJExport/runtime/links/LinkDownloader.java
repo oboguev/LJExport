@@ -604,7 +604,7 @@ public class LinkDownloader
         if (finalExt != null && fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, finalExt))
             return filepath;
 
-        Decision decision = ServerContent.acceptContent(href, serverExt, fnExt, new ContentProvider(r.binaryBody), r);
+        Decision decision = ServerContent.acceptContent(href, serverExt, headerExt, fnExt, new ContentProvider(r.binaryBody), r);
         if (decision.isReject())
         {
             return null;

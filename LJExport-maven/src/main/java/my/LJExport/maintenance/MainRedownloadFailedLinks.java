@@ -667,6 +667,12 @@ public class MainRedownloadFailedLinks
                 return false;
             }
 
+            if (Util.False && !url.endsWith(".txt"))
+            {
+                Util.out("Skipping " + url);
+                return false;
+            }
+
             if (failedUrls.contains(url))
             {
                 Util.err(String.format("Quitting [%s] link file %s, previosuly failed url: %s",

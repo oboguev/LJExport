@@ -452,7 +452,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         if (href == null)
             return ServerContent.DecisionNeutral;
         else
-            return ServerContent.acceptContent(href, contentExtension, fnExt, new ContentProvider(linkFullFilePath), null);
+            return ServerContent.acceptContent(href, contentExtension, null, fnExt, new ContentProvider(linkFullFilePath), null);
     }
 
     /* ===================================================================================================== */

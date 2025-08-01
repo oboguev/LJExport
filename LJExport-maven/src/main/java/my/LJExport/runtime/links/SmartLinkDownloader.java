@@ -234,7 +234,7 @@ public class SmartLinkDownloader
         if (serverExt != null && urlPathExt != null && FileTypeDetector.isEquivalentExtensions(urlPathExt, serverExt))
             return new ResponseAnalysis(true, serverExt);
 
-        Decision decision = ServerContent.acceptContent(href, serverExt, urlPathExt, new ContentProvider(r.binaryBody), r);
+        Decision decision = ServerContent.acceptContent(href, serverExt, headerExt, urlPathExt, new ContentProvider(r.binaryBody), r);
         if (decision.isReject())
             return new ResponseAnalysis(false, serverExt);
         if (decision.isAccept())
@@ -299,11 +299,14 @@ public class SmartLinkDownloader
             // String href = "http://www.trilateral.org/library/crisis_of_democracy.pdf";
             // String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "crisis_of_democracy.pdf";
             
-            String href = "http://www.trumanlibrary.org/whistlestop/study_collections/coldwar/documents/pdf/4-1.pdf";
-            String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "4-1.pdf";
+            // String href = "http://www.trumanlibrary.org/whistlestop/study_collections/coldwar/documents/pdf/4-1.pdf";
+            // String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "4-1.pdf";
 
             // String href = "https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";
             // String href = "https://web.archive.org/web/20231201081812/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG";
+            
+            String href = "https://www.mid.ru/upload/iblock/e89/%D0%98%D0%9D%D0%A4%D0%9E%D0%A0%D0%9C%D0%90%D0%A6%D0%98%D0%9E%D0%9D%D0%9D%D0%AB%D0%99%20%D0%91%D0%AE%D0%9B%D0%9B%D0%95%D0%A2%D0%95%D0%9D%D0%AC%2024-26%20%D0%BC%D0%B0%D1%80%D1%82%D0%B0%20%202014.doc";
+            String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "mid-x.doc";
 
             SmartLinkDownloader self = new SmartLinkDownloader(null);
             boolean b = self.redownloadToAbsoluteFile(false, href, fullFllePath, null, null);

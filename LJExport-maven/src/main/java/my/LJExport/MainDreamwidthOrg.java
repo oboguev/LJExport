@@ -30,14 +30,14 @@ public class MainDreamwidthOrg
         Main main = new Main();
         main.do_main(User);
     }
-    
-    public static  String[][] getWebActions()
+
+    public static String[][] getWebActions()
     {
         return new String[][] {
-            /* login via pre-existing cookies */
-            { WebAction.REPEAT, WebAction.UseLogin, "false"},
-            { WebAction.ONCE, WebAction.LoadFirefoxCookies, "dreamwidth.org" },
-            { WebAction.REPEAT, WebAction.LoadFirefoxUserAgent }
+                /* login via pre-existing cookies */
+                { WebAction.REPEAT, WebAction.UseLogin, "false" },
+                { WebAction.ONCE, WebAction.LoadFirefoxCookies, "dreamwidth.org" },
+                { WebAction.REPEAT, WebAction.LoadFirefoxUserAgent }
         };
     }
 }

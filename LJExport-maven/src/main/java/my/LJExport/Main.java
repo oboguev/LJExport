@@ -378,7 +378,7 @@ public class Main
 
     public static void do_login() throws Exception
     {
-        if (!Config.UseLogin)
+        if (!Config.UseLogin || Config.User == null || Config.User.length() == 0)
             return;
 
         if (logged_in.contains(Config.LoginSite))

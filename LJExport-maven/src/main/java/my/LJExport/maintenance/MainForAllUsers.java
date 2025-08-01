@@ -27,6 +27,8 @@ public class MainForAllUsers
     // private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
     // private static final String Users = "d_olshansky.ljsearch";
 
+    private static boolean doLogin = false;
+
     public static void main(String[] args)
     {
         try
@@ -63,7 +65,7 @@ public class MainForAllUsers
 
         Config.init("");
 
-        if (Util.False)
+        if (doLogin)
         {
             Web.init();
             Main.do_login();
@@ -125,7 +127,7 @@ public class MainForAllUsers
         {
             Config.User = user;
             Config.mangleUser();
-            Config.autoconfigureSite();
+            Config.autoconfigureSite(doLogin);
 
             // do_user_actual(user);
             // do_user_monthly_index_html(user);

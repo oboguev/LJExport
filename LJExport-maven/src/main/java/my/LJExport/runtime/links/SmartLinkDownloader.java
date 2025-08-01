@@ -281,7 +281,7 @@ public class SmartLinkDownloader
             Config.init("");
             Web.init();
             Config.mangleUser();
-            Config.autoconfigureSite();
+            Config.autoconfigureSite(false);
 
             
             String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "crisis_of_democracy.pdf";

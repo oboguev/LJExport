@@ -38,6 +38,8 @@ public class MainForAllHtmlFiles
     private static int ParallelismMonthly = 5;
     private static final boolean ShowProgress = false;
 
+    private static boolean doLogin = false;
+
     public static void main(String[] args)
     {
         try
@@ -74,7 +76,7 @@ public class MainForAllHtmlFiles
 
         Config.init("");
 
-        if (Util.False)
+        if (doLogin)
         {
             Web.init();
             Main.do_login();
@@ -136,7 +138,7 @@ public class MainForAllHtmlFiles
         {
             Config.User = user;
             Config.mangleUser();
-            Config.autoconfigureSite();
+            Config.autoconfigureSite(doLogin);
 
             Util.out(">>> Processing for user " + Config.User);
 

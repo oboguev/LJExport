@@ -112,7 +112,6 @@ public class MainStylesToLocal
 
         Config.init("");
         Web.init();
-        Main.do_login();
         RateLimiter.LJ_IMAGES.setRateLimit(100);
 
         StringTokenizer st = new StringTokenizer(users, ", \t\r\n");
@@ -177,7 +176,7 @@ public class MainStylesToLocal
         {
             Config.User = user;
             Config.mangleUser();
-            Config.autoconfigureSite();
+            Config.autoconfigureSite(true);
 
             Util.out(">>> Making HTML styles locally cached for user " + Config.User);
 

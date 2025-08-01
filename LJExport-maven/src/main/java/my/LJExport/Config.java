@@ -169,7 +169,7 @@ public class Config
     {
         User = user;
         mangleUser();
-        autoconfigureSite();
+        autoconfigureSite(false);
 
         // http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/ReadDebug.html
         // System.setProperty("javax.net.debug", "all");
@@ -295,7 +295,7 @@ public class Config
             return true;
     }
 
-    public static void autoconfigureSite() throws Exception
+    public static void autoconfigureSite(boolean executeLogin) throws Exception
     {
         if (AutoconfigureSite)
         {
@@ -307,6 +307,7 @@ public class Config
             if (changeDownloadRoot && Config.DownloadRoot.endsWith(".lj-rossia-org"))
                 Config.DownloadRoot = Util.stripTail(Config.DownloadRoot, ".lj-rossia-org");
 
+            Config.LoginSite = Config.Site = Config.DefaultSite = Sites.Livejournal;
             Config.UserAgent = Config.DefaultUserAgent;
             Config.UseLogin = true;
 
@@ -320,14 +321,13 @@ public class Config
             else if (User.contains(".lj-rossia-org"))
             {
                 Config.LoginSite = Config.Site = Config.DefaultSite = Sites.RossiaOrg;
-                Config.UseLogin = false;
                 if (changeDownloadRoot)
                     Config.DownloadRoot += ".lj-rossia-org";
+                Web.scheduleActions(MainLJRossiaOrg.getWebActions());
             }
-            else
-            {
-                Config.LoginSite = Config.Site = Config.DefaultSite = Sites.Livejournal;
-            }
+            
+            if (executeLogin)
+                Main.do_login();
         }
     }
 

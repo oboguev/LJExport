@@ -59,9 +59,6 @@ public class MainReadProfiles
         Config.init("");
         Web.init();
 
-        /* login may be required for pictures marked 18+ */
-        Main.do_login();
-
         RateLimiter.LJ_IMAGES.setRateLimit(100);
 
         StringTokenizer st = new StringTokenizer(users, ", \t\r\n");
@@ -111,7 +108,8 @@ public class MainReadProfiles
         {
             Config.User = user;
             Config.mangleUser();
-            Config.autoconfigureSite();
+            /* login may be required for pictures marked 18+ */
+            Config.autoconfigureSite(true);
 
             if (user.equals("fritzmorgen"))
             {

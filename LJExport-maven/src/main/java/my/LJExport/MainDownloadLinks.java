@@ -156,10 +156,8 @@ public class MainDownloadLinks
         {
             Config.User = user;
             Config.mangleUser();
-            Config.autoconfigureSite();
-
             /* login may be required for pictures marked 18+ */
-            Main.do_login();
+            Config.autoconfigureSite(true);
 
             userRoot = Config.DownloadRoot + File.separator + Config.User;
 

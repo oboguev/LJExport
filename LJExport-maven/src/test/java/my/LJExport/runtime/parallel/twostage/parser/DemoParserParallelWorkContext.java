@@ -119,7 +119,7 @@ public class DemoParserParallelWorkContext
         {
             Config.User = user;
             Config.mangleUser();
-            Config.autoconfigureSite();
+            Config.autoconfigureSite(false);
 
             Util.out(">>> Demo HTML file parssing for " + Config.User);
 

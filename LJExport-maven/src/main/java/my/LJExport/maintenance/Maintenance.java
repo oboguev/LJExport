@@ -59,6 +59,7 @@ public class Maintenance
     protected static final int FileTypeDetectionThreads = 100;
 
     private boolean repeatUser = false;
+    private static boolean doLogin = false;
 
     public static void main(String[] args)
     {
@@ -200,7 +201,7 @@ public class Maintenance
 
         Config.init("");
 
-        if (Util.False)
+        if (doLogin)
         {
             Web.init();
             Main.do_login();
@@ -235,7 +236,7 @@ public class Maintenance
 
             Config.User = user;
             Config.mangleUser();
-            Config.autoconfigureSite();
+            Config.autoconfigureSite(doLogin);
 
             try
             {

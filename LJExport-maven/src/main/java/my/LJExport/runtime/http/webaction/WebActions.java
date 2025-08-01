@@ -35,6 +35,9 @@ public class WebActions
         if (args.size() < 2)
             throw new Exception("Missing action repeat setting and/or verb");
 
+        /* for removability */
+        args = new ArrayList<>(args);
+
         String repeat = args.remove(0);
 
         switch (repeat)
@@ -51,7 +54,8 @@ public class WebActions
             throw new Exception("Incorrect repeat mode in action");
         }
 
-        addHistory(args);
+        if (!historyContains(args))
+            addHistory(args);
 
         String verb = args.remove(0);
 
@@ -67,6 +71,7 @@ public class WebActions
 
         case WebAction.UseLogin:
             useLogin(verb, args);
+            break;
 
         default:
             throw new Exception("Unknown action verb: " + verb);

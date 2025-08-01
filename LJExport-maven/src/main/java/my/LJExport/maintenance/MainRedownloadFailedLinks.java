@@ -175,11 +175,8 @@ public class MainRedownloadFailedLinks
         {
             Config.User = user;
             Config.mangleUser();
-            Config.autoconfigureSite();
-
             /* login may be required for pictures marked 18+ */
-            if (UseLivejournal)
-                Main.do_login();
+            Config.autoconfigureSite(UseLivejournal);
 
             userRoot = Config.DownloadRoot + File.separator + Config.User;
             linksDir = userRoot + File.separator + "links";

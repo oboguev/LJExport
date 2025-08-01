@@ -1078,6 +1078,9 @@ public class Util
 
         if (relativeURL != null)
         {
+            if (relativeURL.startsWith("data:"))
+                return relativeURL;
+            
             relativeURL = encodeFragment(relativeURL);
             /* Windows backslashes in some old HTML files, e.g. ..\index.html */
             relativeURL = relativeURL.replace("\\", "/");

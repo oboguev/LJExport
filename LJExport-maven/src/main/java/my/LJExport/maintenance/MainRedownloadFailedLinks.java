@@ -650,45 +650,52 @@ public class MainRedownloadFailedLinks
 
     public boolean redownload(boolean image, String url, String relativeLinkFilePath, String referer) throws Exception
     {
-        SmartLinkDownloader smartLinkRedownloader = new SmartLinkDownloader(linksDir);
-        smartLinkRedownloader.useArchiveOrg(UseArchiveOrg);
-
-        if (!ShouldDownload.shouldDownload(image, url))
+        try
         {
-            Util.out("Skipping " + url);
-            return false;
-        }
+            SmartLinkDownloader smartLinkRedownloader = new SmartLinkDownloader(linksDir);
+            smartLinkRedownloader.useArchiveOrg(UseArchiveOrg);
 
-        if (!UseLivejournal && LJUtil.isServerUrl(url))
+            if (!ShouldDownload.shouldDownload(image, url))
+            {
+                Util.out("Skipping " + url);
+                return false;
+            }
+
+            if (!UseLivejournal && LJUtil.isServerUrl(url))
+            {
+                Util.out("Skipping " + url);
+                return false;
+            }
+
+            if (failedUrls.contains(url))
+            {
+                Util.err(String.format("Quitting [%s] link file %s, previosuly failed url: %s",
+                        Config.User, relativeLinkFilePath, url));
+                return false;
+            }
+
+            MutableObject<String> fromWhere = new MutableObject<>();
+            boolean result = smartLinkRedownloader.redownloadToFile(image, url, relativeLinkFilePath, referer, fromWhere);
+
+            if (result)
+            {
+                String from = "";
+                if (fromWhere.get() != null)
+                    from = " === from " + fromWhere.get();
+                Util.out(String.format("Downloaded [%s] link file %s%s", Config.User, relativeLinkFilePath, from));
+            }
+            else
+            {
+                Util.err(String.format("Unable to download [%s] link file %s, url: %s", Config.User, relativeLinkFilePath, url));
+                failedUrls.add(url);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
         {
-            Util.out("Skipping " + url);
-            return false;
+            throw new Exception("While downloding " + url, ex);
         }
-
-        if (failedUrls.contains(url))
-        {
-            Util.err(String.format("Quitting [%s] link file %s, previosuly failed url: %s",
-                    Config.User, relativeLinkFilePath, url));
-            return false;
-        }
-
-        MutableObject<String> fromWhere = new MutableObject<>();
-        boolean result = smartLinkRedownloader.redownloadToFile(image, url, relativeLinkFilePath, referer, fromWhere);
-
-        if (result)
-        {
-            String from = "";
-            if (fromWhere.get() != null)
-                from = " === from " + fromWhere.get();
-            Util.out(String.format("Downloaded [%s] link file %s%s", Config.User, relativeLinkFilePath, from));
-        }
-        else
-        {
-            Util.err(String.format("Unable to download [%s] link file %s, url: %s", Config.User, relativeLinkFilePath, url));
-            failedUrls.add(url);
-        }
-
-        return result;
     }
 
     /* ========================================================================================== */

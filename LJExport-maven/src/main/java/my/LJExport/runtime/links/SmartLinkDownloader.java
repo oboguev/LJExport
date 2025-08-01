@@ -190,7 +190,7 @@ public class SmartLinkDownloader
 
         String src = JSOUP.getAttribute(vn.get(0), "src");
         src = UrlUtil.decodeHtmlAttrLink(src);
-        if (src == null)
+        if (src == null || src.startsWith("data:"))
             return null;
         src = Util.resolveURL(href, src);
         r = LinkRedownloader.redownload(image, src, referer);

@@ -28,11 +28,13 @@ import my.LJExport.runtime.file.KVFile;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.ActivityCounters;
+import my.LJExport.runtime.http.HttpAccessMode;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.ShouldDownload;
 import my.LJExport.runtime.links.SmartLinkDownloader;
 import my.LJExport.runtime.lj.LJUtil;
+import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 /*
@@ -59,7 +61,7 @@ public class MainRedownloadFailedLinks
     private static boolean DryRun = false;
 
     private static boolean UseArchiveOrg = true;
-    private static boolean UseLivejournal = false;
+    private static boolean UseLivejournal = true;
 
     /* =============================================================================== */
 
@@ -176,7 +178,7 @@ public class MainRedownloadFailedLinks
             Config.User = user;
             Config.mangleUser();
             /* login may be required for pictures marked 18+ */
-            Config.autoconfigureSite(UseLivejournal);
+            Config.autoconfigureSite(UseLivejournal && HttpAccessMode.forSite(Sites.Livejournal) != HttpAccessMode.NO_ACCESS);
 
             userRoot = Config.DownloadRoot + File.separator + Config.User;
             linksDir = userRoot + File.separator + "links";

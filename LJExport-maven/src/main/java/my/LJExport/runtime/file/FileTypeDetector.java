@@ -25,13 +25,20 @@ public class FileTypeDetector
     // private final static String MIME_OCTET_STREAM = "application/octet-stream";
     private final static String MIME_OCTET_STREAM = MediaType.OCTET_STREAM.toString();
 
+    private static Integer maxtTikaThreads = null;
+
     /*
      * Maximum number of threads that can simultaneously call Tika
      */
-    public static void prepareThreading(int nTikaMaxThreads) throws Exception
+    public static void prepareThreading(int nMaxTikaThreads) throws Exception
     {
         // System.setProperty("XMLReaderUtils.POOL_SIZE", String.format("%d", nTikaMaxThreads + 10));
-        XMLReaderUtils.setPoolSize(nTikaMaxThreads + 10);
+
+        if (maxtTikaThreads == null || maxtTikaThreads < nMaxTikaThreads)
+        {
+            XMLReaderUtils.setPoolSize(nMaxTikaThreads + 10);
+            maxtTikaThreads = nMaxTikaThreads;
+        }
     }
 
     public static String fileExtensionFromActualFileContent(byte[] fileBytes, String pathExtension) throws Exception

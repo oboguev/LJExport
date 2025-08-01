@@ -111,19 +111,6 @@ public class MainReadProfiles
             /* login may be required for pictures marked 18+ */
             Config.autoconfigureSite(true);
 
-            if (user.equals("fritzmorgen"))
-            {
-                Config.Site = "olegmakarenko.ru";
-                Config.LoginSite = Config.DefaultSite;
-                Config.StandaloneSite = true;
-            }
-            else
-            {
-                Config.Site = Config.DefaultSite;
-                Config.LoginSite = Config.DefaultSite;
-                Config.StandaloneSite = false;
-            }
-
             final String userRoot = Config.DownloadRoot + File.separator + Config.User;
             // final String pagesDir = userRoot + File.separator + "pages";
             final String linksDir = userRoot + File.separator + "links";

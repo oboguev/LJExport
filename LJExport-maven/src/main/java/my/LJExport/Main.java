@@ -201,19 +201,6 @@ public class Main
             out(">>> Processing journal for user " + user);
             out(">>> Time: " + Util.timeNow());
 
-            if (user.equals("fritzmorgen"))
-            {
-                Config.Site = "olegmakarenko.ru";
-                Config.LoginSite = Config.DefaultSite;
-                Config.StandaloneSite = true;
-            }
-            else
-            {
-                Config.Site = Config.DefaultSite;
-                Config.LoginSite = Config.DefaultSite;
-                Config.StandaloneSite = false;
-            }
-
             reinit();
             Config.init(user);
             Calendar.init();

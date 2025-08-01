@@ -310,6 +310,7 @@ public class Config
             Config.LoginSite = Config.Site = Config.DefaultSite = Sites.Livejournal;
             Config.UserAgent = Config.DefaultUserAgent;
             Config.UseLogin = true;
+            Config.StandaloneSite = false;
 
             if (User.contains(".dreamwidth-org"))
             {
@@ -325,11 +326,16 @@ public class Config
                     Config.DownloadRoot += ".lj-rossia-org";
                 Web.scheduleActions(MainLJRossiaOrg.getWebActions());
             }
-            else if (User.equals("nationalisn.org"))
+            else if (User.equals("nationalism.org"))
             {
                 Config.UseLogin = false;
             }
-
+            else if (User.equals("fritzmorgen"))
+            {
+                Config.Site = "olegmakarenko.ru";
+                Config.LoginSite = Config.DefaultSite;
+                Config.StandaloneSite = true;            }
+            
             if (executeLogin)
                 Main.do_login();
         }

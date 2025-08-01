@@ -29,9 +29,10 @@ public class MainStylesToLocal
     // private static final String AllUsersFromUser = "kot_begemott";
     private static final String AllUsersFromUser = null;
 
-    private static final String Users = ALL_USERS;
+    // private static final String Users = ALL_USERS;
     // private static final String Users = "oboguev";
     // private static final String Users = "nationalism.org";
+    private static final String Users = "udod99.lj-rossia-org";
 
     private static final boolean ShowStylesProgress = true;
     private static final boolean DryRun = true;
@@ -48,7 +49,7 @@ public class MainStylesToLocal
             LimitProcessorUsage.limit();
             MemoryMonitor.startMonitor();
             // HttpWireTracing.enable();
-
+            
             do_users(Users);
         }
         catch (Exception ex)
@@ -76,11 +77,11 @@ public class MainStylesToLocal
         if (!DryRun)
         {
             String response = "Отменить";
-            
+
             try
             {
                 String mult = users.contains(",") ? "ей" : "я";
-                
+
                 String questionText = String.format(
                         "Точно ли вы желаете переменить стили в файлах HTML с удалённых стилей на их архивированные копии для пользовател%s %s ?",
                         mult,
@@ -92,7 +93,7 @@ public class MainStylesToLocal
                 Util.out(">>> Диалог закрыт, отмена операции");
                 return;
             }
-            
+
             if (!response.equals("Да"))
             {
                 Util.out(">>> Отмена");

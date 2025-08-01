@@ -13,9 +13,8 @@ public class MainDreamwidthOrg
         Config.LoginSite = Config.Site = Config.DefaultSite = Sites.DreamwidthOrg;
         Config.UseLogin = false;
         Config.DownloadRoot += ".dreamwidth-org";
-        Config.AutoconfigureSite = false;
-
         configureWebAction();
+        Config.AutoconfigureSite = false;
 
         Main main = new Main();
         main.do_main(User);

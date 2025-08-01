@@ -600,7 +600,7 @@ public class Web
         BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);
 
         HttpGet request = new HttpGet(url);
-        setCommon(request, headers);
+        setCommon(url, request, headers);
         HttpClientContext context = HttpClientContext.create();
         WebHttpResponse response = null;
 
@@ -764,7 +764,7 @@ public class Web
         BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);
 
         HttpPost request = new HttpPost(url);
-        setCommon(request, null);
+        setCommon(url, request, null);
         request.setHeader("Content-Type", "application/x-www-form-urlencoded");
         request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
 
@@ -801,13 +801,20 @@ public class Web
         }
     }
 
-    private static void setCommon(HttpRequestBase request, Map<String, String> headers) throws Exception
+    private static void setCommon(String url, HttpRequestBase request, Map<String, String> headers) throws Exception
     {
+        String site = Sites.which(url);
+
         setHeader(request, headers, "User-Agent", Config.UserAgent);
         setHeader(request, headers, "Accept", Config.UserAgentAccept);
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
         setHeader(request, headers, "Accept-Language", "en-US,en;q=0.5");
-        setHeader(request, headers, "Accept-Encoding", "gzip, deflate, br, zstd");
+
+        if (site.equals(Sites.Livejournal))
+            setHeader(request, headers, "Accept-Encoding", "gzip, deflate, br, zstd");
+        else
+            setHeader(request, headers, "Accept-Encoding", "gzip, deflate");
+
         // setHeader(request, headers, "Cache-Control", "no-cache");
         // setHeader(request, headers, "Pragma", "no-cache");
         setHeader(request, headers, "Upgrade-Insecure-Requests", "1");
@@ -947,7 +954,7 @@ public class Web
             return null;
 
         HttpGet request = new HttpGet(url);
-        setCommon(request, headers);
+        setCommon(url, request, headers);
 
         ActivityCounters.startedWebRequest();
 

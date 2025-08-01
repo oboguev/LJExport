@@ -734,6 +734,10 @@ public class Web
 
     public static Response post(String url, String body) throws Exception
     {
+        final boolean binary = false;
+        final boolean progress = false;
+        final IntPredicate shouldLoadBody = null;
+
         HttpAccessMode httpAccessMode = HttpAccessMode.forUrl(url);
         url = UrlUtil.encodeUrlForApacheWire(url);
 
@@ -776,12 +780,16 @@ public class Web
 
         ActivityCounters.startedWebRequest();
         HttpClientContext context = HttpClientContext.create();
-        CloseableHttpResponse response = client.execute(request, context);
+        WebHttpResponse response = null;
+
+        if (Main.isAborting())
+            throw new Exception("Application is aborting");
 
         try
         {
-            r.code = response.getStatusLine().getStatusCode();
-            r.reason = response.getStatusLine().getReasonPhrase();
+            response = new WebHttpResponse(client.execute(request, context));
+            r.code = response.getStatusCode();
+            r.reason = response.getStatusReasonPhrase();
             r.setFinalUrl(request, context, url);
             if (response.containsHeader("Location"))
                 r.redirectLocation = response.getFirstHeader("Location").getValue();
@@ -790,35 +798,17 @@ public class Web
             r.headers = response.getAllHeaders();
             r.charset = r.extractCharset(false);
 
-            HttpEntity entity = response.getEntity();
+            r.binaryBody = response.getBinaryBody(shouldLoadBody, progress);
+            if (!binary)
+                r.body = textBodyFromBinaryBody(r);
 
-            if (entity != null)
-            {
-                InputStream entityStream = null;
-                BufferedReader brd = null;
-
-                try
-                {
-                    entityStream = entity.getContent();
-                    r.binaryBody = toByteArray(entityStream);
-                    decompress(r);
-                    r.body = textBodyFromBinaryBody(r);
-                }
-                finally
-                {
-                    if (brd != null)
-                        brd.close();
-                    if (entityStream != null)
-                        entityStream.close();
-                }
-            }
+            return r;
         }
         finally
         {
-            response.close();
+            if (response != null)
+                response.close();
         }
-
-        return r;
     }
 
     private static void setCommon(HttpRequestBase request, Map<String, String> headers) throws Exception

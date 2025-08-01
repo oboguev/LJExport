@@ -4,13 +4,15 @@ import java.net.URL;
 
 public class Sites
 {
-    public static final String DreamwidthOrg = "dreamwidth.org";
     public static final String Livejournal = "livejournal.com";
     public static final String RossiaOrg = "lj.rossia.org";
+    public static final String DreamwidthOrg = "dreamwidth.org";
+    public static final String OlegMakarenko = "olegmakarenko.ru";
+
     public static final String ArchiveOrg = "archive.org";
     public static final String Other = "--other--";
 
-    private static final String[] all = { Livejournal, DreamwidthOrg, RossiaOrg, ArchiveOrg };
+    private static final String[] all = { Livejournal, DreamwidthOrg, RossiaOrg, ArchiveOrg, OlegMakarenko  };
 
     public static String which(String url) throws Exception
     {

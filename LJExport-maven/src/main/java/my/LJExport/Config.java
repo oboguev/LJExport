@@ -3,12 +3,14 @@ package my.LJExport;
 import java.io.File;
 
 import java.util.List;
+import java.util.Map;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 
 import my.LJExport.calendar.YYYY_MM;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileTypeDetector;
+import my.LJExport.runtime.http.HttpAccessMode;
 import my.LJExport.runtime.http.TrustAnySSL;
 import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.password.PasswordStorage;
@@ -128,7 +130,18 @@ public class Config
     public static boolean RandomizeLoadOrder = true;
     public static final int StableIntevral = 3000;
     public static boolean ScrapingArchiveOrg = false;
-    public static boolean NoLiveJournalAccess = true;
+    
+    public static final Map<String, HttpAccessMode> HttpAccessModes = Map.of(
+            Sites.Livejournal, HttpAccessMode.NO_ACCESS,
+            Sites.DreamwidthOrg, HttpAccessMode.DIRECT,
+            Sites.OlegMakarenko, HttpAccessMode.DIRECT,
+            Sites.RossiaOrg, HttpAccessMode.DIRECT,
+            Sites.ArchiveOrg, HttpAccessMode.DIRECT,
+            Sites.Other, HttpAccessMode.DIRECT
+            );
+    
+    public static HttpAccessMode LiveJournalAccessMode = HttpAccessMode.NO_ACCESS;  
+    public static HttpAccessMode DreamwidthAccessMode = HttpAccessMode.DIRECT;  
     
 
     public static boolean UseFiddler = false;

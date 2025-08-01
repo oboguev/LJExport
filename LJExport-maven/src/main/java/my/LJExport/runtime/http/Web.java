@@ -211,7 +211,7 @@ public class Web
         {
             if (body == null)
                 body = textBodyFromBinaryBody(this);
-            
+
             if (body == null)
                 return "";
 
@@ -507,8 +507,6 @@ public class Web
 
     public static Response get(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody) throws Exception
     {
-        url = UrlUtil.encodeUrlForApacheWire(url);
-
         final int maxpasses = 3;
 
         for (int pass = 1;; pass++)
@@ -566,6 +564,9 @@ public class Web
     private static Response get_retry(String url, int flags, Map<String, String> headers, IntPredicate shouldLoadBody)
             throws Exception
     {
+        HttpAccessMode httpAccessMode = HttpAccessMode.forUrl(url);
+        url = UrlUtil.encodeUrlForApacheWire(url);
+
         final boolean binary = 0 != (flags & BINARY);
         final boolean progress = 0 != (flags & PROGRESS);
 
@@ -598,7 +599,7 @@ public class Web
         lastURL.set(url);
         Response r = new Response();
 
-        if (Config.NoLiveJournalAccess && (client == httpClientLJPages || client == httpClientLJImages))
+        if (httpAccessMode == HttpAccessMode.NO_ACCESS)
         {
             r.code = 503;
             return r;
@@ -772,6 +773,7 @@ public class Web
 
     public static Response post(String url, String body) throws Exception
     {
+        HttpAccessMode httpAccessMode = HttpAccessMode.forUrl(url);
         url = UrlUtil.encodeUrlForApacheWire(url);
 
         CloseableHttpClient client = httpClientOther;
@@ -797,8 +799,8 @@ public class Web
 
         lastURL.set(url);
         Response r = new Response();
-        
-        if (Config.NoLiveJournalAccess && (client == httpClientLJPages || client == httpClientLJImages))
+
+        if (httpAccessMode == HttpAccessMode.NO_ACCESS)
         {
             r.code = 503;
             return r;
@@ -919,8 +921,6 @@ public class Web
 
     public static String getRedirectLocation(String url, String referer, Map<String, String> headers) throws Exception
     {
-        url = UrlUtil.encodeUrlForApacheWire(url);
-
         final int maxpasses = 3;
 
         for (int pass = 1;; pass++)
@@ -955,6 +955,9 @@ public class Web
     private static String retry_getRedirectLocation(String url, String referer, Map<String, String> headers, boolean lastPass)
             throws Exception
     {
+        HttpAccessMode httpAccessMode = HttpAccessMode.forUrl(url);
+        url = UrlUtil.encodeUrlForApacheWire(url);
+
         if (referer != null)
         {
             if (headers == null)
@@ -988,10 +991,10 @@ public class Web
 
         lastURL.set(url);
 
-        if (Config.NoLiveJournalAccess && httpClient == httpClientRedirectLJ)
+        if (httpAccessMode == HttpAccessMode.NO_ACCESS)
         {
-            Exception ex =  new URISyntaxException(url, "No LiveJournal access");
-            ex =  new IllegalArgumentException(ex.getLocalizedMessage(), ex);
+            Exception ex = new URISyntaxException(url, "No LiveJournal access");
+            ex = new IllegalArgumentException(ex.getLocalizedMessage(), ex);
             throw ex;
             // return null;
         }

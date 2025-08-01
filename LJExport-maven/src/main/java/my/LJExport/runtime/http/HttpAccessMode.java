@@ -20,4 +20,17 @@ public enum HttpAccessMode
             mode = HttpAccessMode.DIRECT;
         return mode;
     }
+
+    public boolean isBrowserProxy()
+    {
+        switch (this)
+        {
+        case PROXY_NODEJS:
+        case PROXY_CDP:
+            return true;
+            
+        default:
+            return false;
+        }
+    }
 }

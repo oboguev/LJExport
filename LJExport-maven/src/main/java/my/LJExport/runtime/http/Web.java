@@ -22,6 +22,8 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.http.browserproxy.BrowserProxy;
+import my.LJExport.runtime.http.browserproxy.BrowserProxyFactory;
 import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.url.UrlUtil;
 
@@ -604,6 +606,10 @@ public class Web
             r.code = 503;
             return r;
         }
+        
+        BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);  
+
+        // ####
 
         HttpGet request = new HttpGet(url);
         setCommon(request, headers);
@@ -806,6 +812,8 @@ public class Web
             return r;
         }
 
+        BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);  
+
         HttpPost request = new HttpPost(url);
         setCommon(request, null);
         request.setHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -998,6 +1006,8 @@ public class Web
             throw ex;
             // return null;
         }
+
+        BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);  
 
         HttpGet request = new HttpGet(url);
         setCommon(request, headers);

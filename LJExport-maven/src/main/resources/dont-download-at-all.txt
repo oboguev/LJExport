@@ -55,3 +55,9 @@ www.google.de/*
 #
 joyreactor.cc/post/NNNNNNNN
 *.joyreactor.cc/post/NNNNNNNN
+
+#
+# non-readable
+#
+#www.felshtinsky.com/books/100.rar
+#www.felshtinsky.com/books/6.pdf

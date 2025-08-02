@@ -50,6 +50,7 @@ import java.util.concurrent.Semaphore;
 import java.util.function.IntPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipException;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -84,9 +85,9 @@ public class Web
     public static final int PROGRESS = (1 << 1);
 
     public static String[][] InitialActions;
-    
-    private static boolean initializing = false; 
-    private static boolean initialized = false; 
+
+    private static boolean initializing = false;
+    private static boolean initialized = false;
 
     public static class Response
     {
@@ -176,7 +177,7 @@ public class Web
     {
         if (initialized || initializing)
             throw new Exception("Web is already initialized or partially initialized ");
-        
+
         initializing = true;
 
         if (Config.TrustAnySSLCertificate)
@@ -355,7 +356,7 @@ public class Web
         httpClientOther = hcbClientOther.build();
         httpClientRedirectLJ = hcbClientRedirectLJ.build();
         httpClientRedirectOther = hcbClientRedirectOther.build();
-        
+
         initializing = false;
         initialized = true;
     }
@@ -448,20 +449,20 @@ public class Web
         }
 
         WebActions.clearHistory();
-        
+
         initializing = false;
         initialized = false;
     }
-    
+
     public static synchronized void scheduleActions(String[][] actions) throws Exception
     {
         if (initializing)
             throw new Exception("Web is partially initialized ");
-        
+
         if (initialized)
             WebActions.execute(actions);
         else
-            InitialActions = actions;            
+            InitialActions = actions;
     }
 
     public static void threadExit()
@@ -654,7 +655,15 @@ public class Web
                 r.contentType = response.getFirstHeader("Content-Type").getValue();
             r.headers = response.getAllHeaders();
             r.charset = r.extractCharset(false);
-            r.binaryBody = response.getBinaryBody(shouldLoadBody, progress);
+            try
+            {
+                r.binaryBody = response.getBinaryBody(shouldLoadBody, progress);
+            }
+            catch (ZipException ex)
+            {
+                r.reason = combinedReason("Content encoding error (ZipException)", r.reason, r.code);
+                r.code = 500;
+            }
             if (!binary)
                 r.body = textBodyFromBinaryBody(r);
 
@@ -687,6 +696,15 @@ public class Web
             return decodeUtf8Sig(r.binaryBody);
 
         return new String(r.binaryBody, StandardCharsets.UTF_8);
+    }
+    
+    private static String combinedReason(String newReason, String oldReason, int oldStatusCode)
+    {
+        String msg = newReason;
+        msg += ", original status code: " + oldStatusCode;
+        if (oldReason != null && oldReason.length() != 0)
+            msg += ", original reason: " + oldReason;
+        return msg;
     }
 
     /**

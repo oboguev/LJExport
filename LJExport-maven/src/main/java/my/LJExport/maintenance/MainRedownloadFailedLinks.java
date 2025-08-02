@@ -663,13 +663,7 @@ public class MainRedownloadFailedLinks
                 return false;
             }
 
-            if (!UseLivejournal && LJUtil.isServerUrl(url))
-            {
-                Util.out("Skipping " + url);
-                return false;
-            }
-
-            if (Util.False && !url.endsWith(".txt"))
+            if (!UseLivejournal && LJUtil.isLivejournal(url))
             {
                 Util.out("Skipping " + url);
                 return false;

@@ -58,16 +58,16 @@ public class ShouldDownload
         if (ext != null && ext.trim().length() == 0)
             ext = null;
 
-        if (!knownImageHosting.contains(href))
-        {
-            // dont't download if no extension in path and no query
-            if (ext == null && query == null)
-                return false;
+        if (knownImageHosting.contains(href))
+            return true;
 
-            // dont't download if not an image extension and no query
-            if (!FileTypeDetector.isImageExtension(ext) && query == null)
-                return false;
-        }
+        // dont't download if no extension in path and no query
+        if (ext == null && query == null)
+            return false;
+
+        // dont't download if not an image extension and no query
+        if (!FileTypeDetector.isImageExtension(ext) && query == null)
+            return false;
 
         return true;
     }

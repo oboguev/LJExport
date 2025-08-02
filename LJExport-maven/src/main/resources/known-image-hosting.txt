@@ -10,7 +10,7 @@
 pics.livejournal.com/*
 ic.pics.livejournal.com/*
 *.pics.livejournal.com/*
-imgprx.livejounal.net/*
+imgprx.livejournal.net/*
 l-userpic.livejournal.com/*
 
 dlib.rsl.ru/viewer/pdf?*

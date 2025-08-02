@@ -4,7 +4,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
 
@@ -69,6 +68,17 @@ public class LJUtil
                     url.charAt(lu - ls - 1) == '.' &&
                     url.charAt(0) != '.';
         }
+    }
+
+    public static boolean isLivejournal(String url) throws Exception
+    {
+        String host = new URL(url).getHost();
+        if (host == null)
+            return false;
+        host = host.trim().toLowerCase();
+
+        return host.equals("livejournal.com") || host.endsWith(".livejournal.com") ||
+                host.equals("livejournal.net") || host.endsWith(".livejournal.net");
     }
 
     /*

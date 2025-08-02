@@ -25,6 +25,6 @@ public class TestWeb
     {
         Web.Response r = null;
         r = Web.get("https://www.google.com/");
-        Util.noop();
+        Util.unused(r);
     }
 }

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jsoup.nodes.Node;
@@ -55,7 +56,7 @@ public class MainRedownloadFailedLinks
     // private static final String Users = ALL_USERS;
     // private static final String Users = "funt";
     // private static final String Users = "krylov_arhiv,krylov";
-    private static final String Users = "krylov";
+    private static final String Users = "oboguev";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
 
     private static boolean DryRun = false;
@@ -319,11 +320,17 @@ public class MainRedownloadFailedLinks
             // verify no duplicate entries for file paths
             KVFile.reverseMap(kvlist, true);
 
+            nTotalFiles = kvlist.size();
+            nCompletedFiles = new AtomicInteger(0);
+
             int parallelism = Math.min(NWorkThreadsDownload, kvlist.size());
             runWorkers(parallelism, WorkType.RedownloadLinkFiles);
             return true;
         }
     }
+
+    private int nTotalFiles;
+    private AtomicInteger nCompletedFiles;
 
     private void runWorkers(int parallelism, WorkType workType) throws Exception
     {
@@ -650,7 +657,7 @@ public class MainRedownloadFailedLinks
 
     /* ========================================================================================== */
 
-    public boolean redownload(boolean image, String url, String relativeLinkFilePath, String referer) throws Exception
+    private boolean redownload(boolean image, String url, String relativeLinkFilePath, String referer) throws Exception
     {
         try
         {
@@ -659,19 +666,19 @@ public class MainRedownloadFailedLinks
 
             if (!ShouldDownload.shouldDownload(image, url, false))
             {
-                Util.out("Skipping " + url);
+                Util.out(messagePrefix() + "Skipping " + url);
                 return false;
             }
 
             if (!UseLivejournal && LJUtil.isLivejournal(url))
             {
-                Util.out("Skipping " + url);
+                Util.out(messagePrefix() + "Skipping " + url);
                 return false;
             }
 
             if (failedUrls.contains(url))
             {
-                Util.err(String.format("Quitting [%s] link file %s, previosuly failed url: %s",
+                Util.err(messagePrefix() + String.format("Quitting [%s] link file %s, previosuly failed url: %s",
                         Config.User, relativeLinkFilePath, url));
                 return false;
             }
@@ -684,11 +691,13 @@ public class MainRedownloadFailedLinks
                 String from = "";
                 if (fromWhere.get() != null)
                     from = " === from " + fromWhere.get();
-                Util.out(String.format("Downloaded [%s] link file %s%s", Config.User, relativeLinkFilePath, from));
+                Util.out(
+                        messagePrefix() + String.format("Downloaded [%s] link file %s%s", Config.User, relativeLinkFilePath, from));
             }
             else
             {
-                Util.err(String.format("Unable to download [%s] link file %s, url: %s", Config.User, relativeLinkFilePath, url));
+                Util.err(messagePrefix()
+                        + String.format("Unable to download [%s] link file %s, url: %s", Config.User, relativeLinkFilePath, url));
                 failedUrls.add(url);
             }
 
@@ -698,6 +707,12 @@ public class MainRedownloadFailedLinks
         {
             throw new Exception("While downloding " + url, ex);
         }
+    }
+
+    private String messagePrefix()
+    {
+        int n = nCompletedFiles.incrementAndGet();
+        return String.format("[%d/%d] ", n, nTotalFiles);
     }
 
     /* ========================================================================================== */

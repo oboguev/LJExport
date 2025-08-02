@@ -13,11 +13,13 @@
       - compression
       - list of supported compressions Accept-Encoding
       - list of other standard header values
+      - POST auto-sets Content-Length
       
 - node.js proxy      
       - final URL
       - list of supported compressions Accept-Encoding
       - list of other standard header values
+      - POST auto-sets Content-Length?
 
 - make MainDownloadLinks with option to download from the archive
 
@@ -29,8 +31,14 @@
 - Chrome web headers (instead of Firefox), diff. Chrome versions (Win7/10) 
 
 - unresolved FailedLinks.txt -> revert a.href and img.src to the link
+  if original-src/href exists use Away(original)
+  if it does not use Away(failed-kvfile URL)
+  when putting into HTML don't overencode existing %xx, use encodeUrlForHtmlAttr(String url, boolean safe = true)
+  delete failed files
+  delete empty dir
+  delete kvfile
 
-- implement new LJ login
++ implement new LJ login
 
 ================================================
 

@@ -51,6 +51,8 @@ public class LoginLivejournal
                 postBody,
                 headers);
         
+        // responds with JSON and cookies
+        // [{"jsonrpc":"2.0","id":20,"result":{"status":"OK"}}]
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));
 

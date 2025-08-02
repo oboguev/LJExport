@@ -203,6 +203,7 @@ public class SmartLinkDownloader
 
             try
             {
+                src = UrlUtil.encodeMinimal(src);
                 src = Util.resolveURL(href, src);
             }
             catch (Exception ex)

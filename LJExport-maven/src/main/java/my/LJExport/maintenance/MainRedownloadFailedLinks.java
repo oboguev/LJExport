@@ -56,7 +56,7 @@ public class MainRedownloadFailedLinks
     // private static final String Users = ALL_USERS;
     // private static final String Users = "funt";
     // private static final String Users = "krylov_arhiv,krylov";
-    private static final String Users = "shulga,sm_sergeev,takoe_nebo,tor85,holmogor,ru_nationalism";
+    private static final String Users = "1981dn,1981dn_dn,64vlad,abcdefgh,afanarizm,afrika_sl,aillarionov,aleksei,alexandrovich,alexandrov_g,alex_mashin,alex_vergin,allemand1990,allin777,alzheimer,amfora,andrewmed,andronic,anya_anya_anya,archives_ru,arkhip,asriyan,atorin,avdant,a_bugaev,a_kaminsky,a_samovarov,a_sevastianov,bantaputu,bash_m_ak,blog_10101,bohemicus,brus,cherniaev,chukcheev,clen_lj";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
 
     private static boolean DryRun = false;

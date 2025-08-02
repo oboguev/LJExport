@@ -56,7 +56,7 @@ public class MainRedownloadFailedLinks
     // private static final String Users = ALL_USERS;
     // private static final String Users = "funt";
     // private static final String Users = "krylov_arhiv,krylov";
-    private static final String Users = "man_with_dogs";
+    private static final String Users = "ivanov_petrov";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
 
     private static boolean DryRun = false;

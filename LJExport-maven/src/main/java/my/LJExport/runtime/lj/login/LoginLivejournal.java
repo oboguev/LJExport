@@ -35,7 +35,7 @@ public class LoginLivejournal
                 Config.LoginUser,
                 Config.LoginPassword,
                 auth_token,
-                "20"); // ######
+                "20"); // request id
 
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json, text/javascript, */*; q=0.01");

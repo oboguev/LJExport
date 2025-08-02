@@ -1,6 +1,8 @@
 package my.LJExport.runtime.lj.login;
 
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,6 +11,7 @@ import org.apache.http.cookie.Cookie;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.http.FormPost;
 import my.LJExport.runtime.http.HttpWireTracing;
 import my.LJExport.runtime.http.Web;
 
@@ -30,13 +33,11 @@ public class LoginLivejournal
 
         Util.noop();
 
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(Web.escape("ret") + "=" + "1" + "&");
-        sb.append(Web.escape("user") + "=" + Web.escape(Config.LoginUser) + "&");
-        sb.append(Web.escape("password") + "=" + Web.escape(Config.LoginPassword) + "&");
-        sb.append("action:login");
-        r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", sb.toString());
+        Map<String,String> form = new LinkedHashMap<>(); 
+        form.put("ret", "1");
+        form.put("user", Config.LoginUser);
+        form.put("password", Config.LoginPassword);
+        r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", FormPost.body(form) + "&" + "action:login");
 
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));

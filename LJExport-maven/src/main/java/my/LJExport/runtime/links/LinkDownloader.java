@@ -51,6 +51,9 @@ public class LinkDownloader
     private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private String linksDir;
     private final NamedLocks urlLocks = new NamedLocks();
+    
+    public static boolean downloadsArchive = false;
+    public static boolean downloadsOnlineOnly = !downloadsArchive;
 
     public static final String LinkMapFileName = "map-href-file.txt";
 

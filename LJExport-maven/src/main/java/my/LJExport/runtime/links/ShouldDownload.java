@@ -11,35 +11,47 @@ import my.LJExport.runtime.url.UrlPatternMatcher;
 
 public class ShouldDownload
 {
-    private static UrlPatternMatcher dontDownload;
+    private static UrlPatternMatcher dontDownloadAtAll;
+    private static UrlPatternMatcher dontDownloadOnline;
     private static UrlPatternMatcher knownImageHosting;
 
     public static synchronized void init() throws Exception
     {
-        if (dontDownload == null)
-            dontDownload = UrlPatternMatcher.fromResource("dont-download.txt");
+        if (dontDownloadAtAll == null)
+            dontDownloadAtAll = UrlPatternMatcher.fromResource("dont-download-at-all.txt");
+
+        if (dontDownloadOnline == null)
+            dontDownloadOnline = UrlPatternMatcher.fromResource("dont-download-online.txt");
 
         if (knownImageHosting == null)
             knownImageHosting = UrlPatternMatcher.fromResource("known-image-hosting.txt");
     }
 
-    public static boolean shouldDownload(boolean image, String href) throws Exception
+    public static boolean shouldDownload(boolean image, String href, boolean online) throws Exception
     {
         init();
 
-        return image ? shouldDownloadImage(href) : shouldDownloadDocument(href);
+        return image ? shouldDownloadImage(href, online) : shouldDownloadDocument(href, online);
     }
 
-    public static boolean shouldDownloadImage(String href) throws Exception
+    public static boolean shouldDownloadImage(String href, boolean online) throws Exception
     {
         init();
 
         if (href == null || href.length() == 0)
             return false;
         href = Util.stripAnchor(href);
-
-        if (dontDownload.contains(href))
-            return false;
+        
+        if (online)
+        {
+            if (dontDownloadOnline.contains(href))
+                return false;
+        }
+        else
+        {
+            if (dontDownloadAtAll.contains(href))
+                return false;
+        }
 
         URI url = new URI(href);
 
@@ -72,7 +84,7 @@ public class ShouldDownload
         return true;
     }
 
-    public static boolean shouldDownloadDocument(String href) throws Exception
+    public static boolean shouldDownloadDocument(String href, boolean online) throws Exception
     {
         try
         {
@@ -80,8 +92,16 @@ public class ShouldDownload
                 return false;
             href = Util.stripAnchor(href);
 
-            if (dontDownload.contains(href))
-                return false;
+            if (online)
+            {
+                if (dontDownloadOnline.contains(href))
+                    return false;
+            }
+            else
+            {
+                if (dontDownloadAtAll.contains(href))
+                    return false;
+            }
 
             URI url = new URI(href);
 

@@ -657,7 +657,7 @@ public class MainRedownloadFailedLinks
             SmartLinkDownloader smartLinkRedownloader = new SmartLinkDownloader(linksDir);
             smartLinkRedownloader.useArchiveOrg(UseArchiveOrg);
 
-            if (!ShouldDownload.shouldDownload(image, url))
+            if (!ShouldDownload.shouldDownload(image, url, false))
             {
                 Util.out("Skipping " + url);
                 return false;

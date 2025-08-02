@@ -1,6 +1,6 @@
 #
-# Don't download these files (neither as images nor as documents/attachments), 
-# e.g. because they are stuck forever
+# Don't download these files (neither as images nor as documents/attachments) in online access
+# e.g. because they are stuck forever. Files still can be downloaded from Internet Archive.
 #
 # Both HTTP and HTTPS protocols are matched.
 # Starlet-dot at the start (*.) matches initial host name part.
@@ -20,15 +20,6 @@ binaryanimal.spb.ru/tmp/moonlight_pushkin/1_1200.png
 binaryanimal.spb.ru/tmp/moonlight_pushkin/2_1200.png
 binaryanimal.spb.ru/tmp/moonlight_pushkin/3_1200.png
 binaryanimal.spb.ru/tmp/moonlight_pushkin/*	
-
-# counters
-xc3.services.livejournal.com/*
-olegmakarenko.ru/ljcounter/*
-2.s05.flagcounter.com/count/MECnk/*
-www.tns-counter.ru/*
-mc.yandex.ru/watch/*
-vk.com/rtrg?*
-ljplus.ru/counter/*
 
 # permanently stuck sites
 im-tub.yandex.ru/*
@@ -103,22 +94,6 @@ visual.rzd.ru/*
 # moved to istmat.org 
 istmat.info/*
 
-# non-document URLs
-en.wikipedia.org/wiki/File:*
-en.wikipedia.org/wiki/Image:*
-ru.wikipedia.org/wiki/File:*
-ru.wikipedia.org/wiki/Image:*
-de.wikipedia.org/wiki/File:*
-de.wikipedia.org/wiki/Image:*
-fr.wikipedia.org/wiki/File:*
-fr.wikipedia.org/wiki/Image:*
-
-traditio.wiki/Файл:*
-traditio.wiki/%D0%A4%D0%B0%D0%B9%D0%BB%3A*
-
-pdrs.dp.ua/pedia/Изображение:*
-pdrs.dp.ua/pedia/%D0%98%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%3A*
-
 # gone
 img15.nnm.ru/e/a/1/0/a/6fac0a7d4b0e393fe974e8cda03_prev.jpg
 img11.nnm.ru/0/9/7/1/6/4b4c9c61debeccec3e2fb3d6aa5_prev.jpg
@@ -180,22 +155,3 @@ ic.pics.livejournal.com/vitaldnepr/72367478/3159/3159_900.jpg
 ic.pics.livejournal.com/von_esmarch2/85818839/37159/37159_900.jpg
 ic.pics.livejournal.com/zbaza/32724472/180997/180997_600.jpg
 
-#
-# Misc
-#
-ads.imeem.com/ads/bannerad/*
-youtu.be/*
-www.youtu.be/*
-youtube.com/watch?v=*
-www.youtube.com/watch?v=*
-google.com/*
-google.ru/*
-google.de/*
-www.google.com/*
-www.google.ru/*
-www.google.de/*
-ljplus.ru/counter/*
-
-*.ljplus.ru/counter/*
-joyreactor.cc/post/NNNNNNNN
-*.joyreactor.cc/post/NNNNNNNN

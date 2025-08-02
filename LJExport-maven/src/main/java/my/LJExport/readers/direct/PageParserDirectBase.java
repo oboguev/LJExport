@@ -433,7 +433,7 @@ public abstract class PageParserDirectBase
             String href = JSOUP.getAttribute(n, attr);
             href = UrlUtil.decodeHtmlAttrLink(href);
 
-            if (ShouldDownload.shouldDownload(tag.equalsIgnoreCase("img"), href))
+            if (ShouldDownload.shouldDownload(tag.equalsIgnoreCase("img"), href, LinkDownloader.downloadsOnlineOnly))
             {
                 String referer = (rurl == null) ? null : LJUtil.recordPageURL(rurl);
 

@@ -142,12 +142,12 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 {
                     String url = fli.urls.get(0);
                     
-                    if (fli.image && ShouldDownload.shouldDownloadImage(url))
+                    if (fli.image && ShouldDownload.shouldDownloadImage(url, false))
                     {
                         url = "image:" + url;
                         list.add(new KVEntry(url, fli.relpath));
                     }
-                    else if (!fli.image && ShouldDownload.shouldDownloadDocument(url))
+                    else if (!fli.image && ShouldDownload.shouldDownloadDocument(url, false))
                     {
                         url = "document:" + url;
                         list.add(new KVEntry(url, fli.relpath));

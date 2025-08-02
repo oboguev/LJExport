@@ -95,10 +95,12 @@ public class SmartLinkDownloader
         if (fromWhere != null)
             fromWhere.setValue(null);
 
+        Web.Response r = null;
+
         /*
          * Load live online copy
          */
-        Web.Response r = load_good(image, href, referer);
+        r = load_good(image, href, referer, true);
         if (r != null)
         {
             if (fromWhere != null)
@@ -134,7 +136,7 @@ public class SmartLinkDownloader
         String original = e.value;
 
         String archivedUrl = ArchiveOrgUrl.directDownloadUrl(original, timestamp, false, image);
-        r = load_good(image, archivedUrl, null);
+        r = load_good(image, archivedUrl, null, false);
         if (r != null)
         {
             if (fromWhere != null)
@@ -147,8 +149,11 @@ public class SmartLinkDownloader
 
     /* ================================================================================================== */
 
-    private static Web.Response load_good(boolean image, String href, String referer) throws Exception
+    private static Web.Response load_good(boolean image, String href, String referer, boolean online) throws Exception
     {
+        if (!ShouldDownload.shouldDownload(image, href, online))
+            return null;
+        
         Web.Response r = LinkRedownloader.redownload(image, href, referer);
 
         if (r == null)
@@ -195,7 +200,7 @@ public class SmartLinkDownloader
             src = UrlUtil.decodeHtmlAttrLink(src);
             if (src == null || src.startsWith("data:"))
                 return null;
-            
+
             try
             {
                 src = Util.resolveURL(href, src);
@@ -205,6 +210,9 @@ public class SmartLinkDownloader
                 return null;
             }
             
+            if (!ShouldDownload.shouldDownload(image, src, online))
+                return null;
+
             r = LinkRedownloader.redownload(image, src, referer);
             if (r == null)
                 return null;

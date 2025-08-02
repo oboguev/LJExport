@@ -27,8 +27,8 @@ public class TestLinks
     {
         boolean b;
         String href = "https://imgprx.livejournal.net/65243a387dc401ba8042f5344cfd8592d163bb55/e7072IPXyBeTj2iXMu5vZg7085xqpIbizD50nypPlzJeNvF0IIPx5ryx1FGD-NzwPD3hfrtJwUhLHknwYwEt2WOWeYuV4N2jvm3kIGMik6cAE12ut0lftxHty9VqSleS";
-        b = ShouldDownload.shouldDownloadImage(href);
-        b = ShouldDownload.shouldDownloadDocument(href);
+        b = ShouldDownload.shouldDownloadImage(href, false);
+        b = ShouldDownload.shouldDownloadDocument(href, false);
         Util.noop();
     }
 }

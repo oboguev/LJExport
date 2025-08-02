@@ -5,10 +5,13 @@ import org.apache.http.cookie.Cookie;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.http.FormPost;
 import my.LJExport.runtime.http.Web;
 import static my.LJExport.runtime.Util.out;
 
 import java.net.URLDecoder;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 public class LoginDreamwidth
@@ -18,18 +21,18 @@ public class LoginDreamwidth
         Config.acquireLoginPassword();
 
         Web.Response r = null;
-        StringBuilder sb = new StringBuilder();
 
         out(String.format(">>> Using %s login captcha challenge code %s", Config.LoginSite, Config.DreamwidthCaptchaChallenge));
 
-        postForm(sb, "returnto", "https://www.dreamwidth.org/");
-        postForm(sb, "chal", Config.DreamwidthCaptchaChallenge);
-        postForm(sb, "response", "");
-        postForm(sb, "user", Config.LoginUser);
-        postForm(sb, "password", Config.LoginPassword);
-        postForm(sb, "remember_me", "1");
-        postForm(sb, "login", "Log in");
-        r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", sb.toString());
+        Map<String,String> form = new LinkedHashMap<>(); 
+        form.put("returnto", "https://www.dreamwidth.org/");
+        form.put("chal", Config.DreamwidthCaptchaChallenge);
+        form.put("response", "");
+        form.put("user", Config.LoginUser);
+        form.put("password", Config.LoginPassword);
+        form.put("remember_me", "1");
+        form.put("login", "Log in");
+        r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", FormPost.body(form));
 
         if (r.code != 302)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));
@@ -51,13 +54,6 @@ public class LoginDreamwidth
         }
 
         throw new Exception("Unable to log into the server: most probably incorrect username or password");
-    }
-
-    private static void postForm(StringBuilder sb, String key, String value) throws Exception
-    {
-        if (sb.length() != 0)
-            sb.append("&");
-        sb.append(Web.escape(key) + "=" + Web.escape(value));
     }
 
     /* ============================================================================================ */
@@ -117,19 +113,19 @@ public class LoginDreamwidth
         }
 
         out(">>> Logging off " + loginSite);
-        StringBuilder sb = new StringBuilder();
         Web.Response r = null;
 
-        // postForm(sb, "lj_form_auth", "c0:1751749200:98:86400:0vrUQLNDDF-3528051-7:81a4e8d76d221ba067aa15f83b26a0e7");
-        postForm(sb, "returnto", "https://www.dreamwidth.org/");
-        postForm(sb, "ret", "1");
-        postForm(sb, "logout_one", "Log out");
-        postForm(sb, "user", Config.LoginUser);
-        postForm(sb, "sessid", sessid);
+        // form.put("lj_form_auth", "c0:1751749200:98:86400:0vrUQLNDDF-3528051-7:81a4e8d76d221ba067aa15f83b26a0e7");
+        Map<String,String> form = new LinkedHashMap<>(); 
+        form.put("returnto", "https://www.dreamwidth.org/");
+        form.put("ret", "1");
+        form.put("logout_one", "Log out");
+        form.put("user", Config.LoginUser);
+        form.put("sessid", sessid);
 
         try
         {
-            r = Web.post("http://www." + loginSite + "/logout", sb.toString());
+            r = Web.post("http://www." + loginSite + "/logout", FormPost.body(form));
         }
         catch (Exception ex)
         {

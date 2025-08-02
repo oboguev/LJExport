@@ -32,7 +32,9 @@ public class LoginDreamwidth
         form.put("password", Config.LoginPassword);
         form.put("remember_me", "1");
         form.put("login", "Log in");
-        r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", FormPost.body(form));
+        r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", 
+                FormPost.body(form),
+                Map.of("Content-Type", "application/x-www-form-urlencoded"));
 
         if (r.code != 302)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));
@@ -125,7 +127,9 @@ public class LoginDreamwidth
 
         try
         {
-            r = Web.post("http://www." + loginSite + "/logout", FormPost.body(form));
+            r = Web.post("http://www." + loginSite + "/logout", 
+                    FormPost.body(form),
+                    Map.of("Content-Type", "application/x-www-form-urlencoded"));
         }
         catch (Exception ex)
         {

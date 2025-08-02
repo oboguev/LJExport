@@ -714,7 +714,7 @@ public class Web
         return new String(bytes, offset, length, StandardCharsets.UTF_8);
     }
 
-    public static Response post(String url, String body) throws Exception
+    public static Response post(String url, String body, Map<String, String> headers) throws Exception
     {
         final boolean binary = false;
         final boolean progress = false;
@@ -760,8 +760,7 @@ public class Web
         BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, url);
 
         HttpPost request = new HttpPost(url);
-        WebRequestHeaders.setRequestHeaders(url, httpAccessMode, request,
-                Map.of("Content-Type", "application/x-www-form-urlencoded"));
+        WebRequestHeaders.setRequestHeaders(url, httpAccessMode, request, headers);
         request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
 
         ActivityCounters.startedWebRequest();

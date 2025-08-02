@@ -30,7 +30,9 @@ public class LoginLivejournalLegacy
         form.put("ret", "1");
         form.put("user", Config.LoginUser);
         form.put("password", Config.LoginPassword);
-        r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", FormPost.body(form) + "&" + "action:login");
+        r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", 
+                FormPost.body(form) + "&" + "action:login",
+                Map.of("Content-Type", "application/x-www-form-urlencoded"));
 
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));

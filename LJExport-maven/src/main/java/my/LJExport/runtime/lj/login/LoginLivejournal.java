@@ -1,7 +1,7 @@
 package my.LJExport.runtime.lj.login;
 
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,7 +11,6 @@ import org.apache.http.cookie.Cookie;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
-import my.LJExport.runtime.http.FormPost;
 import my.LJExport.runtime.http.HttpWireTracing;
 import my.LJExport.runtime.http.Web;
 
@@ -20,7 +19,7 @@ public class LoginLivejournal
     public static void login() throws Exception
     {
         Config.acquireLoginPassword();
-        
+
         if (Util.True) // ### implement new login
             throw new Exception("Unimplemented");
 
@@ -29,16 +28,29 @@ public class LoginLivejournal
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));
 
+        // sessionless:1753822800:/__api/::321e17dd8605d07193060b73e367f1a80daa8277
         String auth_token = extractAuthToken(r.binaryBody);
+        String postBody = String.format(
+                "[{\"jsonrpc\":\"2.0\",\"method\":\"user.login\",\"params\":{\"user\":\"%s\",\"password\":\"%s\",\"expire\":\"never\",\"auth_token\":\"%s\"},\"id\":%s}]",
+                Config.LoginUser,
+                Config.LoginPassword,
+                auth_token,
+                "20"); // ######
 
-        Util.noop();
-
-        Map<String,String> form = new LinkedHashMap<>(); 
-        form.put("ret", "1");
-        form.put("user", Config.LoginUser);
-        form.put("password", Config.LoginPassword);
-        r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", FormPost.body(form) + "&" + "action:login");
-
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Accept", "application/json, text/javascript, */*; q=0.01");
+        headers.put("Content-Type", "text/plain");
+        headers.put("Sec-Fetch-Dest", "empty");
+        headers.put("Sec-Fetch-Mode", "cors");
+        headers.put("Sec-Fetch-Site", "same-origin");
+        headers.put("Referer", String.format("https://www.%s/", Config.LoginSite));
+        headers.put("X-Requested-With", "XMLHttpRequest");
+        headers.put("Origin", String.format("https://www.%s", Config.LoginSite));
+        
+        r = Web.post("https://www." + Config.LoginSite + "/_api/", 
+                postBody,
+                headers);
+        
         if (r.code != HttpStatus.SC_OK)
             throw new Exception("Unable to log into the server: " + Web.describe(r.code));
 
@@ -61,9 +73,9 @@ public class LoginLivejournal
     /**
      * Extracts LiveJournal sessionless auth_token from HTML byte content.
      *
-     * @param htmlBytes raw HTML byte content from https://www.livejournal.com/
-     * @return the token string (e.g. "sessionless:...") if exactly one match is found;
-     *         null otherwise (none or multiple matches).
+     * @param htmlBytes
+     *            raw HTML byte content from https://www.livejournal.com/
+     * @return the token string (e.g. "sessionless:...") if exactly one match is found; null otherwise (none or multiple matches).
      */
     public static String extractAuthToken(byte[] htmlBytes)
     {

@@ -14,12 +14,14 @@
       - list of supported compressions Accept-Encoding
       - list of other standard header values
       - POST auto-sets Content-Length
+      - add or not standard headers?
       
 - node.js proxy      
       - final URL
       - list of supported compressions Accept-Encoding
       - list of other standard header values
       - POST auto-sets Content-Length?
+      - will it override standard headers?
 
 - make MainDownloadLinks with option to download from the archive
 
@@ -39,6 +41,7 @@
   delete kvfile
 
 + implement new LJ login
+- Firefox 4.41 login -- which headers?
 
 ================================================
 

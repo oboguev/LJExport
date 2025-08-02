@@ -20,9 +20,6 @@ public class LoginLivejournal
     {
         Config.acquireLoginPassword();
 
-        if (Util.True) // ### implement new login
-            throw new Exception("Unimplemented");
-
         Web.Response r = null;
         r = Web.get("https://www." + Config.LoginSite + "/");
         if (r.code != HttpStatus.SC_OK)

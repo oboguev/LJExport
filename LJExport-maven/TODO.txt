@@ -50,6 +50,8 @@
   - delete bad link file
   - delete kvfile
   - delete empty dirs  
+  
+- ### in ...  
 
 + implement new LJ login
 - Firefox 4.41 login -- which headers?

@@ -167,6 +167,13 @@ public class AwayLink
             return xurl;
         }
 
+        xurl = unwrapDreamwidthProxy(decoded_href);
+        if (!xurl.equals(decoded_href))
+        {
+            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
+            return xurl;
+        }
+
         return decoded_href;
     }
 
@@ -371,5 +378,41 @@ public class AwayLink
             return unwrapQueryParameterRedirect(url, "url");
         else
             return url;
+    }
+
+    /* =================================================================== */
+
+    /**
+     * Converts a proxied Dreamwidth image URL to its original form. https://p.dreamwidth.org/AAA/BBB/REMAINDER -> https://REMAINDER
+     * 
+     * https://p.dreamwidth.org/31fb6eddb6f7/3144591-346937/i1133.photobucket.com/albums/m588/technolirik/Sommer%202015/IMG_7236_zpscimjc0yw.jpg~original
+     * https://p.dreamwidth.org/bd3c8005671e/3144591-636208/dlib.rsl.ru/viewer/pdf?docId=01004913781&page=147&rotate=0&negative=0
+     * https://p.dreamwidth.org/325de0142beb/3144591-344516/l-files.livejournal.net/userhead/1512?v=1416213861
+     * https://p.dreamwidth.org/85b2c158373e/3144591-399915/l-stat.livejournal.net/img/community.gif?v=556?v=137.1
+     */
+    public static String unwrapDreamwidthProxy(String url)
+    {
+        MutableObject<String> prefix = new MutableObject<String>();
+        
+        if (!Util.startsWithIgnoreCase(url, prefix, "https://p.dreamwidth.org/", "http://p.dreamwidth.org/"))
+            return url;
+
+        // Trim the prefix
+        String remainder = url.substring(prefix.get().length());
+
+        // Skip first segment (AAA)
+        int firstSlash = remainder.indexOf('/');
+        if (firstSlash < 0)
+            throw new IllegalArgumentException("Malformed proxied URL (no AAA): " + url);
+
+        // Skip second segment (BBB)
+        int secondSlash = remainder.indexOf('/', firstSlash + 1);
+        if (secondSlash < 0)
+            throw new IllegalArgumentException("Malformed proxied URL (no BBB): " + url);
+
+        // What remains is the original URL path
+        String original = remainder.substring(secondSlash + 1);
+        
+        return "https://" + original ;
     }
 }

@@ -207,6 +207,17 @@ public class MiscTest
     @SuppressWarnings("unused")
     private static void test_unwrap() throws Exception
     {
+        test_unwrap(
+                "https://imgprx.livejournal.net/st/a5qxcIzYm6irxnS1DFddEl8-2t1CYWAJYj-i7bfFaKo/img1.labirint.ru/books/168777/big.jpg");
+        test_unwrap(
+                "https://p.dreamwidth.org/31fb6eddb6f7/3144591-346937/i1133.photobucket.com/albums/m588/technolirik/Sommer%202015/IMG_7236_zpscimjc0yw.jpg~original");
+        test_unwrap(
+                "https://p.dreamwidth.org/bd3c8005671e/3144591-636208/dlib.rsl.ru/viewer/pdf?docId=01004913781&page=147&rotate=0&negative=0");
+        test_unwrap(
+                "https://p.dreamwidth.org/325de0142beb/3144591-344516/l-files.livejournal.net/userhead/1512?v=1416213861");
+        test_unwrap(
+                "https://p.dreamwidth.org/85b2c158373e/3144591-399915/l-stat.livejournal.net/img/community.gif?v=556?v=137.1");
+
         test_unwrap(true,
                 "https://www.facebook.com/l.php?u=https%3A%2F%2Foslofreedomforum.com%2Fevents%2F2014-oslo-freedom-forum&amp;h=LAQE94R0e&amp;s=1");
         test_unwrap(true,

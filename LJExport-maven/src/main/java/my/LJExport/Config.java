@@ -153,10 +153,18 @@ public class Config
     // public static List<String> DownloadFileTypes = null;
     public static final List<String> DownloadFileTypes = Util
             .asList("jpg,jpeg,gif,png,webp,avif,bmp,svg,pdf,djvu,tif,tiff,txt,doc,docx,odt,rtf,zip,rar,7z,tar,tgz,gz");
-    public static String UserAgentAccept_Download = "image/*, application/pdf, application/x-djvu, application/msword, " +
+    public static String UserAgentAccept_Download_Old = "image/*, application/pdf, application/x-djvu, application/msword, " +
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document, " +
             "application/rtf, application/zip, application/x-rar-compressed, application/x-tar, " +
             "application/x-7z-compressed, application/vnd.rar, application/octet-stream, */*";
+    public static String UserAgentAccept_Download =
+            "image/avif;q=1.0, image/webp;q=0.99, image/png;q=0.98, image/jpeg;q=0.97, image/gif;q=0.96, image/*;q=0.95, " +
+            "application/pdf;q=0.9, application/x-djvu;q=0.89, application/msword;q=0.88, " +
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document;q=0.87, " +
+            "application/rtf;q=0.86, application/zip;q=0.7, application/x-rar-compressed;q=0.69, " +
+            "application/x-tar;q=0.68, application/x-7z-compressed;q=0.67, application/vnd.rar;q=0.66, " +
+            "application/octet-stream;q=0.2, */*;q=0.1";
+    
 
     /*
      * Adding Fiddler certificate:

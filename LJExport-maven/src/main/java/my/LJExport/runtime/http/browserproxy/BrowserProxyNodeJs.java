@@ -71,10 +71,11 @@ class BrowserProxyNodeJs implements BrowserProxy
         if (body != null)
             requestMap.put("body", new String(body, StandardCharsets.UTF_8));
 
-        byte[] jsonBody = mapper.writeValueAsBytes(requestMap);
+        byte[] jsonBodyAsBytes = mapper.writeValueAsBytes(requestMap);
+        String jsonBodyAsString = mapper.writeValueAsString(requestMap);
         try (OutputStream os = connection.getOutputStream())
         {
-            os.write(jsonBody);
+            os.write(jsonBodyAsBytes);
         }
 
         int status = connection.getResponseCode();

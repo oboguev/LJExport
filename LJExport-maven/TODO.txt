@@ -12,16 +12,30 @@
       - final URL
       - compression
       - list of supported compressions Accept-Encoding
-      - list of other standard header values
-      - POST auto-sets Content-Length
+      - POST auto-sets Content-Length?
       - add or not standard headers?
+      - will it override standard headers?
+          User-Agent
+          Accept-Language
+          Accept-Encoding
+          sec-ch-ua-mobile
+          sec-ch-ua-platform
+      - will it use default value on headers when they are not present in the request?
+      - list of standard header values
       
 - node.js proxy      
       - final URL
-      - list of supported compressions Accept-Encoding
-      - list of other standard header values
       - POST auto-sets Content-Length?
+      - list of supported compressions Accept-Encoding
+      - add or not standard headers?
       - will it override standard headers?
+          User-Agent
+          Accept-Language
+          Accept-Encoding
+          sec-ch-ua-mobile
+          sec-ch-ua-platform
+      - will it use default value on headers when they are not present in the request?
+      - list of standard header values
 
 - make MainDownloadLinks with option to download from the archive
 

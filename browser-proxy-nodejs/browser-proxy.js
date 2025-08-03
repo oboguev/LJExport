@@ -114,8 +114,8 @@ app.get('/sec-ch-ua', async (req, res) => {
     try {
         const page = await context.newPage();
         const [request] = await Promise.all([
-            page.waitForRequest(request => request.url().includes('example.com')),
-            page.goto('https://example.com', { waitUntil: 'domcontentloaded' })
+            page.waitForRequest(request => request.url().includes('www.google.com')),
+            page.goto('https://www.google.com', { waitUntil: 'domcontentloaded' })
         ]);
         const secChUa = request.headers()['sec-ch-ua'] || null;
         await page.close();

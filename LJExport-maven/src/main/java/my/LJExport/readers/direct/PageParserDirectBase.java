@@ -1252,6 +1252,9 @@ public abstract class PageParserDirectBase
         for (Node n : JSOUP.findElements(pageRoot, "a"))
             updated |= AwayLink.unwrapAwayLink(n, "href");
 
+        for (Node n : JSOUP.findElements(pageRoot, "img"))
+            updated |= AwayLink.unwrapAwayLink(n, "src");
+
         return updated;
     }
 }

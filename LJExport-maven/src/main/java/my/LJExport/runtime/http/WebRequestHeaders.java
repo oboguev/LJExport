@@ -21,8 +21,8 @@ import my.LJExport.runtime.lj.Sites;
 
 public class WebRequestHeaders
 {
-    private static final String UserAgentAcceptFirefox = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
     private static final String UserAgentAcceptFirefox43 = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+    private static final String UserAgentAcceptFirefox141 = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
 
     private static final String UserAgentAcceptChrome = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
     private static final String UserAgentAcceptChrome109 = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
@@ -40,23 +40,23 @@ public class WebRequestHeaders
         BrowserVersion v = BrowserVersion.parse(userAgent);
 
         if (v.brand.equals("Firefox") && v.version[0] <= 43)
-            return defineFirefox43RequestHeaders(url, httpAccessMode, appHeaders, v);
+            return defineRequestHeadersFirefox43(url, httpAccessMode, appHeaders, v);
 
         if (v.brand.equals("Chrome") && v.version[0] <= 109)
-            return defineChrome109RequestHeaders(url, httpAccessMode, appHeaders, v);
+            return defineRequestHeadersChrome109(url, httpAccessMode, appHeaders, v);
 
         if (v.brand.equals("Firefox"))
-            return defineFirefoxRequestHeaders(url, httpAccessMode, appHeaders, v);
+            return defineRequestHeadersFirefox141(url, httpAccessMode, appHeaders, v);
 
         if (v.brand.equals("Chrome"))
-            return defineChromeRequestHeaders(url, httpAccessMode, appHeaders, v);
+            return defineRequestHeadersChrome(url, httpAccessMode, appHeaders, v);
 
         throw new Exception("Unsupported user agent: " + userAgent);
     }
 
     /* ============================================================================== */
 
-    public static List<KVEntry> defineFirefox43RequestHeaders(String url, HttpAccessMode httpAccessMode,
+    public static List<KVEntry> defineRequestHeadersFirefox43(String url, HttpAccessMode httpAccessMode,
             Map<String, String> appHeaders, BrowserVersion browserVersion)
             throws Exception
     {
@@ -73,7 +73,7 @@ public class WebRequestHeaders
 
         for (String key : appHeaders.keySet())
             setHeader(headerMap, key, appHeaders.get(key));
-        
+
         headerMap.remove("Origin");
 
         List<KVEntry> headers = orderHeaders(headerMap,
@@ -83,18 +83,17 @@ public class WebRequestHeaders
                 "Accept-Language",
                 "Accept-Encoding",
                 "Referer",
-                // "Cookie"
+                "Cookie",
                 "Connection",
-                "Content-Type"
-        // "Content-Length"
-        );
+                "Content-Type",
+                "Content-Length");
 
         return headers;
     }
 
     /* ============================================================================== */
 
-    public static List<KVEntry> defineFirefoxRequestHeaders(String url, HttpAccessMode httpAccessMode,
+    public static List<KVEntry> defineRequestHeadersFirefox141(String url, HttpAccessMode httpAccessMode,
             Map<String, String> appHeaders, BrowserVersion browserVersion)
             throws Exception
     {
@@ -105,7 +104,7 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Host", host);
         setHeader(headerMap, "User-Agent", Config.UserAgent);
-        setHeader(headerMap, "Accept", UserAgentAcceptFirefox);
+        setHeader(headerMap, "Accept", UserAgentAcceptFirefox141);
         setHeader(headerMap, "Accept-Language", "en-US,en;q=0.5");
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
@@ -134,6 +133,12 @@ public class WebRequestHeaders
 
         for (String key : appHeaders.keySet())
             setHeader(headerMap, key, appHeaders.get(key));
+        
+        if (Util.eqi(headerMap.get("X-Requested-With"), "XMLHttpRequest"))
+        {
+            appHeaders.remove("Priority");
+            appHeaders.remove("Sec-Fetch-User");
+        }
 
         List<KVEntry> headers = orderHeaders(headerMap,
                 "Host",
@@ -162,7 +167,7 @@ public class WebRequestHeaders
 
     /* ============================================================================== */
 
-    public static List<KVEntry> defineChrome109RequestHeaders(String url, HttpAccessMode httpAccessMode,
+    public static List<KVEntry> defineRequestHeadersChrome109(String url, HttpAccessMode httpAccessMode,
             Map<String, String> appHeaders, BrowserVersion browserVersion)
             throws Exception
     {
@@ -239,7 +244,7 @@ public class WebRequestHeaders
 
     /* ============================================================================== */
 
-    public static List<KVEntry> defineChromeRequestHeaders(String url, HttpAccessMode httpAccessMode,
+    public static List<KVEntry> defineRequestHeadersChrome(String url, HttpAccessMode httpAccessMode,
             Map<String, String> appHeaders, BrowserVersion browserVersion)
             throws Exception
     {
@@ -375,7 +380,7 @@ public class WebRequestHeaders
     public static void setOrigin(Map<String, String> headerMap)
     {
         String referer = headerMap.get("Referer");
-        
+
         if (Config.LoginSite == null || Config.LoginSite.length() == 0)
             Util.noop();
         else if (referer == null || referer.length() == 0)

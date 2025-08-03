@@ -28,6 +28,7 @@ public class WebRequestHeaders
         public String AcceptLanguage;
     }
 
+    public static final StandardHeaders Firefox40 = new StandardHeaders();
     public static final StandardHeaders Firefox43 = new StandardHeaders();
     public static final StandardHeaders Firefox141 = new StandardHeaders();
     public static final StandardHeaders Chrome109 = new StandardHeaders();
@@ -35,6 +36,10 @@ public class WebRequestHeaders
 
     static
     {
+        Firefox40.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
+        Firefox40.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+        Firefox40.AcceptLanguage = "en-US,en;q=0.5"; 
+
         Firefox43.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0";
         Firefox43.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
         Firefox43.AcceptLanguage = "en-US,en;q=0.5"; 

@@ -62,6 +62,18 @@ public class ServerContent
         String path = new URL(href).getPath();
         if (path == null)
             path = "";
+        
+        /*
+         * CSS files
+         */
+        if (Util.eq(fnExt, "css"))
+        {
+            if (Util.eqi(headerExt, "css") || Util.eqi(serverExt, "css"))
+                return new Decision(DecisionStatus.Accept, "css");
+
+            if (Util.eqi(headerExt, "txt") || Util.eqi(serverExt, "txt"))
+                return new Decision(DecisionStatus.Accept, "css");
+        }
 
         /*
          * For TXT extension. accept all kind of text files such as email messages (message/rfc822, normally .EML)

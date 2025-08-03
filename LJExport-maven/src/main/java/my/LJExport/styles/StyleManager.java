@@ -62,6 +62,8 @@ public class StyleManager
 
     public StyleManager(String styleCatalogDir, String fallbackStyleDir, boolean dryRun) throws Exception
     {
+        linkDownloader.alwaysAcceptContent = true;
+        
         while (styleCatalogDir.endsWith(File.separator))
             styleCatalogDir = Util.stripTail(styleCatalogDir, File.separator);
 

@@ -51,9 +51,10 @@ public class LinkDownloader
     private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private String linksDir;
     private final NamedLocks urlLocks = new NamedLocks();
-    
-    public static boolean downloadsArchive = false;
-    public static boolean downloadsOnlineOnly = !downloadsArchive;
+
+    public boolean downloadsArchive = false;
+    public boolean downloadsOnlineOnly = !downloadsArchive;
+    public boolean alwaysAcceptContent = false;
 
     public static final String LinkMapFileName = "map-href-file.txt";
 
@@ -630,12 +631,16 @@ public class LinkDownloader
             case "xhtml":
             case "php":
                 // server responded with error page
-                return null;
+                if (!alwaysAcceptContent)
+                    return null;
+                break;
 
             case "txt":
                 // if txt file was explicitly requested, isEquivalentExtensions above already returned it 
                 // otherwise (non-txt URL) server responded with error page
-                return null;
+                if (!alwaysAcceptContent)
+                    return null;
+                break;
 
             default:
                 break;
@@ -647,7 +652,7 @@ public class LinkDownloader
         if (image || FileTypeDetector.isImageExtension(urlPathExt))
         {
             /* expected image but content is not image */
-            if (!FileTypeDetector.isImageExtension(contentExt))
+            if (!FileTypeDetector.isImageExtension(contentExt) && !alwaysAcceptContent)
                 return null;
         }
 

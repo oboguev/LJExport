@@ -16,6 +16,6 @@ public class BrowserProxyFactory
     {
         HttpAccessMode httpAccessMode = HttpAccessMode.forUrl(site);
         BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, site);
-        return browserProxy != null && browserProxy.requiresProgrammaticLogin();
+        return browserProxy == null || browserProxy.requiresProgrammaticLogin();
     }
 }

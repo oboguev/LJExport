@@ -134,7 +134,7 @@ public class Config
     public static boolean ScrapingArchiveOrg = false;
 
     public static final Map<String, HttpAccessMode> HttpAccessModes = Map.of(
-            Sites.Livejournal, HttpAccessMode.NO_ACCESS,
+            Sites.Livejournal, HttpAccessMode.DIRECT,
             Sites.DreamwidthOrg, HttpAccessMode.DIRECT,
             Sites.OlegMakarenko, HttpAccessMode.DIRECT,
             Sites.RossiaOrg, HttpAccessMode.DIRECT,

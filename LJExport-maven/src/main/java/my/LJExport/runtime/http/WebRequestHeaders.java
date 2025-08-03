@@ -21,18 +21,37 @@ import my.LJExport.runtime.lj.Sites;
 
 public class WebRequestHeaders
 {
-    public static final String UserAgentFirefox43 = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0";
-    public static final String AcceptFirefox43 = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+    public static class StandardHeaders
+    {
+        public String UserAgent;
+        public String Accept;
+        public String AcceptLanguage;
+    }
 
-    public static final String UserAgentFirefox141 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0";
-    public static final String AcceptFirefox141 = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+    public static final StandardHeaders Firefox43 = new StandardHeaders();
+    public static final StandardHeaders Firefox141 = new StandardHeaders();
+    public static final StandardHeaders Chrome109 = new StandardHeaders();
+    public static final StandardHeaders Chrome138 = new StandardHeaders();
 
-    public static final String UserAgentChrome109 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36";
-    public static final String AcceptChrome109 = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
+    static
+    {
+        Firefox43.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0";
+        Firefox43.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+        Firefox43.AcceptLanguage = "en-US,en;q=0.5"; 
 
-    public static final String UserAgentChrome138 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36";
-    public static final String AcceptChrome138 = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
-    
+        Firefox141.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0";
+        Firefox141.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+        Firefox141.AcceptLanguage = "en-US,en;q=0.5"; 
+
+        Chrome109.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36";
+        Chrome109.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
+        Chrome109.AcceptLanguage = "en-US,en;q=0.9"; 
+
+        Chrome138.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36";
+        Chrome138.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
+        Chrome138.AcceptLanguage = "en-US,en;q=0.9"; 
+    }
+
     public static List<KVEntry> defineRequestHeaders(String url, HttpAccessMode httpAccessMode, Map<String, String> appHeaders)
             throws Exception
     {
@@ -46,16 +65,16 @@ public class WebRequestHeaders
         BrowserVersion v = BrowserVersion.parse(userAgent);
 
         if (v.brand.equals("Firefox") && v.version[0] <= 43)
-            return defineRequestHeadersFirefox43(url, httpAccessMode, appHeaders, v);
+            return defineRequestHeadersFirefox43(url, httpAccessMode, appHeaders, v, Firefox43);
 
         if (v.brand.equals("Chrome") && v.version[0] <= 109)
-            return defineRequestHeadersChrome109(url, httpAccessMode, appHeaders, v);
+            return defineRequestHeadersChrome109(url, httpAccessMode, appHeaders, v, Chrome109);
 
         if (v.brand.equals("Firefox"))
-            return defineRequestHeadersFirefox141(url, httpAccessMode, appHeaders, v);
+            return defineRequestHeadersFirefox141(url, httpAccessMode, appHeaders, v, Firefox141);
 
         if (v.brand.equals("Chrome"))
-            return defineRequestHeadersChrome138(url, httpAccessMode, appHeaders, v);
+            return defineRequestHeadersChrome138(url, httpAccessMode, appHeaders, v, Chrome138);
 
         throw new Exception("Unsupported user agent: " + userAgent);
     }
@@ -63,7 +82,7 @@ public class WebRequestHeaders
     /* ============================================================================== */
 
     public static List<KVEntry> defineRequestHeadersFirefox43(String url, HttpAccessMode httpAccessMode,
-            Map<String, String> appHeaders, BrowserVersion browserVersion)
+            Map<String, String> appHeaders, BrowserVersion browserVersion, StandardHeaders sth)
             throws Exception
     {
         String host = new URL(url).getHost().toLowerCase();
@@ -72,8 +91,8 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Host", host);
         setHeader(headerMap, "User-Agent", Config.UserAgent);
-        setHeader(headerMap, "Accept", AcceptFirefox43);
-        setHeader(headerMap, "Accept-Language", "en-US,en;q=0.5");
+        setHeader(headerMap, "Accept", sth.Accept);
+        setHeader(headerMap, "Accept-Language", sth.AcceptLanguage);
         setHeader(headerMap, "Accept-Encoding", "gzip, deflate");
         setHeader(headerMap, "Connection", "keep-alive");
 
@@ -100,7 +119,7 @@ public class WebRequestHeaders
     /* ============================================================================== */
 
     public static List<KVEntry> defineRequestHeadersFirefox141(String url, HttpAccessMode httpAccessMode,
-            Map<String, String> appHeaders, BrowserVersion browserVersion)
+            Map<String, String> appHeaders, BrowserVersion browserVersion, StandardHeaders sth)
             throws Exception
     {
         String site = Sites.which(url);
@@ -110,8 +129,8 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Host", host);
         setHeader(headerMap, "User-Agent", Config.UserAgent);
-        setHeader(headerMap, "Accept", AcceptFirefox141);
-        setHeader(headerMap, "Accept-Language", "en-US,en;q=0.5");
+        setHeader(headerMap, "Accept", sth.Accept);
+        setHeader(headerMap, "Accept-Language", sth.AcceptLanguage);
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
         if (site.equals(Sites.Livejournal) && Util.False)
@@ -174,7 +193,7 @@ public class WebRequestHeaders
     /* ============================================================================== */
 
     public static List<KVEntry> defineRequestHeadersChrome109(String url, HttpAccessMode httpAccessMode,
-            Map<String, String> appHeaders, BrowserVersion browserVersion)
+            Map<String, String> appHeaders, BrowserVersion browserVersion, StandardHeaders sth)
             throws Exception
     {
         String site = Sites.which(url);
@@ -184,8 +203,8 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Host", host);
         setHeader(headerMap, "User-Agent", Config.UserAgent);
-        setHeader(headerMap, "Accept", AcceptChrome109);
-        setHeader(headerMap, "Accept-Language", "en-US,en;q=0.9");
+        setHeader(headerMap, "Accept", sth.Accept);
+        setHeader(headerMap, "Accept-Language", sth.AcceptLanguage);
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
         if (site.equals(Sites.Livejournal))
@@ -251,7 +270,7 @@ public class WebRequestHeaders
     /* ============================================================================== */
 
     public static List<KVEntry> defineRequestHeadersChrome138(String url, HttpAccessMode httpAccessMode,
-            Map<String, String> appHeaders, BrowserVersion browserVersion)
+            Map<String, String> appHeaders, BrowserVersion browserVersion, StandardHeaders sth)
             throws Exception
     {
         String site = Sites.which(url);
@@ -261,8 +280,8 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Host", host);
         setHeader(headerMap, "User-Agent", Config.UserAgent);
-        setHeader(headerMap, "Accept", AcceptChrome138);
-        setHeader(headerMap, "Accept-Language", "en-US,en;q=0.9");
+        setHeader(headerMap, "Accept", sth.Accept);
+        setHeader(headerMap, "Accept-Language", sth.AcceptLanguage);
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
         if (site.equals(Sites.Livejournal))

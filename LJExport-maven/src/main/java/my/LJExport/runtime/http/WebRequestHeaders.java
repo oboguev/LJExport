@@ -23,7 +23,9 @@ public class WebRequestHeaders
 {
     private static final String UserAgentAcceptFirefox = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
     private static final String UserAgentAcceptFirefox43 = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+
     private static final String UserAgentAcceptChrome = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
+    private static final String UserAgentAcceptChrome109 = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
 
     public static List<KVEntry> defineRequestHeaders(String url, HttpAccessMode httpAccessMode, Map<String, String> appHeaders)
             throws Exception
@@ -39,6 +41,9 @@ public class WebRequestHeaders
 
         if (v.brand.equals("Firefox") && v.version[0] <= 43)
             return defineFirefox43RequestHeaders(url, httpAccessMode, appHeaders, v);
+
+        if (v.brand.equals("Chrome") && v.version[0] <= 109)
+            return defineChrome109RequestHeaders(url, httpAccessMode, appHeaders, v);
 
         if (v.brand.equals("Firefox"))
             return defineFirefoxRequestHeaders(url, httpAccessMode, appHeaders, v);
@@ -68,6 +73,8 @@ public class WebRequestHeaders
 
         for (String key : appHeaders.keySet())
             setHeader(headerMap, key, appHeaders.get(key));
+        
+        headerMap.remove("Origin");
 
         List<KVEntry> headers = orderHeaders(headerMap,
                 "Host",
@@ -76,7 +83,11 @@ public class WebRequestHeaders
                 "Accept-Language",
                 "Accept-Encoding",
                 "Referer",
-                "Connection");
+                // "Cookie"
+                "Connection",
+                "Content-Type"
+        // "Content-Length"
+        );
 
         return headers;
     }
@@ -131,14 +142,97 @@ public class WebRequestHeaders
                 "Accept-Language",
                 "Accept-Encoding",
                 "Referer",
+                "Content-Type",
+                "X-Requested-With",
+                "Content-Length",
+                "Origin",
+                "DNT",
                 "Sec-GPC",
                 "Connection",
+                "Cookie",
                 "Upgrade-Insecure-Requests",
                 "Sec-Fetch-Dest",
                 "Sec-Fetch-Mode",
                 "Sec-Fetch-Site",
                 "Sec-Fetch-User",
                 "Priority");
+
+        return headers;
+    }
+
+    /* ============================================================================== */
+
+    public static List<KVEntry> defineChrome109RequestHeaders(String url, HttpAccessMode httpAccessMode,
+            Map<String, String> appHeaders, BrowserVersion browserVersion)
+            throws Exception
+    {
+        String site = Sites.which(url);
+        String host = new URL(url).getHost().toLowerCase();
+
+        Map<String, String> headerMap = new HashMap<>();
+
+        setHeader(headerMap, "Host", host);
+        setHeader(headerMap, "User-Agent", Config.UserAgent);
+        setHeader(headerMap, "Accept", UserAgentAcceptChrome109);
+        setHeader(headerMap, "Accept-Language", "en-US,en;q=0.9");
+
+        // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
+        if (site.equals(Sites.Livejournal))
+            setHeader(headerMap, "Accept-Encoding", "gzip, deflate, br");
+        else
+            setHeader(headerMap, "Accept-Encoding", "gzip, deflate");
+
+        // setHeader(request, headers, "Cache-Control", "no-cache");
+        // setHeader(request, headers, "Pragma", "no-cache");
+
+        if (httpAccessMode != HttpAccessMode.DIRECT_VIA_HTTP)
+            setHeader(headerMap, "Upgrade-Insecure-Requests", "1");
+
+        // setHeader(headerMap, "Priority", "u=0, i");
+        // setHeader(headerMap, "Sec-GPC", "1");
+        setHeader(headerMap, "Connection", "keep-alive");
+
+        setHeader(headerMap, "Sec-Fetch-Dest", "document");
+        setHeader(headerMap, "Sec-Fetch-Mode", "navigate");
+
+        String secFetchSite = secFetchSite(url, appHeaders.get("Referer"));
+        setHeader(headerMap, "Sec-Fetch-Site", secFetchSite);
+
+        setHeader(headerMap, "Sec-Fetch-User", "?1");
+
+        int majorVersion = browserVersion.version[0];
+        String sec_ch_ua = String.format("\"Not)A;Brand\";v=\"99\", \"Chromium\";v=\"%d\", \"Google Chrome\";v=\"%d\"",
+                majorVersion,
+                majorVersion);
+        setHeader(headerMap, "sec-ch-ua", sec_ch_ua);
+
+        setHeader(headerMap, "sec-ch-ua-mobile", "?0");
+        setHeader(headerMap, "sec-ch-ua-platform", "\"Windows\"");
+
+        for (String key : appHeaders.keySet())
+            setHeader(headerMap, key, appHeaders.get(key));
+
+        List<KVEntry> headers = orderHeaders(headerMap,
+                "Host",
+                "Connection",
+                "Content-Length",
+                "Cache-Control",
+                "sec-ch-ua",
+                "sec-ch-ua-mobile",
+                "sec-ch-ua-platform",
+                "Upgrade-Insecure-Requests",
+                "Origin",
+                "Content-Type",
+                "User-Agent",
+                "Accept",
+                "Sec-Fetch-Site",
+                "Sec-Fetch-Mode",
+                "Sec-Fetch-User",
+                "Sec-Fetch-Dest",
+                "Referer",
+                "Accept-Encoding",
+                "Accept-Language"
+        /* "Cookie" */);
 
         return headers;
     }
@@ -274,6 +368,20 @@ public class WebRequestHeaders
 
         for (KVEntry e : headers)
             request.setHeader(e.key, e.value);
+    }
+
+    /* ============================================================================== */
+
+    public static void setOrigin(Map<String, String> headerMap)
+    {
+        String referer = headerMap.get("Referer");
+        
+        if (Config.LoginSite == null || Config.LoginSite.length() == 0)
+            Util.noop();
+        else if (referer == null || referer.length() == 0)
+            headerMap.remove("Origin");
+        else
+            headerMap.put("Origin", String.format("https://www.%s", Config.LoginSite));
     }
 
     /* ============================================================================== */

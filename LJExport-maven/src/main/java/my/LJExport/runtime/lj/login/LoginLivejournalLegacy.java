@@ -26,12 +26,18 @@ public class LoginLivejournalLegacy
 
         Web.Response r = null;
         
+        // ### get www.livejournal.com for initial cookies (luid)
+        
+        // ref=&ret=1&user=oboguev&password=xxxxxx&action%3Alogin=
         Map<String,String> form = new LinkedHashMap<>(); 
+        form.put("ref", "");
         form.put("ret", "1");
         form.put("user", Config.LoginUser);
         form.put("password", Config.LoginPassword);
+        form.put("action:login", "");
+
         r = Web.post("https://www." + Config.LoginSite + "/login.bml?ret=1", 
-                FormPost.body(form) + "&" + "action:login",
+                FormPost.body(form),
                 Map.of("Content-Type", "application/x-www-form-urlencoded"));
 
         if (r.code != HttpStatus.SC_OK)

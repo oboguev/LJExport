@@ -1,0 +1,19 @@
+POST https://www.livejournal.com/__api/ HTTP/1.1
+Host: www.livejournal.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0
+Accept: application/json, text/javascript, */*; q=0.01
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Referer: https://www.livejournal.com/
+Content-Type: text/plain
+X-Requested-With: XMLHttpRequest
+Content-Length: 208
+Origin: https://www.livejournal.com
+Sec-GPC: 1
+Connection: keep-alive
+Cookie: luid=URNKAWiOtJ2xF/amgJOuAgB=; ljuniq=E8y2qXsAWRWiz66:1754182819:pgstats1; adtech_uid=267f1900-978e-4b7d-8925-d60dec9d378a%3Alivejournal.com; top100_id=t1.1111412.2035848607.1754182821447; t3_sid_1111412=s1.2009668755.1754182821447.1754182834473.1.10.2.1; ab_d=1; bltsr=1; ljprof=f32b2504b0dbdcf7f688eb4a39aab4cc18233b2b4eabf7f75; addruid=p17z5ID41Jk82CG83iP2m6g9v9; cmtchd=MTc1NDE4MjgzNTUxMg==
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: same-origin
+
+[{"jsonrpc":"2.0","method":"user.login","params":{"user":"oboguev","password":"xxxxxxxxxxx","expire":"never","auth_token":"sessionless:1754182800:/__api/::0b000001b2bb9977ba9cd190eb3ce77fd5987298"},"id":20}]

@@ -1,0 +1,21 @@
+POST https://www.livejournal.com/__api/ HTTP/1.1
+Host: www.livejournal.com
+Connection: keep-alive
+Content-Length: 208
+sec-ch-ua-platform: "Windows"
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+sec-ch-ua: "Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"
+Content-Type: text/plain
+sec-ch-ua-mobile: ?0
+Origin: https://www.livejournal.com
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: https://www.livejournal.com/
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: en-US,en;q=0.9
+Cookie: luid=URNKAWiOtRqq7yWAEh+/AgB=; ljuniq=L7acJR7XFp5vdDk:1754182947:pgstats0; lj_sale_adblock=true; adtech_uid=ec70fc44-4ac1-4b41-8e6b-258fd06c0f15%3Alivejournal.com; tmr_lvid=ae101addeff1cb50bd736262c637d3fc; tmr_lvidTS=1754182949303; ljprof=f7f96266fb0aa0690688eb51b9aab4cc187b91d4e3e4ad847; top100_id=t1.1111412.1219890902.1754182949965; FCNEC=%5B%5B%22AKsRol8koXc-OfG4SinK0d0Q1hmvc7FtSdc2zvArCJM9WAMvIiRlbT3cbDvycGa4aqhng2vGHEA_2N91MbX0tJ2iM7QBZYbjj4i6v_9LRl2al_u1mFzg3Dj6XUE2sA_Q2CycZgkE75At0C2cl0qBT500_z9xyvXgxA%3D%3D%22%5D%5D; tmr_detect=0%7C1754182951606; _ym_uid=1754182952573416314; _ym_d=1754182952; domain_sid=acVJiS0BvnRH7KDKCpIjr%3A1754182952448; _ym_isad=2; t3_sid_1111412=s1.11712845.1754182949966.1754182964967.1.7.1.1
+
+[{"jsonrpc":"2.0","method":"user.login","params":{"user":"oboguev","password":"xxxxxxxxxxxxxxx","expire":"never","auth_token":"sessionless:1754179200:/__api/::4a9f661baeef89cf972b3b0696a6a847a5f90307"},"id":12}]

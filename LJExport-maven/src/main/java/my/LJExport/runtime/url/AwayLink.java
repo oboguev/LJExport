@@ -251,6 +251,10 @@ public class AwayLink
         }
     }
 
+    /*
+     * Decodes https://imgprx.livejournal.net/st/a5qxcIzYm6irxnS1DFddEl8-2t1CYWAJYj-i7bfFaKo/img1.labirint.ru/books/168777/big.jpg
+     * into    https://img1.labirint.ru/books/168777/big.jpg
+     */
     public static String unwrapLivejournalImgPrxSt(String url)
     {
         try

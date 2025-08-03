@@ -48,6 +48,7 @@ public class LoginLivejournal
         headers.put("Sec-Fetch-Dest", "empty");
         headers.put("Sec-Fetch-Mode", "cors");
         headers.put("Sec-Fetch-Site", "same-origin");
+        headers.put("Sec-Fetch-User", null);
         headers.put("Referer", String.format("https://www.%s/", Config.LoginSite));
         headers.put("X-Requested-With", "XMLHttpRequest");
         headers.put("Origin", String.format("https://www.%s", Config.LoginSite));

@@ -38,23 +38,23 @@ public class WebRequestHeaders
     {
         Firefox40.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
         Firefox40.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
-        Firefox40.AcceptLanguage = "en-US,en;q=0.5"; 
+        Firefox40.AcceptLanguage = "en-US,en;q=0.5";
 
         Firefox43.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0";
         Firefox43.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
-        Firefox43.AcceptLanguage = "en-US,en;q=0.5"; 
+        Firefox43.AcceptLanguage = "en-US,en;q=0.5";
 
         Firefox141.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0";
         Firefox141.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
-        Firefox141.AcceptLanguage = "en-US,en;q=0.5"; 
+        Firefox141.AcceptLanguage = "en-US,en;q=0.5";
 
         Chrome109.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36";
         Chrome109.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
-        Chrome109.AcceptLanguage = "en-US,en;q=0.9"; 
+        Chrome109.AcceptLanguage = "en-US,en;q=0.9";
 
         Chrome138.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36";
         Chrome138.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
-        Chrome138.AcceptLanguage = "en-US,en;q=0.9"; 
+        Chrome138.AcceptLanguage = "en-US,en;q=0.9";
     }
 
     public static List<KVEntry> defineRequestHeaders(String url, HttpAccessMode httpAccessMode, Map<String, String> appHeaders)
@@ -161,6 +161,8 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Sec-Fetch-User", "?1");
 
+        setOrigin(headerMap);
+
         for (String key : appHeaders.keySet())
             setHeader(headerMap, key, appHeaders.get(key));
 
@@ -168,6 +170,7 @@ public class WebRequestHeaders
         {
             appHeaders.remove("Priority");
             appHeaders.remove("Sec-Fetch-User");
+            appHeaders.remove("Upgrade-Insecure-Requests");
         }
 
         List<KVEntry> headers = orderHeaders(headerMap,
@@ -183,9 +186,9 @@ public class WebRequestHeaders
                 "Origin",
                 "DNT",
                 "Sec-GPC",
+                "Upgrade-Insecure-Requests",
                 "Connection",
                 "Cookie",
-                "Upgrade-Insecure-Requests",
                 "Sec-Fetch-Dest",
                 "Sec-Fetch-Mode",
                 "Sec-Fetch-Site",
@@ -212,7 +215,7 @@ public class WebRequestHeaders
         setHeader(headerMap, "Accept-Language", sth.AcceptLanguage);
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
-        if (site.equals(Sites.Livejournal))
+        if (site.equals(Sites.Livejournal) && Util.False)
             setHeader(headerMap, "Accept-Encoding", "gzip, deflate, br");
         else
             setHeader(headerMap, "Accept-Encoding", "gzip, deflate");
@@ -226,6 +229,7 @@ public class WebRequestHeaders
         // setHeader(headerMap, "Priority", "u=0, i");
         // setHeader(headerMap, "Sec-GPC", "1");
         setHeader(headerMap, "Connection", "keep-alive");
+        setHeader(headerMap, "Cache-Control", "max-age=0");
 
         setHeader(headerMap, "Sec-Fetch-Dest", "document");
         setHeader(headerMap, "Sec-Fetch-Mode", "navigate");
@@ -243,6 +247,8 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "sec-ch-ua-mobile", "?0");
         setHeader(headerMap, "sec-ch-ua-platform", "\"Windows\"");
+
+        setOrigin(headerMap);
 
         for (String key : appHeaders.keySet())
             setHeader(headerMap, key, appHeaders.get(key));
@@ -266,8 +272,8 @@ public class WebRequestHeaders
                 "Sec-Fetch-Dest",
                 "Referer",
                 "Accept-Encoding",
-                "Accept-Language"
-        /* "Cookie" */);
+                "Accept-Language",
+                "Cookie");
 
         return headers;
     }
@@ -321,8 +327,16 @@ public class WebRequestHeaders
         setHeader(headerMap, "sec-ch-ua-mobile", "?0");
         setHeader(headerMap, "sec-ch-ua-platform", "\"Windows\"");
 
+        setOrigin(headerMap);
+
         for (String key : appHeaders.keySet())
             setHeader(headerMap, key, appHeaders.get(key));
+
+        if (Util.eqi(headerMap.get("X-Requested-With"), "XMLHttpRequest"))
+        {
+            appHeaders.remove("Sec-Fetch-User");
+            appHeaders.remove("Upgrade-Insecure-Requests");
+        }
 
         List<KVEntry> headers = orderHeaders(headerMap,
                 "Host",
@@ -344,8 +358,7 @@ public class WebRequestHeaders
                 "Accept-Encoding",
                 "Accept-Language",
                 "Cookie",
-                "Upgrade-Insecure-Requests" // ### not if xml // ### and which order
-        );
+                "Upgrade-Insecure-Requests");
 
         return headers;
     }
@@ -364,18 +377,14 @@ public class WebRequestHeaders
 
     private static void setHeader(Map<String, String> headers, String key, String value) throws Exception
     {
-        Set<String> deleteKeys = new HashSet<>();
-
-        for (String k : headers.keySet())
+        for (String k : new HashSet<>(headers.keySet()))
         {
             if (k.equalsIgnoreCase(key))
-                deleteKeys.add(k);
+                headers.remove(k);
         }
 
-        for (String k : deleteKeys)
-            headers.remove(k);
-
-        headers.put(key, value);
+        if (value != null)
+            headers.put(key, value);
     }
 
     private static List<KVEntry> orderHeaders(Map<String, String> headerMap, String... names)

@@ -21,12 +21,18 @@ import my.LJExport.runtime.lj.Sites;
 
 public class WebRequestHeaders
 {
-    private static final String UserAgentAcceptFirefox43 = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
-    private static final String UserAgentAcceptFirefox141 = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+    public static final String UserAgentFirefox43 = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0";
+    public static final String AcceptFirefox43 = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
 
-    private static final String UserAgentAcceptChrome = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
-    private static final String UserAgentAcceptChrome109 = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
+    public static final String UserAgentFirefox141 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0";
+    public static final String AcceptFirefox141 = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
 
+    public static final String UserAgentChrome109 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36";
+    public static final String AcceptChrome109 = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
+
+    public static final String UserAgentChrome138 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36";
+    public static final String AcceptChrome138 = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
+    
     public static List<KVEntry> defineRequestHeaders(String url, HttpAccessMode httpAccessMode, Map<String, String> appHeaders)
             throws Exception
     {
@@ -49,7 +55,7 @@ public class WebRequestHeaders
             return defineRequestHeadersFirefox141(url, httpAccessMode, appHeaders, v);
 
         if (v.brand.equals("Chrome"))
-            return defineRequestHeadersChrome(url, httpAccessMode, appHeaders, v);
+            return defineRequestHeadersChrome138(url, httpAccessMode, appHeaders, v);
 
         throw new Exception("Unsupported user agent: " + userAgent);
     }
@@ -66,7 +72,7 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Host", host);
         setHeader(headerMap, "User-Agent", Config.UserAgent);
-        setHeader(headerMap, "Accept", UserAgentAcceptFirefox43);
+        setHeader(headerMap, "Accept", AcceptFirefox43);
         setHeader(headerMap, "Accept-Language", "en-US,en;q=0.5");
         setHeader(headerMap, "Accept-Encoding", "gzip, deflate");
         setHeader(headerMap, "Connection", "keep-alive");
@@ -104,7 +110,7 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Host", host);
         setHeader(headerMap, "User-Agent", Config.UserAgent);
-        setHeader(headerMap, "Accept", UserAgentAcceptFirefox141);
+        setHeader(headerMap, "Accept", AcceptFirefox141);
         setHeader(headerMap, "Accept-Language", "en-US,en;q=0.5");
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
@@ -133,7 +139,7 @@ public class WebRequestHeaders
 
         for (String key : appHeaders.keySet())
             setHeader(headerMap, key, appHeaders.get(key));
-        
+
         if (Util.eqi(headerMap.get("X-Requested-With"), "XMLHttpRequest"))
         {
             appHeaders.remove("Priority");
@@ -178,7 +184,7 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Host", host);
         setHeader(headerMap, "User-Agent", Config.UserAgent);
-        setHeader(headerMap, "Accept", UserAgentAcceptChrome109);
+        setHeader(headerMap, "Accept", AcceptChrome109);
         setHeader(headerMap, "Accept-Language", "en-US,en;q=0.9");
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
@@ -244,7 +250,7 @@ public class WebRequestHeaders
 
     /* ============================================================================== */
 
-    public static List<KVEntry> defineRequestHeadersChrome(String url, HttpAccessMode httpAccessMode,
+    public static List<KVEntry> defineRequestHeadersChrome138(String url, HttpAccessMode httpAccessMode,
             Map<String, String> appHeaders, BrowserVersion browserVersion)
             throws Exception
     {
@@ -255,7 +261,7 @@ public class WebRequestHeaders
 
         setHeader(headerMap, "Host", host);
         setHeader(headerMap, "User-Agent", Config.UserAgent);
-        setHeader(headerMap, "Accept", UserAgentAcceptChrome);
+        setHeader(headerMap, "Accept", AcceptChrome138);
         setHeader(headerMap, "Accept-Language", "en-US,en;q=0.9");
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
@@ -297,19 +303,25 @@ public class WebRequestHeaders
         List<KVEntry> headers = orderHeaders(headerMap,
                 "Host",
                 "Connection",
-                "Upgrade-Insecure-Requests",
+                "Content-Length",
+                "sec-ch-ua-platform",
+                "X-Requested-With",
                 "User-Agent",
                 "Accept",
+                "sec-ch-ua",
+                "Content-Type",
+                "sec-ch-ua-mobile",
+                "Origin",
                 "Sec-Fetch-Site",
                 "Sec-Fetch-Mode",
                 "Sec-Fetch-User",
                 "Sec-Fetch-Dest",
                 "Referer",
-                "sec-ch-ua",
-                "sec-ch-ua-mobile",
-                "sec-ch-ua-platform",
                 "Accept-Encoding",
-                "Accept-Language");
+                "Accept-Language",
+                "Cookie",
+                "Upgrade-Insecure-Requests" // ### not if xml // ### and which order
+        );
 
         return headers;
     }

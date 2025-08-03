@@ -16,8 +16,16 @@ import my.LJExport.runtime.http.Web;
 
 public class LoginLivejournal
 {
+    static public boolean UseLegacyLogin = true;
+    
     public static void login() throws Exception
     {
+        if (UseLegacyLogin)
+        {
+            LoginLivejournalLegacy.login();
+            return;
+        }
+        
         Config.acquireLoginPassword();
 
         Web.Response r = null;

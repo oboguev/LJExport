@@ -26,7 +26,10 @@ public class LoginLivejournalLegacy
 
         Web.Response r = null;
         
-        // ### get www.livejournal.com for initial cookies (luid)
+        // get www.livejournal.com for initial cookies (luid)
+        r = Web.get("https://www." + Config.LoginSite + "/");
+        if (r.code != HttpStatus.SC_OK)
+            throw new Exception("Unable to log into the server: " + Web.describe(r.code));
         
         // ref=&ret=1&user=oboguev&password=xxxxxx&action%3Alogin=
         Map<String,String> form = new LinkedHashMap<>(); 

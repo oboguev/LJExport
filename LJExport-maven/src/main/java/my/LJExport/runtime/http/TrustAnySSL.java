@@ -23,7 +23,7 @@ public class TrustAnySSL
     private static SSLContext sslContext;
     private static boolean initialized = false;
     
-    private static boolean useConscrypt = true; // ###
+    private static boolean useConscrypt = true;
 
     /**
      * Globally disable SSL certificate and hostname verification.

@@ -534,7 +534,7 @@ public class StyleActionToLocal
             return path;
 
         String lc = path.toLowerCase();
-        
+
         if (lc.startsWith("http://") || lc.startsWith("https://"))
             return urlEncodeRemoteAbsoluteLink(path);
         else
@@ -579,7 +579,8 @@ public class StyleActionToLocal
         StringBuilder encodedPath = new StringBuilder();
         for (int i = 0; i < segments.length; i++)
         {
-            if (i > 0) encodedPath.append('/');
+            if (i > 0)
+                encodedPath.append('/');
 
             String seg = segments[i];
             if (seg.equals(".") || seg.equals(".."))
@@ -599,9 +600,9 @@ public class StyleActionToLocal
         if (uri.getRawFragment() != null)
             result.append('#').append(uri.getRawFragment());
 
-        return result.toString();        
+        return result.toString();
     }
-    
+
     /* ================================================================================== */
 
     /*
@@ -1126,9 +1127,9 @@ public class StyleActionToLocal
         {
             URI uri = new URI(absoluteUrl);
             String host = uri.getHost().toLowerCase();
-            
-            boolean result = ((Supplier<Boolean>) () -> {
-                
+
+            boolean isForeign = ((Supplier<Boolean>) () ->
+            {
                 if (host.equals("imgprx.livejournal.net"))
                     return true;
 
@@ -1139,18 +1140,18 @@ public class StyleActionToLocal
                     return false;
 
                 return true;
-                
+
             }).get();
-            
-            if (result)
+
+            if (isForeign)
             {
                 String msg = "Leaving unarchived remote link to undownloadable CSS style resource: " + absoluteUrl;
                 Util.err(msg);
                 if (errorMessageLog != null)
-                    errorMessageLog.add(msg);                
+                    errorMessageLog.add(msg);
             }
 
-            return result;
+            return isForeign;
         }
         else
         {

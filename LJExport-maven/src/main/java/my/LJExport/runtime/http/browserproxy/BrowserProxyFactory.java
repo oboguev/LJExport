@@ -11,4 +11,11 @@ public class BrowserProxyFactory
         
         throw new RuntimeException("Proxy is not implemente yet"); //###
     }
+    
+    public static boolean requiresProgrammaticLogin(String site) throws Exception
+    {
+        HttpAccessMode httpAccessMode = HttpAccessMode.forUrl(site);
+        BrowserProxy browserProxy = BrowserProxyFactory.getBrowserProxy(httpAccessMode, site);
+        return browserProxy != null && browserProxy.requiresProgrammaticLogin();
+    }
 }

@@ -23,6 +23,7 @@ import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.ProxyServer;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.http.browserproxy.BrowserProxyFactory;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.lj.login.LoginDreamwidth;
 import my.LJExport.runtime.lj.login.LoginLivejournal;
@@ -367,6 +368,12 @@ public class Main
     {
         if (!Config.UseLogin || Config.User == null || Config.User.length() == 0)
             return;
+        
+        if (!BrowserProxyFactory.requiresProgrammaticLogin(Config.LoginSite))
+        {
+            out(">>> Login to " + Config.LoginSite + " is manual via proxy browser");
+            return;
+        }
 
         if (logged_in.contains(Config.LoginSite))
         {
@@ -416,7 +423,10 @@ public class Main
 
     private static void do_logout(String loginSite) throws Exception
     {
-        if (Config.LoginViaBrowserCookies || !logged_in.contains(loginSite))
+        if (!logged_in.contains(loginSite))
+            return;
+        
+        if (!BrowserProxyFactory.requiresProgrammaticLogin(loginSite))
             return;
 
         long originalRateLimit = RateLimiter.LJ_PAGES.getRateLimit();

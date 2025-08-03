@@ -15,6 +15,11 @@ public interface BrowserProxy
         return true;
     }
     
+    public default boolean requiresProgrammaticLogin()
+    {
+        return false;
+    }
+    
     public default String getUserAgent() throws Exception
     {
         return null;

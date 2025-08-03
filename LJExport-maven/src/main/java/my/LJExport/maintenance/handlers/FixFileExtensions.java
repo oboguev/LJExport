@@ -52,6 +52,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
     public FixFileExtensions() throws Exception
     {
+        throw new Exception("Implementation is not complete"); // ####
     }
 
     @Override

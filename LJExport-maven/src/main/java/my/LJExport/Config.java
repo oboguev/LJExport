@@ -25,7 +25,6 @@ public class Config
 
     /* Login username */
     public static String LoginUser = "oboguev";
-    public static boolean LoginViaBrowserCookies = false;
 
     /* List of journals to download (comma or space-separated) */
     public static final String Users = "a_bugaev";

@@ -295,7 +295,7 @@ public class WebRequestHeaders
         setHeader(headerMap, "Accept-Language", sth.AcceptLanguage);
 
         // setHeader(request, headers, "Accept-Encoding", Config.UserAgentAcceptEncoding);
-        if (site.equals(Sites.Livejournal))
+        if (site.equals(Sites.Livejournal) && Util.False)
             setHeader(headerMap, "Accept-Encoding", "gzip, deflate, br, zstd");
         else
             setHeader(headerMap, "Accept-Encoding", "gzip, deflate");
@@ -503,8 +503,8 @@ public class WebRequestHeaders
     }
 
     /**
-     * Very naive registrable domain extractor: takes last two labels. Replace with public suffix list logic for production-grade
-     * use.
+     * Very naive registrable domain extractor: takes last two labels. 
+     * Replace with public suffix list logic for production-grade use.
      */
     private static String getRegistrableDomain(String host)
     {

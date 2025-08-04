@@ -21,12 +21,12 @@ import my.LJExport.runtime.Util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-class BrowserProxyNodeJs implements BrowserProxy
+class BrowserProxyNodeJS implements BrowserProxy
 {
     private final String proxyEndpointUrl;
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public BrowserProxyNodeJs(String proxyEndpointUrl)
+    public BrowserProxyNodeJS(String proxyEndpointUrl)
     {
         this.proxyEndpointUrl = proxyEndpointUrl;
     }

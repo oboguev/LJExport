@@ -27,7 +27,7 @@ public class TestProxy
 
     private BrowserProxy getProxy()
     {
-        return new BrowserProxyNodeJs("http://localhost:3000");
+        return new BrowserProxyNodeJS("http://localhost:3000");
     }
 
     private void test_1() throws Exception

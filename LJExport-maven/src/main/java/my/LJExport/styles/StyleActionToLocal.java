@@ -1014,7 +1014,7 @@ public class StyleActionToLocal
         if (lc.startsWith("data:"))
             return null;
 
-        if (Config.isLiveJournal() && lc.equals("/img/userinfo_v3.svg?v="))
+        if (Config.isLiveJournal() && lc.startsWith("/img/userinfo_v3.svg?v="))
             absoluteUrl = "https://l-stat.livejournal.net" + absoluteUrl;
 
         /*

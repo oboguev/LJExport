@@ -1,6 +1,7 @@
 package my.LJExport.runtime.links.util;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.regex.Pattern;
 
 import my.LJExport.runtime.url.UrlUtil;
@@ -40,6 +41,12 @@ public class URLClassifier
             // Malformed URL, treat as not a known non-document trap
             return false;
         }
+    }
+
+    public static boolean isNonDocumentURL(URL url) throws Exception
+    {
+        URI uri = UrlUtil.URLtoURI(url);
+        return isNonDocumentURL(uri);
     }
 
     public static boolean isNonDocumentURL(URI uri)

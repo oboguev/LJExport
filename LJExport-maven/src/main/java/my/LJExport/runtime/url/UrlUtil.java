@@ -46,6 +46,10 @@ public class UrlUtil
 
     public static String encodeSegment(String segment)
     {
+        /* 
+         * We should encode spaces as %20 in path or queries,
+         * or as + in query 
+         */
         return URLEncoder.encode(segment, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
@@ -632,5 +636,22 @@ public class UrlUtil
         String firstSegment = path.substring(0, slashIndex).toLowerCase();
         String rest = path.substring(slashIndex); // keep '/' and rest as-is
         return firstSegment + rest;
+    }
+
+    /* ================================================================================================== */
+    
+    public static URI URLtoURI(URL url) throws Exception
+    { 
+        String encodedQuery = encodeSegment(url.getQuery());
+        
+        URI uri = new URI(
+                url.getProtocol(),
+                url.getAuthority(),  // host + port
+                url.getPath(),
+                encodedQuery,
+                url.getRef()         // fragment
+            );
+        
+        return uri;
     }
 }

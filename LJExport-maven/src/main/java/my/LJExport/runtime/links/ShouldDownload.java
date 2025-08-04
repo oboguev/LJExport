@@ -1,6 +1,6 @@
 package my.LJExport.runtime.links;
 
-import java.net.URI;
+import java.net.URL;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
@@ -46,6 +46,8 @@ public class ShouldDownload
         {
             if (dontDownloadOnline.contains(href))
                 return false;
+            if (dontDownloadAtAll.contains(href))
+                return false;
         }
         else
         {
@@ -53,16 +55,16 @@ public class ShouldDownload
                 return false;
         }
 
-        URI url = new URI(href);
+        URL xurl = new URL(href);
 
-        String path = url.getPath();
+        String path = xurl.getPath();
         if (path == null)
             return false;
         path = path.trim();
         if (path.length() == 0 || path.equals("/"))
             return false;
-
-        String query = url.getRawQuery();
+        
+        String query = xurl.getQuery();
         if (query != null && query.trim().length() == 0)
             query = null;
 
@@ -96,6 +98,8 @@ public class ShouldDownload
             {
                 if (dontDownloadOnline.contains(href))
                     return false;
+                if (dontDownloadAtAll.contains(href))
+                    return false;
             }
             else
             {
@@ -103,15 +107,15 @@ public class ShouldDownload
                     return false;
             }
 
-            URI url = new URI(href);
+            URL xurl = new URL(href);
 
-            String protocol = url.getScheme();
+            String protocol = xurl.getProtocol();
             if (protocol == null)
                 return false;
             if (!(protocol.equalsIgnoreCase("http") || protocol.equalsIgnoreCase("https")))
                 return false;
 
-            String host = url.getHost();
+            String host = xurl.getHost();
 
             if (Util.False)
             {
@@ -137,12 +141,12 @@ public class ShouldDownload
             if (Util.False && Config.User.equals("sergeytsvetkov") && host != null && host.equals("avatars.dzeninfra.ru"))
                 return false;
 
-            String path = url.getPath();
+            String path = xurl.getPath();
             if (path == null)
                 return false;
 
             // HTML pages with document-looking URLs like https://en.wikipedia.org/wiki/File:FD2.png
-            if (URLClassifier.isNonDocumentURL(url))
+            if (URLClassifier.isNonDocumentURL(xurl))
                 return false;
 
             for (String ext : Config.DownloadFileTypes)

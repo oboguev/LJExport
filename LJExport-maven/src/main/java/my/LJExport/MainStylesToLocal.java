@@ -29,8 +29,8 @@ public class MainStylesToLocal
     private static final String AllUsersFromUser = "harmfulgrumpy";
     // private static final String AllUsersFromUser = null;
 
-    private static final String Users = ALL_USERS;
-    // private static final String Users = "oboguev";
+    // private static final String Users = ALL_USERS;
+    private static final String Users = "alex_vergin";
     // private static final String Users = "sergeytsvetkov";
     // private static final String Users = "nationalism.org";
     // private static final String Users = "udod99.lj-rossia-org";

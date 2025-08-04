@@ -85,11 +85,16 @@ public class WebRequestHeaders
         if (list == null)
             throw new Exception("Unsupported user agent: " + userAgent);
 
-        // Apache HTTP client automaically inserts "Connection: keep-alive",
-        // adding it results in two headers
         for (KVEntry e : new ArrayList<>(list))
         {
+            // Apache HTTP client automaically inserts "Connection: keep-alive",
+            // so adding it results in two headers
             if (e.key.equals("Connection") && e.value.equals("keep-alive"))
+                list.remove(e);
+
+            // Inserted "Host" header prevents Apache HTTP client from adding its own,
+            // and then redirects fail
+            if (e.key.equals("Host"))
                 list.remove(e);
         }
 

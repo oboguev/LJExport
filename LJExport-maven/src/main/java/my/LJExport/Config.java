@@ -28,7 +28,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "1981dn";
+    public static final String Users = "fritzmorgen";
     // public static final String Users = "roineroyce";
     // public static final String Users = "harmfulgrumpy.dreamwidth-org";
     // public static final String Users = "colonelcassad";

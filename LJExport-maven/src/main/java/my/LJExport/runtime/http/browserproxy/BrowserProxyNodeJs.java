@@ -16,6 +16,9 @@ import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import my.LJExport.runtime.Util;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 
 class BrowserProxyNodeJs implements BrowserProxy
@@ -71,8 +74,10 @@ class BrowserProxyNodeJs implements BrowserProxy
         if (body != null)
             requestMap.put("body", new String(body, StandardCharsets.UTF_8));
 
-        byte[] jsonBodyAsBytes = mapper.writeValueAsBytes(requestMap);
         String jsonBodyAsString = mapper.writeValueAsString(requestMap);
+        Util.unused(jsonBodyAsString);
+        
+        byte[] jsonBodyAsBytes = mapper.writeValueAsBytes(requestMap);
         try (OutputStream os = connection.getOutputStream())
         {
             os.write(jsonBodyAsBytes);

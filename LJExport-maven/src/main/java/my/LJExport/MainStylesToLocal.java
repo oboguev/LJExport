@@ -26,12 +26,12 @@ import my.LJExport.styles.StyleProcessor.StyleProcessorAction;
 public class MainStylesToLocal
 {
     private static final String ALL_USERS = "<all>";
-    // private static final String AllUsersFromUser = "kot_begemott";
-    private static final String AllUsersFromUser = null;
+    private static final String AllUsersFromUser = "harmfulgrumpy";
+    // private static final String AllUsersFromUser = null;
 
-    // private static final String Users = ALL_USERS;
+    private static final String Users = ALL_USERS;
     // private static final String Users = "oboguev";
-    private static final String Users = "sergeytsvetkov";
+    // private static final String Users = "sergeytsvetkov";
     // private static final String Users = "nationalism.org";
     // private static final String Users = "udod99.lj-rossia-org";
 

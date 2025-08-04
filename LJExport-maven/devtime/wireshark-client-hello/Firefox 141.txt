@@ -1,0 +1,58 @@
+Frame 1077: 622 bytes on wire (4976 bits), 622 bytes captured (4976 bits) on interface \Device\NPF_{22D16892-89B2-487F-BEFE-3B9D7E6D468D}, id 9
+Ethernet II, Src: 02:50:41:00:00:01 (02:50:41:00:00:01), Dst: 02:50:41:00:00:02 (02:50:41:00:00:02)
+Internet Protocol Version 4, Src: 10.124.75.113, Dst: 69.147.88.8
+Transmission Control Protocol, Src Port: 50635, Dst Port: 443, Seq: 1321, Ack: 1, Len: 568
+[2 Reassembled TCP Segments (1888 bytes): #1072(1320), #1077(568)]
+Transport Layer Security
+    TLSv1.3 Record Layer: Handshake Protocol: Client Hello
+        Content Type: Handshake (22)
+        Version: TLS 1.0 (0x0301)
+        Length: 1883
+        Handshake Protocol: Client Hello
+            Handshake Type: Client Hello (1)
+            Length: 1879
+            Version: TLS 1.2 (0x0303)
+            Random: 851bc5a9d111d2de345d74d139a8a0e919b6f6a701ecbfe003124907a6460a59
+            Session ID Length: 32
+            Session ID: dffabf68394a1cfa2e8bffd009b1513a5309ffa6a7935232354790973d838de6
+            Cipher Suites Length: 34
+            Cipher Suites (17 suites)
+                Cipher Suite: TLS_AES_128_GCM_SHA256 (0x1301)
+                Cipher Suite: TLS_CHACHA20_POLY1305_SHA256 (0x1303)
+                Cipher Suite: TLS_AES_256_GCM_SHA384 (0x1302)
+                Cipher Suite: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 (0xc02b)
+                Cipher Suite: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 (0xc02f)
+                Cipher Suite: TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 (0xcca9)
+                Cipher Suite: TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 (0xcca8)
+                Cipher Suite: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 (0xc02c)
+                Cipher Suite: TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 (0xc030)
+                Cipher Suite: TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA (0xc00a)
+                Cipher Suite: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA (0xc009)
+                Cipher Suite: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA (0xc013)
+                Cipher Suite: TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (0xc014)
+                Cipher Suite: TLS_RSA_WITH_AES_128_GCM_SHA256 (0x009c)
+                Cipher Suite: TLS_RSA_WITH_AES_256_GCM_SHA384 (0x009d)
+                Cipher Suite: TLS_RSA_WITH_AES_128_CBC_SHA (0x002f)
+                Cipher Suite: TLS_RSA_WITH_AES_256_CBC_SHA (0x0035)
+            Compression Methods Length: 1
+            Compression Methods (1 method)
+            Extensions Length: 1772
+            Extension: server_name (len=18) name=www.yahoo.com
+            Extension: extended_master_secret (len=0)
+            Extension: renegotiation_info (len=1)
+            Extension: supported_groups (len=16)
+            Extension: ec_point_formats (len=2)
+            Extension: application_layer_protocol_negotiation (len=14)
+            Extension: status_request (len=5)
+            Extension: delegated_credentials (len=10)
+            Extension: signed_certificate_timestamp (len=0)
+            Extension: key_share (len=1327) X25519MLKEM768, x25519, secp256r1
+            Extension: supported_versions (len=5) TLS 1.3, TLS 1.2
+            Extension: signature_algorithms (len=24)
+            Extension: record_size_limit (len=2)
+            Extension: compress_certificate (len=7)
+            Extension: encrypted_client_hello (len=281)
+            [JA4: t13d1715h2_5b57614c22b0_a54fffd0eb61]
+            [JA4_r: t13d1715h2_002f,0035,009c,009d,1301,1302,1303,c009,c00a,c013,c014,c02b,c02c,c02f,c030,cca8,cca9_0005,000a,000b,000d,0012,0017,001b,001c,0022,002b,0033,fe0d,ff01_0403,0503,0603,0804,0805,0806,0401,0501,0601,0203,0201]
+            [JA3 Fullstring: 771,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-156-157-47-53,0-23-65281-10-11-16-5-34-18-51-43-13-28-27-65037,4588-29-23-24-25-256-257,0]
+            [JA3: 7704a11cf87dfcf33080b90ce11d5527]

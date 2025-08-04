@@ -1,4 +1,4 @@
-package my.LJExport.runtime.http;
+package my.LJExport.runtime.http.ssl;
 
 import javax.net.ssl.*;
 
@@ -13,6 +13,11 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
 import org.conscrypt.Conscrypt;
+
+import my.LJExport.runtime.Util;
+import my.LJExport.runtime.http.socks.SocksConnectionSocketFactory;
+import my.LJExport.runtime.http.socks.SocksSSLConnectionSocketFactory;
+
 import java.security.Security;
 
 /*
@@ -22,7 +27,10 @@ public class TrustAnySSL
 {
     private static SSLContext sslContext;
     private static boolean initialized = false;
-    
+
+    /*
+     * REQUIRED to reshuffle ciphers.
+     */
     private static boolean useConscrypt = true;
 
     /**
@@ -30,10 +38,17 @@ public class TrustAnySSL
      */
     public static synchronized void trustAnySSL()
     {
+        trustAnySSL(false, useConscrypt);
+    }
+
+    public static synchronized void trustAnySSL(boolean forceReinitialization, boolean useConscrypt)
+    {
         try
         {
-            if (!initialized)
+            if (!initialized || forceReinitialization)
             {
+                Util.out("Reinitializing SSL/TLS socket factory, provider = " + (useConscrypt ? "Conscrypt" : "default"));
+
                 // Create a trust manager that does not validate certificate chains
                 final TrustManager[] trustAllCerts = new TrustManager[] { new LooseTrustManager() };
 
@@ -48,14 +63,16 @@ public class TrustAnySSL
                 {
                     sslContext = SSLContext.getInstance("TLS");
                 }
-                
+
                 sslContext.init(null, trustAllCerts, new SecureRandom());
 
                 // Set as default for new connections
                 SSLContext.setDefault(sslContext);
 
                 // Disable hostname verification globally
-                HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+                SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+                sslSocketFactory = new CustomSSLSocketFactory(sslSocketFactory);
+                HttpsURLConnection.setDefaultSSLSocketFactory(sslSocketFactory);
                 HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
 
                 initialized = true;
@@ -67,16 +84,18 @@ public class TrustAnySSL
         }
     }
 
+    /* ====================================================================================================== */
+
     public static SSLConnectionSocketFactory trustAnySSLConnectionSocketFactory()
     {
-        return new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+        return new CustomSSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
     }
 
     public static Registry<ConnectionSocketFactory> trustAnySSLSocketFactoryRegistry()
     {
-        SSLConnectionSocketFactory sslSocketFactory = trustAnySSLConnectionSocketFactory();
+        SSLConnectionSocketFactory sslConnectionSocketFactory = trustAnySSLConnectionSocketFactory();
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create()
-                .register("https", sslSocketFactory)
+                .register("https", sslConnectionSocketFactory)
                 .register("http", PlainConnectionSocketFactory.getSocketFactory())
                 .build();
         return socketFactoryRegistry;
@@ -109,6 +128,8 @@ public class TrustAnySSL
                 .register("http", plainFactory)
                 .build();
     }
+
+    /* ====================================================================================================== */
 
     public static class LooseTrustManager implements X509TrustManager
     {

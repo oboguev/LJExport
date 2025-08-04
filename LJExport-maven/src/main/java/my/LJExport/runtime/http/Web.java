@@ -19,6 +19,8 @@ import my.LJExport.Main;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.browserproxy.BrowserProxy;
 import my.LJExport.runtime.http.browserproxy.BrowserProxyFactory;
+import my.LJExport.runtime.http.socks.SocksConnectionSocketFactory;
+import my.LJExport.runtime.http.ssl.TrustAnySSL;
 import my.LJExport.runtime.http.webaction.WebActions;
 import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.url.UrlUtil;

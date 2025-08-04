@@ -146,6 +146,7 @@ public class Config
     public static String FidlerTrustStorePassword = null;
 
     public static final boolean TrustAnySSLCertificate = true;
+    public static final int TlsSignatureIncarnation = 1;
 
     public static String NullFile = null;
 

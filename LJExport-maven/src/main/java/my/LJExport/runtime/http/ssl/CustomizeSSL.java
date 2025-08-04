@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import javax.net.ssl.SSLSocket;
+
+import my.LJExport.Config;
 
 public class CustomizeSSL
 {
@@ -27,20 +30,38 @@ public class CustomizeSSL
             ShowSSL.prepareSocket(socket);
 
         List<String> list = Arrays.asList(socket.getEnabledCipherSuites());
-        list = new ArrayList<>(list);
-        list.remove("TLS_EMPTY_RENEGOTIATION_INFO_SCSV");
-        list.remove("TLS_FALLBACK_SCSV");
-        shuffleCipherList(list, 4, 5);
+        list = shuffle(list);
 
         /*
          * Standard JDK TLS stack DOES NOT maintain ciper orderging,
-         * bnly Conscyrpt TLS stack does.  
+         * only Conscyrpt TLS stack does.  
          */
         socket.setEnabledCipherSuites(list.toArray(new String[0]));
         socket.setEnabledProtocols(new String[] { "TLSv1.3", "TLSv1.2" });
     }
+    
+    private static List<String> permuted = null;
+    
+    private static synchronized List<String> shuffle(List<String> list)
+    {
+        if (permuted == null)
+        {
+            list = new ArrayList<>(list);
+            list.remove("TLS_EMPTY_RENEGOTIATION_INFO_SCSV");
+            list.remove("TLS_FALLBACK_SCSV");
+            List<String> original_list = new ArrayList<>(list);
+            shuffleCipherList(list, 4, 5, Config.TlsSignatureIncarnation);
+            
+            while (list.equals(original_list))
+                shuffleCipherList(list, 4, 5, System.nanoTime());
+            
+            permuted = list;
+        }
 
-    private static void shuffleCipherList(List<String> list, int nPinFirst, int nPinLast)
+        return permuted;
+    }
+
+    private static void shuffleCipherList(List<String> list, int nPinFirst, int nPinLast, long shuffleIncarnation)
     {
         int size = list.size();
 
@@ -51,7 +72,7 @@ public class CustomizeSSL
         List<String> middle = new ArrayList<>(list.subList(nPinFirst, size - nPinLast));
         List<String> tail = list.subList(size - nPinLast, size);
 
-        Collections.shuffle(middle);
+        Collections.shuffle(middle, new Random(shuffleIncarnation));
 
         // Clear original list and rebuild in place
         list.clear();

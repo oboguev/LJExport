@@ -329,15 +329,15 @@ public class LJUtil
         }
         else if (Config.StandaloneSite)
         {
-            return "http://" + Config.Site;
+            return "https://" + Config.Site;
         }
         else if (Config.User.charAt(0) == '_' && Util.lastChar(Config.User) == '_')
         {
-            return "http://users." + Config.Site + "/" + Config.User;
+            return "https://users." + Config.Site + "/" + Config.User;
         }
         else
         {
-            return "http://" + Config.MangledUser + "." + Config.Site;
+            return "https://" + Config.MangledUser + "." + Config.Site;
         }
     }
 

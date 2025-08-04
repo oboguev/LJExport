@@ -28,7 +28,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "a_bugaev";
+    public static final String Users = "oboguev";
     // public static final String Users = "roineroyce";
     // public static final String Users = "harmfulgrumpy.dreamwidth-org";
     // public static final String Users = "colonelcassad";
@@ -44,8 +44,8 @@ public class Config
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
     // public static final YYYY_MM LoadTill = null;
-    public static final YYYY_MM LoadSince = new YYYY_MM(2016, 1);
-    public static final YYYY_MM LoadTill = new YYYY_MM(2016, 3);
+    public static final YYYY_MM LoadSince = new YYYY_MM(2025, 5);
+    public static final YYYY_MM LoadTill = new YYYY_MM(2025, 8);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;
@@ -141,7 +141,7 @@ public class Config
             Sites.ArchiveOrg, HttpAccessMode.DIRECT,
             Sites.Other, HttpAccessMode.DIRECT);
 
-    public static boolean UseFiddler = false;
+    public static boolean UseFiddler = true;
     public static final String FiddlerTrustStore = null;
     public static String FidlerTrustStorePassword = null;
 

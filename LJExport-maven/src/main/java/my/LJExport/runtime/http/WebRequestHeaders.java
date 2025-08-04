@@ -68,19 +68,32 @@ public class WebRequestHeaders
 
         BrowserVersion v = BrowserVersion.parse(userAgent);
 
-        if (v.brand.equals("Firefox") && v.version[0] <= 43)
-            return defineRequestHeadersFirefox43(url, httpAccessMode, appHeaders, v, Firefox43);
+        List<KVEntry> list = null;
 
-        if (v.brand.equals("Chrome") && v.version[0] <= 109)
-            return defineRequestHeadersChrome109(url, httpAccessMode, appHeaders, v, Chrome109);
+        if (list == null && v.brand.equals("Firefox") && v.version[0] <= 43)
+            list = defineRequestHeadersFirefox43(url, httpAccessMode, appHeaders, v, Firefox43);
 
-        if (v.brand.equals("Firefox"))
-            return defineRequestHeadersFirefox141(url, httpAccessMode, appHeaders, v, Firefox141);
+        if (list == null && v.brand.equals("Chrome") && v.version[0] <= 109)
+            list = defineRequestHeadersChrome109(url, httpAccessMode, appHeaders, v, Chrome109);
 
-        if (v.brand.equals("Chrome"))
-            return defineRequestHeadersChrome138(url, httpAccessMode, appHeaders, v, Chrome138);
+        if (list == null && v.brand.equals("Firefox"))
+            list = defineRequestHeadersFirefox141(url, httpAccessMode, appHeaders, v, Firefox141);
 
-        throw new Exception("Unsupported user agent: " + userAgent);
+        if (list == null && v.brand.equals("Chrome"))
+            list = defineRequestHeadersChrome138(url, httpAccessMode, appHeaders, v, Chrome138);
+
+        if (list == null)
+            throw new Exception("Unsupported user agent: " + userAgent);
+
+        // Apache HTTP client automaically inserts "Connection: keep-alive",
+        // adding it results in two headers
+        for (KVEntry e : new ArrayList<>(list))
+        {
+            if (e.key.equals("Connection") && e.value.equals("keep-alive"))
+                list.remove(e);
+        }
+
+        return list;
     }
 
     /* ============================================================================== */

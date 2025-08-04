@@ -46,10 +46,10 @@ public class CustomizeSSL
     {
         if (permuted == null)
         {
-            list = new ArrayList<>(list);
+            list = dup(list);
             list.remove("TLS_EMPTY_RENEGOTIATION_INFO_SCSV");
             list.remove("TLS_FALLBACK_SCSV");
-            List<String> original_list = new ArrayList<>(list);
+            List<String> original_list = dup(list);
             shuffleCipherList(list, 4, 5, Config.TlsSignatureIncarnation);
             
             while (list.equals(original_list))
@@ -68,9 +68,9 @@ public class CustomizeSSL
         if (nPinFirst + nPinLast >= size || size <= 1)
             return; // nothing to shuffle
 
-        List<String> head = list.subList(0, nPinFirst);
+        List<String> head = dup(list.subList(0, nPinFirst));
         List<String> middle = new ArrayList<>(list.subList(nPinFirst, size - nPinLast));
-        List<String> tail = list.subList(size - nPinLast, size);
+        List<String> tail = dup(list.subList(size - nPinLast, size));
 
         Collections.shuffle(middle, new Random(shuffleIncarnation));
 
@@ -79,5 +79,10 @@ public class CustomizeSSL
         list.addAll(head);
         list.addAll(middle);
         list.addAll(tail);
+    }
+    
+    private static List<String> dup(List<String> list)
+    {
+        return new ArrayList<>(list);
     }
 }

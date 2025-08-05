@@ -232,11 +232,18 @@ public class RemoveFailedDownloads extends MaintenanceHandler
         if (e == null)
             return false;
         
+        if (href_original == null)
+        {
+            String encoded = UrlUtil.encodeUrlForHtmlAttr(e.key, true);
+            JSOUP.setAttribute(n, "original-" + attr, encoded);
+            updated = true;
+        }
+        
         String newref = null;
         if (href_original != null && href_original.trim().length() != 0)
             newref = AwayLink.unwrapAwayLinkDecoded(href_original);
         
-        if (newref == null || FailedLinkInfo.isImgPrx(newref))
+        if (newref == null || FailedLinkInfo.isImgPrx(newref) || newref.trim().length() == 0)
         {
             String newref2 = AwayLink.unwrapAwayLinkDecoded(e.key);
             if (newref == null || !FailedLinkInfo.isImgPrx(newref2))

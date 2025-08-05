@@ -58,6 +58,11 @@ public class KVFile
     {
         this.filePath = new File(path).getCanonicalFile().toPath();
     }
+    
+    public String getPath() throws Exception
+    {
+        return filePath.toFile().getCanonicalPath();
+    }
 
     public boolean exists()
     {
@@ -149,6 +154,25 @@ public class KVFile
             if (m.containsKey(key))
                 throw new Exception("Duplicate entry value in KVEntry list");
             m.put(key, e);
+        }
+
+        return m;
+    }
+
+    public static Map<String, List<KVEntry>> reverseMultiMap(List<KVEntry> list, boolean lowercase) throws Exception
+    {
+        Map<String, List<KVEntry>> m = new HashMap<>();
+
+        for (KVEntry e : list)
+        {
+            String key = e.value;
+            if (lowercase)
+                key = key.toLowerCase();
+            
+            List<KVEntry> xlist = m.get(key);
+            if (xlist == null)
+                m.put(key, xlist = new ArrayList<>());
+            xlist.add(e);
         }
 
         return m;

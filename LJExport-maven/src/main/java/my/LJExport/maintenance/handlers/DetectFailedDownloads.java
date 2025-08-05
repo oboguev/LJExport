@@ -64,7 +64,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         /*
          * FixFileExtensions log is huge and will cause Eclipse console overflow
          */
-        printErrorMessageLog = false;
+        // printErrorMessageLog = false;
 
         Util.out(">>> Detect failed downloads of linked files");
         super.beginUsers("Detect failed downloads of linked files");
@@ -83,6 +83,8 @@ public class DetectFailedDownloads extends MaintenanceHandler
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
     private int stageFileCount;
+    
+    public static final String FailedLinkDownloadsFileName = "failed-link-downloads.txt";
 
     @Override
     protected void beginUser() throws Exception
@@ -162,7 +164,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
             if (!DryRun)
             {
-                KVFile kvfile = new KVFile(linksDirSep + "failed-link-downloads.txt");
+                KVFile kvfile = new KVFile(linksDirSep + FailedLinkDownloadsFileName);
 
                 if (list.size() == 0)
                 {

@@ -59,6 +59,7 @@ public class Maintenance
     protected static final int FileTypeDetectionThreads = 100;
 
     private boolean repeatUser = false;
+    private boolean skipUser = false;
     private static boolean doLogin = false;
 
     public static void main(String[] args)
@@ -277,18 +278,22 @@ public class Maintenance
         {
             do
             {
+                skipUser = false;
                 repeatUser = false;
 
                 beginUser();
-
-                processDir("pages", ParallelismDefault);
-                processDir("reposts", ParallelismDefault);
-                processDir("profile", ParallelismDefault);
-
-                if (Util.False)
+                
+                if (!skipUser)
                 {
-                    processDir("monthly-pages", ParallelismMonthly);
-                    processDir("monthly-reposts", ParallelismMonthly);
+                    processDir("pages", ParallelismDefault);
+                    processDir("reposts", ParallelismDefault);
+                    processDir("profile", ParallelismDefault);
+
+                    if (Util.False)
+                    {
+                        processDir("monthly-pages", ParallelismMonthly);
+                        processDir("monthly-reposts", ParallelismMonthly);
+                    }
                 }
 
                 endUser();
@@ -299,6 +304,11 @@ public class Maintenance
         {
             ThreadsControl.shutdownAfterUser();
         }
+    }
+
+    protected void skipUser()
+    {
+        skipUser = true;
     }
 
     protected void repeatUser()

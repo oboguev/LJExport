@@ -34,7 +34,7 @@ import my.LJExport.runtime.url.UrlUtil;
  */
 public class RemoveFailedDownloads extends MaintenanceHandler
 {
-    private static boolean DryRun = true;
+    private static boolean DryRun = false;
 
     public RemoveFailedDownloads() throws Exception
     {
@@ -56,7 +56,7 @@ public class RemoveFailedDownloads extends MaintenanceHandler
 
     private List<KVEntry> linkFileMap;
     private List<KVEntry> failedLinksFiles;
-    private Map<String,KVEntry> failed_lc2entry; 
+    private Map<String, KVEntry> failed_lc2entry;
     private boolean noEndUser = false;
 
     private static final String FailedLinkDownloadsFileName = DetectFailedDownloads.FailedLinkDownloadsFileName;
@@ -91,7 +91,7 @@ public class RemoveFailedDownloads extends MaintenanceHandler
             noEndUser = true;
             return;
         }
-        
+
         failed_lc2entry = KVFile.reverseMap(failedLinksFiles, true);
 
         kvfile = new KVFile(this.linksDirSep + LinkDownloader.LinkMapFileName);
@@ -228,39 +228,53 @@ public class RemoveFailedDownloads extends MaintenanceHandler
         LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
         if (linkInfo == null)
             return false;
-        
+
         KVEntry e = failed_lc2entry.get(linkInfo.linkRelativeUnixPath.toLowerCase());
         if (e == null)
             return false;
-        
+
         if (href_original == null)
         {
             String encoded = UrlUtil.encodeUrlForHtmlAttr(stripImageDocumentPrefix(e.key), true);
             JSOUP.setAttribute(n, "original-" + attr, encoded);
             updated = true;
         }
-        
+
         String newref = null;
+
+        if (href_original != null)
+        {
+            /*
+             * Known bad values
+             */
+            switch (href_original)
+            {
+            case "/":
+                href_original = null;
+                break;
+            }
+        }
+
         if (href_original != null && href_original.trim().length() != 0)
             newref = AwayLink.unwrapAwayLinkDecoded(href_original);
-        
+
         if (newref == null || FailedLinkInfo.isImgPrx(newref) || newref.trim().length() == 0)
         {
             String newref2 = AwayLink.unwrapAwayLinkDecoded(stripImageDocumentPrefix(e.key));
             if (newref == null || !FailedLinkInfo.isImgPrx(newref2))
-                newref = newref2; 
+                newref = newref2;
         }
-        
+
         String encoded = UrlUtil.encodeUrlForHtmlAttr(newref, true);
         JSOUP.updateAttribute(n, attr, encoded);
         updated = true;
 
         return updated;
     }
-    
+
     private String stripImageDocumentPrefix(String url) throws Exception
     {
-        MutableObject<String> prefix = new MutableObject<>(); 
+        MutableObject<String> prefix = new MutableObject<>();
         if (!Util.startsWith(url, prefix, "document:", "image:"))
             throw new Exception("URL in KV file does not start with expected prefix: " + url);
         return url.substring(prefix.get().length());

@@ -10,12 +10,15 @@ import java.util.Map;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
+import my.LJExport.maintenance.handlers.DetectFailedDownloads.FailedLinkInfo;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.KVFile;
 import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.url.AwayLink;
+import my.LJExport.runtime.url.UrlUtil;
 
 /*
  * For link files listed in failed-link-downloads.txt:
@@ -52,6 +55,7 @@ public class RemoveFailedDownloads extends MaintenanceHandler
 
     private List<KVEntry> linkFileMap;
     private List<KVEntry> failedLinksFiles;
+    private Map<String,KVEntry> failed_lc2entry; 
     private boolean noEndUser = false;
 
     private static final String FailedLinkDownloadsFileName = DetectFailedDownloads.FailedLinkDownloadsFileName;
@@ -86,6 +90,8 @@ public class RemoveFailedDownloads extends MaintenanceHandler
             noEndUser = true;
             return;
         }
+        
+        failed_lc2entry = KVFile.reverseMap(failedLinksFiles, true);
 
         kvfile = new KVFile(this.linksDirSep + LinkDownloader.LinkMapFileName);
         linkFileMap = kvfile.load(true);
@@ -205,17 +211,41 @@ public class RemoveFailedDownloads extends MaintenanceHandler
     {
         boolean updated = false;
 
-        // ### 
-        // ### if original-src/href exists use Away(original) with ImgPrsSt unwrap
-        // ### if it does not use Away(failed-kvfile URL) with ImgPrsSt unwrap
-        // ### but if one is non-imgprx and another is imgprx, use non-imgprx
-        // ### save href/src to origina;-href/original-src if it does not exist yet  
-        // ### when putting into HTML don't overencode existing %xx, use encodeUrlForHtmlAttr(String url, boolean safe = true)
+        String href = getLinkAttribute(n, attr);
+        String href_original = getLinkOriginalAttribute(n, "original-" + attr);
 
-        // ### change link-file src/href URL to Away(original-url) or Away(kvfile.key)
-        // ### do not overencode %xx
-        // ### e.g. 
-        // ### http://real-politics.org/wp-content/uploads/2013/03/Vyron-Vasylyk-%D0%9C%D0%B8%D1%80%D0%BE%D0%BD-%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D0%B8%D0%BA-%D0%B0%D0%BD%D0%B0%D0%BB%D1%96%D1%82%D0%B8%D1%87%D0%BD%D0%B8%D0%B9-%D1%86%D0%B5%D0%BD%D1%82%D1%80-%D0%9F%D0%BE%D0%BB%D1%96%D1%82%D0%B8%D0%BA%D0%B0-1.jpg 
+        if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
+            return false;
+
+        if (isArchiveOrg())
+        {
+            /* ignore bad links due to former bug in archive loader */
+            if (href.startsWith("../") && href.endsWith("../links/null"))
+                return false;
+        }
+
+        LinkInfo linkInfo = linkInfo(fullHtmlFilePath, href);
+        if (linkInfo == null)
+            return false;
+        
+        KVEntry e = failed_lc2entry.get(linkInfo.linkRelativeUnixPath.toLowerCase());
+        if (e == null)
+            return false;
+        
+        String newref = null;
+        if (href_original != null && href_original.trim().length() != 0)
+            newref = AwayLink.unwrapAwayLinkDecoded(href_original);
+        
+        if (newref == null || FailedLinkInfo.isImgPrx(newref))
+        {
+            String newref2 = AwayLink.unwrapAwayLinkDecoded(e.key);
+            if (newref == null || !FailedLinkInfo.isImgPrx(newref2))
+                newref = newref2; 
+        }
+        
+        String encoded = UrlUtil.encodeUrlForHtmlAttr(newref, true);
+        JSOUP.updateAttribute(n, attr, encoded);
+        updated = true;
 
         return updated;
     }

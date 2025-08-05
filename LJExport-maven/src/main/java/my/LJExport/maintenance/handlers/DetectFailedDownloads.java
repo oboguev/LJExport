@@ -661,7 +661,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                     lc.startsWith("imgprx.livejournal.net/st/");
         }
 
-        private boolean isImgPrx(String url)
+        static boolean isImgPrx(String url)
         {
             String lc = url.toLowerCase();
             return lc.startsWith("https://imgprx.livejournal.net/") ||

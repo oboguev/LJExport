@@ -711,7 +711,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             return false;
 
         String url = fli.urls.get(0);
-        JSOUP.setAttribute(n, "original-" + attr, UrlUtil.encodeUrlForHtmlAttr(url));
+        JSOUP.setAttribute(n, "original-" + attr, UrlUtil.encodeUrlForHtmlAttr(url, true));
         return true;
     }
 
@@ -758,7 +758,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         else
         {
             String url = fli.urls.get(0);
-            url = UrlUtil.encodeUrlForHtmlAttr(url);
+            url = UrlUtil.encodeUrlForHtmlAttr(url, true);
             JSOUP.updateAttribute(n, attr, url);
         }
 

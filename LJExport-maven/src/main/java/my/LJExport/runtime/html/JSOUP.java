@@ -1051,7 +1051,7 @@ public class JSOUP
                 {
                     String av2 = UrlUtil.decodeHtmlAttrLink(av);                    
                     newv = Util.resolveURL(baseURL, av2);
-                    newv = UrlUtil.encodeUrlForHtmlAttr(newv);
+                    newv = UrlUtil.encodeUrlForHtmlAttr(newv, true);
                 }
                 catch (Exception ex)
                 {

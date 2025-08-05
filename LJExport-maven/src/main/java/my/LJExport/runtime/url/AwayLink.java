@@ -52,7 +52,7 @@ public class AwayLink
         if (unwrapped_decoded_href.equals(decoded_href))
             return initial_encoded_href;
 
-        String unwrapped_encoded_href = UrlUtil.encodeUrlForHtmlAttr(unwrapped_decoded_href);
+        String unwrapped_encoded_href = UrlUtil.encodeUrlForHtmlAttr(unwrapped_decoded_href, true);
         return unwrapped_encoded_href;
     }
 

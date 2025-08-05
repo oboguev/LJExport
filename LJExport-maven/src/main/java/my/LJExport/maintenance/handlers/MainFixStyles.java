@@ -31,13 +31,11 @@ public class MainFixStyles
     // private static final String AllUsersFromUser = "harmfulgrumpy";
     private static final String AllUsersFromUser = null;
 
-    // private static final String Users = ALL_USERS;
+    private static final String Users = ALL_USERS;
     // private static final String Users = "oboguev,alex_vergin,salery,pioneer_lj,genby,andronic,a_bugaev,1981dn,1981dn_dn,chukcheev,rigort,kirovtanin,kornev,bantaputu,zhenziyou,takoe_nebo,von_hoffmann,jlm_taurus,ivanov_petrov,fritzmorgen";
-    private static final String Users = "belan";
+    // private static final String Users = "belan";
     // private static final String Users = "nationalism.org";
     // private static final String Users = "udod99.lj-rossia-org";
-
-    // ### also scan @admin or @livejournal_styles
 
     private static final boolean DryRun = true;
 
@@ -207,6 +205,28 @@ public class MainFixStyles
         if (url == null || url.startsWith("data:"))
             return;
         String lc = url.toLowerCase();
+
+        lc = lc.replace("://l-stat.livejournal.net//", "://l-stat.livejournal.net/");
+
+        switch (lc)
+        {
+        /* known non-existing files */
+        case "https://l-stat.livejournal.net/img/icons/lock-16-gray.gif?v=1":
+        case "http://l-stat.livejournal.net/img/icons/lock-16-gray.gif?v=1":
+            return;
+        
+        case "https://l-stat.livejournal.net/img/popup/splash/figure_frank.png":
+        case "http://l-stat.livejournal.net/img/popup/splash/figure_frank.png":
+            return;
+        
+        case "https://stat.livejournal.com/img/icons/lock-16-gray.gif?v=1":
+        case "http://stat.livejournal.com/img/icons/lock-16-gray.gif?v=1":
+            return;
+
+        case "https://l-stat.livejournal.net/stc/upgrade-paid-icon.gif?v=1":
+        case "http://l-stat.livejournal.net/stc/upgrade-paid-icon.gif?v=1":
+            return;
+        }
 
         if (lc.startsWith("/") || lc.startsWith("http://") || lc.startsWith("https://"))
             Util.out("CSS link: " + url);

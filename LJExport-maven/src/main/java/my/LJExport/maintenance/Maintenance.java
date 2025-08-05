@@ -98,6 +98,7 @@ public class Maintenance
             //   - FixDirectoryLinks [test a_bugaev, ночная москва -- check links map file, review txlog]
             //   - FixLongPaths
             //   - DetectFailedDownloads + MainRedownloadFailedLinks + RemoveFailedDownloads
+            //   - MainFixStyles
             //   - FixFileExtensions
             //
             do_users(Users, new CountFiles());

@@ -58,7 +58,7 @@ public class RemoveFailedDownloads extends MaintenanceHandler
         KVFile kvfile = new KVFile(this.linksDirSep + FailedLinkDownloadsFileName);
         if (!kvfile.exists())
         {
-            trace("No filed downloads for user " + Config.User);
+            trace("No failed downloads for user " + Config.User);
             skipUser();
             noEndUser = true;
             return;
@@ -69,11 +69,12 @@ public class RemoveFailedDownloads extends MaintenanceHandler
         {
             if (DryRun)
             {
-                trace("Skipping empty " + FailedLinkDownloadsFileName);
+                trace("Skipping empty " + kvfile.getPath());
             }
             else
             {
-                trace("Removing empty " + FailedLinkDownloadsFileName);
+                trace("Removing empty " + kvfile.getPath());
+                txLog.writeLine("Removing empty " + kvfile.getPath());
                 kvfile.delete();
             }
 
@@ -103,7 +104,9 @@ public class RemoveFailedDownloads extends MaintenanceHandler
                 // update index map file
                 KVFile kvfile = new KVFile(this.linksDirSep + LinkDownloader.LinkMapFileName);
                 trace("Updating " + kvfile.getPath());
+                txLog.writeLine("Updating " + kvfile.getPath());
                 kvfile.save(linkFileMap);
+                txLog.writeLine("Updated " + kvfile.getPath());
             }
 
             // delete actual (bad) link files
@@ -133,6 +136,8 @@ public class RemoveFailedDownloads extends MaintenanceHandler
 
             // delete failed-link-downloads.txt
             KVFile kvfile = new KVFile(this.linksDirSep + FailedLinkDownloadsFileName);
+            trace("Removing emptied " + kvfile.getPath());
+            txLog.writeLine("Removing emptied " + kvfile.getPath());
             kvfile.delete();
         }
 

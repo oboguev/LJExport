@@ -46,13 +46,12 @@ public class FixFileExtensions extends MaintenanceHandler
     // ### handle content-type.txt
     // ### update links map file
     // ### if a.herf (not img.sec) and !shouldDownload restore original URL and delete file on disk and from link map
-    
+
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;
 
     public FixFileExtensions() throws Exception
     {
-        throw new Exception("Implementation is not complete"); // ####
     }
 
     @Override
@@ -103,7 +102,7 @@ public class FixFileExtensions extends MaintenanceHandler
         loadLinkMapFile();
         prefillFileContentExtensionMap();
         loadFileContentTypeInformation();
-        
+
         trace("");
         trace("");
         trace("================================= Beginning user " + Config.User);
@@ -133,7 +132,7 @@ public class FixFileExtensions extends MaintenanceHandler
         trace("================================= Completed user " + Config.User);
         trace("");
         trace("");
-        
+
         super.endUser();
     }
 
@@ -218,7 +217,11 @@ public class FixFileExtensions extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
             String href = getLinkAttribute(n, attr);
-            String href_original = href;
+            String anchor = Util.getAnchor(href);
+            href = Util.stripAnchor(href);
+
+            String href_original = getLinkAttribute(n, "original-" + attr);
+            href_original = Util.stripAnchor(href_original);
 
             if (href == null || !isLinksRepositoryReference(fullHtmlFilePath, href))
                 continue;
@@ -230,7 +233,7 @@ public class FixFileExtensions extends MaintenanceHandler
                     continue;
             }
 
-            if (handleAlreadyRenamed(href, href_original, fullHtmlFilePath, n, tag, attr))
+            if (handleAlreadyRenamed(href, href_original, fullHtmlFilePath, n, tag, attr, anchor))
             {
                 updated = true;
                 continue;
@@ -266,7 +269,7 @@ public class FixFileExtensions extends MaintenanceHandler
              * Get extension from file name 
              */
             String fnExt = LinkFilepath.getMediaFileExtension(linkInfo.linkFullFilePath);
-            
+
             /*
              * Detect implied file extension from actual file content 
              */
@@ -278,7 +281,7 @@ public class FixFileExtensions extends MaintenanceHandler
             else
             {
                 byte[] content = Util.readFileAsByteArray(linkInfo.linkFullFilePath);
-                contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt );
+                contentExtension = FileTypeDetector.fileExtensionFromActualFileContent(content, fnExt);
                 fileContentExtensionMap.put(linkInfo.linkFullFilePath.toLowerCase(), contentExtension);
             }
 
@@ -436,7 +439,6 @@ public class FixFileExtensions extends MaintenanceHandler
             /*
              * Fix map
              */
-            changeLinksMap(href_original, newref, true, fullHtmlFilePath);
             changeLinksMap(href, newref, false, fullHtmlFilePath);
         }
 
@@ -565,30 +567,44 @@ public class FixFileExtensions extends MaintenanceHandler
     }
 
     private boolean handleAlreadyRenamed(String href, String href_original, String fullHtmlFilePath, Node n, String tag,
-            String attr) throws Exception
+            String attr, String anchor) throws Exception
     {
+        /*
+         * href_original is true external url, not a relatve link
+         */
+        if (Util.True)
+            href_original = null;
+
         String rel = href2rel(href, fullHtmlFilePath);
-        String rel_original = href2rel(href_original, fullHtmlFilePath);
+        String rel_original = href_original == null ? null : href2rel(href_original, fullHtmlFilePath);
 
         String newrel = this.alreadyRenamed.get(rel.toLowerCase());
-        if (newrel == null)
+        if (newrel == null && rel_original != null)
             newrel = this.alreadyRenamed.get(rel_original.toLowerCase());
 
         if (newrel != null)
         {
             String newref = rel2href(newrel, fullHtmlFilePath);
-            updateLinkAttribute(n, attr, newref);
+            
+            updateLinkAttribute(n, attr, withAnchor(newref, anchor));
 
-            txLog.writeLine(Safety.UNSAFE, changeMessage(tag, attr, href_original, newref));
-            trace(changeMessage(tag, attr, href_original, newref));
+            txLog.writeLine(Safety.UNSAFE, changeMessage(tag, attr, href_original, href, newref));
+            trace(changeMessage(tag, attr, href_original, href, newref));
 
-            changeLinksMap(href_original, newref, false, fullHtmlFilePath);
-            changeLinksMap(href, newref, false, fullHtmlFilePath);
+            // map was already adjusted
+            // changeLinksMap(href, newref, false, fullHtmlFilePath);
 
             return true;
         }
 
         return false;
+    }
+    
+    private String withAnchor(String href, String anchor)
+    {
+        if (anchor != null)
+            href += anchor;
+        return href;
     }
 
     private void changeLinksMap(String href, String newref, boolean required, String fullHtmlFilePath) throws Exception
@@ -597,6 +613,7 @@ public class FixFileExtensions extends MaintenanceHandler
         String newrel = href2rel(newref, fullHtmlFilePath);
 
         List<LinkMapEntry> list = relpath2entry.get(rel.toLowerCase());
+        
         if (list == null || list.size() == 0)
         {
             if (required)
@@ -643,11 +660,15 @@ public class FixFileExtensions extends MaintenanceHandler
         }
     }
 
-    private String changeMessage(String tag, String attr, String href_original, String newref)
+    private String changeMessage(String tag, String attr, String href_original, String href, String newref)
     {
+        if (href_original == null || href_original.trim().length() == 0)
+            href_original = "(no original url)";
+            
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("Changing [%s] HTML %s.%s from  %s" + nl, Config.User, tag, attr, href_original));
+        sb.append(String.format("Changing [%s] HTML %s.%s from  %s" + nl, Config.User, tag, attr, href));
         sb.append(String.format("          %s       %s %s   to  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), newref));
+        sb.append(String.format("          %s       %s %s  for  %s" + nl, spaces(Config.User), spaces(tag), spaces(attr), href_original));
         return sb.toString();
     }
 
@@ -735,10 +756,10 @@ public class FixFileExtensions extends MaintenanceHandler
             if (deleteLinkMapEntriesFor.contains(e.value.toLowerCase()))
             {
                 StringBuilder sb = new StringBuilder();
-                
+
                 sb.append(String.format("Deleting LinkMap [%s] entry for error-response URL  %s" + nl,
                         Config.User, e.key));
-                
+
                 sb.append(String.format("                  %s                          file  %s" + nl,
                         spaces(Config.User), e.value));
 

@@ -401,6 +401,18 @@ public class Util
         return href;
     }
 
+    public static String getAnchor(String href) throws Exception
+    {
+        if (href != null)
+        {
+            int k = href.indexOf('#');
+            if (k != -1)
+                return href.substring(k);
+        }
+
+        return null;
+    }
+
     public static String stripParameters(String href) throws Exception
     {
         if (href != null)
@@ -1080,7 +1092,7 @@ public class Util
         {
             if (relativeURL.startsWith("data:"))
                 return relativeURL;
-            
+
             relativeURL = encodeFragment(relativeURL);
             /* Windows backslashes in some old HTML files, e.g. ..\index.html */
             relativeURL = relativeURL.replace("\\", "/");
@@ -1422,9 +1434,8 @@ public class Util
     }
 
     /**
-     * Utility for calculating how “deep” a path is, measured as the number of
-     * name elements that appear after the root of the file-system (or Windows
-     * drive/UNC share) and including the file itself.
+     * Utility for calculating how “deep” a path is, measured as the number of name elements that appear after the root of the
+     * file-system (or Windows drive/UNC share) and including the file itself.
      *
      * <pre>
      * F:\WINAPPS\LJExport\journals\krylov\pages\2003\10\704750.html  -> 8
@@ -1434,17 +1445,18 @@ public class Util
      * \\srv\share\dir\file.txt   -> 2   (dir + file.txt)
      * </pre>
      *
-     * The logic is completely platform-neutral—it works the same on Windows,
-     * Linux, or macOS, even if the path string itself comes from a different
-     * platform.
+     * The logic is completely platform-neutral—it works the same on Windows, Linux, or macOS, even if the path string itself comes
+     * from a different platform.
      */
 
     /**
      * Returns the depth (number of name elements) of the supplied path string.
      *
-     * @param rawPath any absolute or relative path, using ‘/’ or ‘\’
+     * @param rawPath
+     *            any absolute or relative path, using ‘/’ or ‘\’
      * @return number of name elements after the root; 0 for “just root”
-     * @throws IllegalArgumentException if {@code rawPath} is null/blank
+     * @throws IllegalArgumentException
+     *             if {@code rawPath} is null/blank
      */
     public static int filePathDepth(String rawPath)
     {
@@ -1617,7 +1629,7 @@ public class Util
     public static String stripPrefixes(String s, boolean recursive, String... prefixes)
     {
         MutableObject<String> prefix = new MutableObject<>();
-        
+
         if (recursive)
         {
             while (startsWith(s, prefix, prefixes))
@@ -1628,14 +1640,14 @@ public class Util
             if (startsWith(s, prefix, prefixes))
                 s = s.substring(prefix.get().length());
         }
-        
+
         return s;
     }
 
     public static String stripPrefixesIgnoreCase(String s, boolean recursive, String... prefixes)
     {
         MutableObject<String> prefix = new MutableObject<>();
-        
+
         if (recursive)
         {
             while (startsWithIgnoreCase(s, prefix, prefixes))
@@ -1646,10 +1658,10 @@ public class Util
             if (startsWithIgnoreCase(s, prefix, prefixes))
                 s = s.substring(prefix.get().length());
         }
-        
+
         return s;
     }
-    
+
     public static String plural(int n, String single, String plural)
     {
         return n == 1 ? single : plural;

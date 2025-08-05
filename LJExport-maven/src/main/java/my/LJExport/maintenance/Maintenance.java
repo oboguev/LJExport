@@ -90,11 +90,15 @@ public class Maintenance
 
             //
             // Sequence:
-            //   0. CheckLinkCaseConflicts [optional]
-            //   1. ResolveLinkCaseDifferences 
-            //   2. FixDirectoryLinks [test a_bugaev, ночная москва -- check links map file, review txlog]
-            //   3. FixLongPaths
-            //   4. FixFileExtensions
+            //
+            //   - CheckLinkCaseConflicts [optional]
+            //   - ResolveLinkCaseDifferences 
+            //   - FixUnencodedLinks + VerifyUnencodedLinks
+            //   - ixNullLinks  (only for nationalism.org)
+            //   - FixDirectoryLinks [test a_bugaev, ночная москва -- check links map file, review txlog]
+            //   - FixLongPaths
+            //   - DetectFailedDownloads + MainRedownloadFailedLinks + RemoveFailedDownloads
+            //   - FixFileExtensions
             //
             do_users(Users, new CountFiles());
             // do_users(Users, CheckLinkCaseConflicts.class);
@@ -104,8 +108,9 @@ public class Maintenance
             // do_users(Users, FixNullLinks.class); // only for nationalism.org
             // do_users(Users, FixDirectoryLinks.class);
             // do_users(Users, FixLongPaths.class);
-            do_users(Users, DetectFailedDownloads.class);
+            // do_users(Users, DetectFailedDownloads.class);
             // --- then run MainRedownloadFailedLinks
+            do_users(Users, RemoveFailedDownloads.class); 
             // do_users(Users, FixFileExtensions.class);
 
             txLog.writeLineSafe("");

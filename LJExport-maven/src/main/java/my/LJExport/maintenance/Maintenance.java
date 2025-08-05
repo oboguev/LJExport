@@ -31,7 +31,7 @@ public class Maintenance
 {
     private static final String ALL_USERS = "<all>";
     private static final String AllUsersFromUser = null;
-    // private static final String AllUsersFromUser = "alzheimer";
+    //private static final String AllUsersFromUser = "fritzmorgen";
 
     private static final String Users = ALL_USERS;
     // private static final String Users = "1981dn";
@@ -39,7 +39,7 @@ public class Maintenance
     // private static final String Users = "a_kaminsky";
     // private static final String Users = "1981dn,1981dn_dn,64vlad,_devol_";
     // private static final String Users = "oboguev";
-    // private static final String Users = "";
+    // private static final String Users = "fritzmorgen";
     // private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
 
@@ -112,7 +112,7 @@ public class Maintenance
             // do_users(Users, FixLongPaths.class);
             // do_users(Users, DetectFailedDownloads.class);
             // --- then run MainRedownloadFailedLinks
-            do_users(Users, RemoveFailedDownloads.class); 
+            do_users(Users, RemoveFailedDownloads.class);
             // do_users(Users, FixFileExtensions.class);
             // do_users(Users, UnwrapAwayLinks.class); 
             // --- then run MainDownloadLinks
@@ -291,7 +291,7 @@ public class Maintenance
                 repeatUser = false;
 
                 beginUser();
-                
+
                 if (!skipUser)
                 {
                     processDir("pages", ParallelismDefault);

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
@@ -162,7 +163,7 @@ public class RemoveFailedDownloads extends MaintenanceHandler
 
         for (KVEntry e : failedLinksFiles)
         {
-            List<KVEntry> xlist = lc2entry.get(e.key.toLowerCase());
+            List<KVEntry> xlist = lc2entry.get(e.value.toLowerCase());
             if (xlist != null)
             {
                 for (KVEntry e2 : xlist)
@@ -234,7 +235,7 @@ public class RemoveFailedDownloads extends MaintenanceHandler
         
         if (href_original == null)
         {
-            String encoded = UrlUtil.encodeUrlForHtmlAttr(e.key, true);
+            String encoded = UrlUtil.encodeUrlForHtmlAttr(stripImageDocumentPrefix(e.key), true);
             JSOUP.setAttribute(n, "original-" + attr, encoded);
             updated = true;
         }
@@ -245,7 +246,7 @@ public class RemoveFailedDownloads extends MaintenanceHandler
         
         if (newref == null || FailedLinkInfo.isImgPrx(newref) || newref.trim().length() == 0)
         {
-            String newref2 = AwayLink.unwrapAwayLinkDecoded(e.key);
+            String newref2 = AwayLink.unwrapAwayLinkDecoded(stripImageDocumentPrefix(e.key));
             if (newref == null || !FailedLinkInfo.isImgPrx(newref2))
                 newref = newref2; 
         }
@@ -255,5 +256,13 @@ public class RemoveFailedDownloads extends MaintenanceHandler
         updated = true;
 
         return updated;
+    }
+    
+    private String stripImageDocumentPrefix(String url) throws Exception
+    {
+        MutableObject<String> prefix = new MutableObject<>(); 
+        if (!Util.startsWith(url, prefix, "document:", "image:"))
+            throw new Exception("URL in KV file does not start with expected prefix: " + url);
+        return url.substring(prefix.get().length());
     }
 }

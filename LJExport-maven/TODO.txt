@@ -44,9 +44,12 @@
 - LinkDownloader should handle if_ -> im_ repeat loads (HTML -> Image)
   May want make it use SmartDownloader instead of Web
 
-- Chrome web headers (instead of Firefox), diff. Chrome versions (Win7/10) 
-
 - ### in files  
+
+================================================
+
+- FixFileExtensions
+- MainDownloadLinks with archive access enabled (SmartDownloader) and away-iteration
 
 ================================================
 

@@ -7,10 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jsoup.nodes.Node;
+
 import my.LJExport.Config;
+import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.KVFile;
 import my.LJExport.runtime.file.KVFile.KVEntry;
+import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
 
 /*
@@ -95,7 +99,7 @@ public class RemoveFailedDownloads extends MaintenanceHandler
             super.endUser();
             return;
         }
-        
+
         if (!DryRun)
         {
             // remove files from link index map
@@ -143,13 +147,13 @@ public class RemoveFailedDownloads extends MaintenanceHandler
 
         super.endUser();
     }
-    
+
     private boolean removeFromLinkFileMap() throws Exception
     {
         boolean updated = false;
-        
+
         Map<String, List<KVEntry>> lc2entry = KVFile.reverseMultiMap(linkFileMap, true);
-        
+
         for (KVEntry e : failedLinksFiles)
         {
             List<KVEntry> xlist = lc2entry.get(e.key.toLowerCase());
@@ -162,7 +166,57 @@ public class RemoveFailedDownloads extends MaintenanceHandler
                 }
             }
         }
-        
+
+        return updated;
+    }
+
+    /* ===================================================================================================== */
+
+    @Override
+    protected void processHtmlFile(String fullHtmlFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
+            List<Node> pageFlat) throws Exception
+    {
+        super.processHtmlFile(fullHtmlFilePath, relativeFilePath, parser, pageFlat);
+
+        boolean updated = false;
+
+        updated |= process(fullHtmlFilePath, relativeFilePath, parser, pageFlat, "a", "href");
+        updated |= process(fullHtmlFilePath, relativeFilePath, parser, pageFlat, "img", "src");
+
+        if (updated && !DryRun)
+        {
+            String html = JSOUP.emitHtml(parser.pageRoot);
+            Util.writeToFileSafe(fullHtmlFilePath, html);
+        }
+    }
+
+    private boolean process(String fullHtmlFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
+            List<Node> pageFlat, String tag, String attr) throws Exception
+    {
+        boolean updated = false;
+
+        for (Node n : JSOUP.findElements(pageFlat, tag))
+            updated |= process(fullHtmlFilePath, n, tag, attr);
+
+        return updated;
+    }
+
+    private boolean process(String fullHtmlFilePath, Node n, String tag, String attr) throws Exception
+    {
+        boolean updated = false;
+
+        // ### 
+        // ### if original-src/href exists use Away(original) with ImgPrsSt unwrap
+        // ### if it does not use Away(failed-kvfile URL) with ImgPrsSt unwrap
+        // ### but if one is non-imgprx and another is imgprx, use non-imgprx
+        // ### save href/src to origina;-href/original-src if it does not exist yet  
+        // ### when putting into HTML don't overencode existing %xx, use encodeUrlForHtmlAttr(String url, boolean safe = true)
+
+        // ### change link-file src/href URL to Away(original-url) or Away(kvfile.key)
+        // ### do not overencode %xx
+        // ### e.g. 
+        // ### http://real-politics.org/wp-content/uploads/2013/03/Vyron-Vasylyk-%D0%9C%D0%B8%D1%80%D0%BE%D0%BD-%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D0%B8%D0%BA-%D0%B0%D0%BD%D0%B0%D0%BB%D1%96%D1%82%D0%B8%D1%87%D0%BD%D0%B8%D0%B9-%D1%86%D0%B5%D0%BD%D1%82%D1%80-%D0%9F%D0%BE%D0%BB%D1%96%D1%82%D0%B8%D0%BA%D0%B0-1.jpg 
+
         return updated;
     }
 }

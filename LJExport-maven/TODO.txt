@@ -46,29 +46,7 @@
 
 - Chrome web headers (instead of Firefox), diff. Chrome versions (Win7/10) 
 
-- unresolved FailedLinks.txt -> revert a.href and img.src to the link
-    if original-src/href exists use Away(original) with ImgPrsSt unwrap
-    if it does not use Away(failed-kvfile URL) with ImgPrsSt unwrap
-    but if one is non-imgprx and another is imgprx, use non-imgprx
-    save href/src to origina;-href/original-src if it does not exist yet  
-    when putting into HTML don't overencode existing %xx, use encodeUrlForHtmlAttr(String url, boolean safe = true)
-  delete failed files
-  delete empty dir
-  delete kvfile
-  
-- change failed-download-links.txt to original links:
-  - change link-file src/href URL to Away(original-url) or Away(kvfile.key)
-  - do not overencode %xx
-    e.g. 
-    http://real-politics.org/wp-content/uploads/2013/03/Vyron-Vasylyk-%D0%9C%D0%B8%D1%80%D0%BE%D0%BD-%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D0%B8%D0%BA-%D0%B0%D0%BD%D0%B0%D0%BB%D1%96%D1%82%D0%B8%D1%87%D0%BD%D0%B8%D0%B9-%D1%86%D0%B5%D0%BD%D1%82%D1%80-%D0%9F%D0%BE%D0%BB%D1%96%D1%82%D0%B8%D0%BA%D0%B0-1.jpg 
-  - delete bad link file
-  - delete kvfile
-  - delete empty dirs  
-  
-- ### in ...  
-
-+ implement new LJ login
-- Firefox 4.41 login -- which headers?
+- ### in files  
 
 ================================================
 
@@ -80,3 +58,4 @@ Options:
 - via CDP proxy
 - reshuffle Java TLS stack (cyphers, curves etc.)
 - wget/curl i.e. any other stack
+- C/C++ proxy based on Chromium or Firefox

@@ -100,6 +100,7 @@ public class Maintenance
             //   - DetectFailedDownloads + MainRedownloadFailedLinks + RemoveFailedDownloads
             //   - MainFixStyles
             //   - FixFileExtensions
+            //   - UnwrapAwayLinks + MainDownloadLinks
             //
             do_users(Users, new CountFiles());
             // do_users(Users, CheckLinkCaseConflicts.class);
@@ -113,6 +114,8 @@ public class Maintenance
             // --- then run MainRedownloadFailedLinks
             do_users(Users, RemoveFailedDownloads.class); 
             // do_users(Users, FixFileExtensions.class);
+            // do_users(Users, UnwrapAwayLinks.class); 
+            // --- then run MainDownloadLinks
 
             txLog.writeLineSafe("");
             txLog.writeLineSafe("Maintenance COMPLETED at " + Util.timeNow());

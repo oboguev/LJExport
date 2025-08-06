@@ -16,14 +16,12 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
-import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileBackedMap;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.file.KVFile;
 import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.file.KVFile.KVEntry;
-import my.LJExport.runtime.file.ServerContent;
 import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.MiscUrls;
@@ -372,7 +370,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         if (fnExt != null && FileTypeDetector.isEquivalentExtensions(fnExt, contentExtension))
             return;
 
-        Decision decision = serverAcceptedContent(href_original, linkInfo.linkFullFilePath, contentExtension, fnExt);
+        Decision decision = serverAcceptedContent(href_original, linkInfo.linkFullFilePath, contentExtension, null, fnExt);
 
         if (decision.isAccept())
             return;
@@ -435,26 +433,6 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (href_original == null)
                 needUpdateMissingOriginalLinks = true;
         }
-    }
-
-    private Decision serverAcceptedContent(String href_original, String linkFullFilePath, String contentExtension, String fnExt)
-            throws Exception
-    {
-        String href = null;
-
-        if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
-            href = href_original;
-
-        if (href == null)
-        {
-            String relpath = this.abs2rel(linkFullFilePath);
-            href = InferOriginalUrl.infer(relpath);
-        }
-
-        if (href == null)
-            return ServerContent.DecisionNeutral;
-        else
-            return ServerContent.acceptContent(href, contentExtension, null, fnExt, new ContentProvider(linkFullFilePath), null);
     }
 
     /* ===================================================================================================== */

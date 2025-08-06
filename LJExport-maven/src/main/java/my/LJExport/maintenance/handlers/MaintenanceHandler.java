@@ -15,11 +15,15 @@ import org.jsoup.nodes.Node;
 
 import my.LJExport.Config;
 import my.LJExport.maintenance.Maintenance;
+import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.file.KVFile;
+import my.LJExport.runtime.file.ServerContent;
 import my.LJExport.runtime.file.KVFile.KVEntry;
+import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.html.JSOUP;
+import my.LJExport.runtime.links.util.InferOriginalUrl;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.RelativeLink;
 import my.LJExport.runtime.url.UrlUtil;
@@ -405,6 +409,28 @@ public abstract class MaintenanceHandler extends Maintenance
         }
     }
 
+    /* =========================================================================== */
+ 
+    protected Decision serverAcceptedContent(String href_original, String linkFullFilePath, String contentExtension, String headerExt, String fnExt)
+            throws Exception
+    {
+        String href = null;
+
+        if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
+            href = href_original;
+
+        if (href == null)
+        {
+            String relpath = this.abs2rel(linkFullFilePath);
+            href = InferOriginalUrl.infer(relpath);
+        }
+
+        if (href == null)
+            return ServerContent.DecisionNeutral;
+        else
+            return ServerContent.acceptContent(href, contentExtension, headerExt, fnExt, new ContentProvider(linkFullFilePath), null);
+    }    
+    
     /* =========================================================================== */
 
     protected void trace(String msg) throws Exception

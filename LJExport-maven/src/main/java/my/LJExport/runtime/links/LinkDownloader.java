@@ -270,40 +270,11 @@ public class LinkDownloader
 
         Thread.currentThread().setName(final_threadName + " downloading " + download_href_noanchor + " prepare");
 
-        String actual_filename = filename.get();
-        
-        // ##############################
-        String afn = href2file.getAnyUrlProtocol(name_href_noanchor);
-        if (afn != null)
-            actual_filename = afn;
-
-        File f = null;
-        try
-        {
-            f = new File(actual_filename).getCanonicalFile();
-        }
-        catch (Exception ex)
-        {
-            throw ex;
-        }
-
-        /*
-         * If file already exists
-         */
-        if (f.exists() && !f.isDirectory())
-        {
-            actual_filename = FilePath.getFilePathActualCase(actual_filename);
-            filename.set(actual_filename);
-            synchronized (href2file)
-            {
-                if (null == href2file.getAnyUrlProtocol(name_href_noanchor))
-                    href2file.put(name_href_noanchor, actual_filename);
-            }
-
+        if (alreadyHaveFileForHref(null, name_href_noanchor, filename) || alreadyHaveFileForHref(null, download_href_noanchor, filename))
             return;
-        }
-        
-        // ##############################
+
+        String actual_filename = filename.get();
+        // ### what if already have actual_filename
 
         /*
          * Redirect to unwrapped links
@@ -319,8 +290,10 @@ public class LinkDownloader
             download_href_noanchor = download_href_noanchor_away;
         }
         
-        // ### check name href or download href in map 
-        // ### recalc file name
+        if (alreadyHaveFileForHref(null, name_href_noanchor, filename) || alreadyHaveFileForHref(null, download_href_noanchor, filename))
+            return;
+        
+        // ### recalc file name from name_href_noanchor
         // ### check if file exists
         
         Map<String, String> headers = new HashMap<>();
@@ -404,7 +377,7 @@ public class LinkDownloader
                  */
                 try
                 {
-                    f = new File(actual_filename).getCanonicalFile();
+                    File f = new File(actual_filename).getCanonicalFile();
                     Util.mkdir(f.getAbsoluteFile().getParent());
                 }
                 catch (UnableCreateDirectoryException dex)
@@ -412,7 +385,7 @@ public class LinkDownloader
                     actual_filename = LinkFilepath.fallbackFilepath(linksDir, name_href_noanchor,
                             actual_filename);
                     filename.set(actual_filename);
-                    f = new File(actual_filename).getCanonicalFile();
+                    File f = new File(actual_filename).getCanonicalFile();
                     Util.mkdir(f.getAbsoluteFile().getParent());
                 }
 
@@ -433,11 +406,14 @@ public class LinkDownloader
         }
     }
     
-    private boolean alreadyHaveFileForHref(String href, AtomicReference<String> filename) throws Exception
+    private boolean alreadyHaveFileForHref(String actual_filename, String href, AtomicReference<String> filename) throws Exception
     {
-        String actual_filename  = href2file.getAnyUrlProtocol(href);
         if (actual_filename == null)
-            return false;
+        {
+            actual_filename  = href2file.getAnyUrlProtocol(href);
+            if (actual_filename == null)
+                return false;
+        }
 
         File f = null;
         try

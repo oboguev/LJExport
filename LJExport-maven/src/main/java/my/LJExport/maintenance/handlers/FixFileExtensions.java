@@ -287,8 +287,13 @@ public class FixFileExtensions extends MaintenanceHandler
                         Config.User, href, linkInfo.linkFullFilePath);
 
                 boolean allow = Config.User.equals("d_olshansky") && href.contains("../links/imgprx.livejournal.net/");
-
-                if (DryRun || allow)
+                
+                if (allow)
+                {
+                    trace(msg);
+                    continue;
+                }
+                else if (DryRun)
                 {
                     trace(msg);
                     continue;

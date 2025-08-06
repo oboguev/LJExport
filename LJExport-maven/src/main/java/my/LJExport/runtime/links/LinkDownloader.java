@@ -302,7 +302,7 @@ public class LinkDownloader
         }
         
         /*
-         * Redirect to unwrapped names
+         * Redirect to unwrapped links
          */
         if (this.useSmartDownloader)
         {
@@ -413,9 +413,10 @@ public class LinkDownloader
                 }
 
                 Web.Response final_r = r;
+                final String final_name_href_noanchor = name_href_noanchor;
                 Util.NamedFileLocks.interlock(actual_filename.toLowerCase(), () ->
                 {
-                    storeFile(filename, final_r, name_href_noanchor);
+                    storeFile(filename, final_r, final_name_href_noanchor);
                 });
             }
         }

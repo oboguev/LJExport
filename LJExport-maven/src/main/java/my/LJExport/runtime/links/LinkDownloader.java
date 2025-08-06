@@ -52,9 +52,8 @@ public class LinkDownloader
     private String linksDir;
     private final NamedLocks urlLocks = new NamedLocks();
 
-    public boolean downloadsArchive = false;
-    public boolean downloadsOnlineOnly = !downloadsArchive;
-    public boolean alwaysAcceptContent = false;
+    private boolean useSmartDownloader = false;
+    private boolean alwaysAcceptContent = false;
 
     public static final String LinkMapFileName = "map-href-file.txt";
 
@@ -82,6 +81,21 @@ public class LinkDownloader
     public String getLinksDir()
     {
         return linksDir;
+    }
+
+    public void setAlwaysAcceptContent(boolean alwaysAcceptContent)
+    {
+        this.alwaysAcceptContent = alwaysAcceptContent;
+    }
+    
+    public void setUseSmartDownloader()
+    {
+        useSmartDownloader = true;
+    }
+    
+    public boolean isOnlineOnly()
+    {
+        return !useSmartDownloader ;
     }
 
     public String rel2abs(String rel) throws Exception
@@ -139,7 +153,7 @@ public class LinkDownloader
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
             threadName = "(unnamed)";
-        
+
         // ### if name_href is in links map
         // ###     - leave name_href and download_href as is
         // ### else if use smartloader

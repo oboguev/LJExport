@@ -37,6 +37,7 @@ public class MainFixStyles
     // private static final String Users = "nationalism.org";
     // private static final String Users = "udod99.lj-rossia-org";
 
+    @SuppressWarnings("unused")
     private static final boolean DryRun = true;
 
     private static final ErrorMessageLog errorMessageLog = new ErrorMessageLog();

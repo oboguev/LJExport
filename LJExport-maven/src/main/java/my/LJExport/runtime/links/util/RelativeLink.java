@@ -287,6 +287,77 @@ public class RelativeLink
      */
     public static boolean withinRoot(String rootDir, String path)
     {
+        if (rootDir == null || path == null)
+            throw new IllegalArgumentException("Arguments must not be null");
+
+        rootDir = normalizePathForComparison(rootDir);
+        path = normalizePathForComparison(path);
+
+        if (!isAbsolutePath(rootDir) || !isAbsolutePath(path))
+            throw new IllegalArgumentException("Both arguments must be absolute paths");
+
+        // Ensure root ends with separator for strict prefix match
+        String rootPrefix = rootDir.endsWith("/") ? rootDir : rootDir + "/";
+
+        // OS-sensitive comparison
+        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+        if (isWindows)
+        {
+            return path.length() > rootPrefix.length()
+                    && path.toLowerCase().startsWith(rootPrefix.toLowerCase());
+        }
+        else
+        {
+            return path.length() > rootPrefix.length()
+                    && path.startsWith(rootPrefix);
+        }
+    }
+
+    private static String normalizePathForComparison(String rawPath)
+    {
+        if (rawPath == null)
+            return null;
+
+        // Normalize separators and collapse multiple slashes
+        String path = rawPath.replace('\\', '/').replaceAll("/+", "/");
+
+        // Remove trailing slashes unless it is "/" or "C:/"
+        while (path.endsWith("/"))
+        {
+            // Keep root "/" or "C:/" only on Windows
+            if (path.equals("/") || isWindowsRoot(path) && Util.isWindowsOS())
+                return path;
+
+            path = path.substring(0, path.length() - 1);
+        }
+
+        return path;
+    }
+
+    private static boolean isWindowsRoot(String path)
+    {
+        return path.length() == 3
+                && Character.isLetter(path.charAt(0))
+                && path.charAt(1) == ':'
+                && path.charAt(2) == '/';
+    }
+
+    /**
+     * Checks whether a given path is absolute, in a cross-platform way.
+     */
+    private static boolean isAbsolutePath(String path)
+    {
+        if (path.startsWith("/"))
+            return true; // Unix
+        // Windows absolute path (e.g., C:/ or C:\)
+        return path.length() >= 3
+                && Character.isLetter(path.charAt(0))
+                && path.charAt(1) == ':'
+                && (path.charAt(2) == '/' || path.charAt(2) == '\\');
+    }
+
+    public static boolean withinRoot_old(String rootDir, String path)
+    {
         Path root = Paths.get(rootDir).normalize();
         Path target = null;
 

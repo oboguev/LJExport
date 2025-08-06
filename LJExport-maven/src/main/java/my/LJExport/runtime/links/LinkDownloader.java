@@ -270,11 +270,13 @@ public class LinkDownloader
 
         Thread.currentThread().setName(final_threadName + " downloading " + download_href_noanchor + " prepare");
 
-        if (alreadyHaveFileForHref(null, name_href_noanchor, filename) || alreadyHaveFileForHref(null, download_href_noanchor, filename))
-            return;
-
         String actual_filename = filename.get();
-        // ### what if already have actual_filename
+        if (alreadyHaveFileForHref(null, name_href_noanchor, filename) ||
+                alreadyHaveFileForHref(null, download_href_noanchor, filename) ||
+                alreadyHaveFileForHref(actual_filename, name_href_noanchor, filename))
+        {
+            return;
+        }
 
         /*
          * Redirect to unwrapped links
@@ -289,13 +291,14 @@ public class LinkDownloader
             name_href_noanchor = name_href_noanchor_away;
             download_href_noanchor = download_href_noanchor_away;
         }
-        
-        if (alreadyHaveFileForHref(null, name_href_noanchor, filename) || alreadyHaveFileForHref(null, download_href_noanchor, filename))
+
+        if (alreadyHaveFileForHref(null, name_href_noanchor, filename) ||
+                alreadyHaveFileForHref(null, download_href_noanchor, filename))
             return;
-        
+
         // ### recalc file name from name_href_noanchor
         // ### check if file exists
-        
+
         Map<String, String> headers = new HashMap<>();
 
         if (referer != null && referer.length() != 0)
@@ -405,12 +408,12 @@ public class LinkDownloader
             throw ex;
         }
     }
-    
+
     private boolean alreadyHaveFileForHref(String actual_filename, String href, AtomicReference<String> filename) throws Exception
     {
         if (actual_filename == null)
         {
-            actual_filename  = href2file.getAnyUrlProtocol(href);
+            actual_filename = href2file.getAnyUrlProtocol(href);
             if (actual_filename == null)
                 return false;
         }

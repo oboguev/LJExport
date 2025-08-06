@@ -40,12 +40,9 @@ import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
  */
 public class FixFileExtensions extends MaintenanceHandler
 {
-    // ### add handling for lib.ru and www.lib.ru: aaa.txt -> aaa.txt.html
-    // ### acceptServer -> new extension
     // ### update rename-history.txt
     // ### update links map file
     // ### if a.herf (not img.sec) and !shouldDownload restore original URL and delete file on disk and from link map
-    // ### boolean image
     // ### rename conflicts (collisions) in case of DryRun 
 
     private static boolean DryRun = true; // ###
@@ -82,6 +79,7 @@ public class FixFileExtensions extends MaintenanceHandler
     private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
     private Map<String, String> fileContentExtensionMap = new HashMap<>();
     private Set<String> deleteLinkMapEntriesFor = new HashSet<>();
+    private Set<String> addedFiles = new HashSet<>();
 
     @Override
     protected void beginUser() throws Exception
@@ -315,11 +313,11 @@ public class FixFileExtensions extends MaintenanceHandler
                 }
             }
 
-            Decision decision = serverAcceptedContent(href_original, linkInfo.linkFullFilePath, 
-                    contentExtension, 
+            Decision decision = serverAcceptedContent(href_original, linkInfo.linkFullFilePath,
+                    contentExtension,
                     headerExtension,
                     fnExt);
-            
+
             if (decision.isAccept())
             {
                 // for lib.ru and www.lib.ru and some others: aaa.txt -> aaa.txt.html
@@ -461,11 +459,11 @@ public class FixFileExtensions extends MaintenanceHandler
                 sb.append(String.format("CHANGING EXTENSION [%s] from  %s" + nl, Config.User, linkInfo.linkFullFilePath));
                 sb.append(String.format("                    %s    to  %s" + nl, spaces(Config.User), newLinkFullFilePath));
                 trace(sb.toString());
-                txLog.writeLine(sb.toString());
+                txLog.writeLine(safety, sb.toString());
             }
 
             newref = renameFile(linkInfo.linkFullFilePath, newLinkFullFilePath, fullHtmlFilePath,
-                    href, href_original, contentExtension);
+                    href, href_original, finalExtension);
             if (newref == null)
                 continue;
 
@@ -493,7 +491,7 @@ public class FixFileExtensions extends MaintenanceHandler
             String fullHtmlFilePath,
             String href,
             String href_original,
-            String contentExtension) throws Exception
+            String finalExtension) throws Exception
     {
         /*
          * Check for conflicts with existing files and resolve them
@@ -502,13 +500,13 @@ public class FixFileExtensions extends MaintenanceHandler
         if (newref != null)
             return newref;
 
-        String tryLinkFullFilePath = oldLinkFullFilePath + "." + contentExtension;
+        String tryLinkFullFilePath = oldLinkFullFilePath + "." + finalExtension;
         newref = tryRenameFile(oldLinkFullFilePath, tryLinkFullFilePath, fullHtmlFilePath, href, href_original);
         if (newref != null)
             return newref;
 
         File fp = new File(oldLinkFullFilePath).getParentFile();
-        fp = new File(fp, "x-" + Util.uuid() + "." + contentExtension);
+        fp = new File(fp, "x-" + Util.uuid() + "." + finalExtension);
         fp = FilePath.canonicalFile(fp);
         tryLinkFullFilePath = fp.getCanonicalPath();
         newref = tryRenameFile(oldLinkFullFilePath, tryLinkFullFilePath, fullHtmlFilePath, href, href_original);
@@ -526,18 +524,28 @@ public class FixFileExtensions extends MaintenanceHandler
     {
         String newref = abs2href(newLinkFullFilePath, fullHtmlFilePath);
 
+        if (addedFiles.contains(newLinkFullFilePath.toLowerCase()))
+            return null;
+        
         if (!new File(newLinkFullFilePath).exists())
         {
-            if (!renameFileActual(oldLinkFullFilePath, newLinkFullFilePath, fullHtmlFilePath, href, href_original, newref))
+            if (renameFileActual(oldLinkFullFilePath, newLinkFullFilePath, fullHtmlFilePath, href, href_original, newref))
+            {
+                addedFiles.add(newLinkFullFilePath.toLowerCase());
+                return newref;
+            }
+            else
+            {
                 return null;
-            return newref;
+            }
         }
-        else if (isSameFileContent(oldLinkFullFilePath, newLinkFullFilePath))
+
+        if (isSameFileContent(oldLinkFullFilePath, newLinkFullFilePath))
         {
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("Redirecting [%s] from  %s" + nl, Config.User, oldLinkFullFilePath));
             sb.append(String.format("          %s       to  %s" + nl, spaces(Config.User), newLinkFullFilePath));
-            sb.append(String.format("  relink  %s     from  %s" + nl, spaces(Config.User), href_original));
+            sb.append(String.format("  relink  %s     from  %s" + nl, spaces(Config.User), href));
             sb.append(String.format("          %s       to  %s" + nl, spaces(Config.User), newref));
             sb.append(String.format("          %s       in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
 

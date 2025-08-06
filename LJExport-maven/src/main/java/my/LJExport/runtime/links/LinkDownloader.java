@@ -139,6 +139,14 @@ public class LinkDownloader
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
             threadName = "(unnamed)";
+        
+        // ### if name_href is in links map
+        // ###     - leave name_href and download_href as is
+        // ### else if use smartloader
+        // ###     - away name_href
+        // ###     - leave download_href as is
+        // ### else
+        // ###     - away leave name_href and download_href
 
         try
         {

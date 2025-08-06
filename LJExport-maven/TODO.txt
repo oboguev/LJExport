@@ -49,7 +49,20 @@
 ================================================
 
 - FixFileExtensions
-- MainDownloadLinks with archive access enabled (SmartDownloader) and away-iteration
+
+- MainDownloadLinks with archive access enabled (SmartDownloader) and away-iteration.
+  Smart load: try one wrapping layer at a time from inner to outer.
+  Pass original-url not unwrapped 
+  
+- LinkDownloader
+
+        // ### if name_href is in links map
+        // ###     - leave name_href and download_href as is
+        // ### else if use smartloader
+        // ###     - away name_href
+        // ###     - leave download_href as is
+        // ### else
+        // ###     - away leave name_href and download_href
 
 ================================================
 

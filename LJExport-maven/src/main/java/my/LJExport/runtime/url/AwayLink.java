@@ -68,7 +68,7 @@ public class AwayLink
         String original_href = href;
         boolean updated = false;
 
-        String newref = AwayLink.unwrapAwayLinkEncoded(href);
+        String newref = unwrapAwayLinkEncoded(href);
         if (!newref.equals(href))
         {
             JSOUP.updateAttribute(n, attr, newref);
@@ -105,15 +105,16 @@ public class AwayLink
         if (decoded_href == null)
             return null;
 
+        String anchor = Util.getAnchor(decoded_href);
+        decoded_href = Util.stripAnchor(decoded_href);
+
         MutableObject<String> prefix = new MutableObject<>();
         String xurl;
 
         if (Util.startsWith(decoded_href, prefix, wrap_prefixes_1))
         {
             decoded_href = decoded_href.substring(prefix.get().length());
-            decoded_href = fixOverencoding(decoded_href);
-            decoded_href = UrlFixCP1251.fixUrlCp1251Sequences(decoded_href);
-            return decoded_href;
+            return post(decoded_href, anchor);
         }
 
         if (Util.startsWith(decoded_href, prefix, wrap_prefixes_fb))
@@ -121,60 +122,46 @@ public class AwayLink
             String u = UrlUtil.extractQueryParameter(decoded_href, "u");
             if (u == null || !Util.startsWith(u, null, "http://", "https://"))
                 throw new Exception("Malstructured wrap link");
-            u = UrlFixCP1251.fixUrlCp1251Sequences(u);
-            return u;
+            return post(u, anchor);
         }
 
         xurl = unwrapImagesGoogleCom(decoded_href);
         if (!xurl.equals(decoded_href))
-        {
-            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
-            return xurl;
-        }
+            return post(xurl, anchor);
 
         xurl = unwrapLivejournalImgPrxSt(decoded_href);
         if (!xurl.equals(decoded_href))
-        {
-            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
-            return xurl;
-        }
+            return post(xurl, anchor);
 
         xurl = unwrapInfonarodRuAaway(decoded_href);
         if (!xurl.equals(decoded_href))
-        {
-            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
-            return xurl;
-        }
+            return post(xurl, anchor);
 
         xurl = urnwrapFbcdnExternalSafeImage(decoded_href);
         if (!xurl.equals(decoded_href))
-        {
-            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
-            return xurl;
-        }
+            return post(xurl, anchor);
 
         xurl = urnwrapGoogleDocsViewer(decoded_href);
         if (!xurl.equals(decoded_href))
-        {
-            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
-            return xurl;
-        }
+            return post(xurl, anchor);
 
         xurl = urnwrapLiveComImageproxy(decoded_href);
         if (!xurl.equals(decoded_href))
-        {
-            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
-            return xurl;
-        }
+            return post(xurl, anchor);
 
         xurl = unwrapDreamwidthProxy(decoded_href);
         if (!xurl.equals(decoded_href))
-        {
-            xurl = UrlFixCP1251.fixUrlCp1251Sequences(xurl);
-            return xurl;
-        }
+            return post(xurl, anchor);
 
-        return decoded_href;
+        return Util.withAnchor(decoded_href, anchor);
+    }
+
+    private static String post(String url, String anchor)
+    {
+        url = fixOverencoding(url);
+        url = Util.withAnchor(url, anchor);
+        url = UrlFixCP1251.fixUrlCp1251Sequences(url);
+        return url;
     }
 
     private static String fixOverencoding(String href)
@@ -397,7 +384,7 @@ public class AwayLink
     public static String unwrapDreamwidthProxy(String url)
     {
         MutableObject<String> prefix = new MutableObject<String>();
-        
+
         if (!Util.startsWithIgnoreCase(url, prefix, "https://p.dreamwidth.org/", "http://p.dreamwidth.org/"))
             return url;
 
@@ -416,7 +403,7 @@ public class AwayLink
 
         // What remains is the original URL path
         String original = remainder.substring(secondSlash + 1);
-        
-        return "https://" + original ;
+
+        return "https://" + original;
     }
 }

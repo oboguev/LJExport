@@ -43,9 +43,7 @@ import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 public class FixFileExtensions extends MaintenanceHandler
 {
     // ### update rename-history.txt
-    // ### if a.herf (not img.sec) and !shouldDownload restore original URL and delete file on disk and from link map
     // ### ShouldDownload -- unwrap....!!!!AwayLinks
-    // ### AwayLink -- strip and reappend anchor
 
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;

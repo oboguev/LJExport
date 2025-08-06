@@ -23,6 +23,8 @@ import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
+import my.LJExport.runtime.links.ShouldDownload;
+import my.LJExport.runtime.links.util.InferOriginalUrl;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
@@ -41,9 +43,9 @@ import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 public class FixFileExtensions extends MaintenanceHandler
 {
     // ### update rename-history.txt
-    // ### update links map file
     // ### if a.herf (not img.sec) and !shouldDownload restore original URL and delete file on disk and from link map
-    // ### rename conflicts (collisions) in case of DryRun 
+    // ### ShouldDownload -- unwrap....!!!!AwayLinks
+    // ### AwayLink -- strip and reappend anchor
 
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;
@@ -93,6 +95,7 @@ public class FixFileExtensions extends MaintenanceHandler
         alreadyRenamed = new HashMap<>();
         fileContentExtensionMap = new HashMap<>();
         deleteLinkMapEntriesFor = new HashSet<>();
+        addedFiles = new HashSet<>();
 
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
@@ -294,8 +297,8 @@ public class FixFileExtensions extends MaintenanceHandler
             /*
              * First check overrides 
              */
-            String relpath = this.abs2rel(linkInfo.linkFullFilePath);
-            String contentType = this.fileContentTypeInformation.contentTypeForLcUnixRelpath(relpath);
+            String relpath = abs2rel(linkInfo.linkFullFilePath);
+            String contentType = fileContentTypeInformation.contentTypeForLcUnixRelpath(relpath);
             if (contentType != null)
                 contentExtension = headerExtension = FileTypeDetector.fileExtensionFromMimeType(contentType);
 
@@ -418,6 +421,12 @@ public class FixFileExtensions extends MaintenanceHandler
                     break;
                 }
 
+                String originalUrl = href_original;
+                if (originalUrl == null || originalUrl.trim().length() == 0)
+                    originalUrl = InferOriginalUrl.infer(relpath);
+                if (!ShouldDownload.shouldDownload(image, originalUrl, false))
+                    reject = true;
+
                 finalExtension = contentExtension;
             }
 
@@ -526,7 +535,7 @@ public class FixFileExtensions extends MaintenanceHandler
 
         if (addedFiles.contains(newLinkFullFilePath.toLowerCase()))
             return null;
-        
+
         if (!new File(newLinkFullFilePath).exists())
         {
             if (renameFileActual(oldLinkFullFilePath, newLinkFullFilePath, fullHtmlFilePath, href, href_original, newref))
@@ -772,7 +781,7 @@ public class FixFileExtensions extends MaintenanceHandler
         String original_attr_name = "original-" + attr;
 
         String original_attr_value = JSOUP.getAttribute(n, original_attr_name);
-        if (original_attr_value != null)
+        if (original_attr_value != null && original_attr_value.trim().length() != 0)
         {
             JSOUP.updateAttribute(n, attr, original_attr_value);
 
@@ -819,6 +828,8 @@ public class FixFileExtensions extends MaintenanceHandler
 
                 trace(sb.toString());
                 txLog.writeLine(safety, sb.toString());
+
+                // do not add to output list
 
                 updatedMap = true;
             }

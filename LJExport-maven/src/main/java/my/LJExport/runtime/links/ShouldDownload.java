@@ -7,6 +7,7 @@ import my.LJExport.runtime.Util;
 import my.LJExport.runtime.file.FileTypeDetector;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.links.util.URLClassifier;
+import my.LJExport.runtime.url.AwayLink;
 import my.LJExport.runtime.url.UrlPatternMatcher;
 
 public class ShouldDownload
@@ -40,6 +41,8 @@ public class ShouldDownload
 
         if (href == null || href.length() == 0)
             return false;
+        
+        href = AwayLink.unwrapAwayLinkDecoded(href);
         href = Util.stripAnchor(href);
         
         if (online)
@@ -92,6 +95,8 @@ public class ShouldDownload
         {
             if (href == null || href.length() == 0)
                 return false;
+
+            href = AwayLink.unwrapAwayLinkDecoded(href);
             href = Util.stripAnchor(href);
 
             if (online)

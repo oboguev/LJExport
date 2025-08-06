@@ -43,7 +43,6 @@ import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
 public class FixFileExtensions extends MaintenanceHandler
 {
     // ### update rename-history.txt
-    // ### ShouldDownload -- unwrap....!!!!AwayLinks
 
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;

@@ -27,31 +27,26 @@ import my.WebArchiveOrg.ArchiveOrgUrl;
 public class SmartLinkDownloader
 {
     private final String linksDir;
-    private boolean useArchiveOrg = true;
 
     public SmartLinkDownloader(String linksDir)
     {
         this.linksDir = linksDir;
     }
 
-    public void useArchiveOrg(boolean useArchiveOrg)
-    {
-        this.useArchiveOrg = useArchiveOrg;
-    }
-
-    public boolean redownloadToFile(boolean image, String href, String unixRelFilePath, String referer,
+    public boolean redownloadToFile(boolean image, String href, String unixRelFilePath, String referer, boolean useArchiveOrg,
             MutableObject<String> fromWhere)
             throws Exception
     {
         String fullFilePath = this.linksDir + File.separator + unixRelFilePath.replace('/', File.separatorChar);
-        return redownloadToAbsoluteFile(image, href, fullFilePath, referer, fromWhere);
+        return redownloadToAbsoluteFile(image, href, fullFilePath, referer, useArchiveOrg, fromWhere);
     }
 
     public boolean redownloadToAbsoluteFile(boolean image, String href, String fullFilePath, String referer,
+            boolean allowArchiveOrg,
             MutableObject<String> fromWhere)
             throws Exception
     {
-        Web.Response r = smartDownload(image, href, referer, true, fromWhere);
+        Web.Response r = smartDownload(image, href, referer, true, allowArchiveOrg, fromWhere);
 
         if (r != null)
         {
@@ -66,7 +61,7 @@ public class SmartLinkDownloader
 
     /* ================================================================================================== */
 
-    public Web.Response smartDownload(boolean image, String href, String referer, boolean allowAway,
+    public Web.Response smartDownload(boolean image, String href, String referer, boolean allowAway, boolean useArchiveOrg,
             MutableObject<String> fromWhere)
             throws Exception
     {
@@ -80,7 +75,7 @@ public class SmartLinkDownloader
              */
             for (;;)
             {
-                Web.Response r = smartDownload(image, href, referer, false, fromWhere);
+                Web.Response r = smartDownload(image, href, referer, false, useArchiveOrg, fromWhere);
                 if (r != null)
                     return r;
 
@@ -153,7 +148,7 @@ public class SmartLinkDownloader
     {
         if (!ShouldDownload.shouldDownload(image, href, online))
             return null;
-        
+
         Web.Response r = LinkRedownloader.redownload(image, href, referer);
 
         if (r == null)
@@ -210,7 +205,7 @@ public class SmartLinkDownloader
             {
                 return null;
             }
-            
+
             if (!ShouldDownload.shouldDownload(image, src, online))
                 return null;
 
@@ -331,7 +326,7 @@ public class SmartLinkDownloader
             String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "militaryphotos.xxx";
 
             SmartLinkDownloader self = new SmartLinkDownloader(null);
-            boolean b = self.redownloadToAbsoluteFile(false, href, fullFllePath, null, null);
+            boolean b = self.redownloadToAbsoluteFile(false, href, fullFllePath, null, true, null);
             Util.unused(b);
         }
         catch (Exception ex)

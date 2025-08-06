@@ -343,8 +343,7 @@ public class LinkDownloader
         if (r == null && useSmartDownloader)
         {
             SmartLinkDownloader sml = new SmartLinkDownloader(null);
-            sml.useArchiveOrg(true);
-            r = sml.smartDownload(image, download_href_noanchor, referer, true, null);
+            r = sml.smartDownload(image, download_href_noanchor, referer, true, true, null);
         }
 
         /*

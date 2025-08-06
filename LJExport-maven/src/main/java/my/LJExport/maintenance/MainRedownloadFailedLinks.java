@@ -662,7 +662,6 @@ public class MainRedownloadFailedLinks
         try
         {
             SmartLinkDownloader smartLinkRedownloader = new SmartLinkDownloader(linksDir);
-            smartLinkRedownloader.useArchiveOrg(UseArchiveOrg);
 
             if (!ShouldDownload.shouldDownload(image, url, false))
             {
@@ -684,7 +683,7 @@ public class MainRedownloadFailedLinks
             }
 
             MutableObject<String> fromWhere = new MutableObject<>();
-            boolean result = smartLinkRedownloader.redownloadToFile(image, url, relativeLinkFilePath, referer, fromWhere);
+            boolean result = smartLinkRedownloader.redownloadToFile(image, url, relativeLinkFilePath, referer, UseArchiveOrg, fromWhere);
 
             if (result)
             {

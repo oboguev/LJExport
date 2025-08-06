@@ -31,6 +31,7 @@ import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.util.DownloadSource;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.synch.NamedLocks;
+import my.LJExport.runtime.url.AwayLink;
 import my.LJExport.runtime.url.UrlUtil;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
@@ -154,7 +155,7 @@ public class LinkDownloader
         if (threadName == null)
             threadName = "(unnamed)";
 
-        // ### if name_href is in links map
+        // ### if name_href is in links map or file exists
         // ###     - leave name_href and download_href as is
         // ### else if use smartloader
         // ###     - away name_href
@@ -184,6 +185,9 @@ public class LinkDownloader
 
             name_href_noanchor = Util.stripAnchor(name_href);
             download_href_noanchor = Util.stripAnchor(download_href);
+            
+            String name_href_noanchor_away = Util.stripAnchor(AwayLink.unwrapAwayLinkDecoded(name_href_noanchor));
+            String download_href_noanchor_away = Util.stripAnchor(AwayLink.unwrapAwayLinkDecoded(download_href_noanchor));
 
             if (failedSet.contains(download_href_noanchor))
                 return null;

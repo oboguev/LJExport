@@ -392,21 +392,21 @@ public class LinkDownloader
     private void xxx_scope(
             AtomicReference<Web.Response> response, 
             boolean image, 
-            String final_name_href_noanchor, 
-            String final_download_href_noanchor, 
+            String name_href_noanchor, 
+            String download_href_noanchor, 
             String referer, 
             AtomicReference<String> filename, 
             DownloadSource downloadSource, 
             String final_threadName) 
                     throws Exception
     {
-        if (failedSet.contains(final_download_href_noanchor))
+        if (failedSet.contains(download_href_noanchor))
             throw new AlreadyFailedException();
 
-        Thread.currentThread().setName(final_threadName + " downloading " + final_download_href_noanchor + " prepare");
+        Thread.currentThread().setName(final_threadName + " downloading " + download_href_noanchor + " prepare");
 
         String actual_filename = filename.get();
-        String afn = href2file.getAnyUrlProtocol(final_name_href_noanchor);
+        String afn = href2file.getAnyUrlProtocol(name_href_noanchor);
         if (afn != null)
             actual_filename = afn;
 
@@ -426,8 +426,8 @@ public class LinkDownloader
             filename.set(actual_filename);
             synchronized (href2file)
             {
-                if (null == href2file.getAnyUrlProtocol(final_name_href_noanchor))
-                    href2file.put(final_name_href_noanchor, actual_filename);
+                if (null == href2file.getAnyUrlProtocol(name_href_noanchor))
+                    href2file.put(name_href_noanchor, actual_filename);
             }
         }
         else
@@ -455,7 +455,7 @@ public class LinkDownloader
              */
             if (downloadSource != null)
             {
-                byte[] binaryBody = downloadSource.load(final_name_href_noanchor, abs2rel(actual_filename));
+                byte[] binaryBody = downloadSource.load(name_href_noanchor, abs2rel(actual_filename));
                 if (binaryBody != null)
                 {
                     r = new Web.Response();
@@ -471,24 +471,24 @@ public class LinkDownloader
             {
                 try
                 {
-                    Thread.currentThread().setName(final_threadName + " downloading " + final_download_href_noanchor);
-                    r = Web.get(final_download_href_noanchor, Web.BINARY | Web.PROGRESS, headers, (code) ->
+                    Thread.currentThread().setName(final_threadName + " downloading " + download_href_noanchor);
+                    r = Web.get(download_href_noanchor, Web.BINARY | Web.PROGRESS, headers, (code) ->
                     {
                         return code >= 200 && code <= 299 && code != 204;
                     });
                 }
                 catch (Exception ex)
                 {
-                    if (final_download_href_noanchor != null)
-                        failedSet.add(final_download_href_noanchor);
+                    if (download_href_noanchor != null)
+                        failedSet.add(download_href_noanchor);
                     throw ex;
                 }
 
                 if (r.code < 200 || r.code >= 300 || r.code == 204)
                 {
                     response.set(r);
-                    if (final_download_href_noanchor != null)
-                        failedSet.add(final_download_href_noanchor);
+                    if (download_href_noanchor != null)
+                        failedSet.add(download_href_noanchor);
                     throw new HttpException("HTTP code " + r.code + ", reason: " + r.reason);
                 }
             }
@@ -499,7 +499,7 @@ public class LinkDownloader
                  * Adjust filename extension based on file actual content and Content-Type header.
                  * Will return null if detected error response page such as HTML or PHP.
                  */
-                actual_filename = adjustExtension(image, final_name_href_noanchor, actual_filename, r);
+                actual_filename = adjustExtension(image, name_href_noanchor, actual_filename, r);
                 filename.set(actual_filename);
 
                 /*
@@ -518,7 +518,7 @@ public class LinkDownloader
                     }
                     catch (UnableCreateDirectoryException dex)
                     {
-                        actual_filename = LinkFilepath.fallbackFilepath(linksDir, final_name_href_noanchor,
+                        actual_filename = LinkFilepath.fallbackFilepath(linksDir, name_href_noanchor,
                                 actual_filename);
                         filename.set(actual_filename);
                         f = new File(actual_filename).getCanonicalFile();
@@ -528,15 +528,15 @@ public class LinkDownloader
                     Web.Response final_r = r;
                     Util.NamedFileLocks.interlock(actual_filename.toLowerCase(), () ->
                     {
-                        storeFile(filename, final_r, final_name_href_noanchor);
+                        storeFile(filename, final_r, name_href_noanchor);
                     });
                 }
             }
             catch (Exception ex)
             {
                 Util.noop();
-                if (final_download_href_noanchor != null)
-                    failedSet.add(final_download_href_noanchor);
+                if (download_href_noanchor != null)
+                    failedSet.add(download_href_noanchor);
                 throw ex;
             }
         }

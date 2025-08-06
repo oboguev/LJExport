@@ -198,7 +198,7 @@ public class LinkDownloader
 
             // final String final_name_href = name_href;
             final String final_name_href_noanchor = name_href_noanchor;
-            final String final_download_href = download_href;
+            // final String final_download_href = download_href;
             final String final_download_href_noanchor = download_href_noanchor;
             final String final_threadName = threadName;
 
@@ -206,146 +206,15 @@ public class LinkDownloader
 
             urlLocks.interlock(name_href_noanchor.toLowerCase(), () ->
             {
-                if (failedSet.contains(final_download_href_noanchor))
-                    throw new AlreadyFailedException();
-
-                Thread.currentThread().setName(final_threadName + " downloading " + final_download_href_noanchor + " prepare");
-
-                String actual_filename = filename.get();
-                String afn = href2file.getAnyUrlProtocol(final_name_href_noanchor);
-                if (afn != null)
-                    actual_filename = afn;
-
-                File f = null;
-                try
-                {
-                    f = new File(actual_filename).getCanonicalFile();
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
-
-                if (f.exists() && !f.isDirectory())
-                {
-                    actual_filename = FilePath.getFilePathActualCase(actual_filename);
-                    filename.set(actual_filename);
-                    synchronized (href2file)
-                    {
-                        if (null == href2file.getAnyUrlProtocol(final_name_href_noanchor))
-                            href2file.put(final_name_href_noanchor, actual_filename);
-                    }
-                }
-                else
-                {
-                    Map<String, String> headers = new HashMap<>();
-
-                    if (referer != null && referer.length() != 0)
-                        headers.put("Referer", referer);
-
-                    if (image)
-                    {
-                        headers.put("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
-                        addImageHeaders(headers);
-                    }
-                    else
-                    {
-                        headers.put("Accept", Config.UserAgentAccept_Download);
-                        addDocumentHeaders(headers);
-                    }
-
-                    Web.Response r = null;
-
-                    /*
-                     * Try to download from an override source
-                     */
-                    if (downloadSource != null)
-                    {
-                        byte[] binaryBody = downloadSource.load(final_name_href_noanchor, abs2rel(actual_filename));
-                        if (binaryBody != null)
-                        {
-                            r = new Web.Response();
-                            r.code = 200;
-                            r.binaryBody = binaryBody;
-                        }
-                    }
-
-                    /*
-                     * Actual web load
-                     */
-                    if (r == null)
-                    {
-                        try
-                        {
-                            Thread.currentThread().setName(final_threadName + " downloading " + final_download_href_noanchor);
-                            r = Web.get(final_download_href_noanchor, Web.BINARY | Web.PROGRESS, headers, (code) ->
-                            {
-                                return code >= 200 && code <= 299 && code != 204;
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            if (final_download_href_noanchor != null)
-                                failedSet.add(final_download_href_noanchor);
-                            throw ex;
-                        }
-
-                        if (r.code < 200 || r.code >= 300 || r.code == 204)
-                        {
-                            response.set(r);
-                            if (final_download_href_noanchor != null)
-                                failedSet.add(final_download_href_noanchor);
-                            throw new HttpException("HTTP code " + r.code + ", reason: " + r.reason);
-                        }
-                    }
-
-                    try
-                    {
-                        /*
-                         * Adjust filename extension based on file actual content and Content-Type header.
-                         * Will return null if detected error response page such as HTML or PHP.
-                         */
-                        actual_filename = adjustExtension(image, final_name_href_noanchor, actual_filename, r);
-                        filename.set(actual_filename);
-
-                        /*
-                         * Store file. Take care of collisions with existing file.
-                         * May update filename.
-                         */
-                        if (actual_filename != null)
-                        {
-                            /*
-                             * If path cannot be created, redirect to catch-all directory
-                             */
-                            try
-                            {
-                                f = new File(actual_filename).getCanonicalFile();
-                                Util.mkdir(f.getAbsoluteFile().getParent());
-                            }
-                            catch (UnableCreateDirectoryException dex)
-                            {
-                                actual_filename = LinkFilepath.fallbackFilepath(linksDir, final_name_href_noanchor,
-                                        actual_filename);
-                                filename.set(actual_filename);
-                                f = new File(actual_filename).getCanonicalFile();
-                                Util.mkdir(f.getAbsoluteFile().getParent());
-                            }
-
-                            Web.Response final_r = r;
-                            Util.NamedFileLocks.interlock(actual_filename.toLowerCase(), () ->
-                            {
-                                storeFile(filename, final_r, final_name_href_noanchor);
-                            });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Util.noop();
-                        if (final_download_href_noanchor != null)
-                            failedSet.add(final_download_href_noanchor);
-                        throw ex;
-                    }
-                }
+                while_interlocked(
+                        response, 
+                        image, 
+                        final_name_href_noanchor, 
+                        final_download_href_noanchor, 
+                        referer, 
+                        filename, 
+                        downloadSource, 
+                        final_threadName); 
             });
 
             Thread.currentThread().setName(threadName);
@@ -389,7 +258,7 @@ public class LinkDownloader
         }
     }
     
-    private void xxx_scope(
+    private void while_interlocked(
             AtomicReference<Web.Response> response, 
             boolean image, 
             String name_href_noanchor, 

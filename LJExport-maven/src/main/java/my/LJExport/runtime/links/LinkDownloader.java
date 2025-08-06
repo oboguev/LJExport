@@ -272,8 +272,8 @@ public class LinkDownloader
 
         String actual_filename = filename.get();
         if (alreadyHaveFileForHref(null, name_href_noanchor, filename) ||
-                alreadyHaveFileForHref(null, download_href_noanchor, filename) ||
-                alreadyHaveFileForHref(actual_filename, name_href_noanchor, filename))
+            alreadyHaveFileForHref(null, download_href_noanchor, filename) ||
+            alreadyHaveFileForHref(actual_filename, name_href_noanchor, filename))
         {
             return;
         }
@@ -293,7 +293,7 @@ public class LinkDownloader
         }
 
         if (alreadyHaveFileForHref(null, name_href_noanchor, filename) ||
-                alreadyHaveFileForHref(null, download_href_noanchor, filename))
+            alreadyHaveFileForHref(null, download_href_noanchor, filename))
             return;
 
         // ### recalc file name from name_href_noanchor

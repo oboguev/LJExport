@@ -271,6 +271,8 @@ public class LinkDownloader
         Thread.currentThread().setName(final_threadName + " downloading " + download_href_noanchor + " prepare");
 
         String actual_filename = filename.get();
+        
+        // ##############################
         String afn = href2file.getAnyUrlProtocol(name_href_noanchor);
         if (afn != null)
             actual_filename = afn;
@@ -301,6 +303,8 @@ public class LinkDownloader
             return;
         }
         
+        // ##############################
+
         /*
          * Redirect to unwrapped links
          */
@@ -426,6 +430,43 @@ public class LinkDownloader
             if (download_href_noanchor != null)
                 failedSet.add(download_href_noanchor);
             throw ex;
+        }
+    }
+    
+    private boolean alreadyHaveFileForHref(String href, AtomicReference<String> filename) throws Exception
+    {
+        String actual_filename  = href2file.getAnyUrlProtocol(href);
+        if (actual_filename == null)
+            return false;
+
+        File f = null;
+        try
+        {
+            f = new File(actual_filename).getCanonicalFile();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+
+        /*
+         * If file already exists
+         */
+        if (f.exists() && !f.isDirectory())
+        {
+            actual_filename = FilePath.getFilePathActualCase(actual_filename);
+            filename.set(actual_filename);
+            synchronized (href2file)
+            {
+                if (null == href2file.getAnyUrlProtocol(href))
+                    href2file.put(href, actual_filename);
+            }
+
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 

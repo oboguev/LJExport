@@ -5,6 +5,7 @@ import java.net.URL;
 import my.LJExport.runtime.ContentProvider;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.url.AwayLink;
 import my.LJExport.runtime.url.UrlUtil;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
@@ -55,8 +56,18 @@ public class ServerContent
             ContentProvider contentProvider, Web.Response r)
             throws Exception
     {
+        if (UrlUtil.looksLikeUrlWithoutScheme(href))
+            href = "https://" + href;
+        
+        href = AwayLink.unwrapAwayLinkDecoded(href);
+        
         if (ArchiveOrgUrl.isArchiveOrgUrl(href))
             href = ArchiveOrgUrl.extractArchivedUrlPart(href);
+
+        if (UrlUtil.looksLikeUrlWithoutScheme(href))
+            href = "https://" + href;
+        
+        href = AwayLink.unwrapAwayLinkDecoded(href);
 
         String host = UrlUtil.extractHost(href);
         String path = new URL(href).getPath();

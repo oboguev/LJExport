@@ -283,7 +283,7 @@ public class FixFileExtensions extends MaintenanceHandler
             String ac = file_lc2ac.get(linkInfo.linkFullFilePath.toLowerCase());
             if (ac == null)
             {
-                String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
+                String msg = String.format("Link file/dir [%s] is not present in the repository, href=[%s], filepath=[%s]",
                         Config.User, href, linkInfo.linkFullFilePath);
 
                 boolean allow = Config.User.equals("d_olshansky") && href.contains("../links/imgprx.livejournal.net/");

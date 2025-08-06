@@ -639,19 +639,47 @@ public class UrlUtil
     }
 
     /* ================================================================================================== */
-    
+
     public static URI URLtoURI(URL url) throws Exception
-    { 
+    {
         String encodedQuery = encodeSegment(url.getQuery());
-        
+
         URI uri = new URI(
                 url.getProtocol(),
-                url.getAuthority(),  // host + port
+                url.getAuthority(), // host + port
                 url.getPath(),
                 encodedQuery,
-                url.getRef()         // fragment
-            );
-        
+                url.getRef() // fragment
+        );
+
         return uri;
+    }
+
+    /* ================================================================================================== */
+
+    private static final Pattern HOST_PATH_PATTERN = Pattern.compile(
+            "^" +
+            // Hostname: one or more domain labels separated by dots
+                    "([a-zA-Z0-9\\-]+\\.)+[a-zA-Z]{2,}" +
+                    // Optional port
+                    "(?::\\d{1,5})?" +
+                    // Followed by at least one slash and path component
+                    "(/[^\\s]*)?$");
+
+    public static boolean looksLikeUrlWithoutScheme(String input)
+    {
+        if (input == null)
+            return false;
+
+        input = input.trim();
+        if (input.isEmpty() || !input.contains("/"))
+            return false;
+
+        // Must not already start with scheme
+        if (input.matches("^(?i)(https?|ftp)://.*"))
+            return false;
+
+        Matcher matcher = HOST_PATH_PATTERN.matcher(input);
+        return matcher.find();
     }
 }

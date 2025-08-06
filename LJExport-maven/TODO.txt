@@ -37,9 +37,9 @@
       - will it use default value on headers when they are not present in the request?
       - list of standard header values
 
-- make MainDownloadLinks with option to download from the archive
-
 ================================================
+
+- make MainDownloadLinks with option to download from the archive
 
 - LinkDownloader should handle if_ -> im_ repeat loads (HTML -> Image)
   May want make it use SmartDownloader instead of Web
@@ -53,16 +53,6 @@
 - MainDownloadLinks with archive access enabled (SmartDownloader) and away-iteration.
   Smart load: try one wrapping layer at a time from inner to outer.
   Pass original-url not unwrapped 
-  
-- LinkDownloader
-
-        // ### if name_href is in links map
-        // ###     - leave name_href and download_href as is
-        // ### else if use smartloader
-        // ###     - away name_href
-        // ###     - leave download_href as is
-        // ### else
-        // ###     - away leave name_href and download_href
 
 ================================================
 

@@ -155,14 +155,6 @@ public class LinkDownloader
         if (threadName == null)
             threadName = "(unnamed)";
 
-        // ### if name_href is in links map or file exists
-        // ###     - leave name_href and download_href as is
-        // ### else if use smartloader
-        // ###     - away name_href
-        // ###     - leave download_href as is
-        // ### else
-        // ###     - away leave name_href and download_href
-
         try
         {
             // normalize name
@@ -293,11 +285,11 @@ public class LinkDownloader
             throw ex;
         }
 
+        /*
+         * If file already exists
+         */
         if (f.exists() && !f.isDirectory())
         {
-            /*
-             * File exists
-             */
             actual_filename = FilePath.getFilePathActualCase(actual_filename);
             filename.set(actual_filename);
             synchronized (href2file)
@@ -308,7 +300,24 @@ public class LinkDownloader
 
             return;
         }
-
+        
+        /*
+         * Redirect to unwrapped names
+         */
+        if (this.useSmartDownloader)
+        {
+            name_href_noanchor = name_href_noanchor_away;
+            // leave download_href_noanchor as-is
+        }
+        else
+        {
+            name_href_noanchor = name_href_noanchor_away;
+            download_href_noanchor = download_href_noanchor_away;
+        }
+        
+        // ### check name href or download href in map 
+        // ### recalc file name
+        // ### check if file exists
         
         Map<String, String> headers = new HashMap<>();
 

@@ -204,14 +204,16 @@ public class LinkDownloader
 
             Thread.currentThread().setName(threadName + " downloading " + name_href + " namelock wait");
 
-            urlLocks.interlock(name_href_noanchor.toLowerCase(), () ->
+            urlLocks.interlock(name_href_noanchor_away.toLowerCase(), () ->
             {
                 while_interlocked(
                         response, 
                         image, 
                         final_name_href_noanchor, 
                         final_download_href_noanchor, 
-                        referer, 
+                        referer,
+                        name_href_noanchor_away, 
+                        download_href_noanchor_away,
                         filename, 
                         downloadSource, 
                         final_threadName); 
@@ -264,6 +266,8 @@ public class LinkDownloader
             String name_href_noanchor, 
             String download_href_noanchor, 
             String referer, 
+            String name_href_noanchor_away, 
+            String download_href_noanchor_away,
             AtomicReference<String> filename, 
             DownloadSource downloadSource, 
             String final_threadName) 

@@ -336,12 +336,28 @@ public class LinkDownloader
                 r.binaryBody = binaryBody;
             }
         }
+        
+        /*
+         * Smart download
+         */
+        if (r == null && useSmartDownloader)
+        {
+            SmartLinkDownloader sml = new SmartLinkDownloader(null);
+            sml.useArchiveOrg(true);
+            r = sml.smartDownload(image, download_href_noanchor, referer, true, null);
+        }
 
         /*
-         * Actual web load
+         * Actual web load.
+         * It smart download failed, also is responsible for final diagnostic.  
          */
         if (r == null)
         {
+            download_href_noanchor = download_href_noanchor_away;
+            
+            if (failedSet.contains(download_href_noanchor))
+                throw new AlreadyFailedException();
+
             try
             {
                 Thread.currentThread().setName(final_threadName + " downloading " + download_href_noanchor);

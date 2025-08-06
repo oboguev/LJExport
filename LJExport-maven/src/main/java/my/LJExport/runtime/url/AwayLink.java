@@ -86,7 +86,12 @@ public class AwayLink
             "https://www.livejournal.com/away?to=",
             "https://www.livejournal.com/away/?to=",
             "https://vk.com/away.php?to=",
-            "https://vk.com/away.php/?to="
+            "https://vk.com/away.php/?to=",
+            // ..............................
+            "http://www.livejournal.com/away?to=",
+            "http://www.livejournal.com/away/?to=",
+            "http://vk.com/away.php?to=",
+            "http://vk.com/away.php/?to="
     };
 
     private static final String[] wrap_prefixes_fb = {
@@ -120,7 +125,7 @@ public class AwayLink
         if (Util.startsWith(decoded_href, prefix, wrap_prefixes_fb))
         {
             String u = UrlUtil.extractQueryParameter(decoded_href, "u");
-            if (u == null || !Util.startsWith(u, null, "http://", "https://"))
+            if (u == null || !Util.startsWithIgnoreCase(u, null, "http://", "https://", "http%3a//", "https%3a//"))
                 throw new Exception("Malstructured wrap link");
             return post(u, anchor);
         }

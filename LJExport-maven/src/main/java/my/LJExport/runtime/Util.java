@@ -389,6 +389,18 @@ public class Util
         }
     }
 
+    public static String getAnchor(String href) throws Exception
+    {
+        if (href != null)
+        {
+            int k = href.indexOf('#');
+            if (k != -1)
+                return href.substring(k);
+        }
+
+        return null;
+    }
+
     public static String stripAnchor(String href) throws Exception
     {
         if (href != null)
@@ -400,17 +412,12 @@ public class Util
 
         return href;
     }
-
-    public static String getAnchor(String href) throws Exception
+    
+    public static String withAnchor(String href, String anchor)
     {
-        if (href != null)
-        {
-            int k = href.indexOf('#');
-            if (k != -1)
-                return href.substring(k);
-        }
-
-        return null;
+        if (anchor != null)
+            href += anchor;
+        return href;
     }
 
     public static String stripParameters(String href) throws Exception

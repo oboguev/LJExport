@@ -479,7 +479,7 @@ public class FixFileExtensions extends MaintenanceHandler
             /*
              * Fix link
              */
-            updateLinkAttribute(n, attr, withAnchor(newref, anchor));
+            updateLinkAttribute(n, attr, Util.withAnchor(newref, anchor));
             updated = true;
 
             String rel = href2rel(href, fullHtmlFilePath);
@@ -648,7 +648,7 @@ public class FixFileExtensions extends MaintenanceHandler
         {
             String newref = rel2href(newrel, fullHtmlFilePath);
 
-            updateLinkAttribute(n, attr, withAnchor(newref, anchor));
+            updateLinkAttribute(n, attr, Util.withAnchor(newref, anchor));
 
             txLog.writeLine(Safety.UNSAFE, changeMessage(tag, attr, href_original, href, newref));
             trace(changeMessage(tag, attr, href_original, href, newref));
@@ -660,13 +660,6 @@ public class FixFileExtensions extends MaintenanceHandler
         }
 
         return false;
-    }
-
-    private String withAnchor(String href, String anchor)
-    {
-        if (anchor != null)
-            href += anchor;
-        return href;
     }
 
     private void changeLinksMap(String href, String newref, boolean required, String fullHtmlFilePath) throws Exception

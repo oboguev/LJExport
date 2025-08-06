@@ -294,11 +294,17 @@ public class LinkDownloader
 
         if (alreadyHaveFileForHref(null, name_href_noanchor, filename) ||
             alreadyHaveFileForHref(null, download_href_noanchor, filename))
+        {
+            return;
+        }
+
+        filename.set(actual_filename = LinkFilepath.buildFilePath(linksDir, name_href_noanchor));
+        if (alreadyHaveFileForHref(actual_filename, name_href_noanchor, filename))
             return;
 
-        // ### recalc file name from name_href_noanchor
-        // ### check if file exists
-
+        /*
+         * Prepare HTTP headers
+         */
         Map<String, String> headers = new HashMap<>();
 
         if (referer != null && referer.length() != 0)

@@ -28,6 +28,37 @@ public class SmartLinkDownloader
 {
     private final String linksDir;
 
+    public static enum Source
+    {
+        Online, Archive, OnlineAndArchive;
+
+        public boolean hasOnline()
+        {
+            switch (this)
+            {
+            case Online:
+            case OnlineAndArchive:
+                return true;
+
+            default:
+                return false;
+            }
+        }
+
+        public boolean hasArchive()
+        {
+            switch (this)
+            {
+            case Archive:
+            case OnlineAndArchive:
+                return true;
+
+            default:
+                return false;
+            }
+        }
+    }
+
     public SmartLinkDownloader(String linksDir)
     {
         this.linksDir = linksDir;

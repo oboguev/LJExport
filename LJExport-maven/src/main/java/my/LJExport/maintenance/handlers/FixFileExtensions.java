@@ -21,6 +21,8 @@ import my.LJExport.runtime.file.FileBackedMap.LinkMapEntry;
 import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.file.FilePath;
 import my.LJExport.runtime.file.FileTypeDetector;
+import my.LJExport.runtime.file.KVFile;
+import my.LJExport.runtime.file.KVFile.KVEntry;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.links.LinkDownloader;
 import my.LJExport.runtime.links.ShouldDownload;
@@ -39,11 +41,26 @@ import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
  * Execute AFTER ResolveLinkCaseDifferences
  *     and AFTER FixLongPaths.
  *     and AFTER FixDirectoryLinks.
+ * 
+ * After dry run look for:
+ * 
+ *     - renames to x-guid
+ *     
+ *     - MISSING existing link file
+ *      
+ *     - CHANGING EXTENSION ...
+ *     - Renaming ...
+ *     - Redirecting ...
+ *     - Changing ... HTML
+ *     
+ *     - Error-response ... link file 
+ *     - Deleting LinkMap ... entry for error-response URL
+ *     
+ *     - Changing ... LinksDir map 
+ * 
  */
 public class FixFileExtensions extends MaintenanceHandler
 {
-    // ### update rename-history.txt
-
     private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;
 
@@ -79,6 +96,7 @@ public class FixFileExtensions extends MaintenanceHandler
     private Map<String, String> fileContentExtensionMap = new HashMap<>();
     private Set<String> deleteLinkMapEntriesFor = new HashSet<>();
     private Set<String> addedFiles = new HashSet<>();
+    private List<KVEntry> renameHistory = null;
 
     @Override
     protected void beginUser() throws Exception
@@ -93,6 +111,7 @@ public class FixFileExtensions extends MaintenanceHandler
         fileContentExtensionMap = new HashMap<>();
         deleteLinkMapEntriesFor = new HashSet<>();
         addedFiles = new HashSet<>();
+        renameHistory = null;
 
         txLog.writeLine("Starting user " + Config.User);
         super.beginUser();
@@ -101,6 +120,7 @@ public class FixFileExtensions extends MaintenanceHandler
         loadLinkMapFile();
         prefillFileContentExtensionMap();
         loadFileContentTypeInformation();
+        loadRenameHistory();
 
         trace("");
         trace("");
@@ -121,6 +141,14 @@ public class FixFileExtensions extends MaintenanceHandler
             txLog.writeLine("updating links map " + mapFilePath);
             String content = FileBackedMap.recomposeMapFile(linkMapEntries);
             Util.writeToFileVerySafe(mapFilePath, content);
+            txLog.writeLine("updated OK");
+        }
+
+        if (renameHistory.size() != 0 && !DryRun)
+        {
+            KVFile kvfile = new KVFile(this.linksDir + File.separator + "rename-history.txt");
+            txLog.writeLine("updating rename history " + kvfile.getPath());
+            kvfile.save(renameHistory);
             txLog.writeLine("updated OK");
         }
 
@@ -187,6 +215,15 @@ public class FixFileExtensions extends MaintenanceHandler
             }
             list.add(e);
         }
+    }
+
+    private void loadRenameHistory() throws Exception
+    {
+        KVFile kvfile = new KVFile(this.linksDir + File.separator + "rename-history.txt");
+        if (kvfile.exists())
+            renameHistory = kvfile.load(true);
+        else
+            renameHistory = new ArrayList<>();
     }
 
     /* ===================================================================================================== */
@@ -456,6 +493,9 @@ public class FixFileExtensions extends MaintenanceHandler
                 newref = newref.substring(0, newref.length() - tail.length());
             }
 
+            if (finalExtension == null || finalExtension.trim().length() == 0)
+                throwException("Unexpected: null or empty final extension");
+
             newLinkFullFilePath += "." + finalExtension;
             newref += "." + finalExtension;
 
@@ -588,6 +628,8 @@ public class FixFileExtensions extends MaintenanceHandler
 
         trace(sb.toString());
         txLog.writeLine(safety, sb.toString());
+
+        renameHistory.add(new KVEntry(abs2rel(oldLinkFullFilePath), abs2rel(newLinkFullFilePath)));
 
         if (!DryRun)
         {

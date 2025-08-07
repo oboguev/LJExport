@@ -403,6 +403,8 @@ public class LinkDownloader
             }
         }
 
+        response.set(r);
+
         if (r == null)
         {
             filename.set(null);

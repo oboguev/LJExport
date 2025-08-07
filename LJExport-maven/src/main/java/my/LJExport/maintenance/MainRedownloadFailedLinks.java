@@ -34,6 +34,7 @@ import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.ShouldDownload;
 import my.LJExport.runtime.links.SmartLinkDownloader;
+import my.LJExport.runtime.links.SmartLinkDownloader.LoadFrom;
 import my.LJExport.runtime.lj.LJUtil;
 import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.synch.ThreadsControl;
@@ -683,7 +684,9 @@ public class MainRedownloadFailedLinks
             }
 
             MutableObject<String> fromWhere = new MutableObject<>();
-            boolean result = smartLinkRedownloader.redownloadToFile(image, url, relativeLinkFilePath, referer, UseArchiveOrg, fromWhere);
+            boolean result = smartLinkRedownloader.redownloadToFile(image, url, relativeLinkFilePath, referer,
+                    UseArchiveOrg ? LoadFrom.OnlineAndArchive : LoadFrom.Online,
+                    fromWhere);
 
             if (result)
             {

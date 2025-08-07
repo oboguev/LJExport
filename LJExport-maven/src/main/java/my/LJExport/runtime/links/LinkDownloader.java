@@ -28,6 +28,7 @@ import my.LJExport.runtime.file.ServerContent;
 import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.links.SmartLinkDownloader.LoadFrom;
 import my.LJExport.runtime.links.util.DownloadSource;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.synch.NamedLocks;
@@ -343,7 +344,7 @@ public class LinkDownloader
         if (r == null && useSmartDownloader)
         {
             SmartLinkDownloader sml = new SmartLinkDownloader(null);
-            r = sml.smartDownload(image, download_href_noanchor, referer, true, true, null);
+            r = sml.smartDownload(image, download_href_noanchor, referer, true, LoadFrom.OnlineAndArchive, null);
         }
 
         /*

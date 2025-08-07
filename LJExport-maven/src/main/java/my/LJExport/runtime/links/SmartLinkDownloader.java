@@ -28,7 +28,7 @@ public class SmartLinkDownloader
 {
     private final String linksDir;
 
-    public static enum Source
+    public static enum LoadFrom
     {
         Online, Archive, OnlineAndArchive;
 
@@ -64,20 +64,20 @@ public class SmartLinkDownloader
         this.linksDir = linksDir;
     }
 
-    public boolean redownloadToFile(boolean image, String href, String unixRelFilePath, String referer, boolean useArchiveOrg,
+    public boolean redownloadToFile(boolean image, String href, String unixRelFilePath, String referer, LoadFrom loadFrom ,
             MutableObject<String> fromWhere)
             throws Exception
     {
         String fullFilePath = this.linksDir + File.separator + unixRelFilePath.replace('/', File.separatorChar);
-        return redownloadToAbsoluteFile(image, href, fullFilePath, referer, useArchiveOrg, fromWhere);
+        return redownloadToAbsoluteFile(image, href, fullFilePath, referer, loadFrom, fromWhere);
     }
 
     public boolean redownloadToAbsoluteFile(boolean image, String href, String fullFilePath, String referer,
-            boolean allowArchiveOrg,
+            LoadFrom loadFrom,
             MutableObject<String> fromWhere)
             throws Exception
     {
-        Web.Response r = smartDownload(image, href, referer, true, allowArchiveOrg, fromWhere);
+        Web.Response r = smartDownload(image, href, referer, true, loadFrom, fromWhere);
 
         if (r != null)
         {
@@ -92,7 +92,7 @@ public class SmartLinkDownloader
 
     /* ================================================================================================== */
 
-    public Web.Response smartDownload(boolean image, String href, String referer, boolean allowAway, boolean useArchiveOrg,
+    public Web.Response smartDownload(boolean image, String href, String referer, boolean allowAway, LoadFrom loadFrom,
             MutableObject<String> fromWhere)
             throws Exception
     {
@@ -106,7 +106,7 @@ public class SmartLinkDownloader
              */
             for (;;)
             {
-                Web.Response r = smartDownload(image, href, referer, false, useArchiveOrg, fromWhere);
+                Web.Response r = smartDownload(image, href, referer, false, loadFrom, fromWhere);
                 if (r != null)
                     return r;
 
@@ -126,25 +126,29 @@ public class SmartLinkDownloader
         /*
          * Load live online copy
          */
-        r = load_good(image, href, referer, true);
-        if (r != null)
+        if (loadFrom.hasOnline())
         {
-            if (fromWhere != null)
+            r = load_good(image, href, referer, true);
+            if (r != null)
             {
-                if (ArchiveOrgUrl.isArchiveOrgUrl(href))
-                    fromWhere.setValue("web.archive.org/explicit");
-                else
-                    fromWhere.setValue("online");
-            }
+                if (fromWhere != null)
+                {
+                    if (ArchiveOrgUrl.isArchiveOrgUrl(href))
+                        fromWhere.setValue("web.archive.org/explicit");
+                    else
+                        fromWhere.setValue("online");
+                }
 
-            return r;
+                return r;
+            }
         }
+        
 
         /*
          * Load from acrhive.org
          */
         // was already an archive.org URL? 
-        if (!useArchiveOrg || ArchiveOrgUrl.isArchiveOrgUrl(href))
+        if (!loadFrom.hasArchive()|| ArchiveOrgUrl.isArchiveOrgUrl(href))
             return null;
 
         /*
@@ -357,7 +361,7 @@ public class SmartLinkDownloader
             String fullFllePath = Config.DownloadRoot + File.separator + "@debug" + File.separator + "militaryphotos.xxx";
 
             SmartLinkDownloader self = new SmartLinkDownloader(null);
-            boolean b = self.redownloadToAbsoluteFile(false, href, fullFllePath, null, true, null);
+            boolean b = self.redownloadToAbsoluteFile(false, href, fullFllePath, null, LoadFrom.OnlineAndArchive, null);
             Util.unused(b);
         }
         catch (Exception ex)

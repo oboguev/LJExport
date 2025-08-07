@@ -895,7 +895,13 @@ public class FixFileExtensions extends MaintenanceHandler
         // delete error-response files on disk
         for (String fn : deleteLinkFiles)
         {
-            fn = file_lc2ac.get(fn);
+            fn = rel2abs(fn);
+
+            // for debugger
+            final String fn0 = fn;
+            Util.unused(fn0);
+            
+            fn = file_lc2ac.get(fn.toLowerCase());
             
             if (fn == null)
             {

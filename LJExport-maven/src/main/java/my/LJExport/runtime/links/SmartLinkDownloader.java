@@ -64,7 +64,7 @@ public class SmartLinkDownloader
         this.linksDir = linksDir;
     }
 
-    public boolean redownloadToFile(boolean image, String href, String unixRelFilePath, String referer, LoadFrom loadFrom ,
+    public boolean redownloadToFile(boolean image, String href, String unixRelFilePath, String referer, LoadFrom loadFrom,
             MutableObject<String> fromWhere)
             throws Exception
     {
@@ -97,31 +97,42 @@ public class SmartLinkDownloader
             throws Exception
     {
         href = Util.stripAnchor(href);
+        Web.Response r = null;
 
         if (allowAway)
         {
             /*
-             * If the link is packed into a redirector URL,
-             * iteratively try loading unwrapping the link from outer to inner layers
+             * If link is packed into a redirector URL,
+             * iteratively try nwrapping and loading the link from inner to outer layers
              */
-            for (;;)
-            {
-                Web.Response r = smartDownload(image, href, referer, false, loadFrom, fromWhere);
-                if (r != null)
-                    return r;
+            List<String> list = AwayLink.unwrapDecodedToList(href, true);
+            allowAway = false;
 
-                String prev = href;
-                href = AwayLink.unwrapDecoded(href);
-                href = Util.stripAnchor(href);
-                if (href.equals(prev))
-                    return null;
+            if (loadFrom.hasOnline())
+            {
+                for (String xurl : list)
+                {
+                    r = smartDownload(image, Util.stripAnchor(xurl), referer, allowAway, LoadFrom.Online, fromWhere);
+                    if (r != null)
+                        return r;
+                }
             }
+
+            if (loadFrom.hasArchive())
+            {
+                for (String xurl : list)
+                {
+                    r = smartDownload(image, Util.stripAnchor(xurl), referer, allowAway, LoadFrom.Archive, fromWhere);
+                    if (r != null)
+                        return r;
+                }
+            }
+            
+            return null;
         }
 
         if (fromWhere != null)
             fromWhere.setValue(null);
-
-        Web.Response r = null;
 
         /*
          * Load live online copy
@@ -142,13 +153,12 @@ public class SmartLinkDownloader
                 return r;
             }
         }
-        
 
         /*
          * Load from acrhive.org
          */
         // was already an archive.org URL? 
-        if (!loadFrom.hasArchive()|| ArchiveOrgUrl.isArchiveOrgUrl(href))
+        if (!loadFrom.hasArchive() || ArchiveOrgUrl.isArchiveOrgUrl(href))
             return null;
 
         /*

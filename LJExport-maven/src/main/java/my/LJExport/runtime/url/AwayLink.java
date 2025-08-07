@@ -2,6 +2,9 @@ package my.LJExport.runtime.url;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +39,29 @@ public class AwayLink
         }
     }
 
+    public static List<String> unwrapAwayLinkDecodedToList(String decoded_href, boolean innerFirst) throws Exception
+    {
+        if (decoded_href == null)
+            return null;
+
+        List<String> list = new ArrayList<>();
+        list.add(decoded_href);
+
+        for (String prev = decoded_href;;)
+        {
+            String current = unwrapOneLevel(prev);
+            if (current.equals(prev))
+                break;
+            list.add(current);
+            prev = current;
+        }
+
+        if (innerFirst)
+            Collections.reverse(list);
+
+        return list;
+    }
+
     /*
      * Unwrap the link taken from JSOUP.getAttribute raw as-is i.e. encoded.
      * Result nees to be reinserted into JSOUP.setAttribute as-is since it is encoded.  
@@ -56,7 +82,7 @@ public class AwayLink
         return unwrapped_encoded_href;
     }
 
-    public static boolean unwrapAwayLink(Node n, String attr) throws Exception
+    public static boolean unwrap(Node n, String attr) throws Exception
     {
         if (!(n instanceof Element))
             return false;

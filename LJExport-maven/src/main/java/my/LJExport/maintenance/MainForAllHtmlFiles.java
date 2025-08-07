@@ -226,7 +226,7 @@ public class MainForAllHtmlFiles
         boolean updated = false;
 
         for (Node n : JSOUP.findElements(pageFlat, "a"))
-            updated |= AwayLink.unwrapAwayLink(n, "href");
+            updated |= AwayLink.unwrap(n, "href");
 
         if (updated)
         {

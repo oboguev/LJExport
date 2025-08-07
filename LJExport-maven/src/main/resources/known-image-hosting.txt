@@ -12,6 +12,7 @@ ic.pics.livejournal.com/*
 *.pics.livejournal.com/*
 imgprx.livejournal.net/*
 l-userpic.livejournal.com/*
+userpic.livejournal.com/*
 
 dlib.rsl.ru/viewer/pdf?*
 

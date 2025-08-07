@@ -322,6 +322,11 @@ public class FixFileExtensions extends MaintenanceHandler
 
         if (!ac.equals(linkInfo.linkFullFilePath))
             throwException("Mismatching link case");
+        
+        if (ac.contains("\\a_bugaev\\links\\userpic.livejournal.com\\13279792\\2465292"))
+        {
+            Util.noop();
+        }
 
         /*
          * Get extension from file name 

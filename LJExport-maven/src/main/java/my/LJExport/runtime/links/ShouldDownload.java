@@ -77,14 +77,22 @@ public class ShouldDownload
 
         if (knownImageHosting.contains(href))
             return true;
+        
+        /*
+         * URL can be for example http://userpic.livejournal.com/13279792/2465292
+         * Should decide outcome based on actual content type.
+         */
+        
+        if (Util.False)
+        {
+            // dont't download if no extension in path and no query
+            if (ext == null && query == null)
+                return false;
 
-        // dont't download if no extension in path and no query
-        if (ext == null && query == null)
-            return false;
-
-        // dont't download if not an image extension and no query
-        if (!FileTypeDetector.isImageExtension(ext) && query == null)
-            return false;
+            // dont't download if not an image extension and no query
+            if (!FileTypeDetector.isImageExtension(ext) && query == null)
+                return false;
+        }
 
         return true;
     }

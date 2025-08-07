@@ -29,7 +29,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "fritzmorgen";
+    public static final String Users = "sadalskij";
     // public static final String Users = "roineroyce";
     // public static final String Users = "harmfulgrumpy.dreamwidth-org";
     // public static final String Users = "colonelcassad";
@@ -45,7 +45,7 @@ public class Config
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
     // public static final YYYY_MM LoadTill = null;
-    public static final YYYY_MM LoadSince = new YYYY_MM(2025, 5);
+    public static final YYYY_MM LoadSince = new YYYY_MM(2025, 6);
     public static final YYYY_MM LoadTill = new YYYY_MM(2025, 8);
 
     /* Whether to reload files already existing at DownloadRoot */
@@ -91,9 +91,9 @@ public class Config
     public static final int MaxUnloadablePagesAllowed = 50;
 
     /*
-     * null -> do not use smart downloader, no link unwrapping
-     * Online -> only online downloading
-     * OnlineAndArchive -> online and from archive.org
+     * null -> do not use smart downloader, hence no unwrapping of nested redirector links
+     * LoadFrom.Online -> only download online resources
+     * LoadFrom.OnlineAndArchive -> download online and from archive.org
      */
     public static LoadFrom LinkDownloaderLoadFrom = LoadFrom.Online;
 

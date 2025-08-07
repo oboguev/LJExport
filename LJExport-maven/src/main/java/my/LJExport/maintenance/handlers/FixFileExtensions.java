@@ -1,6 +1,8 @@
 package my.LJExport.maintenance.handlers;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +32,7 @@ import my.LJExport.runtime.links.util.InferOriginalUrl;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeParallelWorkContext;
 import my.LJExport.runtime.parallel.twostage.filetype.FiletypeWorkContext;
+import my.LJExport.runtime.url.UrlUtil;
 
 /*
  * Fix linked file name extensions according to file actual content. 
@@ -94,7 +97,7 @@ public class FixFileExtensions extends MaintenanceHandler
     private Map<String, List<LinkMapEntry>> relpath2entry;
     private Map<String, String> alreadyRenamed = new HashMap<>(); // rel -> rel
     private Map<String, String> fileContentExtensionMap = new HashMap<>();
-    private Set<String> deleteLinkMapEntriesFor = new HashSet<>();
+    private Set<String> deleteLinkFiles = new HashSet<>();
     private Set<String> addedFiles = new HashSet<>();
     private List<KVEntry> renameHistory = null;
 
@@ -109,7 +112,7 @@ public class FixFileExtensions extends MaintenanceHandler
         relpath2entry = null;
         alreadyRenamed = new HashMap<>();
         fileContentExtensionMap = new HashMap<>();
-        deleteLinkMapEntriesFor = new HashSet<>();
+        deleteLinkFiles = new HashSet<>();
         addedFiles = new HashSet<>();
         renameHistory = null;
 
@@ -132,7 +135,7 @@ public class FixFileExtensions extends MaintenanceHandler
     @Override
     protected void endUser() throws Exception
     {
-        linkMapEntries = applyScheduledDeletes(linkMapEntries);
+        linkMapEntries = applyScheduledDeletesFromLinkMap(linkMapEntries);
 
         if (updatedMap && !DryRun)
         {
@@ -150,6 +153,13 @@ public class FixFileExtensions extends MaintenanceHandler
             txLog.writeLine("updating rename history " + kvfile.getPath());
             kvfile.save(renameHistory);
             txLog.writeLine("updated OK");
+        }
+        
+        applyScheduledLinkFileDeletes();
+        
+        if (!DryRun)
+        {
+            deleteEmptyFolders(this.dir_lc2ac.values());
         }
 
         txLog.writeLine("Completed user " + Config.User);
@@ -813,29 +823,28 @@ public class FixFileExtensions extends MaintenanceHandler
     {
         StringBuilder sb = new StringBuilder();
 
-        String original_attr_name = "original-" + attr;
+        String relpath = abs2rel(linkFullFilePath);
 
-        String original_attr_value = JSOUP.getAttribute(n, original_attr_name);
-        if (original_attr_value != null && original_attr_value.trim().length() != 0)
+        String originalUrl = JSOUP.getAttribute(n, "original-" + attr);
+        originalUrl = UrlUtil.decodeHtmlAttrLink(originalUrl);
+        originalUrl = InferOriginalUrl.infer(originalUrl, relpath);
+        
+        if (originalUrl != null && originalUrl.trim().length() != 0)
         {
-            JSOUP.updateAttribute(n, attr, original_attr_value);
+            JSOUP.updateAttribute(n, attr, UrlUtil.encodeUrlForHtmlAttr(originalUrl, true));
 
             sb.append(String.format("Error-response [%s] link file  %s" + nl, Config.User, linkFullFilePath));
             sb.append(String.format("                %s         in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
-            sb.append(String.format("                %s  revert to  %s" + nl, spaces(Config.User), original_attr_value));
+            sb.append(String.format("                %s  revert to  %s" + nl, spaces(Config.User), originalUrl));
+
+            schedDeleteLinkFile(linkFullFilePath);
         }
         else
         {
             sb.append(String.format("Error-response [%s] link file  %s" + nl, Config.User, linkFullFilePath));
             sb.append(String.format("                %s         in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
             sb.append(String.format("                %s      leave  as-is" + nl, spaces(Config.User)));
-            // ### infer
-            // ### infer guid
-            // ### delete error-response files on disk and from linkmap
-            // ### other links to them
         }
-
-        schedDeleteMapEntryFor(linkFullFilePath);
 
         trace(sb.toString());
         txLog.writeLine(safety, sb.toString());
@@ -843,19 +852,19 @@ public class FixFileExtensions extends MaintenanceHandler
         return true;
     }
 
-    private void schedDeleteMapEntryFor(String linkFullFilePath) throws Exception
+    private void schedDeleteLinkFile(String linkFullFilePath) throws Exception
     {
         String rel = this.abs2rel(linkFullFilePath);
-        deleteLinkMapEntriesFor.add(rel.toLowerCase());
+        deleteLinkFiles.add(rel.toLowerCase());
     }
 
-    private List<LinkMapEntry> applyScheduledDeletes(List<LinkMapEntry> entries) throws Exception
+    private List<LinkMapEntry> applyScheduledDeletesFromLinkMap(List<LinkMapEntry> entries) throws Exception
     {
         List<LinkMapEntry> list = new ArrayList<>();
 
         for (LinkMapEntry e : entries)
         {
-            if (deleteLinkMapEntriesFor.contains(e.value.toLowerCase()))
+            if (deleteLinkFiles.contains(e.value.toLowerCase()))
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -879,6 +888,30 @@ public class FixFileExtensions extends MaintenanceHandler
         }
 
         return list;
+    }
+    
+    private void applyScheduledLinkFileDeletes() throws Exception
+    {
+        // delete error-response files on disk
+        for (String fn : deleteLinkFiles)
+        {
+            fn = file_lc2ac.get(fn);
+            
+            if (fn == null)
+            {
+                throwException("missing lc2ac mapping for file " + fn);
+            }
+            else if (DryRun)
+            {
+                trace("Fake-deleting file " + fn);
+            }
+            else
+            {
+                trace("Deleting file " + fn);
+                txLog.writeLine(safety, "Deleting file " + fn);
+                Files.deleteIfExists(Paths.get(fn));
+            }
+        }
     }
 
     /* ===================================================================================================== */

@@ -206,81 +206,94 @@ public class SmartLinkDownloader
 
         if (image)
         {
-            /*
-             * archive.org snapshot for image URLs lead to if_ pages, 
-             * which are HTML pahes with one IMG tag to archive.org im_ resource
-             * 
-             * For example, snapshot may contain a link to 
-             *     https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG
-             * which is an HTML file with IMG.SRC link to    
-             *     https://web.archive.org/web/20231201081812im_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600/CheKa.JPG
-            
-             * We should follow it.
-             * The same can also happen in other situation when a link is provided to HTML page that links to a single IMG.
-             */
+            return losdImageIndirection(image, href, referer, r, online);
+        }
+        else
+        {
+            return null;
+        }
+    }
+    
+    /*
+     * archive.org snapshot for image URLs lead to if_ pages, 
+     * which are HTML pahes with one IMG tag to archive.org im_ resource
+     * 
+     * For example, snapshot may contain a link to 
+     *     https://web.archive.org/web/20231201081812if_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600-h/CheKa.JPG
+     * which is an HTML file with IMG.SRC link to    
+     *     https://web.archive.org/web/20231201081812im_/https://1.bp.blogspot.com/_h_hLztz7W0s/Sq0s6CwFrJI/AAAAAAAADX4/xfV04qkGa1A/s1600/CheKa.JPG
+    
+     * We should follow it.
+     * The same can also happen in other situation when a link is provided to HTML page that links to a single IMG.
+     */
+    public static Web.Response losdImageIndirection(boolean image, String href, String referer, Web.Response r, boolean online) throws Exception
+    {
+        if (!image)
+            return null;
+        
+        ResponseAnalysis an = isGoodResponse(image, href, r);
 
-            if (!FileTypeDetector.isHtmlExtension(an.serverExt) || r.textBody() == null)
-                return null;
+        if (!FileTypeDetector.isHtmlExtension(an.serverExt) || r.textBody() == null)
+            return null;
 
-            PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
-            try
-            {
-                parser.parseHtml(r.textBody());
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+        PageParserDirectBasePassive parser = new PageParserDirectBasePassive();
+        try
+        {
+            parser.parseHtml(r.textBody());
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
 
-            List<Node> vn = JSOUP.findElements(parser.pageRoot, "img");
-            vn = eliminateStaticArchiveOrgImages(vn);
-            if (vn.size() != 1)
-                return null;
+        List<Node> vn = JSOUP.findElements(parser.pageRoot, "img");
+        vn = eliminateStaticArchiveOrgImages(vn);
+        if (vn.size() != 1)
+            return null;
 
-            String src = JSOUP.getAttribute(vn.get(0), "src");
-            src = UrlUtil.decodeHtmlAttrLink(src);
-            if (src == null)
-                return null;
+        String src = JSOUP.getAttribute(vn.get(0), "src");
+        src = UrlUtil.decodeHtmlAttrLink(src);
+        if (src == null)
+            return null;
 
-            if (src.startsWith("data:"))
-            {
-                EmbeddedDataURL ed = EmbeddedDataURL.decodeImgSrc(src);
-                r = new Web.Response();
-                r.code = 200;
-                r.binaryBody = ed.data;
-                r.contentType = ed.mediaType;
-                an = isGoodResponse(image, href, r);
-                if (an.isGood)
-                    return r;
-                return null;
-            }
-
-            try
-            {
-                src = UrlUtil.encodeMinimal(src);
-                src = Util.resolveURL(href, src);
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-
-            if (!ShouldDownload.shouldDownload(image, src, online))
-                return null;
-
-            r = LinkRedownloader.redownload(image, src, referer);
-            if (r == null)
-                return null;
-
+        if (src.startsWith("data:"))
+        {
+            EmbeddedDataURL ed = EmbeddedDataURL.decodeImgSrc(src);
+            r = new Web.Response();
+            r.code = 200;
+            r.binaryBody = ed.data;
+            r.contentType = ed.mediaType;
             an = isGoodResponse(image, href, r);
             if (an.isGood)
                 return r;
+            return null;
         }
 
+        try
+        {
+            src = UrlUtil.encodeMinimal(src);
+            src = Util.resolveURL(href, src);
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
+
+        if (!ShouldDownload.shouldDownload(image, src, online))
+            return null;
+
+        r = LinkRedownloader.redownload(image, src, referer);
+        if (r == null)
+            return null;
+
+        an = isGoodResponse(image, href, r);
+        if (an.isGood)
+            return r;
+        
         return null;
     }
 
-    private static ResponseAnalysis isGoodResponse(boolean image, String href, Web.Response r) throws Exception
+    public static ResponseAnalysis isGoodResponse(boolean image, String href, Web.Response r) throws Exception
     {
         if (r.code != 200)
             return new ResponseAnalysis(false, null);

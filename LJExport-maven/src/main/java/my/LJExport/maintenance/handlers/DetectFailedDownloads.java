@@ -588,7 +588,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 return xurl;
 
             /* decode wrapper */
-            xurl = AwayLink.unwrapAwayLinkDecoded(url);
+            xurl = AwayLink.unwrapDecoded(url);
             if (!xurl.equals(url))
                 return xurl;
 

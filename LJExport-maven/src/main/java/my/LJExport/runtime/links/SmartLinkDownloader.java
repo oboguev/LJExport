@@ -111,7 +111,7 @@ public class SmartLinkDownloader
                     return r;
 
                 String prev = href;
-                href = AwayLink.unwrapAwayLinkDecoded(href);
+                href = AwayLink.unwrapDecoded(href);
                 href = Util.stripAnchor(href);
                 if (href.equals(prev))
                     return null;

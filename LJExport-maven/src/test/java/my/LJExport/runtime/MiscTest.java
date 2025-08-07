@@ -193,7 +193,7 @@ public class MiscTest
 
         for (String s : urls)
         {
-            s = AwayLink.unwrapAwayLinkDecoded(s);
+            s = AwayLink.unwrapDecoded(s);
             s = Util.stripAnchor(s);
             // s = UrlUtil.stripDefaultPort(s);
             list.add(s);
@@ -287,7 +287,7 @@ public class MiscTest
             s = StringEscapeUtils.unescapeHtml4(s);
             Util.out("U  " + s);
         }
-        Util.out("D  " + AwayLink.unwrapAwayLinkDecoded(s));
+        Util.out("D  " + AwayLink.unwrapDecoded(s));
         Util.out("");
     }
 

@@ -78,7 +78,7 @@ public class UnwrapAwayLinks extends MaintenanceHandler
             String old_encoded = JSOUP.getAttribute(n, attr);
             String old_decoded = UrlUtil.decodeHtmlAttrLink(old_encoded);
 
-            String unwrapped_decoded = AwayLink.unwrapAwayLinkDecoded(old_decoded);
+            String unwrapped_decoded = AwayLink.unwrapDecoded(old_decoded);
             if (unwrapped_decoded.equals(old_decoded))
                 continue;
 

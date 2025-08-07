@@ -25,7 +25,7 @@ public class AwayLink
      * Unwrap the link taken from JSOUP.getAttribute and then decoded.
      * Result needs to be re-encoded before inserting into JSOUP.setAttribute  
      */
-    public static String unwrapAwayLinkDecoded(String decoded_href) throws Exception
+    public static String unwrapDecoded(String decoded_href) throws Exception
     {
         if (decoded_href == null)
             return null;
@@ -39,7 +39,7 @@ public class AwayLink
         }
     }
 
-    public static List<String> unwrapAwayLinkDecodedToList(String decoded_href, boolean innerFirst) throws Exception
+    public static List<String> unwrapDecodedToList(String decoded_href, boolean innerFirst) throws Exception
     {
         if (decoded_href == null)
             return null;
@@ -74,7 +74,7 @@ public class AwayLink
         String initial_encoded_href = encoded_href;
 
         String decoded_href = UrlUtil.decodeHtmlAttrLink(encoded_href);
-        String unwrapped_decoded_href = unwrapAwayLinkDecoded(decoded_href);
+        String unwrapped_decoded_href = unwrapDecoded(decoded_href);
         if (unwrapped_decoded_href.equals(decoded_href))
             return initial_encoded_href;
 

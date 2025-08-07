@@ -256,11 +256,11 @@ public class RemoveFailedDownloads extends MaintenanceHandler
         }
 
         if (href_original != null && href_original.trim().length() != 0)
-            newref = AwayLink.unwrapAwayLinkDecoded(href_original);
+            newref = AwayLink.unwrapDecoded(href_original);
 
         if (newref == null || FailedLinkInfo.isImgPrx(newref) || newref.trim().length() == 0)
         {
-            String newref2 = AwayLink.unwrapAwayLinkDecoded(stripImageDocumentPrefix(e.key));
+            String newref2 = AwayLink.unwrapDecoded(stripImageDocumentPrefix(e.key));
             if (newref == null || !FailedLinkInfo.isImgPrx(newref2))
                 newref = newref2;
         }

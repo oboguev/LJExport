@@ -59,7 +59,7 @@ public class ServerContent
         if (UrlUtil.looksLikeUrlWithoutScheme(href))
             href = "https://" + href;
         
-        href = AwayLink.unwrapAwayLinkDecoded(href);
+        href = AwayLink.unwrapDecoded(href);
         
         if (ArchiveOrgUrl.isArchiveOrgUrl(href))
             href = ArchiveOrgUrl.extractArchivedUrlPart(href);
@@ -67,7 +67,7 @@ public class ServerContent
         if (UrlUtil.looksLikeUrlWithoutScheme(href))
             href = "https://" + href;
         
-        href = AwayLink.unwrapAwayLinkDecoded(href);
+        href = AwayLink.unwrapDecoded(href);
 
         String host = UrlUtil.extractHost(href);
         String path = new URL(href).getPath();

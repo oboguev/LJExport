@@ -42,7 +42,7 @@ public class ShouldDownload
         if (href == null || href.length() == 0)
             return false;
         
-        href = AwayLink.unwrapAwayLinkDecoded(href);
+        href = AwayLink.unwrapDecoded(href);
         href = Util.stripAnchor(href);
         
         if (online)
@@ -96,7 +96,7 @@ public class ShouldDownload
             if (href == null || href.length() == 0)
                 return false;
 
-            href = AwayLink.unwrapAwayLinkDecoded(href);
+            href = AwayLink.unwrapDecoded(href);
             href = Util.stripAnchor(href);
 
             if (online)

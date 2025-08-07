@@ -361,8 +361,8 @@ public class LinkDownloader
         }
 
         /*
-         * Actual web load.
-         * It smart download failed, it is responsible for final diagnostic.  
+         * Direct online web load.
+         * It smart download failed, it may be responsible for final diagnostics.  
          */
         if (r == null && !attempedSmartDownloader)
         {

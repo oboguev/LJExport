@@ -273,18 +273,23 @@ public class Config
 
     public static void mangleUser() throws Exception
     {
-        int len = User.length();
+        MangledUser = mangleUser(User);
+    }
+
+    public static String mangleUser(String user) throws Exception
+    {
+        int len = user.length();
         StringBuilder sb = new StringBuilder();
 
         for (int k = 0; k < len; k++)
         {
-            char c = User.charAt(k);
+            char c = user.charAt(k);
             if (k != 0 && k != len - 1 && c == '_')
                 c = '-';
             sb.append(c);
         }
 
-        MangledUser = sb.toString();
+        return sb.toString();
     }
 
     public static boolean isRossiaOrg()

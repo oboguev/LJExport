@@ -16,6 +16,7 @@ import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.ActivityCounters;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.links.SmartLinkDownloader.LoadFrom;
 import my.LJExport.runtime.links.util.RelativeLink;
 import my.LJExport.runtime.synch.MonthlyGate;
 import my.LJExport.runtime.synch.ThreadsControl;
@@ -61,6 +62,8 @@ public class MainDownloadLinks
     // private static final String Users = "udod99.lj-rossia-org,colonelcassad.my_comments,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "1981dn.pre-2025,1981dn_dn.pre-2025,a_kaminsky.pre-2025,a_samovarov.pre-2025,bantaputu.pre-2025,hokma.pre-2025,krylov.pre-2025,oboguev.pre-2025,pioneer_lj.pre-2025,polit_ec.pre-2025,zhenziyou.pre-2025";
     private static final String Users = "novy_chitatel";
+    
+    private static boolean UseArchiveOrg = false;
 
     /* we can use large number of threads because they usually are network IO bound */
     private static final int NWorkThreads = 300;
@@ -105,6 +108,9 @@ public class MainDownloadLinks
         Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
         Config.init("");
         Web.init();
+        
+        if (UseArchiveOrg)
+            Config.LinkDownloaderLoadFrom = LoadFrom.OnlineAndArchive;
 
         ActivityCounters.reset();
         RateLimiter.LJ_IMAGES.setRateLimit(100);
@@ -168,6 +174,7 @@ public class MainDownloadLinks
 
             Util.mkdir(linksDir);
             Main.linkDownloader.init(linksDir);
+            Main.linkDownloader.setUseSmartDownloader(Config.LinkDownloaderLoadFrom);
 
             pageFiles = enumerateHtmlFiles("pages", true);
             if (Util.True)

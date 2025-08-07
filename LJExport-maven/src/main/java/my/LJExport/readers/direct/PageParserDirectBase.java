@@ -433,18 +433,26 @@ public abstract class PageParserDirectBase
             String href = JSOUP.getAttribute(n, attr);
             href = UrlUtil.decodeHtmlAttrLink(href);
 
+            String original_href = JSOUP.getAttribute(n, "original-" + attr);
+            original_href = UrlUtil.decodeHtmlAttrLink(original_href);
+            
+            String name_href = href;
+            String download_href = original_href != null && original_href.trim().length() != 0 ? original_href : href;  
+            
+            /* --------------------------------------------------------------- */
+
             if (ShouldDownload.shouldDownload(tag.equalsIgnoreCase("img"), href, Main.linkDownloader.isOnlineOnly()))
             {
                 String referer = (rurl == null) ? null : LJUtil.recordPageURL(rurl);
 
                 if (ThreadsControl.useLinkDownloadThreads())
                 {
-                    fpDownload.add(new AsyncDownloadExternalLinks(n, tag, attr, href, referer, linkReferencePrefix));
+                    fpDownload.add(new AsyncDownloadExternalLinks(n, tag, attr, name_href, download_href, referer, linkReferencePrefix));
                 }
                 else
                 {
                     boolean image = tag.equalsIgnoreCase("img");
-                    String newref = Main.linkDownloader.download(image, href, referer, linkReferencePrefix);
+                    String newref = Main.linkDownloader.download(image, name_href, download_href, referer, linkReferencePrefix);
                     if (newref != null)
                     {
                         JSOUP.updateAttribute(n, attr, newref);
@@ -465,7 +473,8 @@ public abstract class PageParserDirectBase
         private final Node n;
         private final String tag;
         private final String attr;
-        private final String href;
+        private final String name_href;
+        private final String download_href;
         private final String referer;
         private final String linkReferencePrefix;
 
@@ -473,12 +482,13 @@ public abstract class PageParserDirectBase
         private String newref;
         private Exception ex;
 
-        public AsyncDownloadExternalLinks(Node n, String tag, String attr, String href, String referer, String linkReferencePrefix)
+        public AsyncDownloadExternalLinks(Node n, String tag, String attr, String name_href, String download_href, String referer, String linkReferencePrefix)
         {
             this.n = n;
             this.tag = tag;
             this.attr = attr;
-            this.href = href;
+            this.name_href = name_href;
+            this.download_href = download_href;
             this.referer = referer;
             this.linkReferencePrefix = linkReferencePrefix;
         }
@@ -492,7 +502,7 @@ public abstract class PageParserDirectBase
             {
                 Thread.currentThread().setName("webload");
                 boolean image = tag.equalsIgnoreCase("img");
-                newref = Main.linkDownloader.download(image, href, referer, linkReferencePrefix);
+                newref = Main.linkDownloader.download(image, name_href, download_href, referer, linkReferencePrefix);
             }
             catch (Exception ex)
             {
@@ -515,7 +525,7 @@ public abstract class PageParserDirectBase
             {
                 JSOUP.updateAttribute(n, attr, newref);
                 if (JSOUP.getAttribute(n, "original-" + attr) == null)
-                    JSOUP.setAttribute(n, "original-" + attr, href);
+                    JSOUP.setAttribute(n, "original-" + attr, name_href);
                 return true;
             }
             else

@@ -155,7 +155,7 @@ public class MainMakeMonthlyPages
             }
         }
 
-        new BuildNavigationIndex(Config.User, whichDir, monthlyPagesDir, BuildNavigationIndex.DIVIDER).buildNavigation();
+        new BuildNavigationIndex(Config.User, whichDir, monthlyPagesDir, pagesDir, BuildNavigationIndex.DIVIDER).buildNavigation();
         new InsertNavigationControls(monthlyPagesDir, InsertNavigationControls.DIVIDER).insertContols();
 
         Main.out(String.format(">>> Completed processing monthly %s for user %s", whichDir, Config.User));

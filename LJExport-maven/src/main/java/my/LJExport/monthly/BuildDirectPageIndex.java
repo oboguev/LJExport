@@ -8,7 +8,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Builds an HTML index of all files under rootDir matching the pattern YYYY/MM/SQN.html.
+ * Builds an HTML index for files under rootDir matching the pattern YYYY/MM/SQN.html.
+ * The links in the index are adjusted to be correct relative to indexLocationDir.
  */
 public class BuildDirectPageIndex
 {
@@ -20,14 +21,12 @@ public class BuildDirectPageIndex
 
     private static class Entry implements Comparable<Entry>
     {
-        String year;
-        String month;
+        Path relativePath; // relative to rootDir
         String sqn;
 
-        Entry(String year, String month, String sqn)
+        Entry(Path relativePath, String sqn)
         {
-            this.year = year;
-            this.month = month;
+            this.relativePath = relativePath;
             this.sqn = sqn;
         }
 
@@ -36,52 +35,45 @@ public class BuildDirectPageIndex
         {
             return Long.compare(Long.parseLong(this.sqn), Long.parseLong(other.sqn));
         }
-
-        String getRelativePath()
-        {
-            return year + "/" + month + "/" + sqn + ".html";
-        }
-
-        String getAbsoluteUrl(String user, String host)
-        {
-            return "https://" + user + "." + host + "/" + sqn + ".html";
-        }
     }
 
     public BuildDirectPageIndex(String rootDir, String user, String host)
     {
-        this.rootDir = Paths.get(rootDir);
+        this.rootDir = Paths.get(rootDir).normalize();
         this.user = user;
         this.host = host;
     }
 
-    public String buildHtml() throws IOException
+    /**
+     * Builds the HTML index as a string.
+     *
+     * @param indexLocationDir the directory where the index file will be placed, used to compute relative HREFs
+     * @return the generated HTML content
+     * @throws IOException if file walking fails
+     */
+    public String buildHtml(String indexLocationDir) throws IOException
     {
+        Path indexDir = Paths.get(indexLocationDir).normalize();
         List<Entry> entries = new ArrayList<>();
 
-        // Walk file tree and collect valid entries
         Files.walk(rootDir)
                 .filter(Files::isRegularFile)
                 .forEach(path ->
                 {
-                    Path rel = rootDir.relativize(path);
-                    String relStr = rel.toString().replace(File.separatorChar, '/');
+                    Path relPath = rootDir.relativize(path);
+                    String relStr = relPath.toString().replace(File.separatorChar, '/');
                     Matcher m = FILE_PATTERN.matcher(relStr);
                     if (m.matches())
                     {
-                        String year = m.group(1);
-                        String month = m.group(2);
                         String sqn = m.group(3);
-                        entries.add(new Entry(year, month, sqn));
+                        entries.add(new Entry(relPath, sqn));
                     }
                 });
 
-        // Sort by increasing SQN
         Collections.sort(entries);
 
         StringBuilder sb = new StringBuilder();
 
-        // HTML header
         sb.append("<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<title>Direct Index</title>\n");
 
         // Embedded CSS
@@ -91,7 +83,7 @@ public class BuildDirectPageIndex
         sb.append("a.ljexport-partial-underline:visited { color: #003300; }");
         sb.append("</style>\n");
 
-        // Embedded JavaScript
+        // Embedded JS
         sb.append("<script>\n");
         sb.append("function openSQN(e) {\n");
         sb.append("  if (e.key === 'Enter') {\n");
@@ -123,13 +115,19 @@ public class BuildDirectPageIndex
                 "<input id=\"sqnInput\" type=\"text\" placeholder=\"Enter SQN or URL\" onkeydown=\"openSQN(event)\" style=\"width: 40em;\">\n");
         sb.append("<hr>\n");
 
-        // Output links
+        // Create links
         for (Entry entry : entries)
         {
+            Path targetFile = rootDir.resolve(entry.relativePath);
+            Path relativeHref = indexDir.relativize(targetFile).normalize();
+            String href = relativeHref.toString().replace(File.separatorChar, '/');
+
+            String absoluteUrl = "https://" + user + "." + host + "/" + entry.sqn + ".html";
+
             sb.append("<a class=\"ljexport-partial-underline\" href=\"")
-                    .append(entry.getRelativePath())
+                    .append(href)
                     .append("\">")
-                    .append(entry.getAbsoluteUrl(user, host))
+                    .append(absoluteUrl)
                     .append("</a><br>\n");
         }
 

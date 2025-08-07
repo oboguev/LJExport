@@ -53,14 +53,16 @@ public final class BuildNavigationIndex
     private final String user;
     private final String section;  // "pages", "reposts"
     private final Path rootDir;
+    private final String pagesRootDir;
     private final String dividerHtml;
 
-    public BuildNavigationIndex(String user, String section, String rootDir, String dividerHtml)
+    public BuildNavigationIndex(String user, String section, String rootDir, String pagesRootDir, String dividerHtml)
     {
         Objects.requireNonNull(rootDir, "rootDir must not be null");
         this.user = user;
         this.section = section;
         this.rootDir = Paths.get(rootDir);
+        this.pagesRootDir = pagesRootDir; 
         this.dividerHtml = "<br>" + dividerHtml;
     }
 
@@ -79,6 +81,10 @@ public final class BuildNavigationIndex
             String content = buildYearIndexHtml(year, filesByYearAndMonth.get(year), prevYear, nextYear);
             Util.writeToFileSafe(yearDir.resolve("index.html").toString(), content);
         }
+        
+        // ####
+        String html = new BuildDirectPageIndex(pagesRootDir, user, "livejournal.com").buildHtml(rootDir.toAbsolutePath().toString());
+        Util.writeToFileSafe(rootDir.resolve("direct-index.html").toString(), html);
 
         String rootContent = buildRootIndexHtml(filesByYearAndMonth);
         Util.writeToFileSafe(rootDir.resolve("index.html").toString(), rootContent);
@@ -334,8 +340,7 @@ public final class BuildNavigationIndex
         insertLink(sb, "Аватары", "../profile/userpics.html");
         insertLink(sb, "Памятные заметки", "../profile/memories.html");
         insertLink(sb, "Фотографии и картинки", "../profile/pictures.html");
-
-        // ### указатели для прямого доступа страниц (+ переход через JS)
+        insertLink(sb, "Прямой указатель записей", "direct-index.html");
 
         sb.append(dividerHtml);
         sb.append(String.format("<div style=\"font-size:90%%;\"><h1>Месячный указатель</h1></div>" + nl, Config.User, section));

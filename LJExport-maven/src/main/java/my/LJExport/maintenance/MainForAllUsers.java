@@ -157,6 +157,7 @@ public class MainForAllUsers
 
     private void do_user_monthly_index_html(String user, String which) throws Exception
     {
+        String pagesRootDir = Config.DownloadRoot + File.separator + Config.User + File.separator + which;
         String monthlyRootDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "monthly-" + which;
         File fp = new File(monthlyRootDir).getCanonicalFile();
 
@@ -167,7 +168,7 @@ public class MainForAllUsers
             return;
         }
 
-        new BuildNavigationIndex(Config.User, which, monthlyRootDir, BuildNavigationIndex.DIVIDER).buildNavigation();
+        new BuildNavigationIndex(Config.User, which, monthlyRootDir, pagesRootDir, BuildNavigationIndex.DIVIDER).buildNavigation();
     }
 
     /* ======================================================================= */

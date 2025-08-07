@@ -349,6 +349,7 @@ public class LinkDownloader
         /*
          * Smart download
          */
+        boolean attempedSmartDownloader = false;
         if (r == null && useSmartDownloader)
         {
             if (failedSet.contains(download_href_noanchor))
@@ -356,13 +357,14 @@ public class LinkDownloader
 
             SmartLinkDownloader sml = new SmartLinkDownloader(null);
             r = sml.smartDownload(image, download_href_noanchor, referer, true, smartLoadFrom, null);
+            attempedSmartDownloader = true;
         }
 
         /*
          * Actual web load.
          * It smart download failed, it is responsible for final diagnostic.  
          */
-        if (r == null)
+        if (r == null && !attempedSmartDownloader)
         {
             download_href_noanchor = download_href_noanchor_away;
             
@@ -397,16 +399,15 @@ public class LinkDownloader
                 // if reply is HTML with single IMG tag
                 ResponseAnalysis an = SmartLinkDownloader.isGoodResponse(image, name_href_noanchor, r);
                 if (!an.isGood)
-                {
                     r = SmartLinkDownloader.loadImageIndirection(image, name_href_noanchor, referer, r, true);
-                    if (r == null)
-                    {
-                        filename.set(null);
-                        failedSet.add(download_href_noanchor);
-                        return;
-                    }
-                }
             }
+        }
+
+        if (r == null)
+        {
+            filename.set(null);
+            failedSet.add(download_href_noanchor);
+            return;
         }
 
         try

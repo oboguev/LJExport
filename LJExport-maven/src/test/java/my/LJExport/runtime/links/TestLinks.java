@@ -1,4 +1,4 @@
-package my.LJExport.runtime.lins;
+package my.LJExport.runtime.links;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;

@@ -180,6 +180,10 @@ public class AwayLink
         if (!xurl.equals(decoded_href))
             return post(xurl, anchor);
 
+        xurl = unwrapGoogleUrl(decoded_href);
+        if (!xurl.equals(decoded_href))
+            return post(xurl, anchor);
+
         xurl = unwrapDreamwidthProxy(decoded_href);
         if (!xurl.equals(decoded_href))
             return post(xurl, anchor);
@@ -252,6 +256,48 @@ public class AwayLink
     {
         String result = unwrapImagesGoogleCom(url);
         return !result.equals(url);
+    }
+
+    /* =================================================================== */
+
+    // https://www.google.com/url?q=https://pbs.twimg.com/media/CuUjbVqUsAATLSw.jpg&sa=U&ved=0ahUKEwiKh52Chpb9AhXTi1wKHS28DycQ5hMIBQ&usg=AOvVaw2BbqSzqbnWqhrdUA4x2xQA
+
+    public static String unwrapGoogleUrl(String url)
+    {
+        if (!lc_contains_all(url, "google", "/url?"))
+            return url;
+
+        try
+        {
+            URL xurl = new URL(url);
+            String host = xurl.getHost();
+            String path = xurl.getPath();
+            if (host == null || path == null)
+                return url;
+            host = host.trim().toLowerCase();
+            if (isGoogleHost(host) && path.equals("/url"))
+                return unwrapQueryParameterRedirect(url, "q");
+        }
+        catch (Exception ex)
+        {
+            return url;
+        }
+
+        return url;
+    }
+
+    private static final Pattern GOOGLE_HOST_PATTERN = Pattern.compile("^(www\\.)?google\\.[a-z]{2,3}(\\.[a-z]{2})?$",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Returns true if the host is a known Google domain like google.com, www.google.ru, google.co.uk, etc.
+     */
+    public static boolean isGoogleHost(String host)
+    {
+        if (host == null)
+            return false;
+
+        return GOOGLE_HOST_PATTERN.matcher(host).matches();
     }
 
     /* =================================================================== */

@@ -208,6 +208,9 @@ public class MiscTest
     private static void test_unwrap() throws Exception
     {
         test_unwrap(
+                "https://www.google.com/url?q=https://pbs.twimg.com/media/CuUjbVqUsAATLSw.jpg&sa=U&ved=0ahUKEwiKh52Chpb9AhXTi1wKHS28DycQ5hMIBQ&usg=AOvVaw2BbqSzqbnWqhrdUA4x2xQA");
+
+        test_unwrap(
                 "https://imgprx.livejournal.net/st/a5qxcIzYm6irxnS1DFddEl8-2t1CYWAJYj-i7bfFaKo/img1.labirint.ru/books/168777/big.jpg");
         test_unwrap(
                 "https://p.dreamwidth.org/31fb6eddb6f7/3144591-346937/i1133.photobucket.com/albums/m588/technolirik/Sommer%202015/IMG_7236_zpscimjc0yw.jpg~original");

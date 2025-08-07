@@ -89,9 +89,16 @@ public class BuildDirectPageIndex
         sb.append("  if (e.key === 'Enter') {\n");
         sb.append("    var val = document.getElementById('sqnInput').value.trim();\n");
         sb.append("    if (!val) return;\n");
-        sb.append("    var match = val.match(/^https:\\/\\/").append(Pattern.quote(user)).append("\\.").append(Pattern.quote(host))
-                .append("\\/(\\d+)\\.html$/);\n");
-        sb.append("    var sqn = match ? match[1] : val.match(/^\\d+$/) ? val : null;\n");
+        sb.append("    var sqn = null;\n");
+        sb.append("    var urlRegex = /^https:\\/\\/([^.]+)\\.([\\/a-zA-Z0-9.-]+)\\/(\\d+)\\.html$/;\n");
+        sb.append("    var urlMatch = val.match(urlRegex);\n");
+        sb.append("    if (urlMatch) {\n");
+        sb.append("      sqn = urlMatch[3];\n");
+        sb.append("    } else if (/^\\d+\\.html$/.test(val)) {\n");
+        sb.append("      sqn = val.slice(0, -5);\n");
+        sb.append("    } else if (/^\\d+$/.test(val)) {\n");
+        sb.append("      sqn = val;\n");
+        sb.append("    }\n");
         sb.append("    if (sqn) {\n");
         sb.append("      var links = document.querySelectorAll('a.ljexport-partial-underline');\n");
         sb.append("      for (var i = 0; i < links.length; i++) {\n");
@@ -102,11 +109,12 @@ public class BuildDirectPageIndex
         sb.append("      }\n");
         sb.append("      alert('SQN ' + sqn + ' not found.');\n");
         sb.append("    } else {\n");
-        sb.append("      alert('Invalid input');\n");
+        sb.append("      alert('Invalid input format');\n");
         sb.append("    }\n");
         sb.append("  }\n");
         sb.append("}\n");
         sb.append("</script>\n");
+
 
         sb.append("</head>\n<body>\n");
 

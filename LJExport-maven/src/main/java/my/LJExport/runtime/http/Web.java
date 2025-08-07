@@ -653,6 +653,13 @@ public class Web
             r.finalUrl = response.getFinalUrl();
             if (response.containsHeader("Location"))
                 r.redirectLocation = response.getFirstHeader("Location").getValue();
+            /*
+             * archive.org response will contain 
+             *     Content-Type
+             * and 
+             *     X-Archive-Orig-Content-Type
+             * To interpret the content during playback, use Content-Type.     
+             */
             if (response.containsHeader("Content-Type"))
                 r.contentType = response.getFirstHeader("Content-Type").getValue();
             r.headers = response.getAllHeaders();

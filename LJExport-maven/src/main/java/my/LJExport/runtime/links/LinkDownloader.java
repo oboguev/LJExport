@@ -97,9 +97,10 @@ public class LinkDownloader
         this.alwaysAcceptContent = alwaysAcceptContent;
     }
 
-    public void setUseSmartDownloader()
+    public void setUseSmartDownloader(LoadFrom loadFrom)
     {
         useSmartDownloader = true;
+        smartLoadFrom = loadFrom;
     }
 
     public boolean isOnlineOnly()

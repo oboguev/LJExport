@@ -32,7 +32,7 @@ public class CheckLinkCaseConflicts extends MaintenanceHandler
         super.endUsers();
     }
 
-    private Map<String, String> lc2xc = new HashMap<>();
+    private Map<String, String> lc2ac = new HashMap<>();
 
     @Override
     protected void processHtmlFile(String fullHtmlFilePath, String relativeFilePath, PageParserDirectBasePassive parser,
@@ -53,11 +53,11 @@ public class CheckLinkCaseConflicts extends MaintenanceHandler
 
             String xc = href;
             String lc = xc.toLowerCase();
-            String v = lc2xc.get(lc);
+            String v = lc2ac.get(lc);
 
             if (v == null)
             {
-                lc2xc.put(lc, xc);
+                lc2ac.put(lc, xc);
             }
             else if (v.equals(xc))
             {

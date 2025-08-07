@@ -56,6 +56,12 @@ public class LinkDownloader
     private final NamedLocks urlLocks = new NamedLocks();
 
     private boolean useSmartDownloader = false;
+    private LoadFrom smartLoadFrom = LoadFrom.OnlineAndArchive;
+
+    /*
+     * Always accept content even if it does not match URI.
+     * Used to download to style repositories.
+     */
     private boolean alwaysAcceptContent = false;
 
     public static final String LinkMapFileName = "map-href-file.txt";
@@ -98,7 +104,7 @@ public class LinkDownloader
 
     public boolean isOnlineOnly()
     {
-        return !useSmartDownloader;
+        return !useSmartDownloader || this.smartLoadFrom == LoadFrom.Online;
     }
 
     public String rel2abs(String rel) throws Exception
@@ -348,7 +354,7 @@ public class LinkDownloader
                 throw new AlreadyFailedException();
 
             SmartLinkDownloader sml = new SmartLinkDownloader(null);
-            r = sml.smartDownload(image, download_href_noanchor, referer, true, LoadFrom.OnlineAndArchive, null);
+            r = sml.smartDownload(image, download_href_noanchor, referer, true, smartLoadFrom, null);
         }
 
         /*

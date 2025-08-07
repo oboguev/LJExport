@@ -3,7 +3,6 @@ package my.LJExport.runtime.links;
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.Web;
-import my.LJExport.runtime.links.ShouldDownload;
 
 public class TestLinks
 {

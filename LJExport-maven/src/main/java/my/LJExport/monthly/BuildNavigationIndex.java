@@ -1,10 +1,12 @@
 package my.LJExport.monthly;
 
+import java.io.File;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import my.LJExport.Config;
 import my.LJExport.runtime.Util;
 
 /**
@@ -49,13 +51,15 @@ public final class BuildNavigationIndex
             "      5px;-o-border-radius: 5px;border-radius: 5px;\"></div>";
 
     private final String user;
+    private final String section;  // "pages", "reposts"
     private final Path rootDir;
     private final String dividerHtml;
 
-    public BuildNavigationIndex(String user, String rootDir, String dividerHtml)
+    public BuildNavigationIndex(String user, String section, String rootDir, String dividerHtml)
     {
         Objects.requireNonNull(rootDir, "rootDir must not be null");
         this.user = user;
+        this.section = section;
         this.rootDir = Paths.get(rootDir);
         this.dividerHtml = "<br>" + dividerHtml;
     }
@@ -160,7 +164,7 @@ public final class BuildNavigationIndex
                 .append("</title>\n")
                 .append(STYLE_BLOCK)
                 .append("</head>\n<body>\n");
-
+        
         sb.append("<h1>").append(year).append("</h1>\n\n");
 
         for (Map.Entry<Integer, List<String>> e : monthFiles.entrySet())
@@ -260,7 +264,7 @@ public final class BuildNavigationIndex
             "}\n" +
             "</style>\n";
 
-    private String buildRootIndexHtml(Map<Integer, SortedMap<Integer, List<String>>> filesByYearAndMonth)
+    private String buildRootIndexHtml(Map<Integer, SortedMap<Integer, List<String>>> filesByYearAndMonth) throws Exception
     {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<title>")
@@ -268,6 +272,8 @@ public final class BuildNavigationIndex
                 .append("</title>\n")
                 .append(STYLE_BLOCK)
                 .append("</head>\n<body>\n");
+        
+        buildRootIndexHeader(sb);
 
         for (Map.Entry<Integer, SortedMap<Integer, List<String>>> yearEntry : filesByYearAndMonth.entrySet())
         {
@@ -312,5 +318,36 @@ public final class BuildNavigationIndex
 
         sb.append("</body>\n</html>\n");
         return sb.toString();
+    }
+    
+    private void buildRootIndexHeader(StringBuilder sb) throws Exception
+    {
+        String section = this.section;
+        if (section.equals("pages"))
+            section = "";
+        else
+            section = " (" + section + ")";
+        
+        sb.append(String.format("<div style=\"font-size:110%%;\"><h1>Дневник %s%s</h1></div>" + nl, Config.User, section));
+        
+        insertLink(sb, "Профиль", "../profile/profile.html");
+        insertLink(sb, "Аватары", "../profile/userpics.html");
+        insertLink(sb, "Памятные заметки", "../profile/memories.html");
+        insertLink(sb, "Фотографии и картинки", "../profile/pictures.html");
+
+        // ### указатели для прямого доступа страниц (+ переход через JS)
+
+        sb.append(dividerHtml);
+        sb.append(String.format("<div style=\"font-size:90%%;\"><h1>Месячный указатель</h1></div>" + nl, Config.User, section));
+    }
+    
+    private void insertLink(StringBuilder sb, String title, String relpath)
+    {
+        if (new File(rootDir.toFile(), relpath).exists())
+        {
+            sb.append("&nbsp;&nbsp;&nbsp;&nbsp;");
+            sb.append(String.format("<a class=\"partial-underline\" href=\"%s\">%s</a><br>", relpath, title));
+            sb.append("\n");
+        }
     }
 }

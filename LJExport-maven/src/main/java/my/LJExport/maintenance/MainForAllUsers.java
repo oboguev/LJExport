@@ -151,23 +151,23 @@ public class MainForAllUsers
     private void do_user_monthly_index_html(String user) throws Exception
     {
         Util.out(">>> Making monthly index.html files for user " + Config.User);
-        do_user_monthly_index_html(user, "monthly-pages");
-        do_user_monthly_index_html(user, "monthly-reposts");
+        do_user_monthly_index_html(user, "pages");
+        do_user_monthly_index_html(user, "reposts");
     }
 
     private void do_user_monthly_index_html(String user, String which) throws Exception
     {
-        String monthlyRootDir = Config.DownloadRoot + File.separator + Config.User + File.separator + which;
+        String monthlyRootDir = Config.DownloadRoot + File.separator + Config.User + File.separator + "monthly-" + which;
         File fp = new File(monthlyRootDir).getCanonicalFile();
 
         if (!fp.exists())
         {
-            if (which.equals("monthly-pages"))
+            if (which.equals("pages"))
                 Util.err("User " + user + "has no monthly-pages");
             return;
         }
 
-        new BuildNavigationIndex(Config.User, monthlyRootDir, BuildNavigationIndex.DIVIDER).buildNavigation();
+        new BuildNavigationIndex(Config.User, which, monthlyRootDir, BuildNavigationIndex.DIVIDER).buildNavigation();
     }
 
     /* ======================================================================= */

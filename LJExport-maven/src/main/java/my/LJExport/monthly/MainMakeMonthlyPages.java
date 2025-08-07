@@ -28,11 +28,12 @@ public class MainMakeMonthlyPages
     // private static String Users = "amfora,colonelcassad,fluffyduck2,genby,kot_begemott,lasido,sergeytsvetkov,von_hoffmann";
     // private static String Users = "hurtmann,maxim_sokolov,obsrvr,ru_nationalism,schegloff";
     // private static String Users = "elcour,meast_ru";
-    private static String Users = "udod99.lj-rossia-org";
+    // private static String Users = "udod99.lj-rossia-org";
     // private static String Users = "harmfulgrumpy.dreamwidth-org";
     // private static String Users = "oboguev";
     // private static String Users = "m_yu_sokolov";
     // private static String Users = "a_bugaev";
+    private static String Users = "sadalskij";
 
     public static void main(String[] args)
     {
@@ -154,7 +155,7 @@ public class MainMakeMonthlyPages
             }
         }
 
-        new BuildNavigationIndex(Config.User, monthlyPagesDir, BuildNavigationIndex.DIVIDER).buildNavigation();
+        new BuildNavigationIndex(Config.User, whichDir, monthlyPagesDir, BuildNavigationIndex.DIVIDER).buildNavigation();
         new InsertNavigationControls(monthlyPagesDir, InsertNavigationControls.DIVIDER).insertContols();
 
         Main.out(String.format(">>> Completed processing monthly %s for user %s", whichDir, Config.User));

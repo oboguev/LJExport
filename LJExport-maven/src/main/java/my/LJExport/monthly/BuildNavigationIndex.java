@@ -343,7 +343,7 @@ public final class BuildNavigationIndex
     
     private void insertLink(StringBuilder sb, String title, String relpath)
     {
-        if (new File(rootDir.toFile(), relpath).exists())
+        if (new File(rootDir.toFile(), relpath.replace("/", File.separator)).exists())
         {
             sb.append("&nbsp;&nbsp;&nbsp;&nbsp;");
             sb.append(String.format("<a class=\"partial-underline\" href=\"%s\">%s</a><br>", relpath, title));

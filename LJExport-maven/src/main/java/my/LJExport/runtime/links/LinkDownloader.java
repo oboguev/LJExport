@@ -99,8 +99,15 @@ public class LinkDownloader
 
     public void setUseSmartDownloader(LoadFrom loadFrom)
     {
-        useSmartDownloader = true;
-        smartLoadFrom = loadFrom;
+        if (loadFrom == null)
+        {
+            useSmartDownloader = false;
+        }
+        else
+        {
+            useSmartDownloader = true;
+            smartLoadFrom = loadFrom;
+        }
     }
 
     public boolean isOnlineOnly()
@@ -345,7 +352,7 @@ public class LinkDownloader
                 r.binaryBody = binaryBody;
             }
         }
-        
+
         /*
          * Smart download
          */
@@ -367,7 +374,7 @@ public class LinkDownloader
         if (r == null && !attempedSmartDownloader)
         {
             download_href_noanchor = download_href_noanchor_away;
-            
+
             if (failedSet.contains(download_href_noanchor))
                 throw new AlreadyFailedException();
 
@@ -393,7 +400,7 @@ public class LinkDownloader
                     failedSet.add(download_href_noanchor);
                 throw new HttpException("HTTP code " + r.code + ", reason: " + r.reason);
             }
-            
+
             if (r.code == 200 && image)
             {
                 // if reply is HTML with single IMG tag

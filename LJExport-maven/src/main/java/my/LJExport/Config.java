@@ -14,6 +14,7 @@ import my.LJExport.runtime.http.HttpAccessMode;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.http.WebRequestHeaders;
 import my.LJExport.runtime.http.ssl.TrustAnySSL;
+import my.LJExport.runtime.links.SmartLinkDownloader.LoadFrom;
 import my.LJExport.runtime.lj.Sites;
 import my.LJExport.runtime.password.PasswordStorage;
 import my.LJExport.runtime.ui.UIDialogPassword;
@@ -88,6 +89,13 @@ public class Config
     /* Minimum and maximum number of unloadable pages allowed before the download aborts */
     public static final int MinUnloadablePagesAllowed = 20;
     public static final int MaxUnloadablePagesAllowed = 50;
+    
+    /*
+     * null -> do not use smart downloader, no link unwrapping
+     * Online -> only online downloading
+     * OnlineAndArchive -> online and from archive.org
+     */
+    public static LoadFrom LinkDownloaderLoadFrom = LoadFrom.Online; 
 
     /**************************/
     /** TECHNICAL PARAMETERS **/

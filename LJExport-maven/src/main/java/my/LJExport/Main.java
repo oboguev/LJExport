@@ -206,6 +206,7 @@ public class Main
             Config.init(user);
             RateLimiter.LJ_PAGES.setRateLimit(100);
             Web.init();
+            linkDownloader.setUseSmartDownloader(Config.LinkDownloaderLoadFrom);
             do_login();
             Calendar.init();
 

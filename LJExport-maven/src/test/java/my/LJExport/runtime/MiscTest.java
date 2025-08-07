@@ -291,6 +291,16 @@ public class MiscTest
             Util.out("U  " + s);
         }
         Util.out("D  " + AwayLink.unwrapDecoded(s));
+
+        if (Util.True)
+        {
+            List<String> list = AwayLink.unwrapDecodedToList(s, true);
+            for (int k = 1; k <= list.size(); k++)
+            {
+                Util.out(k + ": " + list.get(k - 1));
+            }
+        }
+
         Util.out("");
     }
 

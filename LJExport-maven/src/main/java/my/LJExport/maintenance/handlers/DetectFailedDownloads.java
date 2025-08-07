@@ -730,7 +730,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         String original_href_encoded = JSOUP.getAttribute(n, "original-" + attr);
         if (original_href_encoded != null && original_href_encoded.length() != 0)
         {
-            original_href_encoded = AwayLink.unwrapAwayLinkEncoded(original_href_encoded);
+            original_href_encoded = AwayLink.unwrapEncoded(original_href_encoded);
             JSOUP.updateAttribute(n, attr, original_href_encoded);
         }
         else

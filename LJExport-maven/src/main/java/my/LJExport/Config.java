@@ -39,8 +39,8 @@ public class Config
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    // public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
-    public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
+    // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
@@ -89,13 +89,13 @@ public class Config
     /* Minimum and maximum number of unloadable pages allowed before the download aborts */
     public static final int MinUnloadablePagesAllowed = 20;
     public static final int MaxUnloadablePagesAllowed = 50;
-    
+
     /*
      * null -> do not use smart downloader, no link unwrapping
      * Online -> only online downloading
      * OnlineAndArchive -> online and from archive.org
      */
-    public static LoadFrom LinkDownloaderLoadFrom = LoadFrom.Online; 
+    public static LoadFrom LinkDownloaderLoadFrom = LoadFrom.Online;
 
     /**************************/
     /** TECHNICAL PARAMETERS **/

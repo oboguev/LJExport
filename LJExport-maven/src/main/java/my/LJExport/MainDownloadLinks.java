@@ -63,6 +63,7 @@ public class MainDownloadLinks
     // private static final String Users = "1981dn.pre-2025,1981dn_dn.pre-2025,a_kaminsky.pre-2025,a_samovarov.pre-2025,bantaputu.pre-2025,hokma.pre-2025,krylov.pre-2025,oboguev.pre-2025,pioneer_lj.pre-2025,polit_ec.pre-2025,zhenziyou.pre-2025";
     private static final String Users = "novy_chitatel";
     
+    /* download images from archive.org in addition to online */
     private static boolean UseArchiveOrg = false;
 
     /* we can use large number of threads because they usually are network IO bound */

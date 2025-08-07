@@ -1,6 +1,7 @@
 package my.LJExport.runtime.links.util;
 
 import my.LJExport.maintenance.handlers.util.ShortFilePath;
+import my.LJExport.runtime.Util;
 import my.LJExport.runtime.url.URLCodec;
 import my.LJExport.runtime.url.UrlUtil;
 
@@ -10,6 +11,22 @@ import my.LJExport.runtime.url.UrlUtil;
 public class InferOriginalUrl
 {
     private static final String schema = "https://";
+
+    public static String infer(String originalUrl, String relpath) throws Exception
+    {
+        if (originalUrl != null && originalUrl.trim().length() != 0)
+        {
+            originalUrl = originalUrl.trim();
+
+            if (Util.startsWithIgnoreCase(originalUrl, null, "http://", "https://"))
+                return originalUrl;
+            
+            if (Util.startsWithIgnoreCase(originalUrl, null, "http%3a//", "https%3a//"))
+                return UrlUtil.decodeUrl(originalUrl);
+        }
+        
+        return infer(relpath);
+    }
 
     /*
      * If URL cannot be inferred, return null.

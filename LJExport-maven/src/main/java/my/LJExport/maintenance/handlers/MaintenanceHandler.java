@@ -414,16 +414,8 @@ public abstract class MaintenanceHandler extends Maintenance
     protected Decision serverAcceptedContent(String href_original, String linkFullFilePath, String contentExtension, String headerExt, String fnExt)
             throws Exception
     {
-        String href = null;
-
-        if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
-            href = href_original;
-
-        if (href == null)
-        {
-            String relpath = this.abs2rel(linkFullFilePath);
-            href = InferOriginalUrl.infer(relpath);
-        }
+        String relpath = abs2rel(linkFullFilePath);
+        String href = InferOriginalUrl.infer(href_original, relpath);
 
         if (href == null)
             return ServerContent.DecisionNeutral;

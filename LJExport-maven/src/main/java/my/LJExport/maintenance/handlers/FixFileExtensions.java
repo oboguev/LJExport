@@ -287,7 +287,7 @@ public class FixFileExtensions extends MaintenanceHandler
                         Config.User, href, linkInfo.linkFullFilePath);
 
                 boolean allow = Config.User.equals("d_olshansky") && href.contains("../links/imgprx.livejournal.net/");
-                
+
                 if (allow)
                 {
                     trace(msg);
@@ -460,9 +460,7 @@ public class FixFileExtensions extends MaintenanceHandler
                     break;
                 }
 
-                String originalUrl = href_original;
-                if (originalUrl == null || originalUrl.trim().length() == 0)
-                    originalUrl = InferOriginalUrl.infer(relpath);
+                String originalUrl = InferOriginalUrl.infer(href_original, relpath);
                 if (!ShouldDownload.shouldDownload(image, originalUrl, false))
                     reject = true;
 
@@ -831,6 +829,10 @@ public class FixFileExtensions extends MaintenanceHandler
             sb.append(String.format("Error-response [%s] link file  %s" + nl, Config.User, linkFullFilePath));
             sb.append(String.format("                %s         in  %s" + nl, spaces(Config.User), fullHtmlFilePath));
             sb.append(String.format("                %s      leave  as-is" + nl, spaces(Config.User)));
+            // ### infer
+            // ### infer guid
+            // ### delete error-response files on disk and from linkmap
+            // ### other links to them
         }
 
         schedDeleteMapEntryFor(linkFullFilePath);

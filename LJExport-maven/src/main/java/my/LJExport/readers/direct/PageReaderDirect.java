@@ -92,6 +92,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
         if (Config.isRossiaOrg() || Config.isDreamwidthOrg())
         {
             parser.removeJunk(PageParserDirectBase.REMOVE_SCRIPTS);
+            parser.unwrapAwayLinks();
         }
         else if (UseEmbeddedComments)
         {

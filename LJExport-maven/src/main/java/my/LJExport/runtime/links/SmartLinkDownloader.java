@@ -206,7 +206,7 @@ public class SmartLinkDownloader
 
         if (image)
         {
-            return losdImageIndirection(image, href, referer, r, online);
+            return loadImageIndirection(image, href, referer, r, online);
         }
         else
         {
@@ -226,7 +226,7 @@ public class SmartLinkDownloader
      * We should follow it.
      * The same can also happen in other situation when a link is provided to HTML page that links to a single IMG.
      */
-    public static Web.Response losdImageIndirection(boolean image, String href, String referer, Web.Response r, boolean online) throws Exception
+    public static Web.Response loadImageIndirection(boolean image, String href, String referer, Web.Response r, boolean online) throws Exception
     {
         if (!image)
             return null;
@@ -335,7 +335,7 @@ public class SmartLinkDownloader
         return new ResponseAnalysis(false, serverExt);
     }
 
-    private static class ResponseAnalysis
+    public static class ResponseAnalysis
     {
         public final boolean isGood;
         public final String serverExt;

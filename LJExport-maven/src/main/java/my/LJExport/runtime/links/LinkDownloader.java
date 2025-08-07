@@ -29,6 +29,7 @@ import my.LJExport.runtime.file.ServerContent.Decision;
 import my.LJExport.runtime.http.NetErrors;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.SmartLinkDownloader.LoadFrom;
+import my.LJExport.runtime.links.SmartLinkDownloader.ResponseAnalysis;
 import my.LJExport.runtime.links.util.DownloadSource;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.synch.NamedLocks;
@@ -381,8 +382,21 @@ public class LinkDownloader
                 throw new HttpException("HTTP code " + r.code + ", reason: " + r.reason);
             }
             
-            // #### handle: image but reply is HTML with single IMG.SRC
-            // ### may be call smart downloader code
+            if (r.code == 200 && image)
+            {
+                // if reply is HTML with single IMG tag
+                ResponseAnalysis an = SmartLinkDownloader.isGoodResponse(image, name_href_noanchor, r);
+                if (!an.isGood)
+                {
+                    r = SmartLinkDownloader.loadImageIndirection(image, name_href_noanchor, referer, r, true);
+                    if (r == null)
+                    {
+                        filename.set(null);
+                        failedSet.add(download_href_noanchor);
+                        return;
+                    }
+                }
+            }
         }
 
         try

@@ -20,6 +20,7 @@ import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.http.Web;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.url.AwayLink;
+import my.LJExport.runtime.url.EmbeddedDataURL;
 import my.LJExport.runtime.url.UrlUtil;
 import my.WebArchiveOrg.ArchiveOrgQuery;
 import my.WebArchiveOrg.ArchiveOrgUrl;
@@ -127,7 +128,7 @@ public class SmartLinkDownloader
                         return r;
                 }
             }
-            
+
             return null;
         }
 
@@ -238,8 +239,21 @@ public class SmartLinkDownloader
 
             String src = JSOUP.getAttribute(vn.get(0), "src");
             src = UrlUtil.decodeHtmlAttrLink(src);
-            if (src == null || src.startsWith("data:"))
+            if (src == null)
                 return null;
+
+            if (src.startsWith("data:"))
+            {
+                EmbeddedDataURL ed = EmbeddedDataURL.decodeImgSrc(src);
+                r = new Web.Response();
+                r.code = 200;
+                r.binaryBody = ed.data;
+                r.contentType = ed.mediaType;
+                an = isGoodResponse(image, href, r);
+                if (an.isGood)
+                    return r;
+                return null;
+            }
 
             try
             {

@@ -41,9 +41,6 @@
 
 - make MainDownloadLinks with option to download from the archive
 
-- LinkDownloader should handle if_ -> im_ repeat loads (HTML -> Image)
-  May want make it use SmartDownloader instead of Web
-
 - ### in files  
 
 ================================================

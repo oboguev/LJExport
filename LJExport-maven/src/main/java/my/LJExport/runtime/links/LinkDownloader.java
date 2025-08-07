@@ -380,6 +380,9 @@ public class LinkDownloader
                     failedSet.add(download_href_noanchor);
                 throw new HttpException("HTTP code " + r.code + ", reason: " + r.reason);
             }
+            
+            // #### handle: image but reply is HTML with single IMG.SRC
+            // ### may be call smart downloader code
         }
 
         try

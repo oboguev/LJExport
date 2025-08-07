@@ -344,13 +344,16 @@ public class LinkDownloader
          */
         if (r == null && useSmartDownloader)
         {
+            if (failedSet.contains(download_href_noanchor))
+                throw new AlreadyFailedException();
+
             SmartLinkDownloader sml = new SmartLinkDownloader(null);
             r = sml.smartDownload(image, download_href_noanchor, referer, true, LoadFrom.OnlineAndArchive, null);
         }
 
         /*
          * Actual web load.
-         * It smart download failed, also is responsible for final diagnostic.  
+         * It smart download failed, it is responsible for final diagnostic.  
          */
         if (r == null)
         {

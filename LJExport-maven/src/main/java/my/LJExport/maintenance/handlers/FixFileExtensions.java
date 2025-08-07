@@ -325,21 +325,7 @@ public class FixFileExtensions extends MaintenanceHandler
         
         switch (linkInfo.linkFullFilePath)
         {
-        case "F:\\WINAPPS\\LJExport\\journals\\colonelcassad\\links\\mc.yandex.ru\\watch\\6438820":
-        case "F:\\WINAPPS\\LJExport\\journals\\colonelcassad\\links\\mc.yandex.ru\\watch\\25752548":
-        case "F:\\WINAPPS\\LJExport\\journals\\fluffyduck2\\links\\mc.yandex.ru\\watch\\865459":
-        case "F:\\WINAPPS\\LJExport\\journals\\holmogor\\links\\mc.yandex.ru\\watch\\10868485":
-
-        case "F:\\WINAPPS\\LJExport\\journals\\allin777\\links\\www.google.com\\x-b93a028b2afe49369c59b3da20a3b130":
-        case "F:\\WINAPPS\\LJExport\\journals\\allin777\\links\\www.google.com\\x-29393db457f34f459dd0a1fa31d92e13":
-            
-        case "F:\\WINAPPS\\LJExport\\journals\\colonelcassad\\links\\proxy.imgsmail.ru\\x-b8531ea7abed479da514fa03be1143ab":
-        case "F:\\WINAPPS\\LJExport\\journals\\ivanov_petrov\\links\\proxy.imgsmail.ru\\x-19f514f950f54972bbee4be3b1425072":
-        case "F:\\WINAPPS\\LJExport\\journals\\ivanov_petrov\\links\\proxy.imgsmail.ru\\x-480a2e5c9cc646b8ae4fbab4ded76779":
-
-        case "F:\\WINAPPS\\LJExport\\journals\\ivanov_petrov\\links\\d7hftxdivxxvm.cloudfront.net\\x-2bbdce5cfc8b4a198b1742f9f3430246":
-        
-        case "F:\\WINAPPS\\LJExport\\journals\\kouzdra\\links\\ip.bitcointalk.org\\x-3e2c23817ee946c4a42bd2be39ed1a2a":
+        case "F:\\WINAPPS\\LJExport\\journals\\ivanov_petrov\\links\\www1.lib.ru\\INOFANT\\UELS\\wrldfree.txt":
             Util.noop();
             break;
         }

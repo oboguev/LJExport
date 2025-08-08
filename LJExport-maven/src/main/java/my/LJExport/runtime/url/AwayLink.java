@@ -118,7 +118,7 @@ public class AwayLink
         return unwrapped_encoded_href;
     }
 
-    public static boolean unwrap(Node n, String attr) throws Exception
+    public static boolean unwrap(Node n, String attr, boolean safe) throws Exception
     {
         if (!(n instanceof Element))
             return false;
@@ -132,7 +132,7 @@ public class AwayLink
         String original_href = href;
         boolean updated = false;
 
-        String newref = unwrapEncodedSafe(href);
+        String newref = unwrapEncoded(href, safe);
         if (!newref.equals(href))
         {
             JSOUP.updateAttribute(n, attr, newref);

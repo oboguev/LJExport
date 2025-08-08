@@ -1270,10 +1270,10 @@ public abstract class PageParserDirectBase
         boolean updated = false;
 
         for (Node n : JSOUP.findElements(pageRoot, "a"))
-            updated |= AwayLink.unwrap(n, "href");
+            updated |= AwayLink.unwrap(n, "href", true);
 
         for (Node n : JSOUP.findElements(pageRoot, "img"))
-            updated |= AwayLink.unwrap(n, "src");
+            updated |= AwayLink.unwrap(n, "src", true);
 
         return updated;
     }

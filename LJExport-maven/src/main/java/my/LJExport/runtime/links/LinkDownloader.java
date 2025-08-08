@@ -221,8 +221,8 @@ public class LinkDownloader
             name_href_noanchor = Util.stripAnchor(name_href);
             download_href_noanchor = Util.stripAnchor(download_href);
 
-            String name_href_noanchor_away = Util.stripAnchor(AwayLink.unwrapDecoded(name_href_noanchor));
-            String download_href_noanchor_away = Util.stripAnchor(AwayLink.unwrapDecoded(download_href_noanchor));
+            String name_href_noanchor_away = Util.stripAnchor(AwayLink.unwrapDecodedSafe(name_href_noanchor));
+            String download_href_noanchor_away = Util.stripAnchor(AwayLink.unwrapDecodedSafe(download_href_noanchor));
 
             if (failedSet.contains(download_href_noanchor))
                 return null;

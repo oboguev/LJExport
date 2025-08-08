@@ -64,7 +64,7 @@ public class AwayLink
 
     /*
      * Unwrap the link taken from JSOUP.getAttribute raw as-is i.e. encoded.
-     * Result nees to be reinserted into JSOUP.setAttribute as-is since it is encoded.  
+     * Result needs to be reinserted into JSOUP.setAttribute as-is since it is encoded.  
      */
     public static String unwrapEncoded(String encoded_href) throws Exception
     {
@@ -72,6 +72,8 @@ public class AwayLink
 
         if (encoded_href == null)
             return null;
+        
+        encoded_href = encoded_href.trim();
         
         if (!Util.startsWithIgnoreCase(encoded_href, null, "http://", "https://", "http3a//", "https3a//"))
             return encoded_href;
@@ -104,6 +106,8 @@ public class AwayLink
         String href = JSOUP.getAttribute(n, attr);
         if (href == null)
             return false;
+        
+        href = href.trim();
 
         String original_href = href;
         boolean updated = false;

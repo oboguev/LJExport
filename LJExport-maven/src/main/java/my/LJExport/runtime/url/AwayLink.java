@@ -27,19 +27,29 @@ public class AwayLink
      */
     public static String unwrapDecoded(String decoded_href) throws Exception
     {
+        return unwrapDecoded(decoded_href, false);
+    }
+
+    public static String unwrapDecodedSafe(String decoded_href) throws Exception
+    {
+        return unwrapDecoded(decoded_href, true);
+    }
+
+    public static String unwrapDecoded(String decoded_href, boolean safe) throws Exception
+    {
         if (decoded_href == null)
             return null;
 
         for (String prev = decoded_href;;)
         {
-            String current = unwrapOneLevel(prev);
+            String current = unwrapOneLevel(prev, safe);
             if (current.equals(prev))
                 return prev;
             prev = current;
         }
     }
 
-    public static List<String> unwrapDecodedToList(String decoded_href, boolean innerFirst) throws Exception
+    public static List<String> unwrapDecodedToList(String decoded_href, boolean innerFirst, boolean safe) throws Exception
     {
         if (decoded_href == null)
             return null;
@@ -49,7 +59,7 @@ public class AwayLink
 
         for (String prev = decoded_href;;)
         {
-            String current = unwrapOneLevel(prev);
+            String current = unwrapOneLevel(prev, safe);
             if (current.equals(prev))
                 break;
             list.add(current);
@@ -68,12 +78,22 @@ public class AwayLink
      */
     public static String unwrapEncoded(String encoded_href) throws Exception
     {
+        return unwrapEncoded(encoded_href, false);
+    }
+
+    public static String unwrapEncodedSafe(String encoded_href) throws Exception
+    {
+        return unwrapEncoded(encoded_href, true);
+    }
+
+    public static String unwrapEncoded(String encoded_href, boolean safe) throws Exception
+    {
         String initial_encoded_href = encoded_href;
 
         if (encoded_href == null)
             return null;
         
-        encoded_href = encoded_href.trim();
+        encoded_href = Util.trimWithNBSP(encoded_href);
         
         if (!Util.startsWithIgnoreCase(encoded_href, null, "http://", "https://", "http3a//", "https3a//"))
             return encoded_href;
@@ -90,7 +110,7 @@ public class AwayLink
             return initial_encoded_href;
         }
         
-        String unwrapped_decoded_href = unwrapDecoded(decoded_href);
+        String unwrapped_decoded_href = unwrapDecoded(decoded_href, safe);
         if (unwrapped_decoded_href.equals(decoded_href))
             return initial_encoded_href;
 
@@ -107,12 +127,12 @@ public class AwayLink
         if (href == null)
             return false;
         
-        href = href.trim();
+        href = Util.trimWithNBSP(href);
 
         String original_href = href;
         boolean updated = false;
 
-        String newref = unwrapEncoded(href);
+        String newref = unwrapEncodedSafe(href);
         if (!newref.equals(href))
         {
             JSOUP.updateAttribute(n, attr, newref);
@@ -149,12 +169,24 @@ public class AwayLink
             "http://l.instagram.com?"
     };
 
-    private static String unwrapOneLevel(String decoded_href) throws Exception
+    private static String unwrapOneLevel(String decoded_href, boolean safe) throws Exception
     {
         if (decoded_href == null)
             return null;
+        
+        if (safe)
+        {
+            try
+            {
+                return unwrapOneLevel(decoded_href, false);
+            }
+            catch (Exception ex)
+            {
+                return decoded_href;
+            }
+        }
 
-        decoded_href = decoded_href.trim();
+        decoded_href = Util.trimWithNBSP(decoded_href);
         
         String anchor = Util.getAnchor(decoded_href);
         decoded_href = Util.stripAnchor(decoded_href);
@@ -294,7 +326,7 @@ public class AwayLink
             String path = xurl.getPath();
             if (host == null || path == null)
                 return url;
-            host = host.trim().toLowerCase();
+            host = Util.trimWithNBSP(host).toLowerCase();
             if (isGoogleHost(host) && path.equals("/url"))
                 return unwrapQueryParameterRedirect(url, "q");
         }

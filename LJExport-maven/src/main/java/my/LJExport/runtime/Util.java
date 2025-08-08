@@ -7,8 +7,6 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -47,7 +45,6 @@ import java.util.regex.Pattern;
 import org.json.JSONObject;
 
 import my.LJExport.runtime.synch.NamedLocks;
-import my.LJExport.runtime.url.UrlUtil;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.json.JSONArray;

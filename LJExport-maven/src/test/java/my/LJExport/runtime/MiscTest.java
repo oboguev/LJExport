@@ -294,7 +294,7 @@ public class MiscTest
 
         if (Util.True)
         {
-            List<String> list = AwayLink.unwrapDecodedToList(s, true);
+            List<String> list = AwayLink.unwrapDecodedToList(s, true, false);
             for (int k = 1; k <= list.size(); k++)
             {
                 Util.out(k + ": " + list.get(k - 1));

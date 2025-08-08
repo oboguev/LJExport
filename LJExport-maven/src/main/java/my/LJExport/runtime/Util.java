@@ -1055,12 +1055,6 @@ public class Util
         return formatted;
     }
 
-    public static String urlHost(String url) throws Exception
-    {
-        URL x = new URL(url);
-        return x.getHost();
-    }
-
     public static <T> boolean containsIdentity(Collection<T> coll, T object)
     {
         for (T x : coll)

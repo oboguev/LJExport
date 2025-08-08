@@ -430,7 +430,7 @@ public class UrlUtil
     }
 
     private static final Pattern schemeHostPortPattern = Pattern.compile("^(https?)://([^/:?#]+)(:\\d+)?(?=[/?#]|$)",
-            Pattern.CASE_INSENSITIVE);
+                                                                         Pattern.CASE_INSENSITIVE);
 
     /**
      * Normalizes the scheme, host, and port part of a URL using String and Pattern operations.
@@ -581,7 +581,7 @@ public class UrlUtil
     /* ================================================================================================== */
 
     private static final Pattern DEFAULT_PORT_PATTERN = Pattern.compile(
-            "^(?i)(https?)(://[^/:]+):((?:80|443))(/.*|$)");
+                                                                        "^(?i)(https?)(://[^/:]+):((?:80|443))(/.*|$)");
 
     /**
      * Removes the default port from an HTTP or HTTPS URL, if present.
@@ -683,13 +683,13 @@ public class UrlUtil
     /* ================================================================================================== */
 
     private static final Pattern HOST_PATH_PATTERN = Pattern.compile(
-            "^" +
-            // Hostname: one or more domain labels separated by dots
-                    "([a-zA-Z0-9\\-]+\\.)+[a-zA-Z]{2,}" +
-                    // Optional port
-                    "(?::\\d{1,5})?" +
-                    // Followed by at least one slash and path component
-                    "(/[^\\s]*)?$");
+                                                                     "^" +
+                                                                     // Hostname: one or more domain labels separated by dots
+                                                                             "([a-zA-Z0-9\\-]+\\.)+[a-zA-Z]{2,}" +
+                                                                             // Optional port
+                                                                             "(?::\\d{1,5})?" +
+                                                                             // Followed by at least one slash and path component
+                                                                             "(/[^\\s]*)?$");
 
     public static boolean looksLikeUrlWithoutScheme(String input)
     {
@@ -898,5 +898,13 @@ public class UrlUtil
         // Encode using UTF-8 and percent-encode
         String encodedFragment = UrlUtil.encodeSegment(fragment);
         return beforeFragment + "#" + encodedFragment;
+    }
+
+    /* =========================================================================================== */
+
+    public static String urlHost(String url) throws Exception
+    {
+        URL x = new URL(url);
+        return x.getHost();
     }
 }

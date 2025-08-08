@@ -321,7 +321,7 @@ public class StyleActionToLocal
             throw newException("Unexpected link.href: " + href);
         }
 
-        String cssFileURL = Util.resolveURL(baseUrl, href);
+        String cssFileURL = UrlUtil.resolveURL(baseUrl, href);
 
         String newref = resolveCssFile(cssFileURL);
         if (newref != null)
@@ -1007,7 +1007,7 @@ public class StyleActionToLocal
         if (originalUrl.toLowerCase().startsWith("data:"))
             return null;
 
-        String absoluteUrl = Util.resolveURL(baseUrl, originalUrl);
+        String absoluteUrl = UrlUtil.resolveURL(baseUrl, originalUrl);
 
         /* embedded data URL */
         String lc = absoluteUrl.toLowerCase();
@@ -1175,7 +1175,7 @@ public class StyleActionToLocal
         if (originalUrl == null || originalUrl.trim().isEmpty())
             throw newException("Resuouce URL is missing or blank");
 
-        String absoluteCssFileUrl = Util.resolveURL(baseUrl, originalUrl);
+        String absoluteCssFileUrl = UrlUtil.resolveURL(baseUrl, originalUrl);
 
         /*
          * Resource is expected to be remote

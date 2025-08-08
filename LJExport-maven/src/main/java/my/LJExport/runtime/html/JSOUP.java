@@ -1050,7 +1050,7 @@ public class JSOUP
                 try
                 {
                     String av2 = UrlUtil.decodeHtmlAttrLink(av);                    
-                    newv = Util.resolveURL(baseURL, av2);
+                    newv = UrlUtil.resolveURL(baseURL, av2);
                     newv = UrlUtil.encodeUrlForHtmlAttr(newv, true);
                 }
                 catch (Exception ex)
@@ -1059,7 +1059,7 @@ public class JSOUP
                     return false;
                 }
 
-                if (!Util.isSameURL(av, newv))
+                if (!UrlUtil.isSameURL(av, newv))
                 {
                     if (getAttribute(n, "original-" + attr) == null)
                         JSOUP.setAttribute(n, "original-" + attr, av_original);

@@ -2,12 +2,14 @@ package my.LJExport.runtime.url;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import my.LJExport.runtime.Util;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 
@@ -762,5 +764,138 @@ public class UrlUtil
         {
             return false;
         }
+    }
+
+    /* ================================================================================================== */
+
+    public static boolean isSameURL(String url1, String url2)
+    {
+        try
+        {
+            URI uri1 = new URI(url1);
+            URI uri2 = new URI(url2);
+
+            return isSameURL(uri1, uri2);
+        }
+        catch (URISyntaxException e)
+        {
+            return false;
+        }
+    }
+
+    public static boolean isSameURL(URI uri1, URI uri2)
+    {
+        // Compare scheme and host case-insensitively
+        if (!equalsIgnoreCase(uri1.getScheme(), uri2.getScheme()))
+            return false;
+
+        if (!equalsIgnoreCase(uri1.getHost(), uri2.getHost()))
+            return false;
+
+        // Compare port (default ports need normalization if desired)
+        if (uri1.getPort() != uri2.getPort())
+            return false;
+
+        // Compare path, query, and fragment case-sensitively
+        if (!Objects.equals(uri1.getPath(), uri2.getPath()))
+            return false;
+
+        if (!Objects.equals(uri1.getQuery(), uri2.getQuery()))
+            return false;
+
+        if (!Objects.equals(uri1.getFragment(), uri2.getFragment()))
+            return false;
+
+        return true;
+    }
+
+    private static boolean equalsIgnoreCase(String a, String b)
+    {
+        return (a == null && b == null) || (a != null && a.equalsIgnoreCase(b));
+    }
+
+    /* ================================================================================================== */
+
+    public static String resolveURL(String baseURL, String relativeURL) throws Exception
+    {
+        if (baseURL != null)
+            baseURL = baseURL.trim();
+
+        if (relativeURL != null)
+            relativeURL = relativeURL.trim();
+
+        if (relativeURL != null)
+        {
+            if (relativeURL.startsWith("data:"))
+                return relativeURL;
+
+            relativeURL = encodeFragmentInUrl(relativeURL);
+            /* Windows backslashes in some old HTML files, e.g. ..\index.html */
+            relativeURL = relativeURL.replace("\\", "/");
+        }
+
+        if (baseURL == null || baseURL.isEmpty())
+            return relativeURL;
+
+        // Handle protocol-relative URLs (e.g., //cdn.example.com/script.js)
+        if (relativeURL != null && relativeURL.startsWith("//"))
+        {
+            if (baseURL != null && !baseURL.isEmpty())
+            {
+                URI baseUri = new URI(baseURL);
+                String scheme = baseUri.getScheme();
+                if (scheme != null && !scheme.isEmpty())
+                    return scheme + ":" + relativeURL;
+            }
+
+            // If baseURL is missing or lacks scheme, fallback (e.g., assume "https:")
+            return "https:" + relativeURL;
+        }
+
+        // Handle archive.org URLs with embedded full URLs in the path
+        final String archive_org_https_web = "https://web.archive.org/web/";
+        if (baseURL.startsWith(archive_org_https_web))
+        {
+            int schemeIndex = baseURL.indexOf("http://", archive_org_https_web.length());
+            if (schemeIndex == -1)
+                schemeIndex = baseURL.indexOf("https://", archive_org_https_web.length());
+
+            if (schemeIndex != -1)
+            {
+                String archivePrefix = baseURL.substring(0, schemeIndex);
+                String archivedURL = baseURL.substring(schemeIndex);
+
+                URI archivedBase = new URI(archivedURL);
+                URI resolved = archivedBase.resolve(relativeURL);
+
+                return archivePrefix + resolved.toString();
+            }
+        }
+
+        // Default case
+        try
+        {
+            URI base = new URI(baseURL);
+            URI resolved = base.resolve(relativeURL);
+            return resolved.toString();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    private static String encodeFragmentInUrl(String url) throws Exception
+    {
+        int hashIndex = url.indexOf('#');
+        if (hashIndex == -1)
+            return url;
+
+        String beforeFragment = url.substring(0, hashIndex);
+        String fragment = url.substring(hashIndex + 1);
+
+        // Encode using UTF-8 and percent-encode
+        String encodedFragment = UrlUtil.encodeSegment(fragment);
+        return beforeFragment + "#" + encodedFragment;
     }
 }

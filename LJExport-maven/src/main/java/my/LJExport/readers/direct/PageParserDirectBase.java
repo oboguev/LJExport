@@ -1305,6 +1305,8 @@ public abstract class PageParserDirectBase
 
         encoded = LegacyPercentUEncoding.normalizeEncodedSafe(encoded);
         encoded = UrlFixCP1251.fixUrlCp1251Sequences(encoded);
+        
+        // #### relocate to abs
 
         if (!encoded.equals(original_encoded))
         {

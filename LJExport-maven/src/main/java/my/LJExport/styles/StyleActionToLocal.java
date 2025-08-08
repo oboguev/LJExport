@@ -169,7 +169,7 @@ public class StyleActionToLocal
     public boolean processHtmlFileToLocalStyles(String htmlFilePath, PageParserDirectBasePassive parser, String htmlPageUrl)
             throws Exception
     {
-        if (htmlPageUrl != null && !Util.isAbsoluteURL(htmlPageUrl))
+        if (htmlPageUrl != null && !UrlUtil.isAbsoluteURL(htmlPageUrl))
             throw new IllegalArgumentException("HTML page URL is not absolute: " + htmlPageUrl);
 
         boolean updated = false;
@@ -303,7 +303,7 @@ public class StyleActionToLocal
     private void processHtmlLinkTag(Element elLink, String href, String htmlFilePath, String baseUrl, Element elInsertAfter,
             boolean updateElLink, AtomicReference<Element> createdElement) throws Exception
     {
-        if (!Util.isAbsoluteURL(href) && this.isDownloadedFromWebArchiveOrg && ArchiveOrgUrl.isArchiveOrgUriPath(href))
+        if (!UrlUtil.isAbsoluteURL(href) && this.isDownloadedFromWebArchiveOrg && ArchiveOrgUrl.isArchiveOrgUriPath(href))
         {
             // <link rel="stylesheet" type="text/css" href="/web/20160426180858cs_/http://nationalism.org/forum/07/general1.css" title="general">
             if (!href.startsWith("/"))
@@ -311,11 +311,11 @@ public class StyleActionToLocal
             href = ArchiveOrgUrl.ARCHIVE_SERVER + href;
         }
 
-        if (baseUrl == null && !Util.isAbsoluteURL(href))
+        if (baseUrl == null && !UrlUtil.isAbsoluteURL(href))
         {
             throw newException("Unexpected link.href: " + href);
         }
-        else if (!Util.isAbsoluteURL(href))
+        else if (!UrlUtil.isAbsoluteURL(href))
         {
             // later may resolve it against baseUrl
             throw newException("Unexpected link.href: " + href);

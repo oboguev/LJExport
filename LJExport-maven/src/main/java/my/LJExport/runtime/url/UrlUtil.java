@@ -704,4 +704,63 @@ public class UrlUtil
         Matcher matcher = HOST_PATH_PATTERN.matcher(input);
         return matcher.find();
     }
+
+    /* ================================================================================================== */
+
+    public static boolean isAbsoluteURL(String url)
+    {
+        if (url == null || url.trim().isEmpty())
+            return false;
+
+        try
+        {
+            // First parse using URL (more lenient)
+            // http://alexey_ivanov.users.photofile.ru/photo/alexey_ivanov/96510278/xlarge/119913775.jpg
+            URL parsedUrl = new URL(url.replace("_", "-"));
+
+            // Reconstruct the URI safely
+            String scheme = parsedUrl.getProtocol();
+            String host = parsedUrl.getHost();
+            int port = parsedUrl.getPort();
+            String path = parsedUrl.getPath();
+            String query = parsedUrl.getQuery();
+
+            if (scheme == null || host == null || host.trim().isEmpty())
+                return false;
+
+            String schemeLower = scheme.toLowerCase();
+            if (!schemeLower.equals("http") && !schemeLower.equals("https"))
+                throw new RuntimeException("Unexpected URL scheme " + scheme + "://");
+
+            // Encode the path
+            String[] parts = path.split("/");
+            StringBuilder encodedPath = new StringBuilder();
+            for (String part : parts)
+            {
+                if (!part.isEmpty())
+                {
+                    encodedPath.append('/').append(UrlUtil.encodeSegment(part));
+                }
+            }
+            if (path.endsWith("/"))
+                encodedPath.append('/');
+
+            URI safeUri = new URI(
+                    scheme,
+                    null,
+                    host,
+                    port,
+                    encodedPath.toString(),
+                    query,
+                    null);
+
+            // Final validation on path
+            String finalPath = safeUri.getPath();
+            return finalPath == null || finalPath.trim().isEmpty() || finalPath.startsWith("/");
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+    }
 }

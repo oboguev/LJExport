@@ -424,7 +424,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
             if (fli == null)
                 failedLinkInfo.put(relpath.toLowerCase(), fli = new FailedLinkInfo(relpath));
 
-            if (href_original != null && href_original.trim().length() != 0 && Util.isAbsoluteURL(href_original))
+            if (href_original != null && href_original.trim().length() != 0 && UrlUtil.isAbsoluteURL(href_original))
                 fli.addUrl(href_original);
 
             if (tag.equalsIgnoreCase("img"))

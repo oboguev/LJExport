@@ -1025,6 +1025,8 @@ public class JSOUP
         if (!JSOUP.isInTree(root, n))
             throw new RuntimeException("Node is not in tree");
     }
+    
+    /* ============================================================================================================= */
 
     public static boolean resolveURL(Node n, String attr, String baseURL) throws Exception
     {
@@ -1054,6 +1056,7 @@ public class JSOUP
 
                 if (av.startsWith("//"))
                 {
+                    // /web/20031003134433im_/http://www.nationalism.org/forum/04/Germans & Slavs_files/online.gif
                     String baseScheme = getScheme(baseURL, "https");
                     newv = baseScheme + ":" + av;
                 }

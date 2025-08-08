@@ -1301,13 +1301,11 @@ public abstract class PageParserDirectBase
         if (original_encoded == null)
             return false;
 
-        String encoded = original_encoded.trim();
+        String encoded = Util.trimWithNBSP(original_encoded);
 
         encoded = LegacyPercentUEncoding.normalizeEncodedSafe(encoded);
         encoded = UrlFixCP1251.fixUrlCp1251Sequences(encoded);
         
-        // #### relocate to abs
-
         if (!encoded.equals(original_encoded))
         {
             JSOUP.updateAttribute(n, attr, encoded);
@@ -1317,6 +1315,8 @@ public abstract class PageParserDirectBase
 
             updated = true;
         }
+
+        updated |= JSOUP.resolveURL(n, attr, baseUrl);
 
         return updated;
     }

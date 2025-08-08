@@ -3,7 +3,10 @@ package my.LJExport.runtime.links;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jsoup.nodes.Node;
@@ -28,6 +31,8 @@ import my.WebArchiveOrg.ArchiveOrgUrl;
 public class SmartLinkDownloader
 {
     private final String linksDir;
+    
+    private static Set<String> missingArchiveOrgSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public static enum LoadFrom
     {
@@ -141,6 +146,7 @@ public class SmartLinkDownloader
         if (loadFrom.hasOnline())
         {
             r = load_good(image, href, referer, true);
+            
             if (r != null)
             {
                 if (fromWhere != null)
@@ -165,9 +171,15 @@ public class SmartLinkDownloader
         /*
          * Query available acrhive.org snapshots 
          */
+        if (missingArchiveOrgSet.contains(href))
+            return null;
+                
         List<KVEntry> entries = ArchiveOrgQuery.querySnapshots(href, 1);
         if (entries == null || entries.size() == 0)
+        {
+            missingArchiveOrgSet.add(href);
             return null;
+        }
 
         /*
          * Load the snapshot

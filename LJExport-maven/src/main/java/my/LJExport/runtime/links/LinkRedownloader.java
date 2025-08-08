@@ -2,8 +2,11 @@ package my.LJExport.runtime.links;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpException;
 
@@ -18,6 +21,8 @@ import my.WebArchiveOrg.ArchiveOrgUrl;
 public class LinkRedownloader
 {
     private final String linksDir;
+
+    private static Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public LinkRedownloader(String linksDir)
     {
@@ -133,7 +138,10 @@ public class LinkRedownloader
             url = ArchiveOrgUrl.toDirectDownloadUrl(url, false, image);
         String url_noanchor = Util.stripAnchor(url);
 
-        URL xurl = new URL(url);
+        if (failedSet.contains(url_noanchor))
+            return null;
+
+        URL xurl = new URL(url_noanchor);
         String host = xurl.getHost().toLowerCase();
 
         if (referer != null && referer.length() != 0)
@@ -147,7 +155,7 @@ public class LinkRedownloader
 
         try
         {
-            setThreadName(threadName, "downloading " + url);
+            setThreadName(threadName, "downloading " + url_noanchor);
 
             r = Web.get(url_noanchor, Web.BINARY | Web.PROGRESS, headers, (code) ->
             {
@@ -166,6 +174,8 @@ public class LinkRedownloader
                 throw ex;
 
             LinkDownloader.examineException(host, r, ex);
+            failedSet.add(url_noanchor);
+            
             return null;
         }
         finally

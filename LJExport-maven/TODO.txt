@@ -39,8 +39,6 @@
 
 ================================================
 
-- make MainDownloadLinks with option to download from the archive
-
 - ### in files
   
 - CheckMissingLinks
@@ -49,6 +47,7 @@
 
 - FixFileExtensions
 
+- make MainDownloadLinks with option to download from the archive
 - MainDownloadLinks with archive access enabled (SmartDownloader) and away-iteration.
   Smart load: try one wrapping layer at a time from inner to outer.
   Pass original-url not unwrapped 

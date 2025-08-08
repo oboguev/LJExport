@@ -1,5 +1,6 @@
 package my.LJExport.runtime.html;
 
+import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -147,14 +148,14 @@ public class JSOUP
             if (v1.size() != v2.size())
                 throw new Exception("Bug in flatten #3");
         }
-        
+
         if (Util.True)
         {
             List<Node> v2 = flatten_2(el);
-            
+
             if (v1.size() != v2.size())
                 throw new Exception("Bug in flatten #4");
-            
+
             for (int k = 0; k < v1.size(); k++)
             {
                 if (v1.get(k) != v2.get(k))
@@ -424,7 +425,7 @@ public class JSOUP
 
         return vel;
     }
-    
+
     public static boolean hasClass(Element el, String cls) throws Exception
     {
         return classContains(getAttribute(el, "class"), cls);
@@ -1039,24 +1040,36 @@ public class JSOUP
 
                 av = Util.trimWithNBSP(av);
 
+                if (!shouldResolve(av))
+                    return false;
+
                 // https://web.archive.org/web/20160323032912/mailto:"rusaction@front.ru"
-                if (av.contains("/mailto:") || av.startsWith("javascript:"))
+                if (Util.False && av.contains("/mailto:"))
                     return false;
 
                 // /web/20031003134433im_/http://www.nationalism.org/forum/04/Germans & Slavs_files/online.gif
                 av = av.replace(" ", "%20");
 
                 String newv = null;
-                try
+
+                if (av.startsWith("//"))
                 {
-                    String av2 = UrlUtil.decodeHtmlAttrLink(av);                    
-                    newv = UrlUtil.resolveURL(baseURL, av2);
-                    newv = UrlUtil.encodeUrlForHtmlAttr(newv, true);
+                    String baseScheme = getScheme(baseURL, "https");
+                    newv = baseScheme + ":" + av;
                 }
-                catch (Exception ex)
+                else
                 {
-                    // malformed or grabled URL
-                    return false;
+                    try
+                    {
+                        String decoded_av = UrlUtil.decodeHtmlAttrLink(av);
+                        newv = UrlUtil.resolveURL(baseURL, decoded_av);
+                        newv = UrlUtil.encodeUrlForHtmlAttr(newv, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        // malformed or garbled URL
+                        return false;
+                    }
                 }
 
                 if (!UrlUtil.isSameURL(av, newv))
@@ -1070,6 +1083,48 @@ public class JSOUP
         }
 
         return false;
+    }
+
+    private static boolean shouldResolve(String av)
+    {
+        if (av.equals(""))
+            return false;
+
+        if (Util.startsWithIgnoreCase(av, null, "http://", "https://", "ftp://", "#", "?"))
+            return false;
+
+        if (Util.startsWith(av, null, "javascript:", "data:", "tel:", "mailto:",
+                            "sms:", "geo:", "magnet:", "blob:", "about:",
+                            "ws:", "wss:", "file:", "cid:"))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static String getScheme(String url, String fallback)
+    {
+        String scheme = null;
+
+        try
+        {
+            if (url != null && url.trim().length() != 0)
+                scheme = new URL(url).getProtocol();
+        }
+        catch (Exception ignore)
+        {
+            Util.noop();
+        }
+
+        if (scheme == null)
+            return fallback;
+
+        scheme = Util.trimWithNBSP(scheme);
+        if (scheme.length() == 0)
+            return fallback;
+
+        return scheme;
     }
 
     public static boolean resolveURLInTree(Node root, String tag, String attr, String baseURL) throws Exception

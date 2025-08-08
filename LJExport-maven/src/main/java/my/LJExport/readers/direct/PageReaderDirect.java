@@ -92,7 +92,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
         if (Config.isRossiaOrg() || Config.isDreamwidthOrg())
         {
             parser.removeJunk(PageParserDirectBase.REMOVE_SCRIPTS);
-            parser.normalizeLinks();
+            parser.normalizeLinks(page_final_url.get());
             parser.unwrapAwayLinks();
         }
         else if (UseEmbeddedComments)
@@ -102,7 +102,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
                     PageParserDirectBase.REMOVE_SCRIPTS |
                     PageParserDirectBase.EXTRACT_COMMENTS_JSON);
             
-            parser.normalizeLinks();
+            parser.normalizeLinks(page_final_url.get());
             parser.unwrapAwayLinks();
         }
         else
@@ -111,7 +111,7 @@ public class PageReaderDirect implements PageReader, PageContentSource
                     PageParserDirectBase.CHECK_HAS_COMMENTS |
                     PageParserDirectBase.REMOVE_SCRIPTS);
 
-            parser.normalizeLinks();
+            parser.normalizeLinks(page_final_url.get());
             parser.unwrapAwayLinks();
         }
 

@@ -1280,20 +1280,20 @@ public abstract class PageParserDirectBase
 
     /* ============================================================== */
 
-    public boolean normalizeLinks() throws Exception
+    public boolean normalizeLinks(String baseUrl) throws Exception
     {
         boolean updated = false;
 
         for (Node n : JSOUP.findElements(pageRoot, "a"))
-            updated |= normalizeLink(n, "href");
+            updated |= normalizeLink(n, "href", baseUrl);
 
         for (Node n : JSOUP.findElements(pageRoot, "img"))
-            updated |= normalizeLink(n, "src");
+            updated |= normalizeLink(n, "src", baseUrl);
 
         return updated;
     }
 
-    private boolean normalizeLink(Node n, String attr) throws Exception
+    private boolean normalizeLink(Node n, String attr, String baseUrl) throws Exception
     {
         boolean updated = false;
 

@@ -3,8 +3,6 @@ package my.LJExport.runtime.url;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-import my.LJExport.runtime.Util;
-
 /**
  * Converts legacy "%uXXXX" style escapes (old JS/IE) to RFC-compliant UTF-8 percent-encoding,
  * but only when XXXX is a 4-hex value within [minChar..maxChar].

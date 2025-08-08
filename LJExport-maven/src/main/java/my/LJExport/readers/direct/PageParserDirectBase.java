@@ -32,6 +32,7 @@ import my.LJExport.runtime.synch.FutureProcessor;
 import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.runtime.url.AwayLink;
 import my.LJExport.runtime.url.LegacyPercentUEncoding;
+import my.LJExport.runtime.url.UrlFixCP1251;
 import my.LJExport.runtime.url.UrlUtil;
 
 public abstract class PageParserDirectBase
@@ -1296,21 +1297,21 @@ public abstract class PageParserDirectBase
     {
         boolean updated = false;
 
-        String original = JSOUP.getAttribute(n, attr);
-        if (original == null)
+        String original_encoded = JSOUP.getAttribute(n, attr);
+        if (original_encoded == null)
             return false;
 
-        String encoded = original.trim();
+        String encoded = original_encoded.trim();
 
         encoded = LegacyPercentUEncoding.normalizeEncodedSafe(encoded);
-        // ### fix cp1251
+        encoded = UrlFixCP1251.fixUrlCp1251Sequences(encoded);
 
-        if (!encoded.equals(original))
+        if (!encoded.equals(original_encoded))
         {
             JSOUP.updateAttribute(n, attr, encoded);
 
             if (JSOUP.getAttribute(n, "original-" + attr) == null)
-                JSOUP.setAttribute(n, "original-" + attr, original);
+                JSOUP.setAttribute(n, "original-" + attr, original_encoded);
 
             updated = true;
         }

@@ -9,7 +9,6 @@ import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.url.AwayLink;
-import my.LJExport.runtime.url.LegacyPercentUEncoding;
 import my.LJExport.runtime.url.UrlUtil;
 
 public class UnwrapAwayLinks extends MaintenanceHandler

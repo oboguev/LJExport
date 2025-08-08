@@ -62,9 +62,15 @@ public class MainDownloadLinks
     // private static final String Users = "udod99.lj-rossia-org,colonelcassad.my_comments,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "1981dn.pre-2025,1981dn_dn.pre-2025,a_kaminsky.pre-2025,a_samovarov.pre-2025,bantaputu.pre-2025,hokma.pre-2025,krylov.pre-2025,oboguev.pre-2025,pioneer_lj.pre-2025,polit_ec.pre-2025,zhenziyou.pre-2025";
     private static final String Users = "novy_chitatel";
-    
+
     /* download images from archive.org in addition to online */
     private static boolean UseArchiveOrg = false;
+
+    /* 
+     * additionally reload missing images and links for monthly pages too,
+     * this is usually not needed since monthly pages can be regenerated from posts pages
+     */
+    private static boolean ReloadForMonthlyPages = false;
 
     /* we can use large number of threads because they usually are network IO bound */
     private static final int NWorkThreads = 300;
@@ -109,7 +115,7 @@ public class MainDownloadLinks
         Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
         Config.init("");
         Web.init();
-        
+
         if (UseArchiveOrg)
             Config.LinkDownloaderLoadFrom = LoadFrom.OnlineAndArchive;
 
@@ -178,10 +184,15 @@ public class MainDownloadLinks
             Main.linkDownloader.setUseSmartDownloader(Config.LinkDownloaderLoadFrom);
 
             pageFiles = enumerateHtmlFiles("pages", true);
+
             if (Util.True)
             {
                 pageFiles.addAll(enumerateHtmlFiles("profile", false));
                 pageFiles.addAll(enumerateHtmlFiles("reposts", false));
+            }
+
+            if (ReloadForMonthlyPages)
+            {
                 pageFiles.addAll(enumerateHtmlFiles("monthly-pages", false));
                 pageFiles.addAll(enumerateHtmlFiles("monthly-reposts", false));
             }

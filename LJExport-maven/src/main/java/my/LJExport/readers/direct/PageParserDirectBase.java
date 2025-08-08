@@ -31,6 +31,7 @@ import my.LJExport.runtime.synch.AppendToThreadName;
 import my.LJExport.runtime.synch.FutureProcessor;
 import my.LJExport.runtime.synch.ThreadsControl;
 import my.LJExport.runtime.url.AwayLink;
+import my.LJExport.runtime.url.LegacyPercentUEncoding;
 import my.LJExport.runtime.url.UrlUtil;
 
 public abstract class PageParserDirectBase
@@ -222,8 +223,8 @@ public abstract class PageParserDirectBase
 
     /*static*/ public boolean downloadExternalLinks(Node root, AbsoluteLinkBase absoluteLinkBase) throws Exception
     {
-        if (Main.linkDownloader == null || !Main.linkDownloader.isInitialized() || Config.DownloadFileTypes == null
-                || Config.DownloadFileTypes.size() == 0)
+        if (Main.linkDownloader == null || !Main.linkDownloader.isInitialized() || Config.DownloadFileTypes == null ||
+            Config.DownloadFileTypes.size() == 0)
             return false;
 
         boolean downloaded = false;
@@ -682,7 +683,7 @@ public abstract class PageParserDirectBase
             if (rel != null && href != null)
             {
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") ||
-                        rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
+                    rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
                 {
                     String host = Util.urlHost(href).toLowerCase();
                     if (host.endsWith("." + Sites.DreamwidthOrg) || host.equals(Sites.DreamwidthOrg))
@@ -728,7 +729,7 @@ public abstract class PageParserDirectBase
                 }
 
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") ||
-                        rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
+                    rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
                 {
                     String host = Util.urlHost(href).toLowerCase();
                     if (host.endsWith("." + Sites.DreamwidthOrg) || host.equals(Sites.DreamwidthOrg))
@@ -950,7 +951,7 @@ public abstract class PageParserDirectBase
         for (Node n : JSOUP.findElements(pageRoot, "div"))
         {
             if (null != JSOUP.getAttribute(n, "suggestion-for-unlogged") ||
-                    null != JSOUP.getAttribute(n, "rd-post-view-related-list"))
+                null != JSOUP.getAttribute(n, "rd-post-view-related-list"))
             {
                 vel.add(n);
             }
@@ -1272,6 +1273,47 @@ public abstract class PageParserDirectBase
 
         for (Node n : JSOUP.findElements(pageRoot, "img"))
             updated |= AwayLink.unwrap(n, "src");
+
+        return updated;
+    }
+
+    /* ============================================================== */
+
+    public boolean normalizeLinks() throws Exception
+    {
+        boolean updated = false;
+
+        for (Node n : JSOUP.findElements(pageRoot, "a"))
+            updated |= normalizeLink(n, "href");
+
+        for (Node n : JSOUP.findElements(pageRoot, "img"))
+            updated |= normalizeLink(n, "src");
+
+        return updated;
+    }
+
+    private boolean normalizeLink(Node n, String attr) throws Exception
+    {
+        boolean updated = false;
+
+        String original = JSOUP.getAttribute(n, attr);
+        if (original == null)
+            return false;
+
+        String encoded = original.trim();
+
+        encoded = LegacyPercentUEncoding.normalizeEncodedSafe(encoded);
+        // ### fix cp1251
+
+        if (!encoded.equals(original))
+        {
+            JSOUP.updateAttribute(n, attr, encoded);
+
+            if (JSOUP.getAttribute(n, "original-" + attr) == null)
+                JSOUP.setAttribute(n, "original-" + attr, original);
+
+            updated = true;
+        }
 
         return updated;
     }

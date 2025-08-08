@@ -72,7 +72,7 @@ public class LinkDownloader
         close();
         href2file.close();
         href2file.init(linksDir + File.separator + LinkMapFileName);
-        failedSet.clear();
+        // failedSet.clear();
         this.linksDir = linksDir;
     }
 
@@ -80,7 +80,7 @@ public class LinkDownloader
     {
         linksDir = null;
         href2file.close();
-        failedSet.clear();
+        // failedSet.clear();
     }
 
     public boolean isInitialized()

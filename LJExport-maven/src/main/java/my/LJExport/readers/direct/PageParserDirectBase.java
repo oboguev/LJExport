@@ -275,6 +275,8 @@ public abstract class PageParserDirectBase
 
     /* ==================================================================================================================== */
 
+    // #### decode - reencode links and oter JSOUP places
+
     private boolean unwrapImgPrx(Node root, String tag, String attr, FutureProcessor<AsyncUnwrapImgPrx> fpUnwrap) throws Exception
     {
         boolean unwrapped = false;
@@ -423,6 +425,8 @@ public abstract class PageParserDirectBase
 
     /* ==================================================================================================================== */
 
+    // #### decode - reencode links
+
     /*static*/ private boolean downloadExternalLinks(Node root, String tag, String attr,
             FutureProcessor<AsyncDownloadExternalLinks> fpDownload) throws Exception
     {
@@ -435,10 +439,10 @@ public abstract class PageParserDirectBase
 
             String original_href = JSOUP.getAttribute(n, "original-" + attr);
             original_href = UrlUtil.decodeHtmlAttrLink(original_href);
-            
+
             String name_href = href;
-            String download_href = original_href != null && original_href.trim().length() != 0 ? original_href : href;  
-            
+            String download_href = original_href != null && original_href.trim().length() != 0 ? original_href : href;
+
             /* --------------------------------------------------------------- */
 
             if (ShouldDownload.shouldDownload(tag.equalsIgnoreCase("img"), href, Main.linkDownloader.isOnlineOnly()))
@@ -447,12 +451,14 @@ public abstract class PageParserDirectBase
 
                 if (ThreadsControl.useLinkDownloadThreads())
                 {
-                    fpDownload.add(new AsyncDownloadExternalLinks(n, tag, attr, name_href, download_href, referer, linkReferencePrefix));
+                    fpDownload.add(
+                            new AsyncDownloadExternalLinks(n, tag, attr, name_href, download_href, referer, linkReferencePrefix));
                 }
                 else
                 {
                     boolean image = tag.equalsIgnoreCase("img");
-                    String newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href), referer, linkReferencePrefix);
+                    String newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href), referer,
+                            linkReferencePrefix);
                     if (newref != null)
                     {
                         JSOUP.updateAttribute(n, attr, newref);
@@ -482,7 +488,8 @@ public abstract class PageParserDirectBase
         private String newref;
         private Exception ex;
 
-        public AsyncDownloadExternalLinks(Node n, String tag, String attr, String name_href, String download_href, String referer, String linkReferencePrefix)
+        public AsyncDownloadExternalLinks(Node n, String tag, String attr, String name_href, String download_href, String referer,
+                String linkReferencePrefix)
         {
             this.n = n;
             this.tag = tag;
@@ -502,7 +509,8 @@ public abstract class PageParserDirectBase
             {
                 Thread.currentThread().setName("webload");
                 boolean image = tag.equalsIgnoreCase("img");
-                newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href), referer, linkReferencePrefix);
+                newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href), referer,
+                        linkReferencePrefix);
             }
             catch (Exception ex)
             {

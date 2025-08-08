@@ -154,6 +154,8 @@ public class AwayLink
         if (decoded_href == null)
             return null;
 
+        decoded_href = decoded_href.trim();
+        
         String anchor = Util.getAnchor(decoded_href);
         decoded_href = Util.stripAnchor(decoded_href);
 

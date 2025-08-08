@@ -129,7 +129,7 @@ public class LinkDownloader
         String rel = Util.stripStart(abs, prefix);
         return rel.replace(File.separator, "/");
     }
-    
+
     /*
      * Download at one of alternative download addresses 
      */
@@ -137,8 +137,9 @@ public class LinkDownloader
     {
         return download(image, name_href, download_hrefs, referer, linkReferencePrefix, null);
     }
-    
-    public String download(boolean image, String name_href, List<String> download_hrefs, String referer, String linkReferencePrefix, DownloadSource downloadSource)
+
+    public String download(boolean image, String name_href, List<String> download_hrefs, String referer, String linkReferencePrefix,
+            DownloadSource downloadSource)
     {
         download_hrefs = Util.eliminateNullsAndDuplicates(download_hrefs);
 
@@ -148,7 +149,7 @@ public class LinkDownloader
             if (newref != null)
                 return newref;
         }
-        
+
         return null;
     }
 
@@ -159,7 +160,7 @@ public class LinkDownloader
     {
         return download(image, href, href, referer, linkReferencePrefix);
     }
-    
+
     /*
      * download_href is used for actual downloading
      * name_href is used for storing/naming the resource in links directory
@@ -314,8 +315,8 @@ public class LinkDownloader
 
         String actual_filename = filename.get();
         if (alreadyHaveFileForHref(null, name_href_noanchor, filename) ||
-            alreadyHaveFileForHref(null, download_href_noanchor, filename) ||
-            alreadyHaveFileForHref(actual_filename, name_href_noanchor, filename))
+                alreadyHaveFileForHref(null, download_href_noanchor, filename) ||
+                alreadyHaveFileForHref(actual_filename, name_href_noanchor, filename))
         {
             return;
         }
@@ -335,7 +336,7 @@ public class LinkDownloader
         }
 
         if (alreadyHaveFileForHref(null, name_href_noanchor, filename) ||
-            alreadyHaveFileForHref(null, download_href_noanchor, filename))
+                alreadyHaveFileForHref(null, download_href_noanchor, filename))
         {
             return;
         }
@@ -441,7 +442,8 @@ public class LinkDownloader
         if (r == null)
         {
             filename.set(null);
-            failedSet.add(download_href_noanchor);
+            /* only add to failedSet in case of network failure, not content type mismatch */
+            // failedSet.add(download_href_noanchor);
             return;
         }
 
@@ -487,8 +489,8 @@ public class LinkDownloader
         }
         catch (Exception ex)
         {
-            Util.noop();
-            if (download_href_noanchor != null)
+            /* only add to failedSet in case of network failure, not content type mismatch */
+            if (Util.False && download_href_noanchor != null)
                 failedSet.add(download_href_noanchor);
             throw ex;
         }

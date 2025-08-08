@@ -452,7 +452,7 @@ public abstract class PageParserDirectBase
                 else
                 {
                     boolean image = tag.equalsIgnoreCase("img");
-                    String newref = Main.linkDownloader.download(image, name_href, download_href, referer, linkReferencePrefix);
+                    String newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href), referer, linkReferencePrefix);
                     if (newref != null)
                     {
                         JSOUP.updateAttribute(n, attr, newref);
@@ -502,7 +502,7 @@ public abstract class PageParserDirectBase
             {
                 Thread.currentThread().setName("webload");
                 boolean image = tag.equalsIgnoreCase("img");
-                newref = Main.linkDownloader.download(image, name_href, download_href, referer, linkReferencePrefix);
+                newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href), referer, linkReferencePrefix);
             }
             catch (Exception ex)
             {

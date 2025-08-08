@@ -3,6 +3,8 @@ package my.LJExport.runtime.url;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+import my.LJExport.runtime.Util;
+
 /**
  * Converts legacy "%uXXXX" style escapes (old JS/IE) to RFC-compliant UTF-8 percent-encoding,
  * but only when XXXX is a 4-hex value within [minChar..maxChar].
@@ -11,13 +13,26 @@ public class LegacyPercentUEncoding
 {
     private final int minChar;
     private final int maxChar;
+    
+    public static String normalizeEncodedSafe(String encoded)
+    {
+        LegacyPercentUEncoding lpu = new LegacyPercentUEncoding();
+        if (lpu.count(encoded) >= 5)
+            encoded = lpu.normalizeEncodedAny(encoded);
+        return encoded;
+    }
+
+    private LegacyPercentUEncoding()
+    {
+        this(0x0410, 0x0490);
+    }
 
     /**
      * @param minChar inclusive lower bound (0x0000..0xFFFF)
      * @param maxChar inclusive upper bound (0x0000..0xFFFF)
      * @throws IllegalArgumentException if bounds are invalid or out of BMP range
      */
-    public LegacyPercentUEncoding(int minChar, int maxChar)
+    private LegacyPercentUEncoding(int minChar, int maxChar)
     {
         if (minChar < 0x0000 || maxChar > 0xFFFF || minChar > maxChar)
         {
@@ -53,8 +68,11 @@ public class LegacyPercentUEncoding
     /**
      * Rewrites %uXXXX (within range) to UTF-8 percent-encoding (%XX...).
      * Leaves all other text untouched.
+     * 
+     * The input URL must be in "encoded" status, in case it contains mixed %XX and %uXXXX.
+     * Output is in the encoded status. 
      */
-    public String normalize(String s)
+    public String normalizeEncodedAny(String s)
     {
         Objects.requireNonNull(s, "s");
         final int len = s.length();

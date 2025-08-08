@@ -26,10 +26,13 @@ public class UrlUtil
 
     public static String decodeUrl(String encodedUrl)
     {
+        // convert any legacy %uXXXX to %XX
+        encodedUrl = LegacyPercentUEncoding.normalizeEncodedSafe(encodedUrl);
+
         // if it is already decoded
         if (!containsPercentEncoding(encodedUrl))
             return encodedUrl;
-        
+
         /*
          * URLDecoder decodes + as space, which is correct only for application/x-www-form-urlencoded (form data).
          * But in URLs like <a href=...> and <img src=...>, a literal + should stay +.
@@ -364,7 +367,7 @@ public class UrlUtil
             char ch = segment.charAt(i);
 
             if (safe && ch == '%' && i + 2 < length &&
-                    isHexDigit(segment.charAt(i + 1)) && isHexDigit(segment.charAt(i + 2)))
+                isHexDigit(segment.charAt(i + 1)) && isHexDigit(segment.charAt(i + 2)))
             {
                 // Valid %xx sequence, preserve as-is
                 sb.append(segment, i, i + 3);
@@ -396,8 +399,8 @@ public class UrlUtil
     private static boolean isHexDigit(char c)
     {
         return (c >= '0' && c <= '9') ||
-                (c >= 'A' && c <= 'F') ||
-                (c >= 'a' && c <= 'f');
+               (c >= 'A' && c <= 'F') ||
+               (c >= 'a' && c <= 'f');
     }
 
     /**
@@ -406,9 +409,9 @@ public class UrlUtil
     private static boolean isUnreserved(char ch)
     {
         return (ch >= 'A' && ch <= 'Z') ||
-                (ch >= 'a' && ch <= 'z') ||
-                (ch >= '0' && ch <= '9') ||
-                ch == '-' || ch == '.' || ch == '_' || ch == '~';
+               (ch >= 'a' && ch <= 'z') ||
+               (ch >= '0' && ch <= '9') ||
+               ch == '-' || ch == '.' || ch == '_' || ch == '~';
     }
 
     /* ================================================================================================== */
@@ -466,7 +469,7 @@ public class UrlUtil
         String port = matcher.group(3); // e.g., ":443" or ":8080"
 
         boolean isDefaultPort = (scheme.equals("http") && ":80".equals(port)) ||
-                (scheme.equals("https") && ":443".equals(port));
+                                (scheme.equals("https") && ":443".equals(port));
 
         StringBuilder sb = new StringBuilder();
         sb.append(scheme).append("://").append(host);
@@ -608,7 +611,7 @@ public class UrlUtil
 
         // Remove port only if it matches the default for the scheme
         if ((scheme.equals("http") && port.equals("80")) ||
-                (scheme.equals("https") && port.equals("443")))
+            (scheme.equals("https") && port.equals("443")))
         {
             return scheme + host + rest;
         }

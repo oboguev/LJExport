@@ -86,13 +86,6 @@ public class UnwrapAwayLinks extends MaintenanceHandler
                 continue;
             }
 
-            LegacyPercentUEncoding lpu = new LegacyPercentUEncoding(0x0410, 0x0490);
-            if (lpu.count(old_encoded) >= 5)
-            {
-                old_encoded = lpu.normalize(old_encoded);
-                Util.err("Normalized %u in link in HTML file " + fullHtmlFilePath);
-            }
-
             String old_decoded;
             try
             {

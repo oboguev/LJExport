@@ -80,7 +80,7 @@ public class UnwrapAwayLinks extends MaintenanceHandler
             String old_decoded = UrlUtil.decodeHtmlAttrLink(old_encoded);
 
             String unwrapped_decoded = AwayLink.unwrapDecoded(old_decoded);
-            if (unwrapped_decoded.equals(old_decoded))
+            if (old_encoded == null || unwrapped_decoded.equals(old_decoded))
                 continue;
 
             String new_encoded = UrlUtil.encodeUrlForHtmlAttr(unwrapped_decoded, true);

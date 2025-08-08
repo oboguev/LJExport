@@ -46,6 +46,8 @@
 - MainDownloadLinks with option to download from the archive
   and away-iteration.
   
+- MainDownloadLinks print loads  
+  
 ================================================
 
 Options:

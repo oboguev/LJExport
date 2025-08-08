@@ -108,6 +108,13 @@ public class UnwrapAwayLinks extends MaintenanceHandler
             if (unwrapped_decoded.equals(old_decoded) || unwrapped_decoded.equals("null"))
                 continue;
 
+            if (unwrapped_decoded.trim().startsWith("data:") ||
+                unwrapped_decoded.trim().startsWith("mailto:") ||
+                unwrapped_decoded.trim().startsWith("tel:"))
+            {
+                continue;
+            }
+
             String new_encoded;
             try
             {

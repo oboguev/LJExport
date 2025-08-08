@@ -76,7 +76,18 @@ public class AwayLink
         if (!Util.startsWithIgnoreCase(encoded_href, null, "http://", "https://", "http3a//", "https3a//"))
             return encoded_href;
 
-        String decoded_href = UrlUtil.decodeHtmlAttrLink(encoded_href);
+        String decoded_href;
+        try
+        {
+            decoded_href = UrlUtil.decodeHtmlAttrLink(encoded_href);
+        }
+        catch (Exception ex)
+        {
+            // typically means incorrect undecodable %XX sequence in encoded_href,
+            // for example %D1%D at the end of a truncated URL
+            return initial_encoded_href;
+        }
+        
         String unwrapped_decoded_href = unwrapDecoded(decoded_href);
         if (unwrapped_decoded_href.equals(decoded_href))
             return initial_encoded_href;

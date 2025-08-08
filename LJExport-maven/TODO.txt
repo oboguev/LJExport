@@ -56,6 +56,8 @@
 - MainDownloadLinks 1st attempt from attr, 2nd from original-attr (pass download-list)
   and keep failed list
   inside smart downloader too
+  
+- MainDownloadLinks option: skip monthly   
 
 ================================================
 

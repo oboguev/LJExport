@@ -547,7 +547,8 @@ public class UrlUtil
     /* ================================================================================================== */
 
     /*
-     * Encode only those characters not allowed in URL
+     * Encode only those characters not allowed in URL.
+     * Do not double-encode %.
      */
     public static String encodeMinimal(String input)
     {

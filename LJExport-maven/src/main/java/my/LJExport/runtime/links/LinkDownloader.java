@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -128,12 +129,37 @@ public class LinkDownloader
         String rel = Util.stripStart(abs, prefix);
         return rel.replace(File.separator, "/");
     }
+    
+    /*
+     * Download at one of alternative download addresses 
+     */
+    public String download(boolean image, String name_href, List<String> download_hrefs, String referer, String linkReferencePrefix)
+    {
+        return download(image, name_href, download_hrefs, referer, linkReferencePrefix, null);
+    }
+    
+    public String download(boolean image, String name_href, List<String> download_hrefs, String referer, String linkReferencePrefix, DownloadSource downloadSource)
+    {
+        download_hrefs = Util.eliminateNullsAndDuplicates(download_hrefs);
 
+        for (String download_href : download_hrefs)
+        {
+            String newref = download(image, name_href, download_href, referer, linkReferencePrefix, downloadSource);
+            if (newref != null)
+                return newref;
+        }
+        
+        return null;
+    }
+
+    /*
+     * Brief version of the call
+     */
     public String download(boolean image, String href, String referer, String linkReferencePrefix)
     {
         return download(image, href, href, referer, linkReferencePrefix);
     }
-
+    
     /*
      * download_href is used for actual downloading
      * name_href is used for storing/naming the resource in links directory

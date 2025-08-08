@@ -412,7 +412,7 @@ public class Util
 
         return href;
     }
-    
+
     public static String withAnchor(String href, String anchor)
     {
         if (anchor != null)
@@ -1677,5 +1677,18 @@ public class Util
     public static String nplural(int n, String single, String plural)
     {
         return n + " " + plural(n, single, plural);
+    }
+
+    public static List<String> eliminateNullsAndDuplicates(List<String> list)
+    {
+        List<String> xlist = new ArrayList<>();
+
+        for (String s : list)
+        {
+            if (s != null && !xlist.contains(s))
+                xlist.add(s);
+        }
+
+        return xlist;
     }
 }

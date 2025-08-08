@@ -68,10 +68,13 @@ public class AwayLink
      */
     public static String unwrapEncoded(String encoded_href) throws Exception
     {
+        String initial_encoded_href = encoded_href;
+
         if (encoded_href == null)
             return null;
-
-        String initial_encoded_href = encoded_href;
+        
+        if (!Util.startsWithIgnoreCase(encoded_href, null, "http://", "https://", "http3a//", "https3a//"))
+            return encoded_href;
 
         String decoded_href = UrlUtil.decodeHtmlAttrLink(encoded_href);
         String unwrapped_decoded_href = unwrapDecoded(decoded_href);

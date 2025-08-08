@@ -899,12 +899,4 @@ public class UrlUtil
         String encodedFragment = UrlUtil.encodeSegment(fragment);
         return beforeFragment + "#" + encodedFragment;
     }
-
-    /* =========================================================================================== */
-
-    public static String urlHost(String url) throws Exception
-    {
-        URL x = new URL(url);
-        return x.getHost();
-    }
 }

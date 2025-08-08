@@ -43,7 +43,7 @@ public abstract class PageParserDirectBase
 
         public static AbsoluteLinkBase from(String url) throws Exception
         {
-            String host = UrlUtil.urlHost(url).toLowerCase();
+            String host = UrlUtil.extractHost(url).toLowerCase();
             if (host.equals("livejournal.com") || host.equals("www.livejournal.com"))
                 return WWW_Livejournal;
             if (host.endsWith(".livejournal.com"))
@@ -686,7 +686,7 @@ public abstract class PageParserDirectBase
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") ||
                     rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
                 {
-                    String host = UrlUtil.urlHost(href).toLowerCase();
+                    String host = UrlUtil.extractHost(href).toLowerCase();
                     if (host.endsWith("." + Sites.DreamwidthOrg) || host.equals(Sites.DreamwidthOrg))
                         style = detectPageStyle(style, Sites.DreamwidthOrg);
                 }
@@ -724,7 +724,7 @@ public abstract class PageParserDirectBase
             {
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") || rel.toLowerCase().equals("previous"))
                 {
-                    String host = UrlUtil.urlHost(href).toLowerCase();
+                    String host = UrlUtil.extractHost(href).toLowerCase();
                     if (host.equals(Sites.RossiaOrg))
                         style = detectPageStyle(style, Sites.RossiaOrg);
                 }
@@ -732,7 +732,7 @@ public abstract class PageParserDirectBase
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") ||
                     rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
                 {
-                    String host = UrlUtil.urlHost(href).toLowerCase();
+                    String host = UrlUtil.extractHost(href).toLowerCase();
                     if (host.endsWith("." + Sites.DreamwidthOrg) || host.equals(Sites.DreamwidthOrg))
                         style = detectPageStyle(style, Sites.DreamwidthOrg);
                 }

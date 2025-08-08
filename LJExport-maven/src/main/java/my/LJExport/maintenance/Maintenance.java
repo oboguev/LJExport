@@ -30,8 +30,8 @@ import my.LJExport.runtime.ui.UIProgressDialog;
 public class Maintenance
 {
     private static final String ALL_USERS = "<all>";
-    // private static final String AllUsersFromUser = null;
-    private static final String AllUsersFromUser = "kot_begemott";
+    private static final String AllUsersFromUser = null;
+    // private static final String AllUsersFromUser = "kot_begemott";
 
     private static final String Users = ALL_USERS;
     // private static final String Users = "1981dn";
@@ -115,8 +115,8 @@ public class Maintenance
             // --- then run MainRedownloadFailedLinks
             // do_users(Users, RemoveFailedDownloads.class);
             // do_users(Users, CheckMissingLinks.class);
-            do_users(Users, FixFileExtensions.class);
-            // do_users(Users, CheckMissingLinks.class);
+            // do_users(Users, FixFileExtensions.class);
+            do_users(Users, CheckMissingLinks.class);
             // do_users(Users, UnwrapAwayLinks.class); 
             // --- then run MainDownloadLinks
 

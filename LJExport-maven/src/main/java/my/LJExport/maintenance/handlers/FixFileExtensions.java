@@ -64,7 +64,7 @@ import my.LJExport.runtime.url.UrlUtil;
  */
 public class FixFileExtensions extends MaintenanceHandler
 {
-    private static boolean DryRun = false; // ###
+    private static boolean DryRun = true; // ###
     private static final Safety safety = Safety.UNSAFE;
 
     public FixFileExtensions() throws Exception

@@ -53,9 +53,9 @@
   Smart load: try one wrapping layer at a time from inner to outer.
   Pass original-url not unwrapped 
   
-- MainDownloadLinks 1st attempt from attr, 2nd from original-attr
+- MainDownloadLinks 1st attempt from attr, 2nd from original-attr (pass download-list)
   and keep failed list
-  inside smart downloader too  
+  inside smart downloader too
 
 ================================================
 

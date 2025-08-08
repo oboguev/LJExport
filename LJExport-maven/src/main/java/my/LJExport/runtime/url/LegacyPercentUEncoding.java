@@ -17,7 +17,7 @@ public class LegacyPercentUEncoding
     public static String normalizeEncodedSafe(String encoded)
     {
         LegacyPercentUEncoding lpu = new LegacyPercentUEncoding();
-        if (lpu.count(encoded) >= 5)
+        if (lpu.count(encoded) >= 3)
             encoded = lpu.normalizeEncodedAny(encoded);
         return encoded;
     }

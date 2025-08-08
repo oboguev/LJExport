@@ -46,8 +46,6 @@
 - MainDownloadLinks with option to download from the archive
   and away-iteration.
   
-- MainDownloadLinks option: skip monthly   
-
 ================================================
 
 Options:

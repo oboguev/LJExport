@@ -18,6 +18,7 @@ public class BuildDirectPageIndex
     private final String host;
 
     private static final Pattern FILE_PATTERN = Pattern.compile("^(\\d{4})/(\\d{2})/(\\d+)\\.html$");
+    private static final String nl = "\n";
 
     private static class Entry implements Comparable<Entry>
     {
@@ -74,7 +75,7 @@ public class BuildDirectPageIndex
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append("<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<title>Direct Index</title>\n");
+        sb.append(String.format("<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<title>%s - прямой указатель записей</title>\n", user));
 
         // Embedded CSS
         sb.append("<style>");
@@ -117,6 +118,14 @@ public class BuildDirectPageIndex
 
 
         sb.append("</head>\n<body>\n");
+
+        sb.append(String.format("<h1>Прямой указатель записей дневника %s.</h1><br>" + nl, user));
+        sb.append(String.format("Для навигации можно ввести:" + nl));
+        sb.append(String.format("<ul>" + nl));
+        sb.append(String.format("<li>номер записи</li>" + nl));
+        sb.append(String.format("<li>номер.html</li>" + nl));
+        sb.append(String.format("<li>полную ссылку</li>" + nl));
+        sb.append(String.format("</ul><br>" + nl));
 
         // Input control
         sb.append(

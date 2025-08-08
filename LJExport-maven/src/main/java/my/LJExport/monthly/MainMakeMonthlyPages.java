@@ -9,6 +9,7 @@ import my.LJExport.Config;
 import my.LJExport.Main;
 import my.LJExport.runtime.EnumUsers;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.lj.LJUserHost;
 import my.LJExport.runtime.ui.UIDialogQuestion;
 
 /*
@@ -154,8 +155,10 @@ public class MainMakeMonthlyPages
                 }
             }
         }
+        
+        LJUserHost ljUserHost = LJUserHost.split(Config.User);
 
-        new BuildNavigationIndex(Config.User, whichDir, monthlyPagesDir, pagesDir, BuildNavigationIndex.DIVIDER).buildNavigation();
+        new BuildNavigationIndex(ljUserHost.user, ljUserHost.host, whichDir, monthlyPagesDir, pagesDir, BuildNavigationIndex.DIVIDER).buildNavigation();
         new InsertNavigationControls(monthlyPagesDir, InsertNavigationControls.DIVIDER).insertContols();
 
         Main.out(String.format(">>> Completed processing monthly %s for user %s", whichDir, Config.User));

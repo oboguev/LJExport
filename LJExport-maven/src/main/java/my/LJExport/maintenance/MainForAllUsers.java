@@ -14,6 +14,7 @@ import my.LJExport.runtime.MemoryMonitor;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.http.RateLimiter;
 import my.LJExport.runtime.http.Web;
+import my.LJExport.runtime.lj.LJUserHost;
 import my.LJExport.runtime.synch.ThreadsControl;
 
 public class MainForAllUsers
@@ -167,8 +168,10 @@ public class MainForAllUsers
                 Util.err("User " + user + "has no monthly-pages");
             return;
         }
+        
+        LJUserHost ljUserHost = LJUserHost.split(Config.User);
 
-        new BuildNavigationIndex(Config.User, which, monthlyRootDir, pagesRootDir, BuildNavigationIndex.DIVIDER).buildNavigation();
+        new BuildNavigationIndex(ljUserHost.user, ljUserHost.host, which, monthlyRootDir, pagesRootDir, BuildNavigationIndex.DIVIDER).buildNavigation();
     }
 
     /* ======================================================================= */

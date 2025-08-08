@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import my.LJExport.Config;
 import my.LJExport.runtime.Util;
+import my.LJExport.runtime.lj.LJUserHost;
 
 /**
  * Generates <code>index.html</code> files for a tree structured as
@@ -51,15 +52,17 @@ public final class BuildNavigationIndex
             "      5px;-o-border-radius: 5px;border-radius: 5px;\"></div>";
 
     private final String user;
+    private final String host;
     private final String section;  // "pages", "reposts"
     private final Path rootDir;
     private final String pagesRootDir;
     private final String dividerHtml;
 
-    public BuildNavigationIndex(String user, String section, String rootDir, String pagesRootDir, String dividerHtml)
+    public BuildNavigationIndex(String user, String host, String section, String rootDir, String pagesRootDir, String dividerHtml)
     {
         Objects.requireNonNull(rootDir, "rootDir must not be null");
         this.user = user;
+        this.host = host;
         this.section = section;
         this.rootDir = Paths.get(rootDir);
         this.pagesRootDir = pagesRootDir; 
@@ -82,8 +85,7 @@ public final class BuildNavigationIndex
             Util.writeToFileSafe(yearDir.resolve("index.html").toString(), content);
         }
         
-        // ####
-        String html = new BuildDirectPageIndex(pagesRootDir, user, "livejournal.com").buildHtml(rootDir.toAbsolutePath().toString());
+        String html = new BuildDirectPageIndex(pagesRootDir, user, host).buildHtml(rootDir.toAbsolutePath().toString());
         Util.writeToFileSafe(rootDir.resolve("direct-index.html").toString(), html);
 
         String rootContent = buildRootIndexHtml(filesByYearAndMonth);
@@ -334,7 +336,9 @@ public final class BuildNavigationIndex
         else
             section = " (" + section + ")";
         
-        sb.append(String.format("<div style=\"font-size:110%%;\"><h1>Дневник %s%s</h1></div>" + nl, Config.User, section));
+        LJUserHost ljUserHost = LJUserHost.split(Config.User);
+        
+        sb.append(String.format("<div style=\"font-size:110%%;\"><h1>Дневник %s%s</h1></div>" + nl, ljUserHost.user, section));
         
         insertLink(sb, "Профиль", "../profile/profile.html");
         insertLink(sb, "Аватары", "../profile/userpics.html");
@@ -343,7 +347,7 @@ public final class BuildNavigationIndex
         insertLink(sb, "Прямой указатель записей", "direct-index.html");
 
         sb.append(dividerHtml);
-        sb.append(String.format("<div style=\"font-size:90%%;\"><h1>Месячный указатель</h1></div>" + nl, Config.User, section));
+        sb.append(String.format("<div style=\"font-size:90%%;\"><h1>Месячный указатель</h1></div>" + nl));
     }
     
     private void insertLink(StringBuilder sb, String title, String relpath)

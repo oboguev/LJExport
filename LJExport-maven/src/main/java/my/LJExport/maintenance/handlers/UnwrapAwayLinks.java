@@ -78,8 +78,13 @@ public class UnwrapAwayLinks extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
             String old_encoded = JSOUP.getAttribute(n, attr);
-            if (old_encoded == null)
+            if (old_encoded == null ||
+                old_encoded.trim().startsWith("data:") ||
+                old_encoded.trim().startsWith("mailto:") ||
+                old_encoded.trim().startsWith("tel:"))
+            {
                 continue;
+            }
 
             LegacyPercentUEncoding lpu = new LegacyPercentUEncoding(0x0410, 0x0490);
             if (lpu.count(old_encoded) >= 5)

@@ -26,6 +26,10 @@ public class UrlUtil
 
     public static String decodeUrl(String encodedUrl)
     {
+        // if it is already decoded
+        if (!containsPercentEncoding(encodedUrl))
+            return encodedUrl;
+        
         /*
          * URLDecoder decodes + as space, which is correct only for application/x-www-form-urlencoded (form data).
          * But in URLs like <a href=...> and <img src=...>, a literal + should stay +.
@@ -40,6 +44,21 @@ public class UrlUtil
          * URLDecoder decodes + as space, which is correct only for application/x-www-form-urlencoded (form data).
          */
         return URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8);
+    }
+
+    // Precompiled regex: % followed by exactly two hex digits
+    private static final Pattern PERCENT_ENCODING = Pattern.compile("%[0-9A-Fa-f]{2}");
+
+    /**
+     * Checks whether the given string contains at least one valid %XX percent-encoding sequence.
+     * @param url the string to check
+     * @return true if a valid percent-encoding sequence is found, false otherwise
+     */
+    public static boolean containsPercentEncoding(String url)
+    {
+        if (url == null || url.isEmpty())
+            return false;
+        return PERCENT_ENCODING.matcher(url).find();
     }
 
     /* ================================================================================================== */

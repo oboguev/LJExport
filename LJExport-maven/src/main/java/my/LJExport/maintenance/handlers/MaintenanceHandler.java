@@ -436,6 +436,17 @@ public abstract class MaintenanceHandler extends Maintenance
         }
     }
 
+    protected void traceError(String msg) throws Exception
+    {
+        Util.err(msg);
+
+        if (traceWriter != null)
+        {
+            traceWriter.write(msg + nl);
+            traceWriter.flush();
+        }
+    }
+
     protected void supertrace(String msg) throws Exception
     {
         Util.out(msg);

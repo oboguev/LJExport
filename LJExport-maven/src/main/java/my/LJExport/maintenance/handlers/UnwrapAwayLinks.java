@@ -9,6 +9,7 @@ import my.LJExport.readers.direct.PageParserDirectBasePassive;
 import my.LJExport.runtime.Util;
 import my.LJExport.runtime.html.JSOUP;
 import my.LJExport.runtime.url.AwayLink;
+import my.LJExport.runtime.url.LegacyPercentUEncoding;
 import my.LJExport.runtime.url.UrlUtil;
 
 public class UnwrapAwayLinks extends MaintenanceHandler
@@ -77,13 +78,42 @@ public class UnwrapAwayLinks extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
             String old_encoded = JSOUP.getAttribute(n, attr);
-            String old_decoded = UrlUtil.decodeHtmlAttrLink(old_encoded);
-
-            String unwrapped_decoded = AwayLink.unwrapDecoded(old_decoded);
-            if (old_encoded == null || unwrapped_decoded.equals(old_decoded))
+            if (old_encoded == null)
                 continue;
 
-            String new_encoded = UrlUtil.encodeUrlForHtmlAttr(unwrapped_decoded, true);
+            LegacyPercentUEncoding lpu = new LegacyPercentUEncoding(0x0410, 0x0490);
+            if (lpu.count(old_encoded) >= 5)
+            {
+                old_encoded = lpu.normalize(old_encoded);
+                Util.err("Normalized %u in link in HTML file " + fullHtmlFilePath);
+            }
+
+            String old_decoded;
+            try
+            {
+                old_decoded = UrlUtil.decodeHtmlAttrLink(old_encoded);
+            }
+            catch (Exception ex)
+            {
+                traceError("Undecodable URL: " + old_encoded);
+                continue;
+            }
+
+            String unwrapped_decoded = AwayLink.unwrapDecoded(old_decoded);
+            if (unwrapped_decoded.equals(old_decoded) || unwrapped_decoded.equals("null"))
+                continue;
+
+            String new_encoded;
+            try
+            {
+                new_encoded = UrlUtil.encodeUrlForHtmlAttr(unwrapped_decoded, true);
+            }
+            catch (Exception ex)
+            {
+                traceError("Unencodable URL: " + unwrapped_decoded);
+                continue;
+            }
+
             JSOUP.updateAttribute(n, attr, new_encoded);
 
             if (null == JSOUP.getAttribute(n, "original-" + attr))
@@ -91,6 +121,7 @@ public class UnwrapAwayLinks extends MaintenanceHandler
 
             updated = true;
             UpdatedLinks++;
+
         }
 
         return updated;

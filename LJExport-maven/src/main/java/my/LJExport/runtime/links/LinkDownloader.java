@@ -52,7 +52,7 @@ public class LinkDownloader
     public static final String LINK_REFERENCE_PREFIX_PROFILE_DOWN_2 = "../../../links/";
 
     private FileBackedMap href2file = new FileBackedMap();
-    private Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static Set<String> failedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private String linksDir;
     private final NamedLocks urlLocks = new NamedLocks();
 

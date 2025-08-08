@@ -44,7 +44,8 @@ public class UnwrapAwayLinks extends MaintenanceHandler
     @Override
     protected void endUser() throws Exception
     {
-        Util.out(String.format("Links updated for user %s: %d", Config.User, UpdatedLinks));
+        String msg = String.format("Links updated for user %s: %d", Config.User, UpdatedLinks);
+        trace(msg);
         super.endUser();
     }
 

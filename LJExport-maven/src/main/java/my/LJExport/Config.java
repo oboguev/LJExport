@@ -39,8 +39,8 @@ public class Config
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
-    // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    // public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
+    public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
@@ -143,11 +143,11 @@ public class Config
     public static boolean ScrapingArchiveOrg = false;
 
     public static final Map<String, HttpAccessMode> HttpAccessModes = Map.of(Sites.Livejournal, HttpAccessMode.DIRECT,
-                                                                             Sites.DreamwidthOrg, HttpAccessMode.DIRECT,
-                                                                             Sites.OlegMakarenko, HttpAccessMode.DIRECT,
-                                                                             Sites.RossiaOrg, HttpAccessMode.DIRECT,
-                                                                             Sites.ArchiveOrg, HttpAccessMode.DIRECT,
-                                                                             Sites.Other, HttpAccessMode.DIRECT);
+            Sites.DreamwidthOrg, HttpAccessMode.DIRECT,
+            Sites.OlegMakarenko, HttpAccessMode.DIRECT,
+            Sites.RossiaOrg, HttpAccessMode.DIRECT,
+            Sites.ArchiveOrg, HttpAccessMode.DIRECT,
+            Sites.Other, HttpAccessMode.DIRECT);
 
     public static boolean UseFiddler = false;
     public static final String FiddlerTrustStore = null;

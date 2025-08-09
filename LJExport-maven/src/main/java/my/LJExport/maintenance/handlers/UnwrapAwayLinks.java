@@ -77,13 +77,19 @@ public class UnwrapAwayLinks extends MaintenanceHandler
         for (Node n : JSOUP.findElements(pageFlat, tag))
         {
             String old_encoded = JSOUP.getAttribute(n, attr);
-            if (old_encoded == null ||
-                old_encoded.trim().startsWith("data:") ||
-                old_encoded.trim().startsWith("mailto:") ||
-                old_encoded.trim().startsWith("tel:"))
+            if (old_encoded == null)
+                continue;
+
+            old_encoded = Util.trimWithNBSP(old_encoded);
+            if (Util.startsWith(old_encoded, null, "javascript:", "data:", "tel:", "mailto:",
+                    "sms:", "geo:", "magnet:", "blob:", "about:",
+                    "ws:", "wss:", "file:", "cid:", "#", "?"))
             {
                 continue;
             }
+
+            if (!Util.startsWithIgnoreCase(old_encoded, null, "http://", "https://", "http%3a//", "https%3a//"))
+                continue;
 
             String old_decoded;
             try

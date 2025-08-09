@@ -475,7 +475,7 @@ public abstract class PageParserDirectBase
                         if (JSOUP.getAttribute(n, "original-" + attr) == null && JSOUP.getAttribute(n, attr) != null)
                             JSOUP.setAttribute(n, "original-" + attr, JSOUP.getAttribute(n, attr));
 
-                        // ### encode -- or already?
+                        // newref is already encoded
                         JSOUP.updateAttribute(n, attr, newref);
 
                         downloaded = true;
@@ -548,7 +548,7 @@ public abstract class PageParserDirectBase
                 if (JSOUP.getAttribute(n, "original-" + attr) == null && JSOUP.getAttribute(n, attr) != null)
                     JSOUP.setAttribute(n, "original-" + attr, JSOUP.getAttribute(n, attr));
 
-                // ### encode -- or already?
+                // newref is already encoded
                 JSOUP.updateAttribute(n, attr, newref);
 
                 return true;

@@ -497,6 +497,10 @@ public class UrlUtil
     private static final Pattern DOMAIN_PATTERN = Pattern
             .compile("(?i)^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])\\.?$");
 
+    // More permissive: allow underscores, and allow hyphens anywhere
+    private static final Pattern DOMAIN_PATTERN_RELAXED = Pattern
+            .compile("(?i)^(?=.{1,253}$)(?:[a-z0-9_-]{1,63}\\.)+[a-z0-9_-]{1,63}\\.?$");
+
     // IPv4 like 1.2.3.4
     private static final Pattern IPV4_PATTERN = Pattern
             .compile("^(?:(25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1?\\d?\\d)$");
@@ -517,32 +521,14 @@ public class UrlUtil
         if (s.isEmpty())
             return null;
 
-        String authority = null;
+        s = Util.stripPrefixesIgnoreCase(s, false, "http://", "https://", "//");
+        if (s.isEmpty())
+            return null;
 
-        // 1) scheme://authority...
-        int schemeSep = s.indexOf("://");
-        if (schemeSep > 0 && isScheme(s.substring(0, schemeSep)))
-        {
-            authority = sliceUntilAny(s, schemeSep + 3, '/', '?', '#');
-        }
-        else if (s.startsWith("//"))
-        {
-            // 2) //authority...
-            authority = sliceUntilAny(s, 2, '/', '?', '#');
-        }
-        else
-        {
-            // 3) No scheme – first path component could be host
-            authority = sliceUntilAny(s, 0, '/', '?', '#');
-        }
+        String authority = sliceUntilAny(s, 0, '/', '?', '#');
 
         if (authority == null || authority.isEmpty())
             return null;
-
-        // Remove userinfo if present (use last '@' to be safe)
-        int at = authority.lastIndexOf('@');
-        if (at >= 0)
-            authority = authority.substring(at + 1);
 
         // If IPv6 literal: [::1]:443
         if (authority.startsWith("["))
@@ -581,11 +567,16 @@ public class UrlUtil
         if (IPV4_PATTERN.matcher(host).matches())
             return host;
 
+        // LJ usernames
+        host = host.replace("_", "-");
+
         // Normalize case for domains
         String lower = host.toLowerCase();
 
-        if (DOMAIN_PATTERN.matcher(lower).matches())
+        if (DOMAIN_PATTERN_RELAXED.matcher(lower).matches())
             return lower;
+        
+        Util.unused(DOMAIN_PATTERN);
 
         // Optional: treat "localhost" as valid. Comment out if you strictly require a dot.
         if (Util.False && "localhost".equalsIgnoreCase(lower))
@@ -594,41 +585,10 @@ public class UrlUtil
         return null;
     }
 
-    // Helpers
-    private static boolean isScheme(String s)
-    {
-        if (s.isEmpty())
-            return false;
-        
-        char c0 = s.charAt(0);
-        
-        if (!isAlpha(c0))
-            return false;
-        
-        for (int i = 1; i < s.length(); i++)
-        {
-            char c = s.charAt(i);
-            if (!(isAlphaNum(c) || c == '+' || c == '-' || c == '.'))
-                return false;
-        }
-        
-        return true;
-    }
-
-    private static boolean isAlpha(char c)
-    {
-        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-    }
-
-    private static boolean isAlphaNum(char c)
-    {
-        return isAlpha(c) || (c >= '0' && c <= '9');
-    }
-
     private static String sliceUntilAny(String s, int start, char... stops)
     {
         int end = s.length();
-        
+
         for (int i = start; i < s.length(); i++)
         {
             char ch = s.charAt(i);

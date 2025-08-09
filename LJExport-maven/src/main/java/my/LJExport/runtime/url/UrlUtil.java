@@ -26,8 +26,22 @@ public class UrlUtil
         return decodeUrl(htmlUrl);
     }
 
+    public static String decodeOrNullHtmlAttrLink(String htmlUrl)
+    {
+        try
+        {
+            return decodeHtmlAttrLink(htmlUrl);
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
+    }
+
     public static String decodeUrl(String encodedUrl)
     {
+        encodedUrl = Util.trimWithNBSP(encodedUrl);
+        
         // convert any legacy %uXXXX to %XX
         encodedUrl = LegacyPercentUEncoding.normalizeEncodedSafe(encodedUrl);
 

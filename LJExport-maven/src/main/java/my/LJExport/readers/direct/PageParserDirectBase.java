@@ -291,7 +291,7 @@ public abstract class PageParserDirectBase
             String href = JSOUP.getAttribute(n, attr);
             String href_original = href;
             
-            // ### decode href safe or null
+            href = UrlUtil.decodeOrNullHtmlAttrLink(href);
 
             if (href != null && Web.isLivejournalImgPrx(href))
             {
@@ -306,9 +306,9 @@ public abstract class PageParserDirectBase
                     {
                         if (JSOUP.getAttribute(n, "original-" + attr) == null)
                             JSOUP.setAttribute(n, "original-" + attr, href_original);
-
-                        // ### encode newref
-                        JSOUP.updateAttribute(n, attr, newref);
+                        
+                        String encoded_newref = UrlUtil.encodeUrlForHtmlAttr(newref, true);
+                        JSOUP.updateAttribute(n, attr, encoded_newref);
                         unwrapped = true;
                     }
                 }
@@ -372,8 +372,8 @@ public abstract class PageParserDirectBase
                 if (JSOUP.getAttribute(n, "original-" + attr) == null)
                     JSOUP.setAttribute(n, "original-" + attr, href_original);
 
-                // ### encode newref
-                JSOUP.updateAttribute(n, attr, newref);
+                String encoded_newref = UrlUtil.encodeUrlForHtmlAttr(newref, true);
+                JSOUP.updateAttribute(n, attr, encoded_newref);
                 return true;
             }
             else

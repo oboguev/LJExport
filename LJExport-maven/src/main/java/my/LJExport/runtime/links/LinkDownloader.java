@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.http.HttpException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.ClientProtocolException;
@@ -193,6 +194,7 @@ public class LinkDownloader
         AtomicReference<String> filename = new AtomicReference<>(null);
         String name_href_noanchor = null;
         String download_href_noanchor = null;
+        MutableObject<String> fromWhere = new MutableObject<>();
 
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
@@ -241,22 +243,36 @@ public class LinkDownloader
 
             urlLocks.interlock(name_href_noanchor_away.toLowerCase(), () ->
             {
-                while_interlocked(
-                        response,
-                        image,
-                        final_name_href_noanchor,
-                        final_download_href_noanchor,
-                        referer,
-                        name_href_noanchor_away,
-                        download_href_noanchor_away,
-                        filename,
-                        downloadSource,
-                        final_threadName);
+                while_interlocked(response,
+                                  image,
+                                  final_name_href_noanchor,
+                                  final_download_href_noanchor,
+                                  referer,
+                                  name_href_noanchor_away,
+                                  download_href_noanchor_away,
+                                  filename,
+                                  downloadSource,
+                                  final_threadName,
+                                  fromWhere);
             });
 
             Thread.currentThread().setName(threadName);
 
-            /* server replied with error page */
+            if (Config.PrintLinkDownloads)
+            {
+                if (filename.get() != null)
+                {
+                    String from = "";
+                    if (fromWhere.get() != null)
+                        from = " === from " + fromWhere.get();
+                    Util.out(String.format("Downloaded [%s] link %s%s", Config.User, name_href, from));
+                }
+                else
+                {
+                    Util.err(String.format("Unable to download [%s] link %s", Config.User, name_href));
+                }
+            }
+
             if (filename.get() == null)
                 return null;
 
@@ -305,7 +321,8 @@ public class LinkDownloader
             String download_href_noanchor_away,
             AtomicReference<String> filename,
             DownloadSource downloadSource,
-            String final_threadName)
+            String final_threadName,
+            MutableObject<String> fromWhere)
             throws Exception
     {
         if (failedSet.contains(download_href_noanchor))
@@ -315,8 +332,8 @@ public class LinkDownloader
 
         String actual_filename = filename.get();
         if (alreadyHaveFileForHref(null, name_href_noanchor, filename) ||
-                alreadyHaveFileForHref(null, download_href_noanchor, filename) ||
-                alreadyHaveFileForHref(actual_filename, name_href_noanchor, filename))
+            alreadyHaveFileForHref(null, download_href_noanchor, filename) ||
+            alreadyHaveFileForHref(actual_filename, name_href_noanchor, filename))
         {
             return;
         }
@@ -336,7 +353,7 @@ public class LinkDownloader
         }
 
         if (alreadyHaveFileForHref(null, name_href_noanchor, filename) ||
-                alreadyHaveFileForHref(null, download_href_noanchor, filename))
+            alreadyHaveFileForHref(null, download_href_noanchor, filename))
         {
             return;
         }
@@ -390,7 +407,7 @@ public class LinkDownloader
                 throw new AlreadyFailedException();
 
             SmartLinkDownloader sml = new SmartLinkDownloader(null);
-            r = sml.smartDownload(image, download_href_noanchor, referer, true, smartLoadFrom, null);
+            r = sml.smartDownload(image, download_href_noanchor, referer, true, smartLoadFrom, fromWhere);
             attempedSmartDownloader = true;
         }
 
@@ -435,6 +452,9 @@ public class LinkDownloader
                 if (!an.isGood)
                     r = SmartLinkDownloader.loadImageIndirection(image, name_href_noanchor, referer, r, true);
             }
+
+            if (r != null)
+                fromWhere.setValue("online");
         }
 
         response.set(r);
@@ -473,7 +493,7 @@ public class LinkDownloader
                 catch (UnableCreateDirectoryException dex)
                 {
                     actual_filename = LinkFilepath.fallbackFilepath(linksDir, name_href_noanchor,
-                            actual_filename);
+                                                                    actual_filename);
                     filename.set(actual_filename);
                     File f = new File(actual_filename).getCanonicalFile();
                     Util.mkdir(f.getAbsoluteFile().getParent());

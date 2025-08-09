@@ -96,6 +96,7 @@ public class Config
      * LoadFrom.OnlineAndArchive -> download online and from archive.org
      */
     public static LoadFrom LinkDownloaderLoadFrom = LoadFrom.Online;
+    public static boolean PrintLinkDownloads = false;
 
     /**************************/
     /** TECHNICAL PARAMETERS **/

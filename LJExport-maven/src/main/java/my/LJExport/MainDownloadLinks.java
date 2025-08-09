@@ -118,6 +118,8 @@ public class MainDownloadLinks
 
         if (UseArchiveOrg)
             Config.LinkDownloaderLoadFrom = LoadFrom.OnlineAndArchive;
+        
+        Config.PrintLinkDownloads = true;
 
         ActivityCounters.reset();
         RateLimiter.LJ_IMAGES.setRateLimit(100);

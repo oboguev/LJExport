@@ -42,6 +42,9 @@ public class ShouldDownload
         if (href == null || href.length() == 0)
             return false;
         
+        if (!Util.startsWithIgnoreCase(href, null, "http://", "https://"))
+            return false;
+        
         href = AwayLink.unwrapDecodedSafe(href);
         href = Util.stripAnchor(href);
         
@@ -110,6 +113,9 @@ public class ShouldDownload
         try
         {
             if (href == null || href.length() == 0)
+                return false;
+
+            if (!Util.startsWithIgnoreCase(href, null, "http://", "https://"))
                 return false;
 
             href = AwayLink.unwrapDecodedSafe(href);

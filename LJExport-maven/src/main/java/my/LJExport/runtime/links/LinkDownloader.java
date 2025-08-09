@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.http.HttpException;
 import org.apache.http.client.CircularRedirectException;
@@ -195,6 +196,7 @@ public class LinkDownloader
         String name_href_noanchor = null;
         String download_href_noanchor = null;
         MutableObject<String> fromWhere = new MutableObject<>();
+        MutableBoolean actuallyDownloaded = new MutableBoolean(false);
 
         String threadName = Thread.currentThread().getName();
         if (threadName == null)
@@ -253,21 +255,23 @@ public class LinkDownloader
                                   filename,
                                   downloadSource,
                                   final_threadName,
-                                  fromWhere);
+                                  fromWhere,
+                                  actuallyDownloaded);
             });
 
             Thread.currentThread().setName(threadName);
 
             if (Config.PrintLinkDownloads)
             {
-                if (filename.get() != null)
+                if (filename.get() != null && actuallyDownloaded.isTrue())
                 {
                     String from = "";
                     if (fromWhere.get() != null)
                         from = " === from " + fromWhere.get();
                     Util.out(String.format("Downloaded [%s] link %s%s", Config.User, name_href, from));
                 }
-                else
+
+                if (filename.get() == null)
                 {
                     Util.err(String.format("Unable to download [%s] link %s", Config.User, name_href));
                 }
@@ -322,7 +326,8 @@ public class LinkDownloader
             AtomicReference<String> filename,
             DownloadSource downloadSource,
             String final_threadName,
-            MutableObject<String> fromWhere)
+            MutableObject<String> fromWhere,
+            MutableBoolean actuallyDownloaded)
             throws Exception
     {
         if (failedSet.contains(download_href_noanchor))
@@ -503,7 +508,7 @@ public class LinkDownloader
                 final String final_name_href_noanchor = name_href_noanchor;
                 Util.NamedFileLocks.interlock(actual_filename.toLowerCase(), () ->
                 {
-                    storeFile(filename, final_r, final_name_href_noanchor);
+                    storeFile(filename, final_r, final_name_href_noanchor, actuallyDownloaded);
                 });
             }
         }
@@ -558,7 +563,8 @@ public class LinkDownloader
 
     /* ======================================================================== */
 
-    private void storeFile(AtomicReference<String> filename, Web.Response r, String href_noanchor) throws Exception
+    private void storeFile(AtomicReference<String> filename, Web.Response r, String href_noanchor,
+            MutableBoolean actuallyDownloaded) throws Exception
     {
         boolean dowrite = true;
 
@@ -588,7 +594,10 @@ public class LinkDownloader
         filename.set(actual_filename);
 
         if (dowrite)
+        {
             Util.writeToFileSafe(actual_filename, r.binaryBody);
+            actuallyDownloaded.setTrue();
+        }
 
         synchronized (href2file)
         {

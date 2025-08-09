@@ -109,7 +109,7 @@ public class SmartLinkDownloader
         {
             /*
              * If link is packed into a redirector URL,
-             * iteratively try nwrapping and loading the link from inner to outer layers
+             * iteratively try unwrapping and loading the link from inner to outer layers
              */
             List<String> list = AwayLink.unwrapDecodedToList(href, true, true);
             allowAway = false;

@@ -195,7 +195,7 @@ public class LinkRedownloader
         Thread.currentThread().setName(tn + msg);
     }
     
-    private String getThreadNameStem(String tn)
+    private static String getThreadNameStem(String tn)
     {
         int ix = tn.indexOf(" downloading ");
         if (ix < 0)

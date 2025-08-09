@@ -37,12 +37,13 @@ public class LinkRedownloader
         URL xurl = new URL(url);
         String host = xurl.getHost().toLowerCase();
         String threadName = Thread.currentThread().getName();
+        String threadNameStem = threadName;
 
         try
         {
             r = redownload(image, url, referer);
 
-            setThreadName(threadName, "downloading " + url);
+            setThreadName(threadNameStem, "downloading " + url);
 
             String urlPathExt = LinkFilepath.getMediaFileExtension(xurl.getPath());
             String contentExt = FileTypeDetector.fileExtensionFromActualFileContent(r.binaryBody, urlPathExt);
@@ -151,11 +152,13 @@ public class LinkRedownloader
         }
 
         String threadName = Thread.currentThread().getName();
+        String threadNameStem = threadName;
+
         Web.Response r = null;
 
         try
         {
-            setThreadName(threadName, "downloading " + url_noanchor);
+            setThreadName(threadNameStem, "downloading " + url_noanchor);
 
             r = Web.get(url_noanchor, Web.BINARY | Web.PROGRESS, headers, (code) ->
             {
@@ -175,7 +178,7 @@ public class LinkRedownloader
 
             LinkDownloader.examineException(host, r, ex);
             failedSet.add(url_noanchor);
-            
+
             return null;
         }
         finally
@@ -184,10 +187,10 @@ public class LinkRedownloader
         }
     }
 
-    private static void setThreadName(String threadName, String msg)
+    private static void setThreadName(String threadNameStem, String msg)
     {
-        String tn = threadName;
-        if (tn.length() != 0)
+        String tn = threadNameStem;
+        if (tn.length() != 0 && msg.length() != 0)
             tn = tn + " ";
         Thread.currentThread().setName(tn + msg);
     }

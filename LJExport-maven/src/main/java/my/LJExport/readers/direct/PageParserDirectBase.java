@@ -444,13 +444,11 @@ public abstract class PageParserDirectBase
 
         for (Node n : JSOUP.findElements(root, tag))
         {
-            // ### can fail
             String href = JSOUP.getAttribute(n, attr);
-            href = UrlUtil.decodeHtmlAttrLink(href);
+            href = UrlUtil.decodeOrNullHtmlAttrLink(href);
 
-            // ### can fail
             String original_href = JSOUP.getAttribute(n, "original-" + attr);
-            original_href = UrlUtil.decodeHtmlAttrLink(original_href);
+            original_href = UrlUtil.decodeOrNullHtmlAttrLink(original_href);
 
             String name_href = href;
             String download_href = original_href != null && original_href.trim().length() != 0 ? original_href : href;
@@ -459,7 +457,7 @@ public abstract class PageParserDirectBase
             
             // ###
 
-            if (ShouldDownload.shouldDownload(tag.equalsIgnoreCase("img"), href, Main.linkDownloader.isOnlineOnly()))
+            if (href != null && ShouldDownload.shouldDownload(tag.equalsIgnoreCase("img"), href, Main.linkDownloader.isOnlineOnly()))
             {
                 String referer = (rurl == null) ? null : LJUtil.recordPageURL(rurl);
 

@@ -485,9 +485,171 @@ public class UrlUtil
 
     /* ================================================================================================== */
 
+    public static String extractHostLowercase(String href)
+    {
+        String host = extractHost(href);
+        if (href != null)
+            href = href.toLowerCase();
+        return href;
+    }
+
+    // RFC-ish domain (punycode ok), requires at least one dot
+    private static final Pattern DOMAIN_PATTERN = Pattern
+            .compile("(?i)^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])\\.?$");
+
+    // IPv4 like 1.2.3.4
+    private static final Pattern IPV4_PATTERN = Pattern
+            .compile("^(?:(25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1?\\d?\\d)$");
+
+    // Very loose check for IPv6 literal content (without brackets)
+    private static final Pattern LOOSE_IPV6_CONTENT = Pattern.compile("^[0-9a-fA-F:.]+$");
+
+    /**
+     * Extract host from possibly-malformed URL-ish string.
+     * Returns null if a plausible host cannot be found.
+     */
+    public static String extractHost(String href)
+    {
+        if (href == null)
+            return null;
+
+        String s = Util.trimWithNBSP(href);
+        if (s.isEmpty())
+            return null;
+
+        String authority = null;
+
+        // 1) scheme://authority...
+        int schemeSep = s.indexOf("://");
+        if (schemeSep > 0 && isScheme(s.substring(0, schemeSep)))
+        {
+            authority = sliceUntilAny(s, schemeSep + 3, '/', '?', '#');
+        }
+        else if (s.startsWith("//"))
+        {
+            // 2) //authority...
+            authority = sliceUntilAny(s, 2, '/', '?', '#');
+        }
+        else
+        {
+            // 3) No scheme – first path component could be host
+            authority = sliceUntilAny(s, 0, '/', '?', '#');
+        }
+
+        if (authority == null || authority.isEmpty())
+            return null;
+
+        // Remove userinfo if present (use last '@' to be safe)
+        int at = authority.lastIndexOf('@');
+        if (at >= 0)
+            authority = authority.substring(at + 1);
+
+        // If IPv6 literal: [::1]:443
+        if (authority.startsWith("["))
+        {
+            int rb = authority.indexOf(']');
+            if (rb > 0)
+            {
+                String v6 = authority.substring(1, rb);
+                if (!v6.isEmpty() && LOOSE_IPV6_CONTENT.matcher(v6).matches())
+                {
+                    return v6.toLowerCase(); // return IPv6 content without brackets
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                return null; // malformed bracketed literal
+            }
+        }
+
+        // Strip :port if present (only first ':', since hostnames don’t contain it)
+        int colon = authority.indexOf(':');
+        String host = (colon >= 0) ? authority.substring(0, colon) : authority;
+
+        // Drop trailing dot (FQDN) for comparison; keep empty-check
+        if (host.endsWith("."))
+            host = host.substring(0, host.length() - 1);
+
+        if (host.isEmpty())
+            return null;
+
+        // Validate: IPv4 or domain
+        if (IPV4_PATTERN.matcher(host).matches())
+            return host;
+
+        // Normalize case for domains
+        String lower = host.toLowerCase();
+
+        if (DOMAIN_PATTERN.matcher(lower).matches())
+            return lower;
+
+        // Optional: treat "localhost" as valid. Comment out if you strictly require a dot.
+        if (Util.False && "localhost".equalsIgnoreCase(lower))
+            return "localhost";
+
+        return null;
+    }
+
+    // Helpers
+    private static boolean isScheme(String s)
+    {
+        if (s.isEmpty())
+            return false;
+        
+        char c0 = s.charAt(0);
+        
+        if (!isAlpha(c0))
+            return false;
+        
+        for (int i = 1; i < s.length(); i++)
+        {
+            char c = s.charAt(i);
+            if (!(isAlphaNum(c) || c == '+' || c == '-' || c == '.'))
+                return false;
+        }
+        
+        return true;
+    }
+
+    private static boolean isAlpha(char c)
+    {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+    }
+
+    private static boolean isAlphaNum(char c)
+    {
+        return isAlpha(c) || (c >= '0' && c <= '9');
+    }
+
+    private static String sliceUntilAny(String s, int start, char... stops)
+    {
+        int end = s.length();
+        
+        for (int i = start; i < s.length(); i++)
+        {
+            char ch = s.charAt(i);
+            for (char stop : stops)
+            {
+                if (ch == stop)
+                {
+                    end = i;
+                    return s.substring(start, end);
+                }
+            }
+        }
+
+        return (start <= s.length()) ? s.substring(start) : null;
+    }
+
+    /* ================================================================================================== */
+
     private static final Pattern VALID_HOST_PATTERN = Pattern.compile("^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
-    public static String extractHost(String href) throws Exception
+    public static String old_extractHost(String href) throws Exception
     {
         if (href == null || href.trim().isEmpty())
             return null;

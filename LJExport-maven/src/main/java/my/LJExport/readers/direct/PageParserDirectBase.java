@@ -43,11 +43,16 @@ public abstract class PageParserDirectBase
 
         public static AbsoluteLinkBase from(String url) throws Exception
         {
-            String host = UrlUtil.extractHost(url).toLowerCase();
-            if (host.equals("livejournal.com") || host.equals("www.livejournal.com"))
-                return WWW_Livejournal;
-            if (host.endsWith(".livejournal.com"))
-                return User;
+            String host = UrlUtil.extractHostLowercase(url);
+
+            if (host != null)
+            {
+                if (host.equals("livejournal.com") || host.equals("www.livejournal.com"))
+                    return WWW_Livejournal;
+                if (host.endsWith(".livejournal.com"))
+                    return User;
+            }
+            
             throw new Exception("Unable to determine link basis for URL " + url); // ###
         }
     };
@@ -686,9 +691,12 @@ public abstract class PageParserDirectBase
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") ||
                     rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
                 {
-                    String host = UrlUtil.extractHost(href).toLowerCase();
-                    if (host.endsWith("." + Sites.DreamwidthOrg) || host.equals(Sites.DreamwidthOrg))
-                        style = detectPageStyle(style, Sites.DreamwidthOrg);
+                    String host = UrlUtil.extractHostLowercase(href);
+                    if (host != null)
+                    {
+                        if (host.endsWith("." + Sites.DreamwidthOrg) || host.equals(Sites.DreamwidthOrg))
+                            style = detectPageStyle(style, Sites.DreamwidthOrg);
+                    }
                 }
             }
         }
@@ -724,17 +732,20 @@ public abstract class PageParserDirectBase
             {
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") || rel.toLowerCase().equals("previous"))
                 {
-                    String host = UrlUtil.extractHost(href).toLowerCase();
-                    if (host.equals(Sites.RossiaOrg))
+                    String host = UrlUtil.extractHostLowercase(href);
+                    if (host != null && host.equals(Sites.RossiaOrg))
                         style = detectPageStyle(style, Sites.RossiaOrg);
                 }
 
                 if (rel.toLowerCase().equals("next") || rel.toLowerCase().equals("prev") ||
                     rel.toLowerCase().equals("previous") || rel.toLowerCase().equals("help"))
                 {
-                    String host = UrlUtil.extractHost(href).toLowerCase();
-                    if (host.endsWith("." + Sites.DreamwidthOrg) || host.equals(Sites.DreamwidthOrg))
-                        style = detectPageStyle(style, Sites.DreamwidthOrg);
+                    String host = UrlUtil.extractHostLowercase(href);
+                    if (host != null)
+                    {
+                        if (host.endsWith("." + Sites.DreamwidthOrg) || host.equals(Sites.DreamwidthOrg))
+                            style = detectPageStyle(style, Sites.DreamwidthOrg);
+                    }
                 }
             }
         }

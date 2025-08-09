@@ -69,7 +69,7 @@ public class ServerContent
         
         href = AwayLink.unwrapDecodedSafe(href);
 
-        String host = UrlUtil.extractHost(href);
+        String host = UrlUtil.extractHostLowercase(href);
         String path = new URL(href).getPath();
         if (path == null)
             path = "";

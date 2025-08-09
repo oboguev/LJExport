@@ -37,7 +37,7 @@ public class LinkRedownloader
         URL xurl = new URL(url);
         String host = xurl.getHost().toLowerCase();
         String threadName = Thread.currentThread().getName();
-        String threadNameStem = threadName;
+        String threadNameStem = getThreadNameStem(threadName);
 
         try
         {
@@ -152,7 +152,7 @@ public class LinkRedownloader
         }
 
         String threadName = Thread.currentThread().getName();
-        String threadNameStem = threadName;
+        String threadNameStem = getThreadNameStem(threadName);
 
         Web.Response r = null;
 
@@ -193,5 +193,14 @@ public class LinkRedownloader
         if (tn.length() != 0 && msg.length() != 0)
             tn = tn + " ";
         Thread.currentThread().setName(tn + msg);
+    }
+    
+    private String getThreadNameStem(String tn)
+    {
+        int ix = tn.indexOf(" downloading ");
+        if (ix < 0)
+            return tn;
+        else
+            return tn.substring(0, ix);
     }
 }

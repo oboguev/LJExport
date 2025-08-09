@@ -282,8 +282,6 @@ public abstract class PageParserDirectBase
 
     /* ==================================================================================================================== */
 
-    // #### decode - reencode links and oter JSOUP places
-
     private boolean unwrapImgPrx(Node root, String tag, String attr, FutureProcessor<AsyncUnwrapImgPrx> fpUnwrap) throws Exception
     {
         boolean unwrapped = false;
@@ -291,12 +289,15 @@ public abstract class PageParserDirectBase
         for (Node n : JSOUP.findElements(root, tag))
         {
             String href = JSOUP.getAttribute(n, attr);
+            String href_original = href;
+            
+            // ### decode href safe or null
 
             if (href != null && Web.isLivejournalImgPrx(href))
             {
                 if (ThreadsControl.useLinkDownloadThreads())
                 {
-                    fpUnwrap.add(new AsyncUnwrapImgPrx(n, attr, href, rurl));
+                    fpUnwrap.add(new AsyncUnwrapImgPrx(n, attr, href, href_original, rurl));
                 }
                 else
                 {
@@ -304,8 +305,9 @@ public abstract class PageParserDirectBase
                     if (newref != null)
                     {
                         if (JSOUP.getAttribute(n, "original-" + attr) == null)
-                            JSOUP.setAttribute(n, "original-" + attr, href);
+                            JSOUP.setAttribute(n, "original-" + attr, href_original);
 
+                        // ### encode newref
                         JSOUP.updateAttribute(n, attr, newref);
                         unwrapped = true;
                     }
@@ -322,17 +324,19 @@ public abstract class PageParserDirectBase
         private final Node n;
         private final String attr;
         private final String href;
+        private final String href_original;
         private final String rurl;
 
         // out
         private String newref;
         private Exception ex;
 
-        public AsyncUnwrapImgPrx(Node n, String attr, String href, String rurl)
+        public AsyncUnwrapImgPrx(Node n, String attr, String href, String href_original, String rurl)
         {
             this.n = n;
             this.attr = attr;
             this.href = href;
+            this.href_original = href_original;
             this.rurl = rurl;
         }
 
@@ -366,8 +370,9 @@ public abstract class PageParserDirectBase
             if (newref != null)
             {
                 if (JSOUP.getAttribute(n, "original-" + attr) == null)
-                    JSOUP.setAttribute(n, "original-" + attr, href);
+                    JSOUP.setAttribute(n, "original-" + attr, href_original);
 
+                // ### encode newref
                 JSOUP.updateAttribute(n, attr, newref);
                 return true;
             }
@@ -432,8 +437,6 @@ public abstract class PageParserDirectBase
 
     /* ==================================================================================================================== */
 
-    // #### decode - reencode links
-
     /*static*/ private boolean downloadExternalLinks(Node root, String tag, String attr,
             FutureProcessor<AsyncDownloadExternalLinks> fpDownload) throws Exception
     {
@@ -441,9 +444,11 @@ public abstract class PageParserDirectBase
 
         for (Node n : JSOUP.findElements(root, tag))
         {
+            // ### can fail
             String href = JSOUP.getAttribute(n, attr);
             href = UrlUtil.decodeHtmlAttrLink(href);
 
+            // ### can fail
             String original_href = JSOUP.getAttribute(n, "original-" + attr);
             original_href = UrlUtil.decodeHtmlAttrLink(original_href);
 
@@ -451,6 +456,8 @@ public abstract class PageParserDirectBase
             String download_href = original_href != null && original_href.trim().length() != 0 ? original_href : href;
 
             /* --------------------------------------------------------------- */
+            
+            // ###
 
             if (ShouldDownload.shouldDownload(tag.equalsIgnoreCase("img"), href, Main.linkDownloader.isOnlineOnly()))
             {
@@ -535,6 +542,8 @@ public abstract class PageParserDirectBase
         {
             if (ex != null)
                 throw ex;
+
+            // ###
 
             if (newref != null)
             {

@@ -58,7 +58,15 @@ public class ShouldDownload
                 return false;
         }
 
-        URL xurl = new URL(href);
+        URL xurl;
+        try
+        {
+            xurl = new URL(href);
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
 
         String path = xurl.getPath();
         if (path == null)

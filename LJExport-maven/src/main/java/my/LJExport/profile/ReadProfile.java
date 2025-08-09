@@ -112,6 +112,8 @@ public class ReadProfile
             parser.pageSource = load(url, standardHeaders(), finalUrl);
             parser.parseHtmlWithBaseUrl(finalUrl.get());
             parser.removeJunk(PageParserDirectBase.REMOVE_SCRIPTS);
+            parser.normalizeLinks(finalUrl.get());
+            parser.unwrapAwayLinks();
         }
         else if (Config.isDreamwidthOrg())
         {
@@ -121,6 +123,8 @@ public class ReadProfile
             parser.pageSource = load(url, standardHeaders(), finalUrl);
             parser.parseHtmlWithBaseUrl(finalUrl.get());
             ((PageParserDirectDreamwidthOrg) parser).removeJunkProfile();
+            parser.normalizeLinks(finalUrl.get());
+            parser.unwrapAwayLinks();
         }
         else
         {
@@ -129,6 +133,8 @@ public class ReadProfile
             parser.rid = parser.rurl = null;
             parser.pageSource = load(url, standardHeaders(), finalUrl);
             parser.parseHtmlWithBaseUrl(finalUrl.get());
+            parser.normalizeLinks(finalUrl.get());
+            parser.unwrapAwayLinks();
 
             Node el_1 = JSOUP.exactlyOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-profile"));
             Node el_2 = JSOUP.optionalOne(JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-myuserpic"));
@@ -165,6 +171,8 @@ public class ReadProfile
             parser.pageSource = load(url, standardHeaders(), finalUrl);
             parser.parseHtmlWithBaseUrl(finalUrl.get());
             ((PageParserDirectDreamwidthOrg) parser).removeJunkProfile();
+            parser.normalizeLinks(finalUrl.get());
+            parser.unwrapAwayLinks();
         }
         else
         {
@@ -175,6 +183,8 @@ public class ReadProfile
             parser.rid = parser.rurl = null;
             parser.pageSource = load(url, standardHeaders(), finalUrl);
             parser.parseHtmlWithBaseUrl(finalUrl.get());
+            parser.normalizeLinks(finalUrl.get());
+            parser.unwrapAwayLinks();
 
             // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Userpics</font>
             Node el = findRequiredPivotElement(parser.pageRoot, "font", "Userpics");
@@ -214,6 +224,8 @@ public class ReadProfile
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders(), finalUrl);
         parser.parseHtmlWithBaseUrl(finalUrl.get());
+        parser.normalizeLinks(finalUrl.get());
+        parser.unwrapAwayLinks();
 
         // <font size="+2" face="Verdana, Arial, Helvetica" color="#000066">Memorable Entries</font>
         Node el = findRequiredPivotElement(parser.pageRoot, "font", "Memorable Entries");
@@ -277,6 +289,8 @@ public class ReadProfile
         parser.rid = parser.rurl = null;
         parser.pageSource = load(href, standardHeaders(), finalUrl);
         parser.parseHtmlWithBaseUrl(finalUrl.get());
+        parser.normalizeLinks(finalUrl.get());
+        parser.unwrapAwayLinks();
 
         String pivot_title;
         if (title.equals("Uncategorized") && containsKeyword(href, "*"))
@@ -660,6 +674,8 @@ public class ReadProfile
         parser.rid = parser.rurl = null;
         parser.pageSource = load(url, standardHeaders(), finalUrl);
         parser.parseHtmlWithBaseUrl(finalUrl.get());
+        parser.normalizeLinks(finalUrl.get());
+        parser.unwrapAwayLinks();
 
         if (checkNonExistent && JSOUP.findElementsWithClass(parser.pageRoot, "div", "b-pics").size() == 0)
         {

@@ -468,7 +468,7 @@ public abstract class PageParserDirectBase
                 else
                 {
                     boolean image = tag.equalsIgnoreCase("img");
-                    String newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href), 
+                    String newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href),
                                                                  referer, linkReferencePrefix);
                     if (newref != null)
                     {
@@ -1324,6 +1324,8 @@ public abstract class PageParserDirectBase
 
         String encoded = Util.trimWithNBSP(original_encoded);
 
+        encoded = macroExpand(encoded);
+
         encoded = LegacyPercentUEncoding.normalizeEncodedSafe(encoded);
         encoded = UrlFixCP1251.fixUrlCp1251Sequences(encoded);
 
@@ -1340,5 +1342,16 @@ public abstract class PageParserDirectBase
         updated |= JSOUP.resolveURL(n, attr, baseUrl);
 
         return updated;
+    }
+
+    private String macroExpand(String encoded) throws Exception
+    {
+        String prefix = "<?imgprefix?>/";
+        String replacement = "https://l-stat.livejournal.net/img/";
+
+        if (encoded.startsWith(prefix))
+            encoded = replacement + Util.stripStart(encoded, prefix);
+
+        return encoded;
     }
 }

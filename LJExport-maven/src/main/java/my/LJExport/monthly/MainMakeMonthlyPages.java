@@ -33,8 +33,8 @@ public class MainMakeMonthlyPages
     // private static String Users = "harmfulgrumpy.dreamwidth-org";
     // private static String Users = "oboguev";
     // private static String Users = "m_yu_sokolov";
-    // private static String Users = "a_bugaev";
-    private static String Users = "sadalskij";
+    private static String Users = "a_bugaev";
+    // private static String Users = "sadalskij";
 
     public static void main(String[] args)
     {
@@ -155,10 +155,11 @@ public class MainMakeMonthlyPages
                 }
             }
         }
-        
+
         LJUserHost ljUserHost = LJUserHost.split(Config.User);
 
-        new BuildNavigationIndex(ljUserHost.user, ljUserHost.host, whichDir, monthlyPagesDir, pagesDir, BuildNavigationIndex.DIVIDER).buildNavigation();
+        new BuildNavigationIndex(ljUserHost.user, ljUserHost.host, whichDir, monthlyPagesDir, pagesDir,
+                BuildNavigationIndex.DIVIDER).buildNavigation();
         new InsertNavigationControls(monthlyPagesDir, InsertNavigationControls.DIVIDER).insertContols();
 
         Main.out(String.format(">>> Completed processing monthly %s for user %s", whichDir, Config.User));

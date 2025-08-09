@@ -52,7 +52,7 @@ public abstract class PageParserDirectBase
                 if (host.endsWith(".livejournal.com"))
                     return User;
             }
-            
+
             throw new Exception("Unable to determine link basis for URL " + url); // ###
         }
     };
@@ -290,7 +290,7 @@ public abstract class PageParserDirectBase
         {
             String href = JSOUP.getAttribute(n, attr);
             String href_original = href;
-            
+
             href = UrlUtil.decodeOrNullHtmlAttrLink(href);
 
             if (href != null && Web.isLivejournalImgPrx(href))
@@ -306,7 +306,7 @@ public abstract class PageParserDirectBase
                     {
                         if (JSOUP.getAttribute(n, "original-" + attr) == null)
                             JSOUP.setAttribute(n, "original-" + attr, href_original);
-                        
+
                         String encoded_newref = UrlUtil.encodeUrlForHtmlAttr(newref, true);
                         JSOUP.updateAttribute(n, attr, encoded_newref);
                         unwrapped = true;
@@ -454,28 +454,30 @@ public abstract class PageParserDirectBase
             String download_href = original_href != null && original_href.trim().length() != 0 ? original_href : href;
 
             /* --------------------------------------------------------------- */
-            
-            // ###
 
-            if (href != null && ShouldDownload.shouldDownload(tag.equalsIgnoreCase("img"), href, Main.linkDownloader.isOnlineOnly()))
+            if (name_href != null &&
+                ShouldDownload.shouldDownload(tag.equalsIgnoreCase("img"), name_href, Main.linkDownloader.isOnlineOnly()))
             {
                 String referer = (rurl == null) ? null : LJUtil.recordPageURL(rurl);
 
                 if (ThreadsControl.useLinkDownloadThreads())
                 {
-                    fpDownload.add(
-                            new AsyncDownloadExternalLinks(n, tag, attr, name_href, download_href, referer, linkReferencePrefix));
+                    fpDownload.add(new AsyncDownloadExternalLinks(n, tag, attr, name_href, download_href,
+                            referer, linkReferencePrefix));
                 }
                 else
                 {
                     boolean image = tag.equalsIgnoreCase("img");
-                    String newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href), referer,
-                            linkReferencePrefix);
+                    String newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href), 
+                                                                 referer, linkReferencePrefix);
                     if (newref != null)
                     {
-                        JSOUP.updateAttribute(n, attr, newref);
                         if (JSOUP.getAttribute(n, "original-" + attr) == null)
-                            JSOUP.setAttribute(n, "original-" + attr, href);
+                            JSOUP.setAttribute(n, "original-" + attr, JSOUP.getAttribute(n, attr));
+
+                        // ### encode -- or already?
+                        JSOUP.updateAttribute(n, attr, newref);
+
                         downloaded = true;
                     }
                 }
@@ -522,7 +524,7 @@ public abstract class PageParserDirectBase
                 Thread.currentThread().setName("webload");
                 boolean image = tag.equalsIgnoreCase("img");
                 newref = Main.linkDownloader.download(image, name_href, List.of(name_href, download_href), referer,
-                        linkReferencePrefix);
+                                                      linkReferencePrefix);
             }
             catch (Exception ex)
             {
@@ -541,13 +543,14 @@ public abstract class PageParserDirectBase
             if (ex != null)
                 throw ex;
 
-            // ###
-
             if (newref != null)
             {
-                JSOUP.updateAttribute(n, attr, newref);
                 if (JSOUP.getAttribute(n, "original-" + attr) == null)
-                    JSOUP.setAttribute(n, "original-" + attr, name_href);
+                    JSOUP.setAttribute(n, "original-" + attr, JSOUP.getAttribute(n, attr));
+
+                // ### encode -- or already?
+                JSOUP.updateAttribute(n, attr, newref);
+
                 return true;
             }
             else
@@ -1222,7 +1225,7 @@ public abstract class PageParserDirectBase
         {
             // Regex to find background-image: url(...) with optional whitespace
             Pattern pattern = Pattern.compile("background-image\\s*:\\s*url\\s*\\(\\s*(['\"]?)([^'\")\\s]+)\\1\\s*\\)",
-                    Pattern.CASE_INSENSITIVE);
+                                              Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(style);
 
             if (matcher.find())
@@ -1323,7 +1326,7 @@ public abstract class PageParserDirectBase
 
         encoded = LegacyPercentUEncoding.normalizeEncodedSafe(encoded);
         encoded = UrlFixCP1251.fixUrlCp1251Sequences(encoded);
-        
+
         if (!encoded.equals(original_encoded))
         {
             JSOUP.updateAttribute(n, attr, encoded);

@@ -472,7 +472,7 @@ public abstract class PageParserDirectBase
                                                                  referer, linkReferencePrefix);
                     if (newref != null)
                     {
-                        if (JSOUP.getAttribute(n, "original-" + attr) == null)
+                        if (JSOUP.getAttribute(n, "original-" + attr) == null && JSOUP.getAttribute(n, attr) != null)
                             JSOUP.setAttribute(n, "original-" + attr, JSOUP.getAttribute(n, attr));
 
                         // ### encode -- or already?
@@ -545,7 +545,7 @@ public abstract class PageParserDirectBase
 
             if (newref != null)
             {
-                if (JSOUP.getAttribute(n, "original-" + attr) == null)
+                if (JSOUP.getAttribute(n, "original-" + attr) == null && JSOUP.getAttribute(n, attr) != null)
                     JSOUP.setAttribute(n, "original-" + attr, JSOUP.getAttribute(n, attr));
 
                 // ### encode -- or already?

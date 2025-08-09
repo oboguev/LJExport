@@ -39,7 +39,7 @@ public class MainDownloadLinks
     private static final String AllUsersFromUser = null;
     // private static final String AllUsersFromUser = "um_plus";
 
-    // private static final String Users = ALL_USERS;
+    private static final String Users = ALL_USERS;
 
     // private static final String Users = "funt";
     // private static final String Users = "_devol_,1981dn,1981dn_dn,64vlad,a_bugaev,a_kaminsky,a_samovarov,a_sevastianov,abcdefgh,afanarizm,afrika_sl,aleksei";
@@ -61,10 +61,10 @@ public class MainDownloadLinks
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "udod99.lj-rossia-org,colonelcassad.my_comments,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "1981dn.pre-2025,1981dn_dn.pre-2025,a_kaminsky.pre-2025,a_samovarov.pre-2025,bantaputu.pre-2025,hokma.pre-2025,krylov.pre-2025,oboguev.pre-2025,pioneer_lj.pre-2025,polit_ec.pre-2025,zhenziyou.pre-2025";
-    private static final String Users = "novy_chitatel";
+    // private static final String Users = "novy_chitatel";
 
     /* download images from archive.org in addition to online */
-    private static boolean UseArchiveOrg = false;
+    private static boolean UseArchiveOrg = true;
 
     /* 
      * additionally reload missing images and links for monthly pages too,
@@ -118,7 +118,7 @@ public class MainDownloadLinks
 
         if (UseArchiveOrg)
             Config.LinkDownloaderLoadFrom = LoadFrom.OnlineAndArchive;
-        
+
         Config.PrintLinkDownloads = true;
 
         ActivityCounters.reset();

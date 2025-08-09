@@ -488,9 +488,9 @@ public class UrlUtil
     public static String extractHostLowercase(String href)
     {
         String host = extractHost(href);
-        if (href != null)
-            href = href.toLowerCase();
-        return href;
+        if (host != null)
+            host = host.toLowerCase();
+        return host;
     }
 
     // RFC-ish domain (punycode ok), requires at least one dot
@@ -567,15 +567,12 @@ public class UrlUtil
         if (IPV4_PATTERN.matcher(host).matches())
             return host;
 
-        // LJ usernames
-        host = host.replace("_", "-");
-
         // Normalize case for domains
         String lower = host.toLowerCase();
 
         if (DOMAIN_PATTERN_RELAXED.matcher(lower).matches())
             return lower;
-        
+
         Util.unused(DOMAIN_PATTERN);
 
         // Optional: treat "localhost" as valid. Comment out if you strictly require a dot.

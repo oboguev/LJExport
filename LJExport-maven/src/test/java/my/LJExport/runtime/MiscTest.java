@@ -24,7 +24,8 @@ public class MiscTest
             // test_2();
             // test_firefox_coookies();
             // consolidate();
-            test_unwrap();
+            // test_unwrap();
+            test_host();
             // test_infonarod_away();
             // test_cp1251();
             //test_encode_url();
@@ -41,7 +42,7 @@ public class MiscTest
     {
         test_1("https://vk.com/away.php?to=http%3A%2F%2Frigort.livejournal.com%2F1788988.html%3Futm_source%3Dvksharing%26utm_medium%3Dsocial&amp;post=-89424527_119771&amp;cc_key=");
         test_encode(
-                "http://rigort.livejournal.com/1788988.html?utm_source=vksharing&utm_medium=social&amp;post=-89424527_119771&amp;cc_key=");
+                    "http://rigort.livejournal.com/1788988.html?utm_source=vksharing&utm_medium=social&amp;post=-89424527_119771&amp;cc_key=");
         test_encode("https://cloud.mail.ru/public/15220191b401/речь зацепина в прениях - 2014.pdf");
     }
 
@@ -84,63 +85,63 @@ public class MiscTest
     private static void consolidate() throws Exception
     {
         consolidate("https://www.otzywy.com",
-                "https://www.otzywy.com/");
+                    "https://www.otzywy.com/");
 
         consolidate(
-                "http://img3.joyreactor.cc/pics/post/full/countryballs-Комиксы-польша-песочница-803313.jpeg",
-                "http://img3.joyreactor.cc/pics/post/full/countryballs-Комиксы-Польша-песочница-803313.jpeg",
-                "http://img3.joyreactor.cc/pics/post/full/countryballs-%D0%9A%D0%BE%D0%BC%D0%B8%D0%BA%D1%81%D1%8B-%D0%BF%D0%BE%D0%BB%D1%8C%D1%88%D0%B0-%D0%BF%D0%B5%D1%81%D0%BE%D1%87%D0%BD%D0%B8%D1%86%D0%B0-803313.jpeg",
-                "http://img3.joyreactor.cc/pics/post/full/countryballs-%D0%9A%D0%BE%D0%BC%D0%B8%D0%BA%D1%81%D1%8B-%D0%9F%D0%BE%D0%BB%D1%8C%D1%88%D0%B0-%D0%BF%D0%B5%D1%81%D0%BE%D1%87%D0%BD%D0%B8%D1%86%D0%B0-803313.jpeg");
+                    "http://img3.joyreactor.cc/pics/post/full/countryballs-Комиксы-польша-песочница-803313.jpeg",
+                    "http://img3.joyreactor.cc/pics/post/full/countryballs-Комиксы-Польша-песочница-803313.jpeg",
+                    "http://img3.joyreactor.cc/pics/post/full/countryballs-%D0%9A%D0%BE%D0%BC%D0%B8%D0%BA%D1%81%D1%8B-%D0%BF%D0%BE%D0%BB%D1%8C%D1%88%D0%B0-%D0%BF%D0%B5%D1%81%D0%BE%D1%87%D0%BD%D0%B8%D1%86%D0%B0-803313.jpeg",
+                    "http://img3.joyreactor.cc/pics/post/full/countryballs-%D0%9A%D0%BE%D0%BC%D0%B8%D0%BA%D1%81%D1%8B-%D0%9F%D0%BE%D0%BB%D1%8C%D1%88%D0%B0-%D0%BF%D0%B5%D1%81%D0%BE%D1%87%D0%BD%D0%B8%D1%86%D0%B0-803313.jpeg");
 
         consolidate(
-                "https://expert.ru:443/data/public/338045/338074/expert_774_023_jpg_625x625_q85.jpg",
-                "http://expert.ru/data/public/338045/338074/expert_774_023_jpg_625x625_q85.jpg");
+                    "https://expert.ru:443/data/public/338045/338074/expert_774_023_jpg_625x625_q85.jpg",
+                    "http://expert.ru/data/public/338045/338074/expert_774_023_jpg_625x625_q85.jpg");
 
         consolidate(
-                "http://i.imgur.com/TWqVwm5.jpg",
-                "https://i.imgur.com/TWqVwm5.jpg");
+                    "http://i.imgur.com/TWqVwm5.jpg",
+                    "https://i.imgur.com/TWqVwm5.jpg");
 
         consolidate(
-                "http://i486.photobucket.com/albums/rr221/zletcorsab/FLO/RMSOlympic2.jpg",
-                "https://i486.photobucket.com/albums/rr221/zletcorsab/FLO/RMSOlympic2.jpg");
+                    "http://i486.photobucket.com/albums/rr221/zletcorsab/FLO/RMSOlympic2.jpg",
+                    "https://i486.photobucket.com/albums/rr221/zletcorsab/FLO/RMSOlympic2.jpg");
 
         consolidate(
-                "https://i.imgur.com/oR75hhd.jpg",
-                "http://i.imgur.com/oR75hhd.jpg");
+                    "https://i.imgur.com/oR75hhd.jpg",
+                    "http://i.imgur.com/oR75hhd.jpg");
 
         consolidate(
-                "http://i.imgur.com/TWqVwm5.jpg",
-                "https://i.imgur.com/TWqVwm5.jpg");
+                    "http://i.imgur.com/TWqVwm5.jpg",
+                    "https://i.imgur.com/TWqVwm5.jpg");
 
         consolidate(
-                "https://l-userpic.livejournal.com/63804671/10265057",
-                "http://l-userpic.livejournal.com/63804671/10265057");
+                    "https://l-userpic.livejournal.com/63804671/10265057",
+                    "http://l-userpic.livejournal.com/63804671/10265057");
 
         consolidate(
-                "https://yandex.ru/images/search?pos=26&from=tabbar&img_url=https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=619377832930905&get_thumbnail=1&text=стапелии цветы&rpt=simage&lr=121704",
-                "https://yandex.ru/images/search?pos=26&from=tabbar&img_url=https%3A%2F%2Flookaside.fbsbx.com%2Flookaside%2Fcrawler%2Fmedia%2F%3Fmedia_id%3D619377832930905%26get_thumbnail%3D1&text=стапелии+цветы&rpt=simage&lr=121704");
+                    "https://yandex.ru/images/search?pos=26&from=tabbar&img_url=https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=619377832930905&get_thumbnail=1&text=стапелии цветы&rpt=simage&lr=121704",
+                    "https://yandex.ru/images/search?pos=26&from=tabbar&img_url=https%3A%2F%2Flookaside.fbsbx.com%2Flookaside%2Fcrawler%2Fmedia%2F%3Fmedia_id%3D619377832930905%26get_thumbnail%3D1&text=стапелии+цветы&rpt=simage&lr=121704");
 
         consolidate(
-                "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/v/t1.0-9/14102445_852529494848760_1139406795505667796_n.jpg?oh=214146c3d68ec8711cbd07d56c04f209&oe=584A844B",
-                "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fv%2Ft1.0-9%2F14102445_852529494848760_1139406795505667796_n.jpg%3Foh%3D214146c3d68ec8711cbd07d56c04f209%26oe%3D584A844B");
+                    "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/v/t1.0-9/14102445_852529494848760_1139406795505667796_n.jpg?oh=214146c3d68ec8711cbd07d56c04f209&oe=584A844B",
+                    "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fv%2Ft1.0-9%2F14102445_852529494848760_1139406795505667796_n.jpg%3Foh%3D214146c3d68ec8711cbd07d56c04f209%26oe%3D584A844B");
 
         consolidate(
-                "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/hphotos-xap1/v/t1.0-9/12410525_10153839742786462_7478520602963466481_n.jpg?oh=2f2e045d9cf31274d398a913d38f0595&oe=5749916A",
-                "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fhphotos-xap1%2Fv%2Ft1.0-9%2F12410525_10153839742786462_7478520602963466481_n.jpg%3Foh%3D2f2e045d9cf31274d398a913d38f0595%26oe%3D5749916A");
+                    "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/hphotos-xap1/v/t1.0-9/12410525_10153839742786462_7478520602963466481_n.jpg?oh=2f2e045d9cf31274d398a913d38f0595&oe=5749916A",
+                    "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fhphotos-xap1%2Fv%2Ft1.0-9%2F12410525_10153839742786462_7478520602963466481_n.jpg%3Foh%3D2f2e045d9cf31274d398a913d38f0595%26oe%3D5749916A");
 
         consolidate(
-                "https://yandex.ru/images/search?text=чехов фото&from=tabbar&pos=1&img_url=https://scontent-hel2-1.cdninstagram.com/v/t51.2885-15/e35/107960072_123678059088779_6456558451797944288_n.jpg?_nc_ht=scontent-hel2-1.cdninstagram.com&_nc_cat=111&_nc_ohc=QQqFsRcwNW8AX_pIgGw&oh=553fbfc6b0eff463f233fa76a5500048&oe=5F3C31B0&rpt=simage",
-                "https://yandex.ru/images/search?text=%D1%87%D0%B5%D1%85%D0%BE%D0%B2%20%D1%84%D0%BE%D1%82%D0%BE&from=tabbar&pos=1&img_url=https%3A%2F%2Fscontent-hel2-1.cdninstagram.com%2Fv%2Ft51.2885-15%2Fe35%2F107960072_123678059088779_6456558451797944288_n.jpg%3F_nc_ht%3Dscontent-hel2-1.cdninstagram.com%26_nc_cat%3D111%26_nc_ohc%3DQQqFsRcwNW8AX_pIgGw%26oh%3D553fbfc6b0eff463f233fa76a5500048%26oe%3D5F3C31B0&rpt=simage");
+                    "https://yandex.ru/images/search?text=чехов фото&from=tabbar&pos=1&img_url=https://scontent-hel2-1.cdninstagram.com/v/t51.2885-15/e35/107960072_123678059088779_6456558451797944288_n.jpg?_nc_ht=scontent-hel2-1.cdninstagram.com&_nc_cat=111&_nc_ohc=QQqFsRcwNW8AX_pIgGw&oh=553fbfc6b0eff463f233fa76a5500048&oe=5F3C31B0&rpt=simage",
+                    "https://yandex.ru/images/search?text=%D1%87%D0%B5%D1%85%D0%BE%D0%B2%20%D1%84%D0%BE%D1%82%D0%BE&from=tabbar&pos=1&img_url=https%3A%2F%2Fscontent-hel2-1.cdninstagram.com%2Fv%2Ft51.2885-15%2Fe35%2F107960072_123678059088779_6456558451797944288_n.jpg%3F_nc_ht%3Dscontent-hel2-1.cdninstagram.com%26_nc_cat%3D111%26_nc_ohc%3DQQqFsRcwNW8AX_pIgGw%26oh%3D553fbfc6b0eff463f233fa76a5500048%26oe%3D5F3C31B0&rpt=simage");
 
         consolidate("https://www.livejournal.com/away/?to=https://dzen.ru/a/aA8bUsz0HUyQsaVt",
-                "https://www.livejournal.com/away/?to=https%3A%2F%2Fdzen.ru%2Fa%2FaA8bUsz0HUyQsaVt%23hramozdatelstvo_knyazya_vladimira%3A%7E%3Atext%3D%25D0%25AD%25D1%2582%25D1%2583%2520%25D1%2581%25D1%2582%25D0%25B0%25D1%2582%25D1%258C%25D1%258E%2520%25D0%25BC%25D0%25BE%25D0%25B6%25D0%25B5%25D1%2582,%25D0%25A5%25D1%2580%25D0%25B0%25D0%25BC%25D0%25BE%25D0%25B7%25D0%25B4%25D0%25B0%25D1%2582%25D0%25B5%25D0%25BB%25D1%258C%25D1%2581%25D1%2582%25D0%25B2%25D0%25BE%2520%25D0%25BA%25D0%25BD%25D1%258F%25D0%25B7%25D1%258F%2520%25D0%2592%25D0%25BB%25D0%25B0%25D0%25B4%25D0%25B8%25D0%25BC%25D0%25B8%25D1%2580%25D0%25B0");
+                    "https://www.livejournal.com/away/?to=https%3A%2F%2Fdzen.ru%2Fa%2FaA8bUsz0HUyQsaVt%23hramozdatelstvo_knyazya_vladimira%3A%7E%3Atext%3D%25D0%25AD%25D1%2582%25D1%2583%2520%25D1%2581%25D1%2582%25D0%25B0%25D1%2582%25D1%258C%25D1%258E%2520%25D0%25BC%25D0%25BE%25D0%25B6%25D0%25B5%25D1%2582,%25D0%25A5%25D1%2580%25D0%25B0%25D0%25BC%25D0%25BE%25D0%25B7%25D0%25B4%25D0%25B0%25D1%2582%25D0%25B5%25D0%25BB%25D1%258C%25D1%2581%25D1%2582%25D0%25B2%25D0%25BE%2520%25D0%25BA%25D0%25BD%25D1%258F%25D0%25B7%25D1%258F%2520%25D0%2592%25D0%25BB%25D0%25B0%25D0%25B4%25D0%25B8%25D0%25BC%25D0%25B8%25D1%2580%25D0%25B0");
 
         consolidate(
-                "http://s1.proxypy.org/p?q=Z3BqLmdpcm9fZjg5ZGExZGNfZjlkMDExXzAvMzkyLjM4NDU4MTk2LzQxOTIvdGVnL3VyLnhlZG5heS5pa3RvZi1nbWkvLzpzcHR0aA==",
-                "http://s1.proxypy.org/p?q=Z3BqLmdpcm9fZjg5ZGExZGNfZjlkMDExXzAvMzkyLjM4NDU4MTk2LzQxOTIvdGVnL3VyLnhlZG5h%0AeS5pa3RvZi1nbWkvLzpzcHR0aA%3D%3D%0A");
+                    "http://s1.proxypy.org/p?q=Z3BqLmdpcm9fZjg5ZGExZGNfZjlkMDExXzAvMzkyLjM4NDU4MTk2LzQxOTIvdGVnL3VyLnhlZG5heS5pa3RvZi1nbWkvLzpzcHR0aA==",
+                    "http://s1.proxypy.org/p?q=Z3BqLmdpcm9fZjg5ZGExZGNfZjlkMDExXzAvMzkyLjM4NDU4MTk2LzQxOTIvdGVnL3VyLnhlZG5h%0AeS5pa3RvZi1nbWkvLzpzcHR0aA%3D%3D%0A");
 
         consolidate("http://stanishevsky.com/write/img/fPushkin.ttf/s24/c704F32/bFBEABD/tа кто из вас либерал?.png",
-                "http://stanishevsky.com/write/img/fPushkin.ttf/s24/c704F32/bFBEABD/t%D0%B0%20%D0%BA%D1%82%D0%BE%20%D0%B8%D0%B7%20%D0%B2%D0%B0%D1%81%20%D0%BB%D0%B8%D0%B1%D0%B5%D1%80%D0%B0%D0%BB%3F.png");
+                    "http://stanishevsky.com/write/img/fPushkin.ttf/s24/c704F32/bFBEABD/t%D0%B0%20%D0%BA%D1%82%D0%BE%20%D0%B8%D0%B7%20%D0%B2%D0%B0%D1%81%20%D0%BB%D0%B8%D0%B1%D0%B5%D1%80%D0%B0%D0%BB%3F.png");
     }
 
     private static void consolidate(String... ar) throws Exception
@@ -208,71 +209,71 @@ public class MiscTest
     private static void test_unwrap() throws Exception
     {
         test_unwrap(
-                "https://www.google.com/url?q=https://pbs.twimg.com/media/CuUjbVqUsAATLSw.jpg&sa=U&ved=0ahUKEwiKh52Chpb9AhXTi1wKHS28DycQ5hMIBQ&usg=AOvVaw2BbqSzqbnWqhrdUA4x2xQA");
+                    "https://www.google.com/url?q=https://pbs.twimg.com/media/CuUjbVqUsAATLSw.jpg&sa=U&ved=0ahUKEwiKh52Chpb9AhXTi1wKHS28DycQ5hMIBQ&usg=AOvVaw2BbqSzqbnWqhrdUA4x2xQA");
 
         test_unwrap(
-                "https://imgprx.livejournal.net/st/a5qxcIzYm6irxnS1DFddEl8-2t1CYWAJYj-i7bfFaKo/img1.labirint.ru/books/168777/big.jpg");
+                    "https://imgprx.livejournal.net/st/a5qxcIzYm6irxnS1DFddEl8-2t1CYWAJYj-i7bfFaKo/img1.labirint.ru/books/168777/big.jpg");
         test_unwrap(
-                "https://p.dreamwidth.org/31fb6eddb6f7/3144591-346937/i1133.photobucket.com/albums/m588/technolirik/Sommer%202015/IMG_7236_zpscimjc0yw.jpg~original");
+                    "https://p.dreamwidth.org/31fb6eddb6f7/3144591-346937/i1133.photobucket.com/albums/m588/technolirik/Sommer%202015/IMG_7236_zpscimjc0yw.jpg~original");
         test_unwrap(
-                "https://p.dreamwidth.org/bd3c8005671e/3144591-636208/dlib.rsl.ru/viewer/pdf?docId=01004913781&page=147&rotate=0&negative=0");
+                    "https://p.dreamwidth.org/bd3c8005671e/3144591-636208/dlib.rsl.ru/viewer/pdf?docId=01004913781&page=147&rotate=0&negative=0");
         test_unwrap(
-                "https://p.dreamwidth.org/325de0142beb/3144591-344516/l-files.livejournal.net/userhead/1512?v=1416213861");
+                    "https://p.dreamwidth.org/325de0142beb/3144591-344516/l-files.livejournal.net/userhead/1512?v=1416213861");
         test_unwrap(
-                "https://p.dreamwidth.org/85b2c158373e/3144591-399915/l-stat.livejournal.net/img/community.gif?v=556?v=137.1");
-
-        test_unwrap(true,
-                "https://www.facebook.com/l.php?u=https%3A%2F%2Foslofreedomforum.com%2Fevents%2F2014-oslo-freedom-forum&amp;h=LAQE94R0e&amp;s=1");
-        test_unwrap(true,
-                "http://www.facebook.com/l.php?u=http%3A%2F%2Fru.wikipedia.org%2Fwiki%2F%25CF%25E0%25EC%25FF%25F2%25ED%25E8%25EA&amp;h=pAQFD1SIe");
-        test_unwrap(true,
-                "http://l.facebook.com/l.php?u=http%3A%2F%2Fkhodorkovsky.ru%2Fmbh%2Fnews%2Foslo%2F%23comments&amp;h=kAQH2_-7U&amp;s=1");
+                    "https://p.dreamwidth.org/85b2c158373e/3144591-399915/l-stat.livejournal.net/img/community.gif?v=556?v=137.1");
 
         test_unwrap(true,
-                "https://external.xx.fbcdn.net/safe_image.php?d=AQASlRgcl1dld6f3&amp;w=487&amp;h=340&amp;url=https%3A%2F%2Fpbs.twimg.com%2Fmedia%2FChybXmJXEAA8m1V.jpg");
+                    "https://www.facebook.com/l.php?u=https%3A%2F%2Foslofreedomforum.com%2Fevents%2F2014-oslo-freedom-forum&amp;h=LAQE94R0e&amp;s=1");
         test_unwrap(true,
-                "https://external.xx.fbcdn.net/safe_image.php?d=AQDUeuZ_v3uu2lV7&amp;w=130&amp;h=130&amp;url=http%3A%2F%2Fwww.mk.ru%2Fupload%2Fentities%2F2016%2F07%2F25%2Farticles%2FdetailPicture%2F2e%2F4b%2Fb4%2F513367864_5216281.jpg&amp;cfs=1&amp;sx=110&amp;sy=0&amp;sw=412&amp;sh=412");
+                    "http://www.facebook.com/l.php?u=http%3A%2F%2Fru.wikipedia.org%2Fwiki%2F%25CF%25E0%25EC%25FF%25F2%25ED%25E8%25EA&amp;h=pAQFD1SIe");
         test_unwrap(true,
-                "https://external.xx.fbcdn.net/safe_image.php?d=AQCGFA0tZwkf8pbu&amp;w=130&amp;h=130&amp;url=http%3A%2F%2Fgotoroad.ru%2Fimg%2Fmap-index-life.jpg&amp;cfs=1&amp;_nc_hash=AQC6OxfHDMHpoNRy");
+                    "http://l.facebook.com/l.php?u=http%3A%2F%2Fkhodorkovsky.ru%2Fmbh%2Fnews%2Foslo%2F%23comments&amp;h=kAQH2_-7U&amp;s=1");
+
+        test_unwrap(true,
+                    "https://external.xx.fbcdn.net/safe_image.php?d=AQASlRgcl1dld6f3&amp;w=487&amp;h=340&amp;url=https%3A%2F%2Fpbs.twimg.com%2Fmedia%2FChybXmJXEAA8m1V.jpg");
+        test_unwrap(true,
+                    "https://external.xx.fbcdn.net/safe_image.php?d=AQDUeuZ_v3uu2lV7&amp;w=130&amp;h=130&amp;url=http%3A%2F%2Fwww.mk.ru%2Fupload%2Fentities%2F2016%2F07%2F25%2Farticles%2FdetailPicture%2F2e%2F4b%2Fb4%2F513367864_5216281.jpg&amp;cfs=1&amp;sx=110&amp;sy=0&amp;sw=412&amp;sh=412");
+        test_unwrap(true,
+                    "https://external.xx.fbcdn.net/safe_image.php?d=AQCGFA0tZwkf8pbu&amp;w=130&amp;h=130&amp;url=http%3A%2F%2Fgotoroad.ru%2Fimg%2Fmap-index-life.jpg&amp;cfs=1&amp;_nc_hash=AQC6OxfHDMHpoNRy");
 
         test_unwrap(
-                "https://www.livejournal.com/away/?to=https://dzen.ru/a/aA8bUsz0HUyQsaVt");
+                    "https://www.livejournal.com/away/?to=https://dzen.ru/a/aA8bUsz0HUyQsaVt");
 
         test_unwrap(
-                "https://www.livejournal.com/away/?to=https%3A%2F%2Fdzen.ru%2Fa%2FaA8bUsz0HUyQsaVt%23hramozdatelstvo_knyazya_vladimira%3A%7E%3Atext%3D%25D0%25AD%25D1%2582%25D1%2583%2520%25D1%2581%25D1%2582%25D0%25B0%25D1%2582%25D1%258C%25D1%258E%2520%25D0%25BC%25D0%25BE%25D0%25B6%25D0%25B5%25D1%2582,%25D0%25A5%25D1%2580%25D0%25B0%25D0%25BC%25D0%25BE%25D0%25B7%25D0%25B4%25D0%25B0%25D1%2582%25D0%25B5%25D0%25BB%25D1%258C%25D1%2581%25D1%2582%25D0%25B2%25D0%25BE%2520%25D0%25BA%25D0%25BD%25D1%258F%25D0%25B7%25D1%258F%2520%25D0%2592%25D0%25BB%25D0%25B0%25D0%25B4%25D0%25B8%25D0%25BC%25D0%25B8%25D1%2580%25D0%25B0");
+                    "https://www.livejournal.com/away/?to=https%3A%2F%2Fdzen.ru%2Fa%2FaA8bUsz0HUyQsaVt%23hramozdatelstvo_knyazya_vladimira%3A%7E%3Atext%3D%25D0%25AD%25D1%2582%25D1%2583%2520%25D1%2581%25D1%2582%25D0%25B0%25D1%2582%25D1%258C%25D1%258E%2520%25D0%25BC%25D0%25BE%25D0%25B6%25D0%25B5%25D1%2582,%25D0%25A5%25D1%2580%25D0%25B0%25D0%25BC%25D0%25BE%25D0%25B7%25D0%25B4%25D0%25B0%25D1%2582%25D0%25B5%25D0%25BB%25D1%258C%25D1%2581%25D1%2582%25D0%25B2%25D0%25BE%2520%25D0%25BA%25D0%25BD%25D1%258F%25D0%25B7%25D1%258F%2520%25D0%2592%25D0%25BB%25D0%25B0%25D0%25B4%25D0%25B8%25D0%25BC%25D0%25B8%25D1%2580%25D0%25B0");
 
         test_unwrap(
-                "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/v/t1.0-9/14102445_852529494848760_1139406795505667796_n.jpg?oh=214146c3d68ec8711cbd07d56c04f209&oe=584A844B");
+                    "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/v/t1.0-9/14102445_852529494848760_1139406795505667796_n.jpg?oh=214146c3d68ec8711cbd07d56c04f209&oe=584A844B");
         test_unwrap(
-                "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fv%2Ft1.0-9%2F14102445_852529494848760_1139406795505667796_n.jpg%3Foh%3D214146c3d68ec8711cbd07d56c04f209%26oe%3D584A844B");
+                    "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fv%2Ft1.0-9%2F14102445_852529494848760_1139406795505667796_n.jpg%3Foh%3D214146c3d68ec8711cbd07d56c04f209%26oe%3D584A844B");
 
         test_unwrap(
-                "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/hphotos-xap1/v/t1.0-9/12410525_10153839742786462_7478520602963466481_n.jpg?oh=2f2e045d9cf31274d398a913d38f0595&oe=5749916A");
+                    "https://vk.com/away.php?to=https://scontent.xx.fbcdn.net/hphotos-xap1/v/t1.0-9/12410525_10153839742786462_7478520602963466481_n.jpg?oh=2f2e045d9cf31274d398a913d38f0595&oe=5749916A");
         test_unwrap(
-                "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fhphotos-xap1%2Fv%2Ft1.0-9%2F12410525_10153839742786462_7478520602963466481_n.jpg%3Foh%3D2f2e045d9cf31274d398a913d38f0595%26oe%3D5749916A");
+                    "https://vk.com/away.php?to=https%3A%2F%2Fscontent.xx.fbcdn.net%2Fhphotos-xap1%2Fv%2Ft1.0-9%2F12410525_10153839742786462_7478520602963466481_n.jpg%3Foh%3D2f2e045d9cf31274d398a913d38f0595%26oe%3D5749916A");
 
         test_unwrap(
-                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqbwtd_7r7egmpxw&w=540&h=282&url=https://www.ridus.ru/images/2019/5/27/923540/og_dc990e9192.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_eui2=aefmkake7madf2edmo1us0evquelvwjvx4ilvym5ryuicm7f9d8tearhr-3ygqwtfqj0iapfirf7s_jsyfl-ef85mabqjojqx1cu0_dzenzotw&_nc_hash=aqauw01xjl7ymy8i");
+                    "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqbwtd_7r7egmpxw&w=540&h=282&url=https://www.ridus.ru/images/2019/5/27/923540/og_dc990e9192.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_eui2=aefmkake7madf2edmo1us0evquelvwjvx4ilvym5ryuicm7f9d8tearhr-3ygqwtfqj0iapfirf7s_jsyfl-ef85mabqjojqx1cu0_dzenzotw&_nc_hash=aqauw01xjl7ymy8i");
         test_unwrap(
-                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqcgfyti7botlo8f&w=540&h=282&url=https://www.ridus.ru/images/2019/6/5/927990/og_fd3235d39e.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqdkzkofpohfmzyu");
+                    "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqcgfyti7botlo8f&w=540&h=282&url=https://www.ridus.ru/images/2019/6/5/927990/og_fd3235d39e.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqdkzkofpohfmzyu");
         test_unwrap(
-                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqcifmrme0v69z0u&w=540&h=282&url=https://avatars.mds.yandex.net/get-zen-pub-og/1873308/pub_5d29c5e5e854a900ac3dea1a_5d29d40464f86f00c14a99b9/fb&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqasflp9am6d5ryv");
+                    "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqcifmrme0v69z0u&w=540&h=282&url=https://avatars.mds.yandex.net/get-zen-pub-og/1873308/pub_5d29c5e5e854a900ac3dea1a_5d29d40464f86f00c14a99b9/fb&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqasflp9am6d5ryv");
         test_unwrap(
-                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqd-wqrcppoyr4jw&w=540&h=282&url=https://www.ridus.ru/images/2020/6/3/1103329/og_9191e16d89.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqadk6f16lqmi1wf");
+                    "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqd-wqrcppoyr4jw&w=540&h=282&url=https://www.ridus.ru/images/2020/6/3/1103329/og_9191e16d89.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqadk6f16lqmi1wf");
         test_unwrap(
-                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqdr2akmfescxvc4&w=540&h=282&url=https://warhead.su/system/og/24450.fb.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqbd5m_ba02i3sfh");
+                    "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqdr2akmfescxvc4&w=540&h=282&url=https://warhead.su/system/og/24450.fb.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqbd5m_ba02i3sfh");
         test_unwrap(
-                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqdv8n0xf8hurgci&w=540&h=282&url=https://www.ridus.ru/images/2020/4/7/1077242/og_ff60ff6b59.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqbiobfqck4juq2f");
+                    "https://external-arn2-1.xx.fbcdn.net/safe_image.php?d=aqdv8n0xf8hurgci&w=540&h=282&url=https://www.ridus.ru/images/2020/4/7/1077242/og_ff60ff6b59.png&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&_nc_hash=aqbiobfqck4juq2f");
         test_unwrap(
-                "https://external-arn2-1.xx.fbcdn.net/safe_image.php?w=476&h=249&url=https://storia-prod-be.akamaized.net/storia-cdn-ie-prod-001/0d110f4f7f8ac001-0d110f4f7f8ac002.jpeg/tn/1200x628&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&sx=0&sy=0&sw=1200&sh=628&_nc_hash=aqczdrpuvtgpipn3");
+                    "https://external-arn2-1.xx.fbcdn.net/safe_image.php?w=476&h=249&url=https://storia-prod-be.akamaized.net/storia-cdn-ie-prod-001/0d110f4f7f8ac001-0d110f4f7f8ac002.jpeg/tn/1200x628&cfs=1&upscale=1&fallback=news_d_placeholder_publisher&sx=0&sy=0&sw=1200&sh=628&_nc_hash=aqczdrpuvtgpipn3");
         test_unwrap(
-                "https://external-mxp1-1.xx.fbcdn.net/safe_image.php?d=aqbfvle8_rkahwoe&w=476&h=249&url=http://prod-upp-image-read.ft.com/25eeafac-bd94-11e6-8b45-b8b81dd5d080&cfs=1&upscale=1&sx=0&sy=27&sw=2048&sh=1071&hash=aqdhcyv1ncld0brz");
+                    "https://external-mxp1-1.xx.fbcdn.net/safe_image.php?d=aqbfvle8_rkahwoe&w=476&h=249&url=http://prod-upp-image-read.ft.com/25eeafac-bd94-11e6-8b45-b8b81dd5d080&cfs=1&upscale=1&sx=0&sy=27&sw=2048&sh=1071&hash=aqdhcyv1ncld0brz");
 
         test_unwrap(
-                "https://docs.google.com/viewer?url=http://voprosik.net/wp-content/uploads/2013/06/%d0%a1%d0%a8%d0%90-%d0%b8%d0%b7%d0%bd%d0%b0%d1%81%d0%b8%d0%bb%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f-%d0%bf%d0%be%d0%b4%d1%80%d0%be%d1%81%d1%82%d0%ba%d0%be%d0%b2-%d0%b4%d0%be%d0%ba%d0%bb%d0%b0%d0%b4.pdf&docid=058d8c44d39b9d2fd4b751c90e10a466&a=bi&pagenumber=1&w=524");
+                    "https://docs.google.com/viewer?url=http://voprosik.net/wp-content/uploads/2013/06/%d0%a1%d0%a8%d0%90-%d0%b8%d0%b7%d0%bd%d0%b0%d1%81%d0%b8%d0%bb%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f-%d0%bf%d0%be%d0%b4%d1%80%d0%be%d1%81%d1%82%d0%ba%d0%be%d0%b2-%d0%b4%d0%be%d0%ba%d0%bb%d0%b0%d0%b4.pdf&docid=058d8c44d39b9d2fd4b751c90e10a466&a=bi&pagenumber=1&w=524");
 
         test_unwrap(
-                "https://col128.mail.live.com/handlers/imageproxy.mvc?bicild=&canary=t3syuddqxht1aqfpinhrpnreb/z/ouf+j2lchmtldn8=0&url=http://l-userpic.livejournal.com/58839190/2516266");
+                    "https://col128.mail.live.com/handlers/imageproxy.mvc?bicild=&canary=t3syuddqxht1aqfpinhrpnreb/z/ouf+j2lchmtldn8=0&url=http://l-userpic.livejournal.com/58839190/2516266");
     }
 
     @SuppressWarnings("unused")
@@ -311,21 +312,21 @@ public class MiscTest
     {
         test_infonarod_away("http://infonarod.ru/away.php?url=http%253A%252F%252Fsocialist.memo.ru%252Fbooks%252Fdocuments.htm");
         test_infonarod_away(
-                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%25259B%2525D0%2525B5%2525D0%2525BD%2525D0%2525B8%2525D0%2525BD%252C_%2525D0%252592%2525D0%2525BB%2525D0%2525B0%2525D0%2525B4%2525D0%2525B8%2525D0%2525BC%2525D0%2525B8%2525D1%252580_%2525D0%252598%2525D0%2525BB%2525D1%25258C%2525D0%2525B8%2525D1%252587");
+                            "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%25259B%2525D0%2525B5%2525D0%2525BD%2525D0%2525B8%2525D0%2525BD%252C_%2525D0%252592%2525D0%2525BB%2525D0%2525B0%2525D0%2525B4%2525D0%2525B8%2525D0%2525BC%2525D0%2525B8%2525D1%252580_%2525D0%252598%2525D0%2525BB%2525D1%25258C%2525D0%2525B8%2525D1%252587");
         test_infonarod_away(
-                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A1%2525D0%2525B2%2525D0%2525B5%2525D1%252580%2525D0%2525B4%2525D0%2525BB%2525D0%2525BE%2525D0%2525B2%252C_%2525D0%2525AF%2525D0%2525BA%2525D0%2525BE%2525D0%2525B2_%2525D0%25259C%2525D0%2525B8%2525D1%252585%2525D0%2525B0%2525D0%2525B9%2525D0%2525BB%2525D0%2525BE%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
+                            "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A1%2525D0%2525B2%2525D0%2525B5%2525D1%252580%2525D0%2525B4%2525D0%2525BB%2525D0%2525BE%2525D0%2525B2%252C_%2525D0%2525AF%2525D0%2525BA%2525D0%2525BE%2525D0%2525B2_%2525D0%25259C%2525D0%2525B8%2525D1%252585%2525D0%2525B0%2525D0%2525B9%2525D0%2525BB%2525D0%2525BE%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
         test_infonarod_away(
-                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%25259F%2525D0%2525BE%2525D0%2525B4%2525D0%2525B2%2525D0%2525BE%2525D0%2525B9%2525D1%252581%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9%252C_%2525D0%25259D%2525D0%2525B8%2525D0%2525BA%2525D0%2525BE%2525D0%2525BB%2525D0%2525B0%2525D0%2525B9_%2525D0%252598%2525D0%2525BB%2525D1%25258C%2525D0%2525B8%2525D1%252587");
+                            "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%25259F%2525D0%2525BE%2525D0%2525B4%2525D0%2525B2%2525D0%2525BE%2525D0%2525B9%2525D1%252581%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9%252C_%2525D0%25259D%2525D0%2525B8%2525D0%2525BA%2525D0%2525BE%2525D0%2525BB%2525D0%2525B0%2525D0%2525B9_%2525D0%252598%2525D0%2525BB%2525D1%25258C%2525D0%2525B8%2525D1%252587");
         test_infonarod_away(
-                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A3%2525D1%252580%2525D0%2525B8%2525D1%252586%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9%252C_%2525D0%25259C%2525D0%2525BE%2525D0%2525B8%2525D1%252581%2525D0%2525B5%2525D0%2525B9_%2525D0%2525A1%2525D0%2525BE%2525D0%2525BB%2525D0%2525BE%2525D0%2525BC%2525D0%2525BE%2525D0%2525BD%2525D0%2525BE%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
+                            "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A3%2525D1%252580%2525D0%2525B8%2525D1%252586%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9%252C_%2525D0%25259C%2525D0%2525BE%2525D0%2525B8%2525D1%252581%2525D0%2525B5%2525D0%2525B9_%2525D0%2525A1%2525D0%2525BE%2525D0%2525BB%2525D0%2525BE%2525D0%2525BC%2525D0%2525BE%2525D0%2525BD%2525D0%2525BE%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
         test_infonarod_away(
-                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%252591%2525D0%2525BE%2525D0%2525BD%2525D1%252587-%2525D0%252591%2525D1%252580%2525D1%252583%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587%252C_%2525D0%252592%2525D0%2525BB%2525D0%2525B0%2525D0%2525B4%2525D0%2525B8%2525D0%2525BC%2525D0%2525B8%2525D1%252580_%2525D0%252594%2525D0%2525BC%2525D0%2525B8%2525D1%252582%2525D1%252580%2525D0%2525B8%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
+                            "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%252591%2525D0%2525BE%2525D0%2525BD%2525D1%252587-%2525D0%252591%2525D1%252580%2525D1%252583%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587%252C_%2525D0%252592%2525D0%2525BB%2525D0%2525B0%2525D0%2525B4%2525D0%2525B8%2525D0%2525BC%2525D0%2525B8%2525D1%252580_%2525D0%252594%2525D0%2525BC%2525D0%2525B8%2525D1%252582%2525D1%252580%2525D0%2525B8%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
         test_infonarod_away(
-                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A4%2525D0%2525B8%2525D0%2525BB%2525D0%2525B8%2525D0%2525BF%2525D0%2525BF%2525D0%2525BE%2525D0%2525B2%2525D1%252581%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9%252C_%2525D0%252592%2525D0%2525B0%2525D1%252581%2525D0%2525B8%2525D0%2525BB%2525D0%2525B8%2525D0%2525B9_%2525D0%25259D%2525D0%2525B8%2525D0%2525BA%2525D0%2525BE%2525D0%2525BB%2525D0%2525B0%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
+                            "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A4%2525D0%2525B8%2525D0%2525BB%2525D0%2525B8%2525D0%2525BF%2525D0%2525BF%2525D0%2525BE%2525D0%2525B2%2525D1%252581%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9%252C_%2525D0%252592%2525D0%2525B0%2525D1%252581%2525D0%2525B8%2525D0%2525BB%2525D0%2525B8%2525D0%2525B9_%2525D0%25259D%2525D0%2525B8%2525D0%2525BA%2525D0%2525BE%2525D0%2525BB%2525D0%2525B0%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
         test_infonarod_away(
-                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%25259A%2525D1%252580%2525D1%25258B%2525D0%2525BB%2525D0%2525B5%2525D0%2525BD%2525D0%2525BA%2525D0%2525BE%252C_%2525D0%25259D%2525D0%2525B8%2525D0%2525BA%2525D0%2525BE%2525D0%2525BB%2525D0%2525B0%2525D0%2525B9_%2525D0%252592%2525D0%2525B0%2525D1%252581%2525D0%2525B8%2525D0%2525BB%2525D1%25258C%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
+                            "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%25259A%2525D1%252580%2525D1%25258B%2525D0%2525BB%2525D0%2525B5%2525D0%2525BD%2525D0%2525BA%2525D0%2525BE%252C_%2525D0%25259D%2525D0%2525B8%2525D0%2525BA%2525D0%2525BE%2525D0%2525BB%2525D0%2525B0%2525D0%2525B9_%2525D0%252592%2525D0%2525B0%2525D1%252581%2525D0%2525B8%2525D0%2525BB%2525D1%25258C%2525D0%2525B5%2525D0%2525B2%2525D0%2525B8%2525D1%252587");
         test_infonarod_away(
-                "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A2%2525D0%2525B0%2525D0%2525B2%2525D1%252580%2525D0%2525B8%2525D1%252587%2525D0%2525B5%2525D1%252581%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9_%2525D0%2525B4%2525D0%2525B2%2525D0%2525BE%2525D1%252580%2525D0%2525B5%2525D1%252586");
+                            "http://infonarod.ru/away.php?url=https%253A%252F%252Fru.wikipedia.org%252Fwiki%252F%2525D0%2525A2%2525D0%2525B0%2525D0%2525B2%2525D1%252580%2525D0%2525B8%2525D1%252587%2525D0%2525B5%2525D1%252581%2525D0%2525BA%2525D0%2525B8%2525D0%2525B9_%2525D0%2525B4%2525D0%2525B2%2525D0%2525BE%2525D1%252580%2525D0%2525B5%2525D1%252586");
     }
 
     private static void test_infonarod_away(String s)
@@ -349,7 +350,7 @@ public class MiscTest
         test_cp1251("http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA");
         test_cp1251("---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---");
         test_cp1251(
-                "---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA---");
+                    "---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---2F%7A%7A%7A%2F%E9%E9%E9%2F%7A%7A%7A%E9%E9%E9%3F%7A%7A%7A---http://ru.wikipedia.org/wiki/%CF%E0%EC%FF%F2%ED%E8%EA---");
     }
 
     private static void test_cp1251(String original)
@@ -361,6 +362,7 @@ public class MiscTest
 
         Util.out("");
     }
+
     /* ========================================================================================================================= */
 
     @SuppressWarnings("unused")
@@ -375,9 +377,9 @@ public class MiscTest
     private static void test_encode_url() throws Exception
     {
         test_encode_url(
-                "https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPG");
+                        "https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPG");
         test_encode_url(
-                "https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPGяяя-ййй");
+                        "https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&filter=statuscode:200&matchType=exact&limit=1&url=http%3A%2F%2F1.bp.blogspot.com%2F_h_hLztz7W0s%2FSq0s6CwFrJI%2FAAAAAAAADX4%2FxfV04qkGa1A%2Fs1600-h%2FCheKa.JPGяяя-ййй");
     }
 
     private static void test_encode_url(String s) throws Exception
@@ -385,5 +387,54 @@ public class MiscTest
         Util.out("    " + s);
         Util.out("X   " + UrlUtil.encodeUrlForApacheWire(s));
         Util.out("    ");
+    }
+
+    /* ========================================================================================================================= */
+
+    @SuppressWarnings("unused")
+    private static void test_host() throws Exception
+    {
+        test_host("https://abc.com/zzz");
+        test_host("https://-abc-.com/zzz");
+        test_host("https://_abc_.com/zzz");
+        test_host("https://abc/zzz");
+        test_host("https://abc.com?qqq");
+        test_host("https://abc.com#aaa");
+
+        test_host("http://abc.com/zzz");
+        test_host("http://-abc-.com/zzz");
+        test_host("http://_abc_.com/zzz");
+        test_host("http://abc/zzz");
+        test_host("http://abc.com?qqq");
+        test_host("http://abc.com#aaa");
+
+        test_host("http://abc.com:2000/zzz");
+        test_host("http://-abc-.com:2000/zzz");
+        test_host("http://_abc_.com:2000/zzz");
+        test_host("http://abc:2000/zzz");
+        test_host("http://abc.com:2000?qqq");
+        test_host("http://abc.com:2000#aaa");
+
+        test_host("abc.com/zzz");
+        test_host("-abc-.com/zzz");
+        test_host("_abc_.com/zzz");
+        test_host("abc/zzz");
+        test_host("abc.com?qqq");
+        test_host("abc.com#aaa");
+
+        test_host("abc.com:2000/zzz");
+        test_host("-abc-.com:2000/zzz");
+        test_host("_abc_.com:2000/zzz");
+        test_host("abc:2000/zzz");
+        test_host("abc.com:2000?qqq");
+        test_host("abc.com:2000#aaa");
+    }
+
+    private static void test_host(String s) throws Exception
+    {
+        String s2 = UrlUtil.extractHostLowercase(s);
+        Util.out("    " + s);
+        Util.out("X   " + s2);
+        Util.out("");
     }
 }

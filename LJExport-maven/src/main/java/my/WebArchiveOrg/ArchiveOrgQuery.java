@@ -27,17 +27,30 @@ public class ArchiveOrgQuery
         String cdxQueryUrl = String.format("https://web.archive.org/cdx/search/cdx?output=json&fl=timestamp,original,statuscode&" +
                 "filter=statuscode:200&matchType=exact&limit=%d&url=%s", limit, UrlUtil.encodeSegment(originalUrl));
 
-        String json = load_json(cdxQueryUrl, null);
-        if (json == null)
-            return null;
-        
-        while (json.endsWith("\n") || json.endsWith("\r"))
+        int attempts = 0;
+        String json = null;
+
+        for (;;)
         {
-            if (json.endsWith("\n"))
-                json = Util.stripTail(json, "\n");
-            else
-                json = Util.stripTail(json, "\r");
+            json = load_json(cdxQueryUrl, null);
+            if (json == null)
+                return null;
+
+            while (json.endsWith("\n") || json.endsWith("\r"))
+            {
+                if (json.endsWith("\n"))
+                    json = Util.stripTail(json, "\n");
+                else
+                    json = Util.stripTail(json, "\r");
+            }
+
+            if (json.trim().length() != 0 || attempts++ > 5)
+                break;
+            
+            // sometimes CDX spuriously returns empty string
+            Util.sleep(2000 + attempts * 2000);
         }
+
         if (json.trim().equals("[]"))
             return null;
 

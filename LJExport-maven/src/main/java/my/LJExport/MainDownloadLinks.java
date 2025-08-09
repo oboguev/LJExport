@@ -36,12 +36,12 @@ public class MainDownloadLinks
     private int countFetched = 0;
 
     private static final String ALL_USERS = "<all>";
-    private static final String AllUsersFromUser = null;
-    // private static final String AllUsersFromUser = "um_plus";
+    // private static final String AllUsersFromUser = null;
+    private static final String AllUsersFromUser = "aleksei";
 
     private static final String Users = ALL_USERS;
 
-    // private static final String Users = "funt";
+    // private static final String Users = "krylov";
     // private static final String Users = "_devol_,1981dn,1981dn_dn,64vlad,a_bugaev,a_kaminsky,a_samovarov,a_sevastianov,abcdefgh,afanarizm,afrika_sl,aleksei";
     // private static final String Users = "amfora,andrewmed,anya_anya_anya";
     // private static final String Users = "archives_ru,arkhip,artemov_igor,asriyan,atorin";

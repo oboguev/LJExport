@@ -102,16 +102,28 @@ public class UnwrapAwayLinks extends MaintenanceHandler
                 continue;
             }
 
+            /* ------------------------------------------------------- */
+
             String unwrapped_decoded = AwayLink.unwrapDecoded(old_decoded);
+            unwrapped_decoded = Util.trimWithNBSP(unwrapped_decoded);
+
             if (unwrapped_decoded.equals(old_decoded) || unwrapped_decoded.equals("null"))
                 continue;
 
-            if (unwrapped_decoded.trim().startsWith("data:") ||
-                unwrapped_decoded.trim().startsWith("mailto:") ||
-                unwrapped_decoded.trim().startsWith("tel:"))
+            if (Util.startsWith(unwrapped_decoded, null, "javascript:", "data:", "tel:", "mailto:",
+                    "sms:", "geo:", "magnet:", "blob:", "about:",
+                    "ws:", "wss:", "file:", "cid:", "#", "?"))
             {
                 continue;
             }
+
+            if (Util.startsWithIgnoreCase(unwrapped_decoded, null, "http%3a//", "https%3a//"))
+                unwrapped_decoded = UrlUtil.decodeUrl(unwrapped_decoded);
+
+            if (!Util.startsWithIgnoreCase(unwrapped_decoded, null, "http://", "https://"))
+                continue;
+
+            /* ------------------------------------------------------- */
 
             String new_encoded;
             try
@@ -123,6 +135,8 @@ public class UnwrapAwayLinks extends MaintenanceHandler
                 traceError("Unencodable URL: " + unwrapped_decoded);
                 continue;
             }
+
+            /* ------------------------------------------------------- */
 
             JSOUP.updateAttribute(n, attr, new_encoded);
 

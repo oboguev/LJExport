@@ -117,10 +117,22 @@ public class FileTypeDetector
         try
         {
             return fileExtensionFromMimeType(mimeType);
-            
         }
         catch (Exception ex)
         {
+            switch (mimeType.toLowerCase())
+            {
+            /*
+             * Invalid fromat of server Content-Type header  
+             */
+            case "jpg":
+            case "jpeg":
+                return "jpg";
+                
+            case "image":
+                return null;
+            }
+            
             throw new Exception("While processing URL " + url, ex);
         }
     }
@@ -131,16 +143,6 @@ public class FileTypeDetector
             return null;
 
         String lc = mimeType.toLowerCase();
-
-        switch (lc)
-        {
-        /*
-         * Invalid fromat of server Content-Type header  
-         */
-        case "jpg":
-        case "jpeg":
-            return "jpg";
-        }
 
         MimeType mimeTypeInfo = allMimeTypes.forName(mimeType);
         String extension = mimeTypeInfo.getExtension(); // e.g. ".svg"

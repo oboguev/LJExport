@@ -52,7 +52,7 @@ public class LinkRedownloader
             {
                 String headerExt = null;
                 if (r.contentType != null)
-                    headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase());
+                    headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase(), url);
                 contentExt = headerExt;
             }
 

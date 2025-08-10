@@ -112,6 +112,19 @@ public class FileTypeDetector
         }
     }
 
+    public static String fileExtensionFromMimeType(String mimeType, String url) throws Exception
+    {
+        try
+        {
+            return fileExtensionFromMimeType(mimeType);
+            
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("While processing URL " + url, ex);
+        }
+    }
+
     public static String fileExtensionFromMimeType(String mimeType) throws Exception
     {
         if (mimeType == null || mimeType.equalsIgnoreCase(MIME_OCTET_STREAM))

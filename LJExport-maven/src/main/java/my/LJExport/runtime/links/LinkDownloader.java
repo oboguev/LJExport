@@ -797,7 +797,7 @@ public class LinkDownloader
 
         String headerExt = null;
         if (r.contentType != null)
-            headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase());
+            headerExt = FileTypeDetector.fileExtensionFromMimeType(Util.despace(r.contentType).toLowerCase(), href);
 
         String finalExt = contentExt;
         if (finalExt == null)

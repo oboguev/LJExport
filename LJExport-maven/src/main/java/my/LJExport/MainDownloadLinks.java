@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import my.LJExport.calendar.YYYY_MM;
 import my.LJExport.readers.direct.PageParserDirectBase;
 import my.LJExport.readers.direct.PageParserDirectBase.AbsoluteLinkBase;
 import my.LJExport.readers.direct.PageParserDirectBasePassive;
@@ -38,6 +39,8 @@ public class MainDownloadLinks
     private static final String ALL_USERS = "<all>";
     // private static final String AllUsersFromUser = null;
     private static final String AllUsersFromUser = "aleksei";
+    private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
+    // private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2014, 8);
 
     private static final String Users = ALL_USERS;
 
@@ -280,6 +283,18 @@ public class MainDownloadLinks
 
                 pageFile = pageFiles.remove(0);
                 out(String.format(">>> [%s] %s (%d/%d)", Config.User, pageFile, ++this.countFetched, pageFilesTotalCount));
+            }
+            
+            String pageFileUnix = pageFile.replace(File.separator, "/");
+
+            if (Users.equals(ALL_USERS) && AllUsersFromUser != null && Config.User.equals(AllUsersFromUser) && 
+                AllUsersFromUserFromYyyyMm != null && pageFileUnix.startsWith("pages/"))
+            {
+                String[] sa = Util.stripStart(pageFileUnix, "pages/").split("/");
+                int yyyy = Integer.parseInt(sa[0]);
+                int mm = Integer.parseInt(sa[1]);
+                if (new YYYY_MM(yyyy, mm).compareTo(AllUsersFromUserFromYyyyMm) < 0)
+                    continue;
             }
 
             String pageFileFullPath = userRoot + File.separator + pageFile;

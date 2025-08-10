@@ -37,6 +37,7 @@ import my.LJExport.runtime.links.util.DownloadSource;
 import my.LJExport.runtime.links.util.LinkFilepath;
 import my.LJExport.runtime.synch.NamedLocks;
 import my.LJExport.runtime.url.AwayLink;
+import my.LJExport.runtime.url.FixUrl;
 import my.LJExport.runtime.url.UrlUtil;
 import my.WebArchiveOrg.ArchiveOrgUrl;
 
@@ -135,19 +136,19 @@ public class LinkDownloader
     /*
      * Download at one of alternative download addresses 
      */
-    public String download(boolean image, String name_href, List<String> download_hrefs, String referer, String linkReferencePrefix)
+    public String download(boolean image, String name_href, List<String> download_hrefs, String referer, String linkReferencePrefix) throws Exception
     {
         return download(image, name_href, download_hrefs, referer, linkReferencePrefix, null);
     }
 
     public String download(boolean image, String name_href, List<String> download_hrefs, String referer, String linkReferencePrefix,
-            DownloadSource downloadSource)
+            DownloadSource downloadSource) throws Exception
     {
         download_hrefs = Util.eliminateNullsAndDuplicates(download_hrefs);
 
         for (String download_href : download_hrefs)
         {
-            String newref = download(image, name_href, download_href, referer, linkReferencePrefix, downloadSource);
+            String newref = download(image, FixUrl.fix(name_href), FixUrl.fix(download_href), referer, linkReferencePrefix, downloadSource);
             if (newref != null)
                 return newref;
         }

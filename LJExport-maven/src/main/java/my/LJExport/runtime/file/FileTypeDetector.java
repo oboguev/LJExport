@@ -119,6 +119,16 @@ public class FileTypeDetector
 
         String lc = mimeType.toLowerCase();
 
+        switch (lc)
+        {
+        /*
+         * Invalid fromat of server Content-Type header  
+         */
+        case "jpg":
+        case "jpeg":
+            return "jpg";
+        }
+
         MimeType mimeTypeInfo = allMimeTypes.forName(mimeType);
         String extension = mimeTypeInfo.getExtension(); // e.g. ".svg"
 
@@ -256,18 +266,18 @@ public class FileTypeDetector
         String lc = path.toLowerCase();
 
         return lc.endsWith(".avif") ||
-                lc.endsWith(".bmp") ||
-                lc.endsWith(".dib") ||
-                lc.endsWith(".gif") ||
-                lc.endsWith(".ico") ||
-                lc.endsWith(".icon") ||
-                lc.endsWith(".jpeg") ||
-                lc.endsWith(".jpg") ||
-                lc.endsWith(".png") ||
-                lc.endsWith(".svg") ||
-                lc.endsWith(".tif") ||
-                lc.endsWith(".tiff") ||
-                lc.endsWith(".webp");
+               lc.endsWith(".bmp") ||
+               lc.endsWith(".dib") ||
+               lc.endsWith(".gif") ||
+               lc.endsWith(".ico") ||
+               lc.endsWith(".icon") ||
+               lc.endsWith(".jpeg") ||
+               lc.endsWith(".jpg") ||
+               lc.endsWith(".png") ||
+               lc.endsWith(".svg") ||
+               lc.endsWith(".tif") ||
+               lc.endsWith(".tiff") ||
+               lc.endsWith(".webp");
     }
 
     public static boolean isImageExtension(String ext)
@@ -443,7 +453,7 @@ public class FileTypeDetector
             return false;
 
         return d[0] == 'A' && d[1] == 'T' && d[2] == '&' && d[3] == 'T' &&
-                d[12] == 'D' && d[13] == 'J' && d[14] == 'V';
+               d[12] == 'D' && d[13] == 'J' && d[14] == 'V';
     }
 
     private static boolean isRAR(byte[] d)

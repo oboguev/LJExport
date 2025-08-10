@@ -38,9 +38,9 @@ public class MainDownloadLinks
 
     private static final String ALL_USERS = "<all>";
     // private static final String AllUsersFromUser = null;
-    private static final String AllUsersFromUser = "aleksei";
-    private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
-    // private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2014, 8);
+    private static final String AllUsersFromUser = "avmalgin";
+    // private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
+    private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2015, 2);
 
     private static final String Users = ALL_USERS;
 
@@ -284,10 +284,10 @@ public class MainDownloadLinks
                 pageFile = pageFiles.remove(0);
                 out(String.format(">>> [%s] %s (%d/%d)", Config.User, pageFile, ++this.countFetched, pageFilesTotalCount));
             }
-            
+
             String pageFileUnix = pageFile.replace(File.separator, "/");
 
-            if (Users.equals(ALL_USERS) && AllUsersFromUser != null && Config.User.equals(AllUsersFromUser) && 
+            if (Users.equals(ALL_USERS) && AllUsersFromUser != null && Config.User.equals(AllUsersFromUser) &&
                 AllUsersFromUserFromYyyyMm != null && pageFileUnix.startsWith("pages/"))
             {
                 String[] sa = Util.stripStart(pageFileUnix, "pages/").split("/");

@@ -33,14 +33,15 @@ public class MainDownloadLinks
     private String userRoot;
     private String linksDir;
     private List<String> pageFiles;
+    private List<String> pageFilesIncomplete;
     private int pageFilesTotalCount;
     private int countFetched = 0;
 
     private static final String ALL_USERS = "<all>";
     // private static final String AllUsersFromUser = null;
     private static final String AllUsersFromUser = "colonelcassad";
- // private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
-    private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2013, 1);
+    // private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
+    private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2014, 6);
 
     private static final String Users = ALL_USERS;
 
@@ -76,7 +77,7 @@ public class MainDownloadLinks
     private static boolean ReloadForMonthlyPages = false;
 
     /* we can use large number of threads because they usually are network IO bound */
-    private static final int NWorkThreads = 300;
+    private static int NWorkThreads = 300;
     private static final int MaxConnectionsPerRoute = 10;
 
     /* limit the number of threads working on large  monthly files, to prevent OutOfMemory */
@@ -113,6 +114,13 @@ public class MainDownloadLinks
             List<String> list = EnumUsers.allUsers(AllUsersFromUser, EnumUsers.Options.DEFAULT);
             users = String.join(",", list);
         }
+
+        /*
+         * When using archive.org, typically the bottleneck is rate limiting for access to archive.org, 
+         * therefore parallelize within every HTML file first, rather than across many HTML files.
+         */
+        if (UseArchiveOrg)
+            NWorkThreads = Math.min(NWorkThreads, Config.LinkDownloadSpawnThreshold / 2);
 
         Config.NWorkThreads = NWorkThreads;
         Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
@@ -203,6 +211,7 @@ public class MainDownloadLinks
             }
 
             pageFilesTotalCount = pageFiles.size();
+            pageFilesIncomplete = new ArrayList<>(pageFiles);
 
             // start worker threads
             ThreadsControl.workerThreadGoEventFlag.clear();
@@ -233,9 +242,17 @@ public class MainDownloadLinks
             }
 
             if (Main.isAborting())
+            {
                 err(">>> Aborted scanning the journal for user " + Config.User);
+                if (pageFilesIncomplete.size() == 0)
+                    err(">>> All user files had been scanned");
+                else
+                    err(">>> First unscanned file: " + pageFilesIncomplete.get(0));
+            }
             else
+            {
                 out(">>> Completed scanning the journal for user " + Config.User);
+            }
         }
         finally
         {
@@ -294,7 +311,14 @@ public class MainDownloadLinks
                 int yyyy = Integer.parseInt(sa[0]);
                 int mm = Integer.parseInt(sa[1]);
                 if (new YYYY_MM(yyyy, mm).compareTo(AllUsersFromUserFromYyyyMm) < 0)
+                {
+                    synchronized (pageFilesIncomplete)
+                    {
+                        pageFilesIncomplete.remove(pageFile);
+                    }
+
                     continue;
+                }
             }
 
             String pageFileFullPath = userRoot + File.separator + pageFile;
@@ -333,6 +357,11 @@ public class MainDownloadLinks
 
                 /* help GC */
                 parser = null;
+
+                synchronized (pageFilesIncomplete)
+                {
+                    pageFilesIncomplete.remove(pageFile);
+                }
             }
             finally
             {

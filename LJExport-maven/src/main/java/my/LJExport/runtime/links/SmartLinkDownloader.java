@@ -31,7 +31,7 @@ import my.WebArchiveOrg.ArchiveOrgUrl;
 public class SmartLinkDownloader
 {
     private final String linksDir;
-    
+
     private static Set<String> missingArchiveOrgSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public static enum LoadFrom
@@ -146,7 +146,7 @@ public class SmartLinkDownloader
         if (loadFrom.hasOnline())
         {
             r = load_good(image, href, referer, true);
-            
+
             if (r != null)
             {
                 if (fromWhere != null)
@@ -173,7 +173,7 @@ public class SmartLinkDownloader
          */
         if (missingArchiveOrgSet.contains(href))
             return null;
-                
+
         List<KVEntry> entries = ArchiveOrgQuery.querySnapshots(href, 1);
         if (entries == null || entries.size() == 0)
         {
@@ -225,7 +225,7 @@ public class SmartLinkDownloader
             return null;
         }
     }
-    
+
     /*
      * archive.org snapshot for image URLs lead to if_ pages, 
      * which are HTML pahes with one IMG tag to archive.org im_ resource
@@ -238,11 +238,12 @@ public class SmartLinkDownloader
      * We should follow it.
      * The same can also happen in other situation when a link is provided to HTML page that links to a single IMG.
      */
-    public static Web.Response loadImageIndirection(boolean image, String href, String referer, Web.Response r, boolean online) throws Exception
+    public static Web.Response loadImageIndirection(boolean image, String href, String referer, Web.Response r, boolean online)
+            throws Exception
     {
         if (!image)
             return null;
-        
+
         ResponseAnalysis an = isGoodResponse(image, href, r);
 
         if (!FileTypeDetector.isHtmlExtension(an.serverExt) || r.textBody() == null)
@@ -301,7 +302,7 @@ public class SmartLinkDownloader
         an = isGoodResponse(image, href, r);
         if (an.isGood)
             return r;
-        
+
         return null;
     }
 
@@ -331,8 +332,9 @@ public class SmartLinkDownloader
         if (serverExt != null && urlPathExt != null && FileTypeDetector.isEquivalentExtensions(urlPathExt, serverExt))
             return new ResponseAnalysis(true, serverExt);
 
-        Decision decision = ServerContent.acceptContent(href, serverExt, headerExt, urlPathExt, new ContentProvider(r.binaryBody),
-                r);
+        Decision decision = ServerContent.acceptContent(href, serverExt, headerExt, urlPathExt,
+                                                        new ContentProvider(r.binaryBody),
+                                                        r);
         if (decision.isReject())
             return new ResponseAnalysis(false, serverExt);
         if (decision.isAccept())
@@ -369,10 +371,10 @@ public class SmartLinkDownloader
             src = UrlUtil.decodeHtmlAttrLink(src);
 
             if (src == null || Util.startsWith(src.trim().toLowerCase(), null,
-                    "https://web-static.archive.org/",
-                    "http://web-static.archive.org/",
-                    "https://archiveteam.org/",
-                    "http://archiveteam.org/"))
+                                               "https://web-static.archive.org/",
+                                               "http://web-static.archive.org/",
+                                               "https://archiveteam.org/",
+                                               "http://archiveteam.org/"))
             {
                 continue;
             }

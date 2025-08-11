@@ -1351,7 +1351,27 @@ public abstract class PageParserDirectBase
 
         if (encoded.startsWith(prefix))
             encoded = replacement + Util.stripStart(encoded, prefix);
+        
+        if (startsWithMacroPrefix(encoded))
+            throw new Exception("URL starts with macroprefix: " + encoded);
 
         return encoded;
+    }
+
+    // Precompiled pattern for performance
+    private static final Pattern MACRO_PREFIX_PATTERN = Pattern.compile("^<\\?([A-Za-z][A-Za-z0-9._-]*)\\?>");
+
+    /**
+     * Checks whether the given URL starts with a macro-expansion prefix.
+     * Example: "<?imgprefix?>/icon.gif" -> true
+     *
+     * @param url The URL string to check (must not be null)
+     * @return true if the URL starts with a valid macro-expansion prefix
+     */
+    private static boolean startsWithMacroPrefix(String url)
+    {
+        if (url == null)
+            return false;
+        return MACRO_PREFIX_PATTERN.matcher(url).find();
     }
 }

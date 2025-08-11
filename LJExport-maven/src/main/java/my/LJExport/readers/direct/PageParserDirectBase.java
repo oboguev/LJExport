@@ -1346,11 +1346,11 @@ public abstract class PageParserDirectBase
 
     private String macroExpand(String encoded) throws Exception
     {
-        String prefix = "<?imgprefix?>/";
-        String replacement = "https://l-stat.livejournal.net/img/";
+        String imgprefix = "<?imgprefix?>/";
+        String imgprefix_replacement = "https://l-stat.livejournal.net/img/";
 
-        if (encoded.startsWith(prefix))
-            encoded = replacement + Util.stripStart(encoded, prefix);
+        if (encoded.startsWith(imgprefix))
+            encoded = imgprefix_replacement + Util.stripStart(encoded, imgprefix);
         
         if (startsWithMacroPrefix(encoded))
             throw new Exception("URL starts with macroprefix: " + encoded);

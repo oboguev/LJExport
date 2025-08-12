@@ -437,6 +437,10 @@ public class UrlUtil
      */
     public static String encodeUrlForApacheWire(String url) throws Exception
     {
+        /*
+         * We do not need to encode Unicode host name since 
+         * Apache automatically encodes it to punycode.
+         */
         url = encodeUrlForHtmlAttr(url, true);
         url = Util.stripAnchor(url);
         url = normalizeSchemeHostPort(url);

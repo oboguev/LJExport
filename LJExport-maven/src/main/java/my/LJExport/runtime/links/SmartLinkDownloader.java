@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,6 +34,10 @@ public class SmartLinkDownloader
     private final String linksDir;
 
     private static Set<String> missingArchiveOrgSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    
+    private static Set<FailedDownload> failedDownloads = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static Set<FailedDownload> failedDownloadsOnline = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static Set<FailedDownload> failedDownloadsArchive= Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public static enum LoadFrom
     {
@@ -62,6 +67,45 @@ public class SmartLinkDownloader
             default:
                 return false;
             }
+        }
+    }
+
+    public static class FailedDownload
+    {
+        public String href;
+        public boolean image;
+        public boolean hasReferer;
+        public String loadFrom;
+        
+        public FailedDownload(boolean image, String href, String referer, LoadFrom loadFrom)
+        {
+            this.href = href;
+            this.image = image;
+            this.hasReferer = referer !=null && referer.trim().length() != 0;
+            this.loadFrom = loadFrom == null ? null : loadFrom.name();
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o)
+                return true;
+
+            if (!(o instanceof FailedDownload))
+                return false;
+            
+            FailedDownload that = (FailedDownload) o;
+            
+            return image == that.image &&
+                   hasReferer == that.hasReferer &&
+                   Objects.equals(href, that.href) &&
+                   Objects.equals(loadFrom, that.loadFrom);
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(href, image, hasReferer, loadFrom);
         }
     }
 
@@ -139,11 +183,17 @@ public class SmartLinkDownloader
 
         if (fromWhere != null)
             fromWhere.setValue(null);
+        
+        FailedDownload fd = new FailedDownload(image, href, referer, loadFrom);
+        if (failedDownloads.contains(fd))
+            return null;
+
+        FailedDownload fdx = new FailedDownload(image, href, referer, null);
 
         /*
          * Load live online copy
          */
-        if (loadFrom.hasOnline())
+        if (loadFrom.hasOnline() && !failedDownloadsOnline.contains(fdx))
         {
             r = load_good(image, href, referer, true);
 
@@ -159,11 +209,20 @@ public class SmartLinkDownloader
 
                 return r;
             }
+            else
+            {
+                failedDownloadsOnline.add(fdx);
+                if (loadFrom == LoadFrom.Online)
+                    failedDownloads.add(fd);
+            }
         }
 
         /*
          * Load from acrhive.org
          */
+        if (failedDownloadsArchive.contains(fdx))
+            return null;
+
         // was already an archive.org URL? 
         if (!loadFrom.hasArchive() || ArchiveOrgUrl.isArchiveOrgUrl(href))
             return null;
@@ -172,12 +231,18 @@ public class SmartLinkDownloader
          * Query available acrhive.org snapshots 
          */
         if (missingArchiveOrgSet.contains(href))
+        {
+            failedDownloads.add(fd);
+            failedDownloadsArchive.add(fdx);
             return null;
+        }
 
         List<KVEntry> entries = ArchiveOrgQuery.querySnapshots(href, 1);
         if (entries == null || entries.size() == 0)
         {
             missingArchiveOrgSet.add(href);
+            failedDownloads.add(fd);
+            failedDownloadsArchive.add(fdx);
             return null;
         }
 
@@ -196,6 +261,9 @@ public class SmartLinkDownloader
                 fromWhere.setValue("web.archive.org/dynamic");
             return r;
         }
+
+        failedDownloads.add(fd);
+        failedDownloadsArchive.add(fdx);
 
         return null;
     }

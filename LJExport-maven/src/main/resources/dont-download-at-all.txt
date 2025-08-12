@@ -49,6 +49,7 @@ google.de/*
 www.google.com/*
 www.google.ru/*
 www.google.de/*
+www.sravni.ru/kursy*
 
 #
 # posts, not images

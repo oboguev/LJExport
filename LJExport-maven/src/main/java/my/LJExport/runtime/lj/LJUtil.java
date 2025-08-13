@@ -1,5 +1,6 @@
 package my.LJExport.runtime.lj;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -401,6 +402,10 @@ public class LJUtil
                     return finalUrl.toString();
                 }
             }
+        }
+        catch (MalformedURLException ex)
+        {
+            return url;
         }
         catch (Exception ex)
         {

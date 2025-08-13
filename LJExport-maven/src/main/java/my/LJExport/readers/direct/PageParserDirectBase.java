@@ -372,7 +372,15 @@ public abstract class PageParserDirectBase
                 if (JSOUP.getAttribute(n, "original-" + attr) == null)
                     JSOUP.setAttribute(n, "original-" + attr, href_original);
 
-                String encoded_newref = UrlUtil.encodeUrlForHtmlAttr(newref, true);
+                String encoded_newref = null;
+                try
+                {
+                    encoded_newref = UrlUtil.encodeUrlForHtmlAttr(newref, true);
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
                 JSOUP.updateAttribute(n, attr, encoded_newref);
                 return true;
             }
@@ -1351,7 +1359,7 @@ public abstract class PageParserDirectBase
 
         if (encoded.startsWith(imgprefix))
             encoded = imgprefix_replacement + Util.stripStart(encoded, imgprefix);
-        
+
         if (startsWithMacroPrefix(encoded))
             throw new Exception("URL starts with macroprefix: " + encoded);
 

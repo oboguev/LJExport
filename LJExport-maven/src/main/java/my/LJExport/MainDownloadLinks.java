@@ -39,9 +39,9 @@ public class MainDownloadLinks
 
     private static final String ALL_USERS = "<all>";
     // private static final String AllUsersFromUser = null;
-    private static final String AllUsersFromUser = "lasido";
-    // private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
-    private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2012, 10);
+    private static final String AllUsersFromUser = "nikital2014";
+    private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
+    // private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2012, 10);
 
     private static final String Users = ALL_USERS;
 
@@ -121,7 +121,7 @@ public class MainDownloadLinks
          */
         if (UseArchiveOrg)
             NWorkThreads = Math.min(NWorkThreads, Config.LinkDownloadSpawnThreshold / 2);
-        
+
         Config.NWorkThreads = NWorkThreads;
         Config.MaxConnectionsPerRoute = MaxConnectionsPerRoute;
         Config.init("");

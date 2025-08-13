@@ -130,6 +130,7 @@ public class FileTypeDetector
                 return "jpg";
                 
             case "image":
+            case "unknown":
                 return null;
             }
             

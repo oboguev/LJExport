@@ -29,7 +29,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "a_bugaev";
+    public static final String Users = "banguerski_alex";
     // public static final String Users = "roineroyce";
     // public static final String Users = "harmfulgrumpy.dreamwidth-org";
     // public static final String Users = "colonelcassad";
@@ -39,14 +39,14 @@ public class Config
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    // public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
-    public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
+    // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
     // public static final YYYY_MM LoadSince = null;
     // public static final YYYY_MM LoadTill = null;
-    public static final YYYY_MM LoadSince = new YYYY_MM(2010, 10);
-    public static final YYYY_MM LoadTill = new YYYY_MM(2010, 11);
+    public static final YYYY_MM LoadSince = new YYYY_MM(2006, 11);
+    public static final YYYY_MM LoadTill = new YYYY_MM(2006, 11);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;
@@ -143,11 +143,11 @@ public class Config
     public static boolean ScrapingArchiveOrg = false;
 
     public static final Map<String, HttpAccessMode> HttpAccessModes = Map.of(Sites.Livejournal, HttpAccessMode.DIRECT,
-            Sites.DreamwidthOrg, HttpAccessMode.DIRECT,
-            Sites.OlegMakarenko, HttpAccessMode.DIRECT,
-            Sites.RossiaOrg, HttpAccessMode.DIRECT,
-            Sites.ArchiveOrg, HttpAccessMode.DIRECT,
-            Sites.Other, HttpAccessMode.DIRECT);
+                                                                             Sites.DreamwidthOrg, HttpAccessMode.DIRECT,
+                                                                             Sites.OlegMakarenko, HttpAccessMode.DIRECT,
+                                                                             Sites.RossiaOrg, HttpAccessMode.DIRECT,
+                                                                             Sites.ArchiveOrg, HttpAccessMode.DIRECT,
+                                                                             Sites.Other, HttpAccessMode.DIRECT);
 
     public static boolean UseFiddler = false;
     public static final String FiddlerTrustStore = null;

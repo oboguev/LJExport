@@ -235,6 +235,13 @@ public class PageParserDirectClassic extends PageParserDirectBase
             for (Node article : articles)
                 has = hasComments(has, article);
         }
+        
+        if (has == null)
+        {
+            List<Node> groves3c = JSOUP.findElementsWithClass(pageRoot, "div", "b-grove-3comments");
+            for (Node grove : groves3c)
+                has = hasComments(has, grove);
+        }
 
         if (has == null)
             throw new Exception("Unable to determine if page has comments");

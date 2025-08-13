@@ -43,10 +43,10 @@ public class Config
     // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
-    // public static final YYYY_MM LoadSince = null;
-    // public static final YYYY_MM LoadTill = null;
-    public static final YYYY_MM LoadSince = new YYYY_MM(2006, 11);
-    public static final YYYY_MM LoadTill = new YYYY_MM(2006, 11);
+    public static final YYYY_MM LoadSince = null;
+    public static final YYYY_MM LoadTill = null;
+    // public static final YYYY_MM LoadSince = new YYYY_MM(2006, 11);
+    // public static final YYYY_MM LoadTill = new YYYY_MM(2006, 11);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;

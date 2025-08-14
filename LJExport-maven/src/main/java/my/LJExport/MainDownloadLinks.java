@@ -39,9 +39,9 @@ public class MainDownloadLinks
 
     private static final String ALL_USERS = "<all>";
     // private static final String AllUsersFromUser = null;
-    private static final String AllUsersFromUser = "nikital2014";
-    private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
-    // private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2012, 10);
+    private static final String AllUsersFromUser = "ru_history";
+    // private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
+    private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2012, 9);
 
     private static final String Users = ALL_USERS;
 

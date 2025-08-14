@@ -29,11 +29,12 @@ public class MainStylesToLocal
     // private static final String AllUsersFromUser = "harmfulgrumpy";
     private static final String AllUsersFromUser = null;
 
-    private static final String Users = ALL_USERS;
+    // private static final String Users = ALL_USERS;
     // private static final String Users = "oboguev,alex_vergin,salery,pioneer_lj,genby,andronic,a_bugaev,1981dn,1981dn_dn,chukcheev,rigort,kirovtanin,kornev,bantaputu,zhenziyou,takoe_nebo,von_hoffmann,jlm_taurus,ivanov_petrov,fritzmorgen";
     // private static final String Users = "sergeytsvetkov";
     // private static final String Users = "nationalism.org";
     // private static final String Users = "udod99.lj-rossia-org";
+    private static final String Users = "banguerski_alex";
 
     private static final boolean ShowStylesProgress = true;
     private static final boolean DryRun = true;
@@ -84,9 +85,9 @@ public class MainStylesToLocal
                 String mult = users.contains(",") ? "ей" : "я";
 
                 String questionText = String.format(
-                        "Точно ли вы желаете переменить стили в файлах HTML с удалённых стилей на их архивированные копии для пользовател%s %s ?",
-                        mult,
-                        users.replace(",", ", "));
+                                                    "Точно ли вы желаете переменить стили в файлах HTML с удалённых стилей на их архивированные копии для пользовател%s %s ?",
+                                                    mult,
+                                                    users.replace(",", ", "));
                 response = UIDialogQuestion.askQuestion(questionText, "Отменить", "Да", "Отменить");
             }
             catch (Exception ex)
@@ -193,10 +194,10 @@ public class MainStylesToLocal
             String remark = DryRun ? " (DRY RUN)" : "";
 
             Util.out(String.format(">>> Total files scanned: %d, updated in memory: %d, updated on disk: %d%s",
-                    batchContext.scannedHtmlFiles.get(),
-                    batchContext.updatedHtmlFiles.get(),
-                    batchContext.savedHtmlFiles.get(),
-                    remark));
+                                   batchContext.scannedHtmlFiles.get(),
+                                   batchContext.updatedHtmlFiles.get(),
+                                   batchContext.savedHtmlFiles.get(),
+                                   remark));
         }
         finally
         {
@@ -215,7 +216,7 @@ public class MainStylesToLocal
             styleFallbackDir = Config.DownloadRoot + File.separator + "@livejournal-styles";
         else
             Util.err(String.format("Processing NOT for LiveJournal (with no styles fallback directory), user %s, site %s",
-                    Config.User, Config.Site));
+                                   Config.User, Config.Site));
 
         if (!which.equals("pages"))
         {
@@ -228,18 +229,18 @@ public class MainStylesToLocal
 
         HtmlFileBatchProcessingContext batchContext = new HtmlFileBatchProcessingContext();
         StyleProcessor.processAllHtmlFiles(styleCatalogDir, styleFallbackDir, dir, StyleProcessorAction.TO_LOCAL, null,
-                ShowStylesProgress, DryRun,
-                batchContext, errorMessageLog,
-                parallelism);
+                                           ShowStylesProgress, DryRun,
+                                           batchContext, errorMessageLog,
+                                           parallelism);
 
         String remark = DryRun ? " (DRY RUN)" : "";
         Util.out(String.format(">>> Completed [%s] directory %s, files scanned: %d, updated in memory: %d, updated on disk: %d%s",
-                Config.User,
-                which,
-                batchContext.scannedHtmlFiles.get(),
-                batchContext.updatedHtmlFiles.get(),
-                batchContext.savedHtmlFiles.get(),
-                remark));
+                               Config.User,
+                               which,
+                               batchContext.scannedHtmlFiles.get(),
+                               batchContext.updatedHtmlFiles.get(),
+                               batchContext.savedHtmlFiles.get(),
+                               remark));
 
         batchContextAll.add(batchContext);
     }

@@ -1,7 +1,6 @@
 package my.LJExport.runtime.http;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -471,8 +470,8 @@ public class WebRequestHeaders
 
         try
         {
-            URI target = new URI(targetUrl);
-            URI source = new URI(referer);
+            URL target = new URL(targetUrl);
+            URL source = new URL(referer);
 
             // Compare origin (scheme + host + port)
             if (sameOrigin(target, source))
@@ -489,25 +488,29 @@ public class WebRequestHeaders
             return "cross-site";
 
         }
-        catch (URISyntaxException e)
+        catch (MalformedURLException e)
         {
             return "none"; // fall back to safest option
         }
+        catch (RuntimeException e)
+        {
+            throw e;
+        }
     }
 
-    private static boolean sameOrigin(URI u1, URI u2)
+    private static boolean sameOrigin(URL u1, URL u2)
     {
-        return u1.getScheme().equalsIgnoreCase(u2.getScheme()) &&
+        return u1.getProtocol().equalsIgnoreCase(u2.getProtocol()) &&
                 u1.getHost().equalsIgnoreCase(u2.getHost()) &&
                 getPort(u1) == getPort(u2);
     }
 
-    private static int getPort(URI uri)
+    private static int getPort(URL uri)
     {
         int port = uri.getPort();
         if (port != -1)
             return port;
-        return uri.getScheme().equalsIgnoreCase("https") ? 443 : 80;
+        return uri.getProtocol().equalsIgnoreCase("https") ? 443 : 80;
     }
 
     /**

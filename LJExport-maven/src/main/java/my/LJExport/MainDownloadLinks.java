@@ -40,10 +40,10 @@ public class MainDownloadLinks
     private static final String ALL_USERS = "<all>";
     // private static final String AllUsersFromUser = null;
     private static final String AllUsersFromUser = "tanya_mass";
-    // private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
-    private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2012, 2);
+    private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
+    // private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2012, 2);
 
-    private static final String Users = ALL_USERS;
+    // private static final String Users = ALL_USERS;
 
     // private static final String Users = "krylov";
     // private static final String Users = "_devol_,1981dn,1981dn_dn,64vlad,a_bugaev,a_kaminsky,a_samovarov,a_sevastianov,abcdefgh,afanarizm,afrika_sl,aleksei";
@@ -66,6 +66,10 @@ public class MainDownloadLinks
     // private static final String Users = "udod99.lj-rossia-org,colonelcassad.my_comments,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "1981dn.pre-2025,1981dn_dn.pre-2025,a_kaminsky.pre-2025,a_samovarov.pre-2025,bantaputu.pre-2025,hokma.pre-2025,krylov.pre-2025,oboguev.pre-2025,pioneer_lj.pre-2025,polit_ec.pre-2025,zhenziyou.pre-2025";
     // private static final String Users = "novy_chitatel";
+    private static final String Users = "harmfulgrumpy.dreamwidth-org";
+
+    // private static final YYYY_MM UserFromYyyyMm = null;
+    private static final YYYY_MM UserFromYyyyMm = new YYYY_MM(2015, 9);
 
     /* download images from archive.org in addition to online */
     private static boolean UseArchiveOrg = true;
@@ -311,6 +315,22 @@ public class MainDownloadLinks
                 int yyyy = Integer.parseInt(sa[0]);
                 int mm = Integer.parseInt(sa[1]);
                 if (new YYYY_MM(yyyy, mm).compareTo(AllUsersFromUserFromYyyyMm) < 0)
+                {
+                    synchronized (pageFilesIncomplete)
+                    {
+                        pageFilesIncomplete.remove(pageFile);
+                    }
+
+                    continue;
+                }
+            }
+
+            if (!Users.equals(ALL_USERS) && UserFromYyyyMm != null && pageFileUnix.startsWith("pages/"))
+            {
+                String[] sa = Util.stripStart(pageFileUnix, "pages/").split("/");
+                int yyyy = Integer.parseInt(sa[0]);
+                int mm = Integer.parseInt(sa[1]);
+                if (new YYYY_MM(yyyy, mm).compareTo(UserFromYyyyMm) < 0)
                 {
                     synchronized (pageFilesIncomplete)
                     {

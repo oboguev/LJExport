@@ -38,8 +38,8 @@ public class MainDownloadLinks
     private int countFetched = 0;
 
     private static final String ALL_USERS = "<all>";
-    // private static final String AllUsersFromUser = null;
-    private static final String AllUsersFromUser = "tanya_mass";
+    private static final String AllUsersFromUser = null;
+    // private static final String AllUsersFromUser = "tanya_mass";
     private static final YYYY_MM AllUsersFromUserFromYyyyMm = null;
     // private static final YYYY_MM AllUsersFromUserFromYyyyMm = new YYYY_MM(2012, 2);
 
@@ -66,7 +66,8 @@ public class MainDownloadLinks
     // private static final String Users = "udod99.lj-rossia-org,colonelcassad.my_comments,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "1981dn.pre-2025,1981dn_dn.pre-2025,a_kaminsky.pre-2025,a_samovarov.pre-2025,bantaputu.pre-2025,hokma.pre-2025,krylov.pre-2025,oboguev.pre-2025,pioneer_lj.pre-2025,polit_ec.pre-2025,zhenziyou.pre-2025";
     // private static final String Users = "novy_chitatel";
-    private static final String Users = "harmfulgrumpy.dreamwidth-org";
+    // private static final String Users = "harmfulgrumpy.dreamwidth-org";
+    private static final String Users = "udod99.lj-rossia-org";
 
     private static final YYYY_MM UserFromYyyyMm = null;
     // private static final YYYY_MM UserFromYyyyMm = new YYYY_MM(2015, 9);

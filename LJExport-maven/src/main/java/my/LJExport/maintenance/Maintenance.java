@@ -44,7 +44,8 @@ public class Maintenance
     // private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
     // private static final String Users = "banguerski_alex";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
-    private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
+    private static final String Users = "udod99.lj-rossia-org";
+ // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "colonelcassad,fritzmorgen,ivanov_petrov";
 
     private static int ParallelismDefault = 20;
@@ -114,9 +115,9 @@ public class Maintenance
             // do_users(Users, FixNullLinks.class); // only for nationalism.org
             // do_users(Users, FixDirectoryLinks.class);
             // do_users(Users, FixLongPaths.class);
-            // do_users(Users, DetectFailedDownloads.class);
+            do_users(Users, DetectFailedDownloads.class);
             // --- then run MainRedownloadFailedLinks
-            do_users(Users, RemoveFailedDownloads.class);
+            // do_users(Users, RemoveFailedDownloads.class);
             // do_users(Users, CheckMissingLinks.class);
             // do_users(Users, FixFileExtensions.class);
             // do_users(Users, CheckMissingLinks.class);

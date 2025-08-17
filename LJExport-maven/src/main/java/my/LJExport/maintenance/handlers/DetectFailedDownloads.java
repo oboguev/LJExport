@@ -81,7 +81,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
     private List<LinkMapEntry> linkMapEntries;
     private Map<String, List<LinkMapEntry>> relpath2entry;
     private int stageFileCount;
-    
+
     public static final String FailedLinkDownloadsFileName = "failed-link-downloads.txt";
 
     @Override
@@ -141,7 +141,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
                 if (fli.urls.size() == 1)
                 {
                     String url = fli.urls.get(0);
-                    
+
                     if (fli.image && ShouldDownload.shouldDownloadImage(url, false))
                     {
                         url = "image:" + url;
@@ -180,6 +180,20 @@ public class DetectFailedDownloads extends MaintenanceHandler
 
                     trace("Stored failed-link-downloads.txt for user " + Config.User + info);
                     Util.out("Stored failed-link-downloads.txt for user " + Config.User + info);
+                }
+            }
+            else
+            {
+                if (list.size() == 0)
+                {
+                    trace("No failed downloads for user " + Config.User);
+                    Util.out("No failed downloads for user " + Config.User);
+                }
+                else
+                {
+                    int lsz = list.size();
+                    trace(lsz + " failed downloads for user " + Config.User);
+                    Util.out(lsz + " failed downloads for user " + Config.User);
                 }
             }
 
@@ -312,7 +326,7 @@ public class DetectFailedDownloads extends MaintenanceHandler
         if (ac == null)
         {
             String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
-                    Config.User, href, linkInfo.linkFullFilePath);
+                                       Config.User, href, linkInfo.linkFullFilePath);
 
             boolean allow = Config.User.equals("d_olshansky") && href.contains("../links/imgprx.livejournal.net/");
 
@@ -635,16 +649,16 @@ public class DetectFailedDownloads extends MaintenanceHandler
         {
             String lc = url.toLowerCase();
             return lc.startsWith("https://imgprx.livejournal.net/st/") ||
-                    lc.startsWith("http://imgprx.livejournal.net/st/") ||
-                    lc.startsWith("imgprx.livejournal.net/st/");
+                   lc.startsWith("http://imgprx.livejournal.net/st/") ||
+                   lc.startsWith("imgprx.livejournal.net/st/");
         }
 
         static boolean isImgPrx(String url)
         {
             String lc = url.toLowerCase();
             return lc.startsWith("https://imgprx.livejournal.net/") ||
-                    lc.startsWith("http://imgprx.livejournal.net/") ||
-                    lc.startsWith("imgprx.livejournal.net/");
+                   lc.startsWith("http://imgprx.livejournal.net/") ||
+                   lc.startsWith("imgprx.livejournal.net/");
         }
 
         private void removeUrls(Collection<String> xs)
@@ -784,9 +798,9 @@ public class DetectFailedDownloads extends MaintenanceHandler
         if (xlist.size() != list.size())
         {
             String msg = String.format("Removed %d link map %s for %s",
-                    nremoved,
-                    Util.plural(nremoved, "entry", "entries"),
-                    Util.nplural(deleteRelPaths.size(), "file", "files"));
+                                       nremoved,
+                                       Util.plural(nremoved, "entry", "entries"),
+                                       Util.nplural(deleteRelPaths.size(), "file", "files"));
 
             if (DryRun)
             {

@@ -41,9 +41,11 @@ public class Maintenance
     // private static final String Users = "oboguev";
     // private static final String Users = "fritzmorgen";
     // private static final String Users = "sadalskij";
-    private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
+    // private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
     // private static final String Users = "banguerski_alex";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
+    private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
+    // private static final String Users = "colonelcassad,fritzmorgen,ivanov_petrov";
 
     private static int ParallelismDefault = 20;
     private static int ParallelismMonthly = 5;
@@ -96,7 +98,7 @@ public class Maintenance
             //   - CheckLinkCaseConflicts [optional]
             //   - ResolveLinkCaseDifferences 
             //   - FixUnencodedLinks + VerifyUnencodedLinks
-            //   - ixNullLinks  (only for nationalism.org)
+            //   - FixNullLinks  (only for nationalism.org)
             //   - FixDirectoryLinks [test a_bugaev, ночная москва -- check links map file, review txlog]
             //   - FixLongPaths
             //   - DetectFailedDownloads + MainRedownloadFailedLinks + RemoveFailedDownloads
@@ -114,11 +116,11 @@ public class Maintenance
             // do_users(Users, FixLongPaths.class);
             // do_users(Users, DetectFailedDownloads.class);
             // --- then run MainRedownloadFailedLinks
-            // do_users(Users, RemoveFailedDownloads.class);
+            do_users(Users, RemoveFailedDownloads.class);
             // do_users(Users, CheckMissingLinks.class);
             // do_users(Users, FixFileExtensions.class);
             // do_users(Users, CheckMissingLinks.class);
-            do_users(Users, UnwrapAwayLinks.class);
+            // do_users(Users, UnwrapAwayLinks.class);
             // --- then run MainDownloadLinks
 
             txLog.writeLineSafe("");

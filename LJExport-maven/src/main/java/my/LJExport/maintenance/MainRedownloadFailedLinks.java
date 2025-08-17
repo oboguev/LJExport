@@ -57,7 +57,8 @@ public class MainRedownloadFailedLinks
     // private static final String Users = ALL_USERS;
     // private static final String Users = "funt";
     // private static final String Users = "krylov_arhiv,krylov";
-    private static final String Users = "philtrius";
+    // private static final String Users = "philtrius";
+    private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
 
     private static boolean DryRun = false;
@@ -313,7 +314,7 @@ public class MainRedownloadFailedLinks
         else
         {
             Util.out(String.format("User %s has %s scheduled to redownload",
-                    Config.User, numfiles(kvlist.size())));
+                                   Config.User, numfiles(kvlist.size())));
 
             for (KVEntry entry : kvlist)
                 kvset_remaining.add(new IdentityWrapper<>(entry));
@@ -606,7 +607,7 @@ public class MainRedownloadFailedLinks
             if (ac == null)
             {
                 String msg = String.format("Link file/dir [%s] is not present in the repository map, href=[%s], filepath=[%s]",
-                        Config.User, href, linkInfo.linkFullFilePath);
+                                           Config.User, href, linkInfo.linkFullFilePath);
 
                 boolean allow = Config.User.equals("d_olshansky") && href.contains("../links/imgprx.livejournal.net/");
 
@@ -679,14 +680,14 @@ public class MainRedownloadFailedLinks
             if (failedUrls.contains(url))
             {
                 Util.err(messagePrefix() + String.format("Quitting [%s] link file %s, previosuly failed url: %s",
-                        Config.User, relativeLinkFilePath, url));
+                                                         Config.User, relativeLinkFilePath, url));
                 return false;
             }
 
             MutableObject<String> fromWhere = new MutableObject<>();
             boolean result = smartLinkRedownloader.redownloadToFile(image, url, relativeLinkFilePath, referer,
-                    UseArchiveOrg ? LoadFrom.OnlineAndArchive : LoadFrom.Online,
-                    fromWhere);
+                                                                    UseArchiveOrg ? LoadFrom.OnlineAndArchive : LoadFrom.Online,
+                                                                    fromWhere);
 
             if (result)
             {
@@ -694,7 +695,8 @@ public class MainRedownloadFailedLinks
                 if (fromWhere.get() != null)
                     from = " === from " + fromWhere.get();
                 Util.out(
-                        messagePrefix() + String.format("Downloaded [%s] link file %s%s", Config.User, relativeLinkFilePath, from));
+                         messagePrefix()
+                                 + String.format("Downloaded [%s] link file %s%s", Config.User, relativeLinkFilePath, from));
             }
             else
             {

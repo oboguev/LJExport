@@ -68,8 +68,8 @@ public class MainDownloadLinks
     // private static final String Users = "novy_chitatel";
     private static final String Users = "harmfulgrumpy.dreamwidth-org";
 
-    // private static final YYYY_MM UserFromYyyyMm = null;
-    private static final YYYY_MM UserFromYyyyMm = new YYYY_MM(2015, 9);
+    private static final YYYY_MM UserFromYyyyMm = null;
+    // private static final YYYY_MM UserFromYyyyMm = new YYYY_MM(2015, 9);
 
     /* download images from archive.org in addition to online */
     private static boolean UseArchiveOrg = true;
@@ -358,7 +358,7 @@ public class MainDownloadLinks
 
                 if (Util.False)
                 {
-                    if (!parser.rurl.equals("253432.html"))
+                    if (!parser.rurl.equals("956259.html"))
                         continue;
                     Util.noop();
                 }

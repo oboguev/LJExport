@@ -34,7 +34,7 @@ import my.LJExport.runtime.url.UrlUtil;
  */
 public class RemoveFailedDownloads extends MaintenanceHandler
 {
-    private static boolean DryRun = false;
+    private static boolean DryRun = true;
 
     public RemoveFailedDownloads() throws Exception
     {

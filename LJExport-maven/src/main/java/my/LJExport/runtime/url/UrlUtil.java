@@ -804,7 +804,8 @@ public class UrlUtil
 
     public static URI URLtoURI(URL url) throws Exception
     {
-        String encodedQuery = encodeSegment(url.getQuery());
+        String uq = url.getQuery();
+        String encodedQuery = uq == null ? null : encodeSegment(uq);
 
         URI uri = new URI(
                 url.getProtocol(),

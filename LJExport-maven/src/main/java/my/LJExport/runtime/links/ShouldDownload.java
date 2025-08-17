@@ -41,13 +41,13 @@ public class ShouldDownload
 
         if (href == null || href.length() == 0)
             return false;
-        
+
         if (!Util.startsWithIgnoreCase(href, null, "http://", "https://"))
             return false;
-        
+
         href = AwayLink.unwrapDecodedSafe(href);
         href = Util.stripAnchor(href);
-        
+
         if (online)
         {
             if (dontDownloadOnline.contains(href))
@@ -71,16 +71,26 @@ public class ShouldDownload
             throw ex;
         }
 
+        String host = xurl.getHost();
+        if (host == null)
+            return false;
+        host = host.trim().toLowerCase();
+        if (host.length() == 0)
+            return false;
+
         String path = xurl.getPath();
         if (path == null)
             return false;
         path = path.trim();
         if (path.length() == 0 || path.equals("/"))
             return false;
-        
+
         String query = xurl.getQuery();
         if (query != null && query.trim().length() == 0)
             query = null;
+
+        if (!Config.DownloadLivejournalImgPrx && host.equalsIgnoreCase("imgprx.livejournal.net"))
+            return false;
 
         String ext = LinkFilepath.getMediaFileExtension(path);
         if (ext != null && ext.trim().length() == 0)
@@ -88,12 +98,12 @@ public class ShouldDownload
 
         if (knownImageHosting.contains(href))
             return true;
-        
+
         /*
          * URL can be for example http://userpic.livejournal.com/13279792/2465292
          * Should decide outcome based on actual content type.
          */
-        
+
         if (Util.False)
         {
             // dont't download if no extension in path and no query
@@ -143,6 +153,14 @@ public class ShouldDownload
                 return false;
 
             String host = xurl.getHost();
+            if (host == null)
+                return false;
+            host = host.trim().toLowerCase();
+            if (host.length() == 0)
+                return false;
+
+            if (!Config.DownloadLivejournalImgPrx && host.equalsIgnoreCase("imgprx.livejournal.net"))
+                return false;
 
             if (Util.False)
             {

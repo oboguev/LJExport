@@ -54,11 +54,11 @@ public class MainRedownloadFailedLinks
     private static final String AllUsersFromUser = null;
     // private static final String AllUsersFromUser = "schloenski";
 
-    // private static final String Users = ALL_USERS;
+    private static final String Users = ALL_USERS;
     // private static final String Users = "funt";
     // private static final String Users = "krylov_arhiv,krylov";
     // private static final String Users = "philtrius";
-    private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
+    // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
 
     private static boolean DryRun = false;

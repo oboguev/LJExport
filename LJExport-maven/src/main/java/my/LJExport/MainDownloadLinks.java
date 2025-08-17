@@ -67,13 +67,16 @@ public class MainDownloadLinks
     // private static final String Users = "1981dn.pre-2025,1981dn_dn.pre-2025,a_kaminsky.pre-2025,a_samovarov.pre-2025,bantaputu.pre-2025,hokma.pre-2025,krylov.pre-2025,oboguev.pre-2025,pioneer_lj.pre-2025,polit_ec.pre-2025,zhenziyou.pre-2025";
     // private static final String Users = "novy_chitatel";
     // private static final String Users = "harmfulgrumpy.dreamwidth-org";
-    private static final String Users = "udod99.lj-rossia-org";
+    // private static final String Users = "udod99.lj-rossia-org";
+    private static final String Users = "oboguev";
 
     private static final YYYY_MM UserFromYyyyMm = null;
     // private static final YYYY_MM UserFromYyyyMm = new YYYY_MM(2015, 9);
 
     /* download images from archive.org in addition to online */
     private static boolean UseArchiveOrg = true;
+
+    private static boolean DownloadLivejournalImgPrx = false;
 
     /* 
      * additionally reload missing images and links for monthly pages too,
@@ -136,6 +139,8 @@ public class MainDownloadLinks
             Config.LinkDownloaderLoadFrom = LoadFrom.OnlineAndArchive;
 
         Config.PrintLinkDownloads = true;
+
+        Config.DownloadLivejournalImgPrx = DownloadLivejournalImgPrx;
 
         ActivityCounters.reset();
         RateLimiter.LJ_IMAGES.setRateLimit(100);

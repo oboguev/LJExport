@@ -33,7 +33,7 @@ public class Maintenance
     private static final String AllUsersFromUser = null;
     // private static final String AllUsersFromUser = "kot_begemott";
 
-    // private static final String Users = ALL_USERS;
+    private static final String Users = ALL_USERS;
     // private static final String Users = "1981dn";
     // private static final String Users = "oboguev";
     // private static final String Users = "a_kaminsky";
@@ -44,9 +44,11 @@ public class Maintenance
     // private static final String Users = "harmfulgrumpy.dreamwidth-org,udod99.lj-rossia-org";
     // private static final String Users = "banguerski_alex";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org,nationalism.org";
-    private static final String Users = "udod99.lj-rossia-org";
- // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
+    // private static final String Users = "udod99.lj-rossia-org";
+    // private static final String Users = "harmfulgrumpy.dreamwidth-org";
+    // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "colonelcassad,fritzmorgen,ivanov_petrov";
+    // private static final String Users = "nationalism.org";
 
     private static int ParallelismDefault = 20;
     private static int ParallelismMonthly = 5;

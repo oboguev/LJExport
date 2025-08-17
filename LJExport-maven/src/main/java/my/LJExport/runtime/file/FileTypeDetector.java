@@ -61,6 +61,9 @@ public class FileTypeDetector
     {
         if (fileBytes == null)
             return null;
+        
+        if (fileBytes.length == 0)
+            return MIME_OCTET_STREAM;
 
         String detectedMimeType = tika.detect(fileBytes);
         if (!detectedMimeType.equalsIgnoreCase(MIME_OCTET_STREAM))

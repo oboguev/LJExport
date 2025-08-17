@@ -97,6 +97,7 @@ public class Config
      */
     public static LoadFrom LinkDownloaderLoadFrom = LoadFrom.Online;
     public static boolean PrintLinkDownloads = false;
+    public static boolean DownloadLivejournalImgPrx = true;
 
     /**************************/
     /** TECHNICAL PARAMETERS **/

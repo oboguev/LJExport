@@ -68,10 +68,24 @@ public class MainDownloadLinks
     // private static final String Users = "novy_chitatel";
     // private static final String Users = "harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "udod99.lj-rossia-org";
-    private static final String Users = "oboguev";
+    // private static final String Users = "oboguev";
+    // private static final String Users = "krylov,krylov_arhiv,haritonov,hokma,pioneer_lj";
+    // private static final String Users = "laert,1981dn,1981dn_dn,_devol_,a_kaminsky,a_samovarov,a_sevastianov,afrika_sl,aleksei,alex_mashin,alex_vergin,alexandrovich,allin777,alzheimer,andronic,anya_anya_anya,arkhip,asriyan,atorin";
+    // private static final String Users = "banguerski_alex,bantaputu,bash_m_ak,belan,blog_10101,bohemicus,corporatelie,d_olshansky,d_v_sokolov,dimkin,dmitrij_sergeev,ego,eremei,evva2,fat_yankey,fluffyduck2,fritzmorgen,funt";
+    // private static final String Users = "galkovsky,genby,glaue2dk,harmfulgrumpy,hasid,holmogor,ivkonstant,jlm_taurus,karaulov,kirovtanin,kordonsky,kornev,kot_begemott,kouzdra";
+    private static final String Users = "kouzdra";
+    // private static final String Users = "labas,lasido,limonov_eduard,m_yu_sokolov,malorus,man_with_dogs,maxim_sokolov,maxim_sokolov2,morky,nikital2014,nilsky_nikolay,novy_chitatel,olegnemen,olshansky";
+    // private static final String Users = "pavell,polit_ec,pyc_ivan,rasumov_ab,rf2,rigort,rod_ru,roman_rogalyov,roman_yushkov,ru_282,ru_nationalism,ruspartia";
+    // private static final String Users = "sadalskij,salery,sanches,sergeytsvetkov,sm_sergeev";
+    // private static final String Users = "tttkkk,tutchev,takoe_nebo,tor85,um_plus,vladimir_tor,von_hoffmann,zhenziyou,zhu_s,abcdefgh,afanarizm,tanya_mass";
+    //
+    // private static final String Users = "64vlad,a_bugaev,aabad,aillarionov,alexandrov_g,allemand1990,amfora,andrewmed,archives_ru,artemov_igor,avdant,avmalgin,brus,cherniaev,chukcheev,chuverin,clen_lj,colonelcassad,dedushka";
+    // private static final String Users = "doppel_herz,elcour,emelind,f_f,guran_ussury,hurtmann,istoriograf,ivanov_petrov,karmakom,knigipoistcccp,kushnirenko,langobard,lesolub,ljequentin,loboff,lomonosov,meast_ru,michail,miguel_kud";
+    // private static final String Users = "nep2,obsrvr,oldadmiral,otrubon,philtrius,pikitan,piligrim,pravoe_org,pushkinskij_dom,ritovita,rms1,rn_manifesto,roineroyce,ru_bezch,ru_history,schegloff,schloenski,sergeyhudiev";
+    // private static final String Users = "shrek1,shulga,tbv,trufanov,tverdyi_znak,unilevel,vad_nes,vernost,vlad_cepesh,wiradhe,wyradhe,ystrek";
 
-    private static final YYYY_MM UserFromYyyyMm = null;
-    // private static final YYYY_MM UserFromYyyyMm = new YYYY_MM(2015, 9);
+    // private static final YYYY_MM UserFromYyyyMm = null;
+    private static final YYYY_MM UserFromYyyyMm = new YYYY_MM(2016, 7);
 
     /* download images from archive.org in addition to online */
     private static boolean UseArchiveOrg = true;

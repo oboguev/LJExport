@@ -333,7 +333,7 @@ public class LinkDownloader
     {
         if (failedSet.contains(download_href_noanchor))
             throw new AlreadyFailedException();
-
+        
         Thread.currentThread().setName(final_threadName + " downloading " + download_href_noanchor + " prepare");
 
         String actual_filename = filename.get();

@@ -131,6 +131,10 @@ public class FileTypeDetector
             case "jpg":
             case "jpeg":
                 return "jpg";
+
+            case ".pdf":
+            case "pdf":
+                return "pdf";
                 
             case "image":
             case "unknown":

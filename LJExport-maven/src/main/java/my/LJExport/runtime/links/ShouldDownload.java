@@ -77,6 +77,8 @@ public class ShouldDownload
         host = host.trim().toLowerCase();
         if (host.length() == 0)
             return false;
+        if (host.contains("*") || host.contains("?"))
+            return false;
 
         String path = xurl.getPath();
         if (path == null)
@@ -157,6 +159,8 @@ public class ShouldDownload
                 return false;
             host = host.trim().toLowerCase();
             if (host.length() == 0)
+                return false;
+            if (host.contains("*") || host.contains("?"))
                 return false;
 
             if (!Config.DownloadLivejournalImgPrx && host.equalsIgnoreCase("imgprx.livejournal.net"))

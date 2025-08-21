@@ -187,6 +187,9 @@ public class FileTypeDetector
 
             case "application/vnd.rar":
                 return "rar";
+                
+            case "message/news":
+                return "txt";
 
             default:
                 break;

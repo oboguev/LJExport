@@ -13,8 +13,9 @@ public class DemoFileTypeDetector
     {
         try
         {
-            if (Config.False)
+            if (Config.True)
             {
+                test("F:\\WINAPPS\\LJExport\\journals\\ru_history\\links\\www.personal.utulsa.edu\\~marc-carlson\\witchtrial\\general.txt");
                 test("c:\\@\\1.png");
                 test("c:\\@downloads\\test-octet-stream.bin");
 

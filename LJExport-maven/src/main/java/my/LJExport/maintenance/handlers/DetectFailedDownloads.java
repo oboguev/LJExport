@@ -199,10 +199,12 @@ public class DetectFailedDownloads extends MaintenanceHandler
                     {
                         trace(e.key);
                         trace(e.value);
+                        trace(rel2abs(e.value));
                         trace("----");
 
                         Util.out(e.key);
                         Util.out(e.value);
+                        Util.out(rel2abs(e.value));
                         Util.out("----");
                     }
                 }

@@ -49,6 +49,7 @@ public class Maintenance
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
     // private static final String Users = "colonelcassad,fritzmorgen,ivanov_petrov";
     // private static final String Users = "nationalism.org";
+    // private static final String Users = "ru_history";
 
     private static int ParallelismDefault = 20;
     private static int ParallelismMonthly = 5;

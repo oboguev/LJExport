@@ -1382,4 +1382,23 @@ public abstract class PageParserDirectBase
             return false;
         return MACRO_PREFIX_PATTERN.matcher(url).find();
     }
+
+    /* ============================================================== */
+
+    public boolean removeMemorialStatusNotice() throws Exception
+    {
+        boolean updated = false;
+
+        for (Node n : JSOUP.findElementsWithClass(pageRoot, "p", "b-bubble-alert"))
+        {
+            String text = JSOUP.nodeText(n);
+            if (text != null && Util.despace(text).contains("This journal has been placed in memorial status"))
+            {
+                JSOUP.removeNode(n);
+                updated = true;
+            }
+        }
+
+        return updated;
+    }
 }

@@ -122,7 +122,8 @@ public class Maintenance
             // --- then run MainRedownloadFailedLinks
             // do_users(Users, RemoveFailedDownloads.class);
             // do_users(Users, CheckMissingLinks.class);
-            do_users(Users, FixFileExtensions.class);
+            // do_users(Users, FixFileExtensions.class);
+            do_users(Users, RemoveMemorialStatusNotice.class);
             // do_users(Users, CheckMissingLinks.class);
             // do_users(Users, UnwrapAwayLinks.class);
             // --- then run MainDownloadLinks

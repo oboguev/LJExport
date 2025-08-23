@@ -21,7 +21,7 @@ public class MainMakeMonthlyPages
 {
     private static final String ALL_USERS = "<all>";
     private static final String AllUsersFromUser = null;
-    // private static final String AllUsersFromUser = "olegnemen";
+    // private static final String AllUsersFromUser = "shrek1";
 
     // private static final String Users = ALL_USERS;
     // private static String Users = "alex_vergin,asriyan,blog_10101,hokma,sergeytsvetkov";
@@ -31,10 +31,10 @@ public class MainMakeMonthlyPages
     // private static String Users = "elcour,meast_ru";
     // private static String Users = "udod99.lj-rossia-org";
     // private static String Users = "harmfulgrumpy.dreamwidth-org";
-    // private static String Users = "oboguev";
     // private static String Users = "m_yu_sokolov";
-    private static String Users = "a_bugaev";
-    // private static String Users = "sadalskij";
+    // private static String Users = "a_bugaev";
+    // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
+    private static String Users = "oboguev";
 
     public static void main(String[] args)
     {

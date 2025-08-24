@@ -13,6 +13,8 @@ import my.LJExport.runtime.html.JSOUP;
  */
 public class RemoveMemorialStatusNotice extends MaintenanceHandler
 {
+    private static final boolean DryRun = true;
+    
     public RemoveMemorialStatusNotice() throws Exception
     {
     }
@@ -46,9 +48,16 @@ public class RemoveMemorialStatusNotice extends MaintenanceHandler
 
         if (update)
         {
-            String html = JSOUP.emitHtml(parser.pageRoot);
-            Util.writeToFileSafe(fullHtmlFilePath, html);
-            supertrace("Updated HTML file " + fullHtmlFilePath);
+            if (DryRun)
+            {
+                supertrace("DRY RUN: not updating HTML file " + fullHtmlFilePath);
+            }
+            else
+            {
+                String html = JSOUP.emitHtml(parser.pageRoot);
+                Util.writeToFileSafe(fullHtmlFilePath, html);
+                supertrace("Updated HTML file " + fullHtmlFilePath);
+            }
         }
     }
 }

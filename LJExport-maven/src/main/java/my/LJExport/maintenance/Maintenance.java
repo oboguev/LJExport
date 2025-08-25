@@ -124,7 +124,8 @@ public class Maintenance
             // do_users(Users, RemoveFailedDownloads.class);
             // do_users(Users, CheckMissingLinks.class);
             // do_users(Users, FixFileExtensions.class);
-            do_users(Users, RemoveMemorialStatusNotice.class);
+            // do_users(Users, RemoveMemorialStatusNotice.class);
+            do_users(Users, AnalyzeEmbeddedFrames.class);
             // do_users(Users, CheckMissingLinks.class);
             // do_users(Users, UnwrapAwayLinks.class);
             // --- then run MainDownloadLinks

@@ -6,6 +6,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,50 +33,128 @@ public class LjToys
      *                  
      * @return Optional target URL (e.g., https://www.youtube.com/watch?v=HSXuNTwnxuI)
      */
-    public static Optional<String> extractTargetUrl(String ljToysUrl)
+    /**
+     * Extracts the "real" target from LiveJournal lj-toys embeds.
+     * Works with:
+     *  - Raw/encoded URLs (and HTML-escaped &amp;).
+     *  - source+vid in normal query params.
+     *  - Fallback: source/id mined from auth_token (e.g., ...&vk.com&165115840:HASH).
+     *  - mode=lj-map with nested url= (returns sanitized nested URL).
+     *
+     * Returns a structured Target with:
+     *   - source: youtube | vimeo | dailymotion | rutube | yandex | vk.com | map | unknown
+     *   - id:     provider-specific identifier (if present)
+     *   - url:    canonical public URL when we know a stable mapping (YouTube, Vimeo, etc.).
+     *
+     * Preferred input: the original encoded URL/string from HTML.
+     */
+    public static final class Target
+    {
+        public final String source; // e.g., "youtube", "vk.com", "yandex", "map", "unknown"
+        public final String id; // provider-specific id (may be null)
+        public final String url; // canonical external URL when buildable; else null
+        public final Map<String, String> extras; // useful leftovers, e.g., raw nested map URL
+
+        public Target(String source, String id, String url, Map<String, String> extras)
+        {
+            this.source = source;
+            this.id = id;
+            this.url = url;
+            this.extras = extras == null ? Collections.emptyMap() : Collections.unmodifiableMap(new LinkedHashMap<>(extras));
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Target{source=" + source + ", id=" + id + ", url=" + url + ", extras=" + extras + "}";
+        }
+    }
+
+    /** Public entry: tries all strategies and returns Optional.empty() when nothing usable is present. */
+    public static Optional<Target> extract(String ljToysUrl)
     {
         if (ljToysUrl == null || ljToysUrl.isEmpty())
             return Optional.empty();
 
-        // 1) Unescape common HTML entity for ampersand. (Avoid external deps.)
+        // 0) Unescape HTML '&amp;' but otherwise keep percent-encoding intact
         String unescaped = ljToysUrl.replace("&amp;", "&");
 
-        // 2) Build a URI safely. If it lacks a scheme, try to add http:// as a last resort.
         URI uri = toSafeUri(unescaped).orElseGet(() -> toSafeUri("http://" + unescaped).orElse(null));
         if (uri == null)
             return Optional.empty();
 
-        // 3) Parse query map using the "raw" query (so we control decoding)
         Map<String, String> q = parseQueryPreservingPlus(uri.getRawQuery());
 
-        // 4) First, try the straightforward way: source + vid
-        String source = decodePercent(q.get("source"));
-        String vid = decodePercent(q.get("vid"));
-
-        Optional<String> direct = buildFromSourceAndVid(source, vid);
-        if (direct.isPresent())
-            return direct;
-
-        // 5) Fallback: try to mine auth_token for "youtube" (or other) markers.
-        String authTokenRaw = q.get("auth_token"); // still percent-encoded
-        if (authTokenRaw != null)
+        // 1) Special tool: map embeds like ?mode=lj-map&url=<encoded target>
+        String mode = decodePreservePlus(q.get("mode"));
+        if ("lj-map".equalsIgnoreCase(mode))
         {
-            String authDecoded = decodePercentPreservePlus(authTokenRaw);
-
-            // The token often encodes '&' as %26; after decoding, we can split.
-            // Example snippet inside token: "...&youtube&HSXuNTwnxuI:hash..."
-            List<String> parts = splitAuthToken(authDecoded);
-
-            // Try to detect source + id inside token
-            Optional<String> fromToken = buildFromAuthToken(parts);
-            if (fromToken.isPresent())
-                return fromToken;
+            String nested = q.get("url"); // this is still percent-encoded (possibly multi-encoded)
+            String nestedDecoded = deepDecodePercent(nested, 3); // be generous but bounded
+            Optional<String> sanitized = sanitizeHttpUrl(nestedDecoded);
+            if (sanitized.isPresent())
+            {
+                return Optional.of(new Target("map", null, sanitized.get(), Map.of("rawNested", nestedDecoded)));
+            }
+            else
+            {
+                // even if not a clean URL, return something informative
+                return Optional.of(new Target("map", null, null, Map.of("rawNested", nestedDecoded)));
+            }
         }
 
+        // 2) Straight path: query params source + vid
+        String sourceQ = decodePreservePlus(q.get("source"));
+        String vidQ = decodePreservePlus(q.get("vid"));
+        if (notBlank(sourceQ) && notBlank(vidQ))
+        {
+            String canonical = buildCanonicalUrl(sourceQ, vidQ);
+            return Optional.of(new Target(sourceQ, vidQ, canonical, Map.of()));
+        }
+
+        // 3) Fallback: mine auth_token for &<source>&<id>[:signature]
+        String authTokenRaw = q.get("auth_token");
+        if (authTokenRaw != null)
+        {
+            String authDecoded = decodePreservePlus(authTokenRaw);
+            // Decode %26 to '&' etc., then split on '&'
+            List<String> parts = splitOnAmpersands(authDecoded);
+
+            // Look for known source marker followed by an ID-ish token
+            List<String> known = Arrays.asList("youtube", "vimeo", "dailymotion", "rutube", "yandex", "vk.com");
+            for (int i = 0; i < parts.size(); i++)
+            {
+                String p = parts.get(i);
+                String pl = p.toLowerCase(Locale.ROOT);
+                if (known.contains(pl) && i + 1 < parts.size())
+                {
+                    String idMaybeWithHash = parts.get(i + 1);
+                    String id = idMaybeWithHash.split(":", 2)[0]; // strip trailing ":signature"
+                    String canonical = buildCanonicalUrl(pl, id);
+                    return Optional.of(new Target(pl, id, canonical, Map.of("from", "auth_token")));
+                }
+            }
+
+            // YouTube heuristic: if "youtube" appears anywhere, try to find a token that looks like a YouTube id
+            if (parts.stream().anyMatch(s -> s.equalsIgnoreCase("youtube")))
+            {
+                for (String s : parts)
+                {
+                    String cand = s.split(":", 2)[0];
+                    if (cand.matches("^[a-zA-Z0-9_-]{6,}$"))
+                    {
+                        String canonical = buildCanonicalUrl("youtube", cand);
+                        return Optional.of(new Target("youtube", cand, canonical, Map.of("from", "auth_token-heuristic")));
+                    }
+                }
+            }
+        }
+
+        // 4) Nothing recognized
         return Optional.empty();
     }
 
-    // ------------------------- helpers -------------------------
+    // ---------------- helpers ----------------
 
     private static Optional<URI> toSafeUri(String s)
     {
@@ -89,149 +168,154 @@ public class LjToys
         }
     }
 
-    /**
-     * Parse query without treating '+' as space (browsers differ; lj-toys tokens may contain '+').
-     * We split on '&', then split each pair on the first '='.
-     * Values remain percent-encoded; caller decides how/what to decode.
-     */
+    // Do not turn '+' into space; treat it literally (lj-tokens may contain '+')
     private static Map<String, String> parseQueryPreservingPlus(String rawQuery)
     {
         Map<String, String> map = new LinkedHashMap<>();
         if (rawQuery == null || rawQuery.isEmpty())
             return map;
-
-        String[] pairs = rawQuery.split("&");
-        for (String p : pairs)
+        for (String p : rawQuery.split("&"))
         {
-            int eq = p.indexOf('=');
-            if (eq < 0)
-            {
-                // key with no value
-                if (!p.isEmpty())
-                    map.put(p, "");
-            }
+            if (p.isEmpty())
+                continue;
+            int i = p.indexOf('=');
+            if (i < 0)
+                map.put(p, "");
             else
-            {
-                String k = p.substring(0, eq);
-                String v = p.substring(eq + 1);
-                map.put(k, v);
-            }
+                map.put(p.substring(0, i), p.substring(i + 1));
         }
         return map;
     }
 
-    /**
-     * Percent-decode without converting '+' to space.
-     * URLDecoder always treats '+' as space, so we first protect literal '+'.
-     */
-    private static String decodePercentPreservePlus(String s)
+    private static String decodePreservePlus(String s)
     {
         if (s == null)
             return null;
-
-        // Protect literal '+'
         String protectedPlus = s.replace("+", "%2B");
         return URLDecoder.decode(protectedPlus, StandardCharsets.UTF_8);
     }
 
-    /**
-     * Normal percent-decoding (OK when value is known not to contain literal '+').
-     */
-    private static String decodePercent(String s)
+    /** Try decoding several times (bounded) because nested encodings happen in the wild. */
+    private static String deepDecodePercent(String s, int maxRounds)
     {
         if (s == null)
             return null;
-        return URLDecoder.decode(s, StandardCharsets.UTF_8);
+        String prev = s, cur = s;
+        for (int i = 0; i < maxRounds; i++)
+        {
+            cur = decodePreservePlus(prev);
+            if (cur.equals(prev))
+                break;
+            prev = cur;
+        }
+        return cur;
     }
 
-    private static Optional<String> buildFromSourceAndVid(String source, String vid)
+    private static boolean notBlank(String s)
     {
-        if (source == null || source.isEmpty() || vid == null || vid.isEmpty())
-            return Optional.empty();
+        return s != null && !s.isEmpty();
+    }
 
-        switch (source.toLowerCase(Locale.ROOT))
+    private static List<String> splitOnAmpersands(String authDecoded)
+    {
+        // First decode %xx, then split on '&'
+        String fullyDecoded = decodePreservePlus(authDecoded);
+        List<String> out = new ArrayList<>();
+        for (String part : fullyDecoded.split("&"))
+            if (!part.isEmpty())
+                out.add(part);
+        return out;
+    }
+
+    /** Build public URL when we know a stable mapping; else return null but keep source/id. */
+    private static String buildCanonicalUrl(String source, String id)
+    {
+        if (source == null || id == null)
+            return null;
+        String s = source.toLowerCase(Locale.ROOT);
+        switch (s)
         {
         case "youtube":
-            return Optional.of("https://www.youtube.com/watch?v=" + vid);
-            
+            return "https://www.youtube.com/watch?v=" + id;
         case "vimeo":
-            return Optional.of("https://vimeo.com/" + vid);
-            
+            return "https://vimeo.com/" + id;
         case "dailymotion":
-            // Dailymotion IDs typically map into /video/<id>
-            return Optional.of("https://www.dailymotion.com/video/" + vid);
-            
+            return "https://www.dailymotion.com/video/" + id;
         case "rutube":
-            return Optional.of("https://rutube.ru/video/" + vid);
-            
+            return "https://rutube.ru/video/" + id;
+
+        // Yandex & VK: lj-toys uses internal identifiers; external canonical URL is not stable/obvious.
+        // We still return source/id so the caller can decide how to handle.
+        case "yandex":
+        case "vk.com":
+            return null;
+
         default:
-            return Optional.empty();
+            return null;
         }
     }
 
-    private static List<String> splitAuthToken(String authDecoded)
+    /**
+     * Very light sanitation: accept only http/https URIs, discard javascript/data/etc.
+     * Optionally you can restrict host (e.g., to "www.openstreetmap.org").
+     */
+    private static Optional<String> sanitizeHttpUrl(String s)
     {
-        // After decode, it may contain embedded '&' segments.
-        // Split on '&', drop empties.
-        List<String> parts = new ArrayList<>();
-        for (String s : authDecoded.split("&"))
-        {
-            if (!s.isEmpty())
-                parts.add(s);
-        }
-        return parts;
-    }
-
-    private static Optional<String> buildFromAuthToken(List<String> parts)
-    {
-        if (parts.isEmpty())
+        if (s == null)
             return Optional.empty();
-
-        // We look for a known source keyword, then take the next token as the id (possibly "id:hash").
-        Set<String> known = new HashSet<>(Arrays.asList("youtube", "vimeo", "dailymotion", "rutube"));
-        for (int i = 0; i < parts.size(); i++)
+        try
         {
-            String p = parts.get(i).toLowerCase(Locale.ROOT);
-            if (known.contains(p) && i + 1 < parts.size())
-            {
-                String idMaybeWithHash = parts.get(i + 1);
-                String id = idMaybeWithHash.split(":", 2)[0]; // strip trailing :signature if present
-                return buildFromSourceAndVid(p, id);
-            }
-        }
+            URI u = new URI(s.trim());
+            String scheme = u.getScheme();
+            if (scheme == null)
+                return Optional.empty();
+            String low = scheme.toLowerCase(Locale.ROOT);
+            if (!low.equals("http") && !low.equals("https"))
+                return Optional.empty();
 
-        // As an extra lenient fallback: scan any token that looks like a YouTube id if "youtube" appears anywhere.
-        boolean mentionsYouTube = parts.stream().anyMatch(s -> s.equalsIgnoreCase("youtube"));
-        if (mentionsYouTube)
+            // Example: if you want to allow only OpenStreetMap:
+            // if (!"www.openstreetmap.org".equalsIgnoreCase(u.getHost())) return Optional.empty();
+
+            return Optional.of(u.toString());
+        }
+        catch (URISyntaxException e)
         {
-            Pattern ytId = Pattern.compile("^[a-zA-Z0-9_-]{6,}$");
-            for (String s : parts)
-            {
-                String candidate = s.split(":", 2)[0];
-                if (ytId.matcher(candidate).matches())
-                {
-                    return Optional.of("https://www.youtube.com/watch?v=" + candidate);
-                }
-            }
+            return Optional.empty();
         }
-
-        return Optional.empty();
     }
 
     // ------------------------- quick demo -------------------------
 
     public static void main(String[] args)
     {
-        String encoded = "http://l.lj-toys.com/?auth_token=sessionless%3A1451815200%3Aembedcontent%3A68622%26504%261%26%26youtube%26HSXuNTwnxuI%3Aa137fa00cb29c81b7cf4980691d39340254117cc&source=youtube&vid=HSXuNTwnxuI&moduleid=504&preview=&journalid=68622&noads=1";
-        String htmlEscaped = encoded.replace("&", "&amp;");
 
-        System.out.println(extractTargetUrl(encoded).orElse("<none>"));
-        System.out.println(extractTargetUrl(htmlEscaped).orElse("<none>"));
+        List<String> samples = List.of(
+                                       // 1) YouTube with explicit source+vid
+                                       "http://l.lj-toys.com/?auth_token=sessionless%3A1451815200%3Aembedcontent%3A68622%26504%261%26%26youtube%26HSXuNTwnxuI%3Aa137fa00cb29c81b7cf4980691d39340254117cc&source=youtube&vid=HSXuNTwnxuI&moduleid=504&preview=&journalid=68622&noads=1",
 
-        String decodedBad = "http://l.lj-toys.com/?auth_token=sessionless:1451815200:embedcontent:68622&504&1&&youtube&HSXuNTwnxuI:a137fa00cb29c81b7cf4980691d39340254117cc&source=youtube&vid=HSXuNTwnxuI&moduleid=504&preview=&journalid=68622&noads=1";
-        System.out.println(extractTargetUrl(decodedBad).orElse("<none>"));
-        
-        String encoded2 = "http://l.lj-toys.com/?auth_token=sessionless%3A1451815200%3Aembedcontent%3A68622%26504%261%26%26youtube%26HSXuNTwnxuI%3Aa137fa00cb29c81b7cf4980691d39340254117cc&amp;source=youtube&amp;vid=HSXuNTwnxuI&amp;moduleid=504&amp;preview=&amp;journalid=68622&amp;noads=1";
-        System.out.println(extractTargetUrl(encoded2).orElse("<none>"));
+                                       // 2) VK.com with explicit source+vid
+                                       "http://l.lj-toys.com/?auth_token=sessionless%3A1451808000%3Aembedcontent%3A68622%26456%261%26%26vk.com%26168410409%3A13bb74f34a53d0f83adb674df928c46779ba73b9&source=vk.com&vid=168410409&moduleid=456&preview=&journalid=68622&noads=1",
+
+                                       // 3) Yandex with explicit source+vid
+                                       "http://l.lj-toys.com/?auth_token=sessionless%3A1451818800%3Aembedcontent%3A68622%26116%261%26%26yandex%26lite%2Fx-garfield-x%2Fd29jy990gq.1003%2F%3Ada7c9da3daf3cdd57ee70abed4b012b548f15d93&source=yandex&vid=lite%2Fx-garfield-x%2Fd29jy990gq.1003%2F&moduleid=116&preview=&journalid=68622&noads=1",
+
+                                       // 4) Internal LJ toys (no external source marker, should return empty)
+                                       "http://l.lj-toys.com/?auth_token=sessionless%3A1451808000%3Aembedcontent%3A68622%262%261%26%3A4a0011cfad35470ec059ab2ac905afd3aebeec4c&moduleid=2&preview=&journalid=68622&noads=1",
+
+                                       // 5) lj-map embed
+                                       "http://l.lj-toys.com?mode=lj-map&url=http%3A%2F%2Fwww.openstreetmap.org%2F%3Flat%3D53.0%2C29.4%26lon%3D30.5%26zoom%3D10%26layers%3DM",
+
+                                       // 6)
+                                       "http://l.lj-toys.com/?auth_token=sessionless%3A1451815200%3Aembedcontent%3A68622%26504%261%26%26youtube%26HSXuNTwnxuI%3Aa137fa00cb29c81b7cf4980691d39340254117cc&source=youtube&vid=HSXuNTwnxuI&moduleid=504&preview=&journalid=68622&noads=1",
+                                       "http://l.lj-toys.com/?auth_token=sessionless:1451815200:embedcontent:68622&504&1&&youtube&HSXuNTwnxuI:a137fa00cb29c81b7cf4980691d39340254117cc&source=youtube&vid=HSXuNTwnxuI&moduleid=504&preview=&journalid=68622&noads=1",
+                                       "http://l.lj-toys.com/?auth_token=sessionless%3A1451815200%3Aembedcontent%3A68622%26504%261%26%26youtube%26HSXuNTwnxuI%3Aa137fa00cb29c81b7cf4980691d39340254117cc&amp;source=youtube&amp;vid=HSXuNTwnxuI&amp;moduleid=504&amp;preview=&amp;journalid=68622&amp;noads=1",
+                                       "https://l.lj-toys.com/?auth_token=sessionless%3A1756094400%3Aembedcontent%3A248287%262832%26%26%26youtube%26ojeAiI1G1i0%3Aa21662dfc4d31ff372c40f443c0fd5dcaace61a4&amp;source=youtube&amp;vid=ojeAiI1G1i0&amp;moduleid=2832&amp;preview=&amp;journalid=248287&amp;noads="
+
+        );
+        for (String s : samples)
+        {
+            System.out.println(extract(s).orElse(new Target("unknown", null, null, Map.of())));
+        }
+
     }
 }

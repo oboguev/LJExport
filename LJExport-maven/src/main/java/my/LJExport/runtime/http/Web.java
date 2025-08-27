@@ -945,7 +945,10 @@ public class Web
                 case 307:
                 case 308:
                     if (response.containsHeader("Location"))
-                        return response.getFirstHeader("Location").getValue();
+                    {
+                        String redir = response.getFirstHeader("Location").getValue();
+                        return UrlUtil.resolveURL(url, redir);
+                    }
                     // sometimes imgproxy responds with no Location header and XML reply body
                     // throw new RedirectLocationException("Redirect response received, but no Location header present");
                     reportRedirectError(statusCode, referer);

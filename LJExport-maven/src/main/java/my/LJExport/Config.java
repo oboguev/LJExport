@@ -29,7 +29,7 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "oboguev";
+    public static final String Users = "navalny";
     // public static final String Users = "roineroyce";
     // public static final String Users = "harmfulgrumpy.dreamwidth-org";
     // public static final String Users = "colonelcassad";
@@ -43,10 +43,10 @@ public class Config
     // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
-    // public static final YYYY_MM LoadSince = null;
-    // public static final YYYY_MM LoadTill = null;
-    public static final YYYY_MM LoadSince = new YYYY_MM(2025, 8);
-    public static final YYYY_MM LoadTill = new YYYY_MM(2025, 8);
+    public static final YYYY_MM LoadSince = null;
+    public static final YYYY_MM LoadTill = null;
+    // public static final YYYY_MM LoadSince = new YYYY_MM(2025, 8);
+    // public static final YYYY_MM LoadTill = new YYYY_MM(2025, 8);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;

@@ -71,7 +71,8 @@ public class Config
     public static final int WebPageReadingSocketTimeout = 7 * 60 * 1000;
 
     /* Number of threads to use */
-    public static int NWorkThreads = 70;
+    // public static int NWorkThreads = 70;
+    public static int NWorkThreads = 10; // for navalny 
     public static final int ThreadsPerCPU = 2;
     public static final int MaxThreads = 70;
     public static int MaxConnectionsPerRoute = 6; // max concurrent connections per route (i.e. per host)

@@ -340,6 +340,10 @@ public class SmartLinkDownloader
         if (src.startsWith("data:"))
         {
             EmbeddedDataURL ed = EmbeddedDataURL.decodeImgSrc(src);
+            if (ed == null)
+            {
+                return null;
+            }
             r = new Web.Response();
             r.code = 200;
             r.binaryBody = ed.data;

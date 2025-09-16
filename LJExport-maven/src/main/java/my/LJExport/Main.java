@@ -151,14 +151,19 @@ public class Main
                     user = user.trim().replace("\t", "").replace(" ", "");
                     if (user.equals(""))
                         continue;
+                    
                     if (nuser++ != 0)
                     {
                         out("");
-                        Web.shutdown();
+                        Main.linkDownloader.close();
                     }
+
                     do_user(user);
                 }
             }
+
+            do_logout();
+            Web.shutdown();
 
             if (proxyServer != null)
                 proxyServer.stop();
@@ -167,6 +172,16 @@ public class Main
         {
             System.err.println("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
+            emergency_logout();
+        }
+
+        try
+        {
+            Main.linkDownloader.close();
+        }
+        catch (Exception ex)
+        {
+            Util.noop();
         }
 
         out(">>> Time: " + Util.timeNow());
@@ -181,15 +196,6 @@ public class Main
             out("");
             out("             Alternatively use http://www." + Config.LoginSite + "/logout.bml.");
             out("");
-        }
-
-        try
-        {
-            Main.linkDownloader.close();
-        }
-        catch (Exception ex)
-        {
-            Util.noop();
         }
 
         playCompletionSound();
@@ -243,8 +249,6 @@ public class Main
             {
                 out(">>> Nothing (no pages) to load for user " + user);
                 new ReadProfile().readAll();
-                do_logout();
-                Web.shutdown();
                 return;
             }
 
@@ -254,18 +258,6 @@ public class Main
             Config.UnloadablePagesAllowed = nTotal / 100;
             Config.UnloadablePagesAllowed = Math.min(Config.UnloadablePagesAllowed, Config.MaxUnloadablePagesAllowed);
             Config.UnloadablePagesAllowed = Math.max(Config.UnloadablePagesAllowed, Config.MinUnloadablePagesAllowed);
-
-            switch (Config.Method)
-            {
-            case DIRECT:
-                break;
-            }
-
-            switch (Config.Method)
-            {
-            case DIRECT:
-                break;
-            }
 
             ActivityCounters.reset();
 
@@ -319,21 +311,12 @@ public class Main
             }
 
             ThreadsControl.shutdownAfterUser();
-
-            switch (Config.Method)
-            {
-            case DIRECT:
-                do_logout();
-                Web.shutdown();
-                break;
-            }
         }
         catch (Exception ex)
         {
             setAborting();
             System.err.println("*** Exception: " + ex.getMessage());
             ex.printStackTrace();
-            emergency_logout();
         }
         finally
         {

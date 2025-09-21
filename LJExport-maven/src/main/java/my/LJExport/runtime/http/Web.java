@@ -175,6 +175,12 @@ public class Web
         }
     }
 
+    public static synchronized void init_if_required() throws Exception
+    {
+        if (!initialized)
+            init();
+    }
+
     public static synchronized void init() throws Exception
     {
         if (initialized || initializing)

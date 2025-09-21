@@ -36,8 +36,10 @@ public class MainStylesToLocal
     // private static final String Users = "oboguev,pioneer_lj,1981dn,1981dn_dn,a_sevastianov,alex_vergin,andronic,bantaputu,bohemicus,chukcheev,d_v_sokolov,fluffyduck2,fritzmorgen,genby,jlm_taurus,kirovtanin,kornev,polit_ec,pushkinskij_dom,rigort,sadalskij,salery,sanches,sergeytsvetkov,takoe_nebo,tanya_mass,von_hoffmann,zhenziyou";
     // private static final String Users = "oboguev,pioneer_lj,alex_vergin,andronic,bantaputu,bohemicus,d_v_sokolov,fluffyduck2,fritzmorgen,genby,kirovtanin,kornev,rigort,salery,takoe_nebo,von_hoffmann,zhenziyou,hurtmann,banguerski_alex";
     // private static final String Users = "allin777";
-    private static final String Users = "oboguev";
     // private static final String Users = "udod99.lj-rossia-org";
+    // private static final String Users = "oboguev";
+    // private static final String Users = "navalny";
+    public static final String Users = "oboguev,pioneer_lj,pioneer_news,1981dn,1981dn_dn,alex_mashin,alex_vergin,andronic,banguerski_alex,bantaputu,blog_10101,bohemicus,chukcheev,genby,jlm_taurus,kirovtanin,man_with_dogs,sadalskij,salery,takoe_nebo,von_hoffmann,zhenziyou,fritzmorgen";
 
     private static final boolean ShowStylesProgress = true;
     private static final boolean DryRun = true;

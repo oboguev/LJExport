@@ -81,7 +81,8 @@ public class MainDownloadLinks
     // private static final String Users = "64vlad,a_bugaev,aabad,aillarionov,alexandrov_g,allemand1990,amfora,andrewmed,archives_ru,artemov_igor,avdant,avmalgin,brus,cherniaev,chukcheev,chuverin,clen_lj,colonelcassad";
     // private static final String Users = "dedushka,doppel_herz,elcour,emelind,f_f,guran_ussury,hurtmann,istoriograf,ivanov_petrov,karmakom,knigipoistcccp,kushnirenko,langobard,lesolub,ljequentin,loboff,lomonosov,meast_ru,michail,miguel_kud";
     // private static final String Users = "nep2,obsrvr,oldadmiral,otrubon,philtrius,pikitan,piligrim,pravoe_org,pushkinskij_dom,ritovita,rms1,rn_manifesto,roineroyce,ru_bezch,ru_history,schegloff,schloenski,sergeyhudiev";
-    private static final String Users = "shrek1,shulga,tbv,trufanov,tverdyi_znak,unilevel,vad_nes,vernost,vlad_cepesh,wiradhe,wyradhe,ystrek";
+    // private static final String Users = "shrek1,shulga,tbv,trufanov,tverdyi_znak,unilevel,vad_nes,vernost,vlad_cepesh,wiradhe,wyradhe,ystrek";
+    private static final String Users = "navalny";
 
     private static final YYYY_MM UserFromYyyyMm = null;
     // private static final YYYY_MM UserFromYyyyMm = new YYYY_MM(2014, 9);

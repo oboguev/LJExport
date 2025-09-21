@@ -156,6 +156,7 @@ public class Main
                     {
                         out("");
                         Main.linkDownloader.close();
+                        Web.shutdown();
                     }
 
                     do_user(user);

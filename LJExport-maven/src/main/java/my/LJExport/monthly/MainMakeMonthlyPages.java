@@ -34,7 +34,9 @@ public class MainMakeMonthlyPages
     // private static String Users = "m_yu_sokolov";
     // private static String Users = "a_bugaev";
     // private static final String Users = "udod99.lj-rossia-org,harmfulgrumpy.dreamwidth-org";
-    private static String Users = "krylov";
+    // private static String Users = "krylov";
+    // private static final String Users = "navalny";
+    public static final String Users = "oboguev,pioneer_lj,pioneer_news,1981dn,1981dn_dn,alex_mashin,alex_vergin,andronic,banguerski_alex,bantaputu,blog_10101,bohemicus,chukcheev,genby,jlm_taurus,kirovtanin,man_with_dogs,sadalskij,salery,takoe_nebo,von_hoffmann,zhenziyou,fritzmorgen";
 
     public static void main(String[] args)
     {

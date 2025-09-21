@@ -29,24 +29,24 @@ public class Config
     public static String LoginUser = "oboguev";
 
     /* List of journals to download (comma or space-separated) */
-    public static final String Users = "navalny";
     // public static final String Users = "roineroyce";
     // public static final String Users = "harmfulgrumpy.dreamwidth-org";
     // public static final String Users = "colonelcassad";
     // public static final String Users = "nikital2014,bash_m_ak,genby,olegnemen,eremei,afanarizm,jlm_taurus,corporatelie,wyradhe,nilsky_nikolay,von_hoffmann,a_samovarov,bantaputu,a_kaminsky,d_olshansky,rn_manifesto,ru_bezch,nep2,ego,hokma,laert,haritonov,1981dn,1981dn_dn,bantaputu,polit_ec,zhenziyou,a_bugaev,tor85,oboguev,morky,krylov,rms1,pioneer_lj,holmogor,miguel_kud,colonelcassad,galkovsky,_devol_";
     // public static final String Users = "alex_vergin,sergeytsvetkov,blog_10101"; // new-style journals 
+    public static final String Users = "oboguev,pioneer_lj,pioneer_news,1981dn,1981dn_dn,alex_mashin,alex_vergin,andronic,banguerski_alex,bantaputu,blog_10101,bohemicus,chukcheev,genby,jlm_taurus,kirovtanin,man_with_dogs,sadalskij,salery,takoe_nebo,von_hoffmann,zhenziyou,fritzmorgen";
 
     /* Directory path to store downloaded files */
     // public static final String DownloadRoot = "R:";
     // public static final String DownloadRoot = "/home/sergey/LJExport/journals";
-    public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
-    // public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
+    // public static /*final*/ String DownloadRoot = "C:\\LJExport-journals";
+    public static /*final*/ String DownloadRoot = "F:\\WINAPPS\\LJExport\\journals";
 
     /* Range of dates to download (inclusive) */
-    public static final YYYY_MM LoadSince = null;
-    public static final YYYY_MM LoadTill = null;
-    // public static final YYYY_MM LoadSince = new YYYY_MM(2025, 8);
-    // public static final YYYY_MM LoadTill = new YYYY_MM(2025, 8);
+    // public static final YYYY_MM LoadSince = null;
+    // public static final YYYY_MM LoadTill = null;
+    public static final YYYY_MM LoadSince = new YYYY_MM(2025, 8);
+    public static final YYYY_MM LoadTill = new YYYY_MM(2025, 9);
 
     /* Whether to reload files already existing at DownloadRoot */
     public static final boolean ReloadExistingFiles = false;

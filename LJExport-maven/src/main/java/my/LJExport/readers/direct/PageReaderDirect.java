@@ -68,7 +68,14 @@ public class PageReaderDirect implements PageReader, PageContentSource
         if (parser.pageRoot == null)
             parser.parseHtmlWithBaseUrl(page_final_url.get());
 
-        switch (parser.detectPageStyle())
+        String style = parser.detectPageStyle(true);
+        if (style == null)
+        {
+            Util.err("Skipping " + parser.rurl + " due to unsupported style");
+            return;
+        }
+        
+        switch (style)
         {
         case "classic":
             break;

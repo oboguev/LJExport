@@ -97,7 +97,7 @@ public class MaximSokolov
                 parser.pageSource = Util.readFileAsString(pageFileFullPath);
                 parser.parseHtml(parser.pageSource);
 
-                switch (parser.detectPageStyle())
+                switch (parser.detectPageStyle(true))
                 {
                 case "classic":
                     parser = new PageParserDirectClassic(parser);

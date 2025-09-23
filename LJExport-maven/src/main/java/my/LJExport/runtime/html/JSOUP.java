@@ -705,8 +705,15 @@ public class JSOUP
 
     public static Node parseHtml(String html, String baseUrl) throws Exception
     {
-        Document doc = (baseUrl == null) ? Jsoup.parse(html) : Jsoup.parse(html, baseUrl);
-        return doc;
+        try
+        {
+            Document doc = (baseUrl == null) ? Jsoup.parse(html) : Jsoup.parse(html, baseUrl);
+            return doc;
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
     }
 
     public static String emitHtml(Node pageRoot) throws Exception

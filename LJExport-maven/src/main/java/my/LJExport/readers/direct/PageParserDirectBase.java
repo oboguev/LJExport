@@ -689,7 +689,7 @@ public abstract class PageParserDirectBase
 
     /* ==================================================================================================================== */
 
-    public String detectPageStyle() throws Exception
+    public String detectPageStyle(boolean required) throws Exception
     {
         String style = null;
 
@@ -739,6 +739,9 @@ public abstract class PageParserDirectBase
 
             if (classes.contains("b-singlepost-body") && classes.contains("entry-content"))
                 style = detectPageStyle(style, "classic");
+
+            if (Util.False && classes.contains("aentry-post") && classes.size() == 1)
+                style = detectPageStyle(style, "classic");
         }
 
         for (Node n : JSOUP.findElements(pageRoot, "link"))
@@ -768,7 +771,7 @@ public abstract class PageParserDirectBase
             }
         }
 
-        if (style == null)
+        if (style == null && required)
             throw new Exception("Unable to detect page style (missing indicators)");
 
         return style;

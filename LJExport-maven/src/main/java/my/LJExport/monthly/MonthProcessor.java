@@ -112,7 +112,7 @@ public class MonthProcessor
             }
             else
             {
-                switch (parser.detectPageStyle())
+                switch (parser.detectPageStyle(true))
                 {
                 case "classic":
                     parser = new PageParserDirectClassic(parser);
